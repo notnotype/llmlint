@@ -15,3 +15,6 @@ Thumbs.db
 .idea/
 .vscode/
 *.swp
+
+# llmlint 评测 harness（consumer 代码 / 语料）：本地运行，绝不发布到公开 llmlint 仓
+evals/
