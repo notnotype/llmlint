@@ -1,0 +1,76 @@
+[
+  {
+    "id": "filler-word-actually",
+    "namespace": "filler",
+    "title": "无意义填充词",
+    "level": "medium",
+    "note": "这类词通常不增加实质内容，只是为了让语气显得缓和或自然。读取上下文判断是否为角色口癖；若删除后句意不变，建议直接删除。",
+    "detector": {
+      "type": "regex",
+      "targets": [
+        "其实|实际上|事实上"
+      ]
+    },
+    "action": {
+      "type": "replace",
+      "replacements": [
+        ""
+      ]
+    }
+  },
+  {
+    "id": "filler-worth-noting",
+    "namespace": "filler",
+    "title": "喉舌式开头",
+    "level": "medium",
+    "note": "这类开头先宣布重点再进入内容，常削弱陈述力度。",
+    "detector": {
+      "type": "regex",
+      "targets": [
+        "值得注意的是|需要指出的是|需要强调的是"
+      ]
+    },
+    "action": {
+      "type": "replace",
+      "replacements": [
+        ""
+      ]
+    }
+  },
+  {
+    "id": "filler-can-say",
+    "namespace": "filler",
+    "title": "弱化陈述词",
+    "level": "low",
+    "note": "这类词弱化了陈述的确定性，通常可以直接删除。",
+    "detector": {
+      "type": "regex",
+      "targets": [
+        "可以说|不得不说"
+      ]
+    },
+    "action": {
+      "type": "replace",
+      "replacements": [
+        ""
+      ]
+    }
+  },
+  {
+    "id": "filler-lets",
+    "namespace": "filler",
+    "title": "虚假邀请句式",
+    "level": "low",
+    "note": "“让我们”常用于制造共同探讨感，在正式写作中容易显得做作。",
+    "detector": {
+      "type": "regex",
+      "targets": [
+        "让我们"
+      ]
+    },
+    "action": {
+      "type": "suggest",
+      "message": "改为“我们”或直接陈述，避免虚假的邀请感。"
+    }
+  }
+]

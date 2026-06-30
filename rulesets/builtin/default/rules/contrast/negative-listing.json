@@ -1,0 +1,19 @@
+[
+  {
+    "id": "negative-listing",
+    "namespace": "contrast.negative-listing",
+    "title": "负向列举",
+    "level": "medium",
+    "note": "连续否定常用来制造揭示感，但很多时候读者不需要先看一串被否定的选项。",
+    "detector": {
+      "type": "regex",
+      "targets": [
+        "(?:不是|并非)[^。！？\\n]{0,24}(?:。|，|,|；|;)?\\s*(?:也不是|不是|并非)"
+      ]
+    },
+    "action": {
+      "type": "suggest",
+      "message": "如果否定项没有纠正常见误解，建议直接陈述真正判断。"
+    }
+  }
+]

@@ -1,0 +1,17 @@
+# 依赖 / Dependencies
+node_modules/
+.bun/
+
+# Agent 润色流程产物（check/fix 不写这里，是 skill workflow 的输出目录）
+# Agent polish workflow outputs (.agent/polish-input.md / polish-plan.md / polish-output.md ...)
+.agent/
+
+# 日志 / Logs
+*.log
+
+# 编辑器 / OS
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp

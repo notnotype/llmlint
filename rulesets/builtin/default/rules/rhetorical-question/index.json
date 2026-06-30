@@ -1,0 +1,19 @@
+[
+  {
+    "id": "rhetorical-setup",
+    "namespace": "rhetorical-question",
+    "title": "公式化设问",
+    "level": "medium",
+    "note": "公式化设问常用来制造悬念，但多数时候下一句可以直接陈述。",
+    "detector": {
+      "type": "regex",
+      "targets": [
+        "为什么这么说|这意味着什么|这说明什么|你有没有想过|试想一下|换个角度想|你可能会问"
+      ]
+    },
+    "action": {
+      "type": "suggest",
+      "message": "若问题没有真正打开思考空间，删掉设问并直接陈述答案。"
+    }
+  }
+]

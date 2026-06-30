@@ -1,0 +1,25 @@
+[
+  {
+    "id": "cn.collection.deepseek.decompose-to-understand",
+    "namespace": "collection.deepseek",
+    "title": "合集 3",
+    "level": "medium",
+    "enabled": true,
+    "source": {
+      "canonicalKey": "collection.deepseek\t\t拆解",
+      "importedFrom": ".agent/workspace/llmlint_rules"
+    },
+    "detector": {
+      "type": "regex",
+      "targets": [
+        "拆解"
+      ]
+    },
+    "action": {
+      "type": "replace",
+      "replacements": [
+        "理解"
+      ]
+    }
+  }
+]

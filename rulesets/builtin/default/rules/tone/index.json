@@ -1,0 +1,25 @@
+[
+  {
+    "id": "cn.tone.tone-placeholder",
+    "namespace": "tone",
+    "title": "语气",
+    "level": "medium",
+    "enabled": true,
+    "source": {
+      "canonicalKey": "tone\t\t(?:，|。)语气\\*(?:，|。)",
+      "importedFrom": ".agent/workspace/llmlint_rules"
+    },
+    "detector": {
+      "type": "regex",
+      "targets": [
+        "(?:，|。)语气\\*(?:，|。)"
+      ]
+    },
+    "action": {
+      "type": "replace",
+      "replacements": [
+        ""
+      ]
+    }
+  }
+]

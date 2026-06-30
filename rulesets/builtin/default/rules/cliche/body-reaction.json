@@ -1,0 +1,158 @@
+[
+  {
+    "id": "cn.cliche.body-reaction.controlling-gaze",
+    "namespace": "cliche.body-reaction",
+    "title": "嘴角与生理泪水",
+    "level": "medium",
+    "enabled": true,
+    "source": {
+      "canonicalKey": "cliche.body-reaction\t\t(?:探究|审视|掌控)(?:着)?(?:的|地)?(?:目光|眼神)?",
+      "importedFrom": ".agent/workspace/llmlint_rules"
+    },
+    "detector": {
+      "type": "regex",
+      "targets": [
+        "(?:探究|审视|掌控)(?:着)?(?:的|地)?(?:目光|眼神)?"
+      ]
+    },
+    "action": {
+      "type": "replace",
+      "replacements": [
+        "打量"
+      ]
+    }
+  },
+  {
+    "id": "cn.cliche.body-reaction.mouth-corner-lift-arc",
+    "namespace": "cliche.body-reaction",
+    "title": "嘴角与生理泪水",
+    "level": "medium",
+    "enabled": true,
+    "source": {
+      "canonicalKey": "cliche.body-reaction\t\t(?:嘴|唇)角挑起(?:了)?一(?:抹|丝|个)\\*(?:弧度|笑意)",
+      "importedFrom": ".agent/workspace/llmlint_rules"
+    },
+    "detector": {
+      "type": "regex",
+      "targets": [
+        "(?:嘴|唇)角挑起(?:了)?一(?:抹|丝|个)\\*(?:弧度|笑意)"
+      ]
+    },
+    "action": {
+      "type": "replace",
+      "replacements": [
+        "唇角微扬",
+        "浅浅勾唇",
+        "眼尾弯了",
+        "唇边漾起浅浅的笑意",
+        "唇角悄然上扬"
+      ]
+    }
+  },
+  {
+    "id": "cn.cliche.body-reaction.mouth-corner-smile-arc",
+    "namespace": "cliche.body-reaction",
+    "title": "嘴角与生理泪水",
+    "level": "medium",
+    "enabled": true,
+    "source": {
+      "canonicalKey": "cliche.body-reaction\t\t(?:嘴|唇)角勾起(?:了)?一(?:抹|丝|个)\\*(?:弧度|笑意)",
+      "importedFrom": ".agent/workspace/llmlint_rules"
+    },
+    "detector": {
+      "type": "regex",
+      "targets": [
+        "(?:嘴|唇)角勾起(?:了)?一(?:抹|丝|个)\\*(?:弧度|笑意)"
+      ]
+    },
+    "action": {
+      "type": "replace",
+      "replacements": [
+        "浅笑了一下",
+        "微微一笑",
+        "莞尔一笑",
+        "抿唇轻笑",
+        "唇角微扬",
+        "浅浅勾唇",
+        "眼尾弯了弯，唇边漾起浅浅的笑意",
+        "唇角悄然上扬",
+        "眉眼柔和，嘴角微微提起"
+      ]
+    }
+  },
+  {
+    "id": "cn.cliche.body-reaction.physiological-tears",
+    "namespace": "cliche.body-reaction",
+    "title": "嘴角与生理泪水",
+    "level": "medium",
+    "enabled": true,
+    "source": {
+      "canonicalKey": "cliche.body-reaction\t\t生理泪水",
+      "importedFrom": ".agent/workspace/llmlint_rules"
+    },
+    "detector": {
+      "type": "regex",
+      "targets": [
+        "生理泪水"
+      ]
+    },
+    "action": {
+      "type": "replace",
+      "replacements": [
+        "泪水"
+      ]
+    }
+  },
+  {
+    "id": "cn.cliche.body-reaction.smile-arc-comma-marked",
+    "namespace": "cliche.body-reaction",
+    "title": "嘴角与生理泪水",
+    "level": "medium",
+    "enabled": true,
+    "source": {
+      "canonicalKey": "cliche.body-reaction\t\t(?:唇|嘴)角\\*，\\*(?:弧度|笑意)\\*(?:，|。)",
+      "importedFrom": ".agent/workspace/llmlint_rules"
+    },
+    "detector": {
+      "type": "regex",
+      "targets": [
+        "(?:唇|嘴)角\\*，\\*(?:弧度|笑意)\\*(?:，|。)"
+      ]
+    },
+    "action": {
+      "type": "replace",
+      "replacements": [
+        "唇角微扬。",
+        "浅浅勾唇。",
+        "眼尾弯了弯, 唇边漾起浅浅的笑意。",
+        "唇角悄然上扬。"
+      ]
+    }
+  },
+  {
+    "id": "cn.cliche.body-reaction.smile-arc-marked",
+    "namespace": "cliche.body-reaction",
+    "title": "嘴角与生理泪水",
+    "level": "medium",
+    "enabled": true,
+    "source": {
+      "canonicalKey": "cliche.body-reaction\t\t(?:唇|嘴)角\\*(?:弧度|笑意)\\*(?:，|。)",
+      "importedFrom": ".agent/workspace/llmlint_rules"
+    },
+    "detector": {
+      "type": "regex",
+      "targets": [
+        "(?:唇|嘴)角\\*(?:弧度|笑意)\\*(?:，|。)"
+      ]
+    },
+    "action": {
+      "type": "replace",
+      "replacements": [
+        "唇角微扬。",
+        "浅浅勾唇。",
+        "眼尾弯了弯, 唇边漾起浅浅的笑意。",
+        "唇角悄然上扬。"
+      ]
+    }
+  }
+]

@@ -1,0 +1,140 @@
+[
+  {
+    "id": "cn.vocabulary.academic-anatomy.academic-body-terms",
+    "namespace": "vocabulary.academic-anatomy",
+    "title": "学术与解剖词汇",
+    "level": "medium",
+    "enabled": true,
+    "source": {
+      "canonicalKey": "vocabulary.academic-anatomy\t\t的?(?:肌肉|结构|频率)的?",
+      "importedFrom": ".agent/workspace/llmlint_rules"
+    },
+    "detector": {
+      "type": "regex",
+      "targets": [
+        "的?(?:肌肉|结构|频率)的?"
+      ]
+    },
+    "action": {
+      "type": "replace",
+      "replacements": [
+        ""
+      ]
+    }
+  },
+  {
+    "id": "cn.vocabulary.academic-anatomy.bony-feel",
+    "namespace": "vocabulary.academic-anatomy",
+    "title": "学术与解剖词汇",
+    "level": "medium",
+    "enabled": true,
+    "source": {
+      "canonicalKey": "vocabulary.academic-anatomy\t\t骨感",
+      "importedFrom": ".agent/workspace/llmlint_rules"
+    },
+    "detector": {
+      "type": "regex",
+      "targets": [
+        "骨感"
+      ]
+    },
+    "action": {
+      "type": "replace",
+      "replacements": [
+        ""
+      ]
+    }
+  },
+  {
+    "id": "cn.vocabulary.academic-anatomy.physiological-academic-label",
+    "namespace": "vocabulary.academic-anatomy",
+    "title": "学术与解剖词汇",
+    "level": "medium",
+    "enabled": true,
+    "source": {
+      "canonicalKey": "vocabulary.academic-anatomy\t\t(?:生理性|生理层面|生理本能)的?",
+      "importedFrom": ".agent/workspace/llmlint_rules"
+    },
+    "detector": {
+      "type": "regex",
+      "targets": [
+        "(?:生理性|生理层面|生理本能)的?"
+      ]
+    },
+    "action": {
+      "type": "replace",
+      "replacements": [
+        ""
+      ]
+    }
+  },
+  {
+    "id": "cn.vocabulary.academic-anatomy.regularity-term",
+    "namespace": "vocabulary.academic-anatomy",
+    "title": "学术与解剖词汇",
+    "level": "medium",
+    "enabled": true,
+    "source": {
+      "canonicalKey": "vocabulary.academic-anatomy\t\t规律",
+      "importedFrom": ".agent/workspace/llmlint_rules"
+    },
+    "detector": {
+      "type": "regex",
+      "targets": [
+        "规律"
+      ]
+    },
+    "action": {
+      "type": "replace",
+      "replacements": [
+        ""
+      ]
+    }
+  },
+  {
+    "id": "cn.vocabulary.academic-anatomy.rhythmic-regularity",
+    "namespace": "vocabulary.academic-anatomy",
+    "title": "学术与解剖词汇",
+    "level": "medium",
+    "enabled": true,
+    "source": {
+      "canonicalKey": "vocabulary.academic-anatomy\t\t极?有规律地",
+      "importedFrom": ".agent/workspace/llmlint_rules"
+    },
+    "detector": {
+      "type": "regex",
+      "targets": [
+        "极?有规律地"
+      ]
+    },
+    "action": {
+      "type": "replace",
+      "replacements": [
+        ""
+      ]
+    }
+  },
+  {
+    "id": "cn.vocabulary.academic-anatomy.sphincter",
+    "namespace": "vocabulary.academic-anatomy",
+    "title": "学术与解剖词汇",
+    "level": "medium",
+    "enabled": true,
+    "source": {
+      "canonicalKey": "vocabulary.academic-anatomy\t\t括约肌",
+      "importedFrom": ".agent/workspace/llmlint_rules"
+    },
+    "detector": {
+      "type": "regex",
+      "targets": [
+        "括约肌"
+      ]
+    },
+    "action": {
+      "type": "replace",
+      "replacements": [
+        ""
+      ]
+    }
+  }
+]

@@ -1,0 +1,163 @@
+[
+  {
+    "id": "cn.punctuation.dash.bracket-before-dash",
+    "namespace": "punctuation.dash",
+    "title": "破折号",
+    "level": "medium",
+    "enabled": true,
+    "source": {
+      "canonicalKey": "punctuation.dash\t\t「——",
+      "importedFrom": ".agent/workspace/llmlint_rules"
+    },
+    "detector": {
+      "type": "regex",
+      "targets": [
+        "「——"
+      ]
+    },
+    "action": {
+      "type": "replace",
+      "replacements": [
+        "「"
+      ]
+    }
+  },
+  {
+    "id": "cn.punctuation.dash.cn-quote-before-dash",
+    "namespace": "punctuation.dash",
+    "title": "破折号",
+    "level": "medium",
+    "enabled": true,
+    "source": {
+      "canonicalKey": "punctuation.dash\t\t“——",
+      "importedFrom": ".agent/workspace/llmlint_rules"
+    },
+    "detector": {
+      "type": "regex",
+      "targets": [
+        "“——"
+      ]
+    },
+    "action": {
+      "type": "replace",
+      "replacements": [
+        ""
+      ]
+    }
+  },
+  {
+    "id": "cn.punctuation.dash.dash-alone-to-comma",
+    "namespace": "punctuation.dash",
+    "title": "破折号",
+    "level": "medium",
+    "enabled": true,
+    "source": {
+      "canonicalKey": "punctuation.dash\t\t——",
+      "importedFrom": ".agent/workspace/llmlint_rules"
+    },
+    "detector": {
+      "type": "regex",
+      "targets": [
+        "——"
+      ]
+    },
+    "action": {
+      "type": "replace",
+      "replacements": [
+        "，"
+      ]
+    }
+  },
+  {
+    "id": "cn.punctuation.dash.dash-before-cn-bracket",
+    "namespace": "punctuation.dash",
+    "title": "破折号",
+    "level": "medium",
+    "enabled": true,
+    "source": {
+      "canonicalKey": "punctuation.dash\t\t——」",
+      "importedFrom": ".agent/workspace/llmlint_rules"
+    },
+    "detector": {
+      "type": "regex",
+      "targets": [
+        "——」"
+      ]
+    },
+    "action": {
+      "type": "replace",
+      "replacements": [
+        "」"
+      ]
+    }
+  },
+  {
+    "id": "cn.punctuation.dash.dash-before-cn-quote",
+    "namespace": "punctuation.dash",
+    "title": "破折号",
+    "level": "medium",
+    "enabled": true,
+    "source": {
+      "canonicalKey": "punctuation.dash\t\t——”",
+      "importedFrom": ".agent/workspace/llmlint_rules"
+    },
+    "detector": {
+      "type": "regex",
+      "targets": [
+        "——”"
+      ]
+    },
+    "action": {
+      "type": "replace",
+      "replacements": [
+        ""
+      ]
+    }
+  },
+  {
+    "id": "cn.punctuation.dash.dash-before-quote",
+    "namespace": "punctuation.dash",
+    "title": "破折号",
+    "level": "medium",
+    "enabled": true,
+    "source": {
+      "canonicalKey": "punctuation.dash\t\t——\"",
+      "importedFrom": ".agent/workspace/llmlint_rules"
+    },
+    "detector": {
+      "type": "regex",
+      "targets": [
+        "——\""
+      ]
+    },
+    "action": {
+      "type": "replace",
+      "replacements": [
+        ""
+      ]
+    }
+  },
+  {
+    "id": "cn.punctuation.dash.quote-before-dash",
+    "namespace": "punctuation.dash",
+    "title": "破折号",
+    "level": "medium",
+    "enabled": true,
+    "source": {
+      "canonicalKey": "punctuation.dash\t\t\"——",
+      "importedFrom": ".agent/workspace/llmlint_rules"
+    },
+    "detector": {
+      "type": "regex",
+      "targets": [
+        "\"——"
+      ]
+    },
+    "action": {
+      "type": "replace",
+      "replacements": [
+        ""
+      ]
+    }
+  }
+]

@@ -1,0 +1,21 @@
+[
+  {
+    "id": "emphasis-crutch",
+    "namespace": "emphasis-crutch",
+    "title": "强调拐杖",
+    "level": "medium",
+    "note": "这类词常用强调姿态替代具体内容。",
+    "detector": {
+      "type": "regex",
+      "targets": [
+        "毫无疑问|显而易见|毋庸置疑|请记住|重点是|关键在于|说到底|归根结底"
+      ]
+    },
+    "action": {
+      "type": "replace",
+      "replacements": [
+        ""
+      ]
+    }
+  }
+]

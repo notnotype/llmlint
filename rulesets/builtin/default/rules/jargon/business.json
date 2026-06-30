@@ -1,0 +1,36 @@
+[
+  {
+    "id": "business-jargon",
+    "namespace": "jargon.business",
+    "title": "商务黑话候选",
+    "level": "low",
+    "note": "这类词可能是准确术语，也可能遮住了具体动作。",
+    "detector": {
+      "type": "regex",
+      "targets": [
+        "赋能|抓手|闭环|沉淀|对齐|拉通|落地|链路|打法|颗粒度|方法论|心智|生态|组合拳|护城河|增长飞轮"
+      ]
+    },
+    "action": {
+      "type": "suggest",
+      "message": "判断目标读者是否需要这些术语；若术语遮住动作，改写为谁在何时做了什么。"
+    }
+  },
+  {
+    "id": "jargon-business-extra",
+    "namespace": "jargon.business",
+    "title": "商业黑话候选（扩展）",
+    "level": "low",
+    "note": "互联网/商业黑话，常遮住具体动作。判断目标读者是否需要；遮住动作时改写为谁在何时做了什么。引用或讨论该术语本身时保留。",
+    "detector": {
+      "type": "regex",
+      "targets": [
+        "助力|打造|场景化|降本增效|底层逻辑|顶层设计|体感|触达|透传|拉齐|痛点|商业模式"
+      ]
+    },
+    "action": {
+      "type": "suggest",
+      "message": "改写为具体动作：谁、在何时、对什么、做了什么、得到什么结果。"
+    }
+  }
+]

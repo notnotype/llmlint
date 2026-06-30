@@ -1,0 +1,82 @@
+import type {LintRuleRecord} from "../types";
+
+/**
+ * 过渡 / 总结废话（transition.summary）。
+ *
+ * 取材自 shuorenhua/references/phrases-zh.md「过渡废话」段（Tier 1）。
+ * 对应 avoid-ai-writing 的 generic-conclusion / transition。
+ * AI 喜欢用总结性过渡词把一句话再说一遍，正文默认展示（review=agent）。
+ * 已避开 emphasis-crutch 覆盖的「关键在于 / 说到底 / 归根结底」。
+ */
+export const TRANSITION_SUMMARY_RULES = [
+    {
+        "id": "transition-summary-conclude",
+        "namespace": "transition.summary",
+        "title": "总结式过渡",
+        "level": "medium",
+        "note": "「综上所述 / 总而言之 / 由此可见」式过渡，多数可删掉直接给结论。",
+        "detector": {
+            "type": "regex",
+            "targets": [
+                "综上所述|总而言之|总的来说|总体来看|由此可见|由此可以看出"
+            ]
+        },
+        "action": {"type": "replace", "replacements": [""]}
+    },
+    {
+        "id": "transition-summary-restate",
+        "namespace": "transition.summary",
+        "title": "重述式过渡",
+        "level": "medium",
+        "note": "「换句话说 / 简而言之」往往是把上一句再说一遍，说一遍就够了。",
+        "detector": {
+            "type": "regex",
+            "targets": [
+                "换句话说|简而言之|一言以蔽之|说白了就是"
+            ]
+        },
+        "action": {"type": "replace", "replacements": [""]}
+    },
+    {
+        "id": "transition-summary-vague-degree",
+        "namespace": "transition.summary",
+        "title": "模糊程度过渡",
+        "level": "low",
+        "note": "「某种程度上 / 从某种意义上说」用模糊限定弱化陈述，删掉或说清楚什么程度。",
+        "detector": {
+            "type": "regex",
+            "targets": [
+                "某种程度上|从某种意义上说?|在某种意义上"
+            ]
+        },
+        "action": {"type": "suggest", "message": "删掉模糊限定，或说清楚到底是什么程度、什么意义。"}
+    },
+    {
+        "id": "transition-summary-process",
+        "namespace": "transition.summary",
+        "title": "过程填充语",
+        "level": "low",
+        "note": "「在此过程中 / 在这个过程中」多数是填充，删掉句子更直接。",
+        "detector": {
+            "type": "regex",
+            "targets": [
+                "在此过程中|在这个过程中|在这一过程中"
+            ]
+        },
+        "action": {"type": "replace", "replacements": [""]}
+    },
+    {
+        "id": "transition-summary-essence",
+        "namespace": "transition.summary",
+        "title": "本质式拔高过渡",
+        "level": "low",
+        "note": "「本质上 / 核心在于 / 不言而喻」常用来给一句普通话戴帽子，多数可删掉直接说。",
+        "detector": {
+            "type": "regex",
+            "targets": [
+                "本质上(?:来说|来讲)?|核心在于|不言而喻"
+            ]
+        },
+        "action": {"type": "suggest", "message": "删掉拔高帽子，直接陈述判断本身。"}
+    }
+] satisfies LintRuleRecord[];
