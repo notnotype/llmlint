@@ -1,0 +1,22 @@
+{
+    "compilerOptions": {
+        "target": "ES2023",
+        "module": "ESNext",
+        "moduleResolution": "Bundler",
+        "baseUrl": ".",
+        "paths": {
+            "llmlint/*": ["skill/src/*"],
+            "evals/*": ["evals/lib/*"]
+        },
+        "strict": true,
+        "allowImportingTsExtensions": true,
+        "noEmit": true,
+        "types": ["bun-types", "node", "vitest/globals"],
+        "skipLibCheck": true
+    },
+    "include": [
+        "skill/**/*.ts",
+        "evals/**/*.ts",
+        "tests/**/*.ts"
+    ]
+}

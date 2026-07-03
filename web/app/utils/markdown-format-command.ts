@@ -1,0 +1,17 @@
+export type MarkdownFormatCommand =
+    | "bold"
+    | "italic"
+    | "strike"
+    | "code"
+    | "paragraph"
+    | "heading-1"
+    | "heading-2"
+    | "heading-3"
+    | "blockquote"
+    | "bullet-list"
+    | "ordered-list"
+    | "list-indent"
+    | "list-outdent"
+    | "code-block"
+    | "clear-formatting"
+    | "remove-link";

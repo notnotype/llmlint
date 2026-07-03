@@ -1,0 +1,167 @@
+{
+  "genre": "light-novel",
+  "plotId": "villain-loli",
+  "author": "十万水星",
+  "samples": [
+    {
+      "file": "reference-0001.md",
+      "role": "reference",
+      "referenceSource": "book-segment",
+      "charCount": 2024,
+      "title": "第1章 反派魔法少女",
+      "sourceFile": "转生反派萝莉，找茬魔法少女.epub"
+    },
+    {
+      "file": "reference-0002.md",
+      "role": "reference",
+      "referenceSource": "book-segment",
+      "charCount": 2187,
+      "title": "第2章 反派的日常就是找茬",
+      "sourceFile": "转生反派萝莉，找茬魔法少女.epub"
+    },
+    {
+      "file": "reference-0003.md",
+      "role": "reference",
+      "referenceSource": "book-segment",
+      "charCount": 2661,
+      "title": "第3章 蹲点是反派的必备技能",
+      "sourceFile": "转生反派萝莉，找茬魔法少女.epub"
+    },
+    {
+      "file": "reference-0004.md",
+      "role": "reference",
+      "referenceSource": "book-segment",
+      "charCount": 3396,
+      "title": "第4章 魔法少女的天敌",
+      "sourceFile": "转生反派萝莉，找茬魔法少女.epub"
+    },
+    {
+      "file": "reference-0005.md",
+      "role": "reference",
+      "referenceSource": "book-segment",
+      "charCount": 2530,
+      "title": "第5章 为生活奔波",
+      "sourceFile": "转生反派萝莉，找茬魔法少女.epub"
+    },
+    {
+      "file": "render-0001-deepseek-deepseek-v4-flash.md",
+      "role": "render",
+      "model": "deepseek/deepseek-v4-flash",
+      "difficulty": "raw",
+      "pairRef": "reference-0001.md",
+      "charCount": 3022
+    },
+    {
+      "file": "render-0001-xiaomi-token-plan-cn-mimo-v2.5-pro.md",
+      "role": "render",
+      "model": "xiaomi-token-plan-cn/mimo-v2.5-pro",
+      "difficulty": "raw",
+      "pairRef": "reference-0001.md",
+      "charCount": 3713
+    },
+    {
+      "file": "render-0001-doubao-doubao-seed-2-1-pro-260628.md",
+      "role": "render",
+      "model": "doubao/doubao-seed-2-1-pro-260628",
+      "difficulty": "raw",
+      "pairRef": "reference-0001.md",
+      "charCount": 2946
+    },
+    {
+      "file": "render-0002-deepseek-deepseek-v4-flash.md",
+      "role": "render",
+      "model": "deepseek/deepseek-v4-flash",
+      "difficulty": "raw",
+      "pairRef": "reference-0002.md",
+      "charCount": 2742
+    },
+    {
+      "file": "render-0002-xiaomi-token-plan-cn-mimo-v2.5-pro.md",
+      "role": "render",
+      "model": "xiaomi-token-plan-cn/mimo-v2.5-pro",
+      "difficulty": "raw",
+      "pairRef": "reference-0002.md",
+      "charCount": 2897
+    },
+    {
+      "file": "render-0002-doubao-doubao-seed-2-1-pro-260628.md",
+      "role": "render",
+      "model": "doubao/doubao-seed-2-1-pro-260628",
+      "difficulty": "raw",
+      "pairRef": "reference-0002.md",
+      "charCount": 709
+    },
+    {
+      "file": "render-0003-deepseek-deepseek-v4-flash.md",
+      "role": "render",
+      "model": "deepseek/deepseek-v4-flash",
+      "difficulty": "raw",
+      "pairRef": "reference-0003.md",
+      "charCount": 3609
+    },
+    {
+      "file": "render-0003-xiaomi-token-plan-cn-mimo-v2.5-pro.md",
+      "role": "render",
+      "model": "xiaomi-token-plan-cn/mimo-v2.5-pro",
+      "difficulty": "raw",
+      "pairRef": "reference-0003.md",
+      "charCount": 3859
+    },
+    {
+      "file": "render-0003-doubao-doubao-seed-2-1-pro-260628.md",
+      "role": "render",
+      "model": "doubao/doubao-seed-2-1-pro-260628",
+      "difficulty": "raw",
+      "pairRef": "reference-0003.md",
+      "charCount": 2198
+    },
+    {
+      "file": "render-0004-deepseek-deepseek-v4-flash.md",
+      "role": "render",
+      "model": "deepseek/deepseek-v4-flash",
+      "difficulty": "raw",
+      "pairRef": "reference-0004.md",
+      "charCount": 4402
+    },
+    {
+      "file": "render-0004-xiaomi-token-plan-cn-mimo-v2.5-pro.md",
+      "role": "render",
+      "model": "xiaomi-token-plan-cn/mimo-v2.5-pro",
+      "difficulty": "raw",
+      "pairRef": "reference-0004.md",
+      "charCount": 8241
+    },
+    {
+      "file": "render-0004-doubao-doubao-seed-2-1-pro-260628.md",
+      "role": "render",
+      "model": "doubao/doubao-seed-2-1-pro-260628",
+      "difficulty": "raw",
+      "pairRef": "reference-0004.md",
+      "charCount": 2
+    },
+    {
+      "file": "render-0005-deepseek-deepseek-v4-flash.md",
+      "role": "render",
+      "model": "deepseek/deepseek-v4-flash",
+      "difficulty": "raw",
+      "pairRef": "reference-0005.md",
+      "charCount": 5188
+    },
+    {
+      "file": "render-0005-xiaomi-token-plan-cn-mimo-v2.5-pro.md",
+      "role": "render",
+      "model": "xiaomi-token-plan-cn/mimo-v2.5-pro",
+      "difficulty": "raw",
+      "pairRef": "reference-0005.md",
+      "charCount": 3531
+    },
+    {
+      "file": "render-0005-doubao-doubao-seed-2-1-pro-260628.md",
+      "role": "render",
+      "model": "doubao/doubao-seed-2-1-pro-260628",
+      "difficulty": "raw",
+      "pairRef": "reference-0005.md",
+      "charCount": 3341
+    }
+  ]
+}

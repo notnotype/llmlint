@@ -1,0 +1,47 @@
+{
+    "$comment": "eval 配置模板（进 git，无密钥）。复制为 evals/eval.config.json（已 gitignore）后填真实 env/key。字段说明见 generator/eval-config.ts。modelsConfig/datasetsRoot 相对路径按 llmlint 仓根解析。",
+    "modelsConfig": "../neuro-book/workspace/.nbook/config.json",
+    "datasetsRoot": "C:/Users/notnotype/Documents/CodeRepository/GithubProjects/neuro-book/datasets/aigc-detection",
+    "renderModels": [
+        "deepseek/deepseek-v4-flash",
+        "xiaomi-token-plan-cn/mimo-v2.5-pro",
+        "doubao/doubao-seed-2-1-pro-260628",
+        "elysiver-gemini/gemini-3.1-pro",
+        "elysiver-glm/glm-5.2"
+    ],
+    "extractor": "xiaomi-token-plan-cn/mimo-v2.5-pro",
+    "prompts": {"brief": "brief-v2", "render": "render-v1"},
+    "retry": {"maxAttempts": 3, "backoffBaseMs": 1000},
+    "rateLimit": {
+        "default": {"concurrency": 1, "minIntervalMs": 0},
+        "perProvider": {
+            "anyrouter-claude": {"concurrency": 1, "minIntervalMs": 2000},
+            "anyrouter-codex": {"concurrency": 1, "minIntervalMs": 2000}
+        }
+    },
+    "cliProviders": {
+        "anyrouter-claude": {
+            "transport": "cli",
+            "command": ["claude", "-p", "--output-format", "json", "--model", "{MODEL}"],
+            "env": {"ANTHROPIC_BASE_URL": "https://anyrouter.top", "ANTHROPIC_AUTH_TOKEN": "<真实 key 只填在 gitignored 的 eval.config.json>"},
+            "models": ["claude-sonnet-4-5-20250929", "claude-opus-4-8", "claude-fable-5"],
+            "timeoutMs": 600000,
+            "output": "json"
+        },
+        "anyrouter-codex": {
+            "transport": "cli",
+            "command": ["codex", "exec", "--model", "{MODEL}", "-"],
+            "env": {"CODEX_API_KEY": "<真实 key 只填在 gitignored 的 eval.config.json>"},
+            "models": ["gpt-5.5"],
+            "timeoutMs": 600000,
+            "output": "text"
+        }
+    },
+    "detector": {
+        "kind": "hf-yuchuantian",
+        "endpoint": "predict_zh",
+        "chunkChars": 450,
+        "minIntervalMs": 1500,
+        "version": "hf-space-2026-07-03"
+    }
+}

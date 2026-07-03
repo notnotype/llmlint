@@ -1,0 +1,52 @@
+{
+  "genre": "gongdou",
+  "plotId": "zhenhuan-zhuan",
+  "author": "流潋紫",
+  "samples": [
+    {
+      "file": "reference-0001.md",
+      "role": "reference",
+      "referenceSource": "book-segment",
+      "charCount": 1466,
+      "title": "《后宫·甄嬛传》 浮云蔽白日（1）",
+      "sourceFile": "014-后宫·甄嬛传-流潋紫.epub",
+      "pubYear": 2007
+    },
+    {
+      "file": "reference-0002.md",
+      "role": "reference",
+      "referenceSource": "book-segment",
+      "charCount": 1299,
+      "title": "《后宫·甄嬛传》 浮云蔽白日(2)",
+      "sourceFile": "014-后宫·甄嬛传-流潋紫.epub",
+      "pubYear": 2007
+    },
+    {
+      "file": "reference-0003.md",
+      "role": "reference",
+      "referenceSource": "book-segment",
+      "charCount": 1528,
+      "title": "《后宫·甄嬛传》 浮云蔽白日(3)",
+      "sourceFile": "014-后宫·甄嬛传-流潋紫.epub",
+      "pubYear": 2007
+    },
+    {
+      "file": "reference-0004.md",
+      "role": "reference",
+      "referenceSource": "book-segment",
+      "charCount": 1415,
+      "title": "《后宫·甄嬛传》 浮云蔽白日(4)",
+      "sourceFile": "014-后宫·甄嬛传-流潋紫.epub",
+      "pubYear": 2007
+    },
+    {
+      "file": "reference-0005.md",
+      "role": "reference",
+      "referenceSource": "book-segment",
+      "charCount": 1468,
+      "title": "《后宫·甄嬛传》 浮云蔽白日(5)",
+      "sourceFile": "014-后宫·甄嬛传-流潋紫.epub",
+      "pubYear": 2007
+    }
+  ]
+}

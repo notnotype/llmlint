@@ -1,0 +1,148 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../server/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+enum UserRole {
+  admin
+  user
+}
+
+enum UserStatus {
+  active
+  disabled
+}
+
+enum IdentityRole {
+  reader
+  writer
+  editor
+  pro
+}
+
+enum Provenance {
+  human
+  ai
+  mixed
+  unknown
+}
+
+enum Visibility {
+  private
+  public
+}
+
+enum OriginKind {
+  user_upload
+  seeded_gold
+}
+
+enum TrueProvenance {
+  human
+  ai
+}
+
+enum JudgmentPhase {
+  pre_edit
+  post_edit
+}
+
+enum AnnotationTarget {
+  original
+  edit
+}
+
+model User {
+  id             Int              @id @default(autoincrement())
+  username       String           @unique
+  displayName    String           @default("")
+  passwordHash   String
+  role           UserRole         @default(user)
+  identityRole   IdentityRole     @default(reader)
+  status         UserStatus       @default(active)
+  sessionVersion Int              @default(1)
+  lastLoginAt    DateTime?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @default(now()) @updatedAt
+  texts          Text[]
+  judgments      DocJudgment[]
+  annotations    SpanAnnotation[]
+
+  @@index([role, status])
+  @@index([updatedAt])
+}
+
+model Text {
+  id                 String           @id @default(cuid(2))
+  body               String
+  charCount          Int
+  genre              String?
+  pov                String?
+  textType           String?
+  originKind         OriginKind       @default(user_upload)
+  declaredProvenance Provenance?
+  goldProvenance     TrueProvenance?
+  uploaderId         Int
+  visibility         Visibility       @default(private)
+  consent            Boolean
+  createdAt          DateTime         @default(now())
+  uploader           User             @relation(fields: [uploaderId], references: [id], onDelete: Cascade)
+  judgments          DocJudgment[]
+  annotations        SpanAnnotation[]
+  machineRecord      MachineRecord?
+
+  @@index([uploaderId, createdAt])
+  @@index([originKind])
+}
+
+model DocJudgment {
+  id             String        @id @default(cuid(2))
+  textId         String
+  userId         Int
+  aiFlavor       Int
+  wantReadOn     Int
+  phase          JudgmentPhase @default(pre_edit)
+  blind          Boolean       @default(true)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @default(now()) @updatedAt
+  text           Text          @relation(fields: [textId], references: [id], onDelete: Cascade)
+  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, textId, phase])
+  @@index([textId])
+}
+
+model SpanAnnotation {
+  id        String           @id @default(cuid(2))
+  textId    String
+  userId    Int
+  target    AnnotationTarget @default(original)
+  start     Int
+  end       Int
+  note      String
+  createdAt DateTime         @default(now())
+  text      Text             @relation(fields: [textId], references: [id], onDelete: Cascade)
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([textId, target])
+  @@index([userId, createdAt])
+}
+
+model MachineRecord {
+  id            String   @id @default(cuid(2))
+  textId        String   @unique
+  engineVersion String
+  hitsJson      String
+  editContent   String?
+  llmAiFlavor   Int?
+  llmNote       String?
+  scannedAt     DateTime @default(now())
+  createdAt     DateTime @default(now())
+  text          Text     @relation(fields: [textId], references: [id], onDelete: Cascade)
+
+  @@index([engineVersion])
+}

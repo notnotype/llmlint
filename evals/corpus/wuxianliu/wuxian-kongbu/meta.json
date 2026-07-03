@@ -1,0 +1,52 @@
+{
+  "genre": "wuxianliu",
+  "plotId": "wuxian-kongbu",
+  "author": "zhttty",
+  "samples": [
+    {
+      "file": "reference-0001.md",
+      "role": "reference",
+      "referenceSource": "book-segment",
+      "charCount": 4176,
+      "title": "第一章：醒来（上）",
+      "sourceFile": "026-无限恐怖-zhttty.txt",
+      "pubYear": 2007
+    },
+    {
+      "file": "reference-0002.md",
+      "role": "reference",
+      "referenceSource": "book-segment",
+      "charCount": 3862,
+      "title": "第一章：醒来（下）",
+      "sourceFile": "026-无限恐怖-zhttty.txt",
+      "pubYear": 2007
+    },
+    {
+      "file": "reference-0003.md",
+      "role": "reference",
+      "referenceSource": "book-segment",
+      "charCount": 4086,
+      "title": "第二章：死亡擦肩而过(上)",
+      "sourceFile": "026-无限恐怖-zhttty.txt",
+      "pubYear": 2007
+    },
+    {
+      "file": "reference-0004.md",
+      "role": "reference",
+      "referenceSource": "book-segment",
+      "charCount": 4096,
+      "title": "第二章：死亡擦肩而过（下）",
+      "sourceFile": "026-无限恐怖-zhttty.txt",
+      "pubYear": 2007
+    },
+    {
+      "file": "reference-0005.md",
+      "role": "reference",
+      "referenceSource": "book-segment",
+      "charCount": 4014,
+      "title": "第三章：活下去的欲望（上）",
+      "sourceFile": "026-无限恐怖-zhttty.txt",
+      "pubYear": 2007
+    }
+  ]
+}

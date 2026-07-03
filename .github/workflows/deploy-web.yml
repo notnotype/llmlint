@@ -1,0 +1,53 @@
+# 把检测网页构建成静态站并发布到 GitHub Pages。
+# 前置：仓库需公开（或 GitHub Pro），并在 Settings → Pages 把 Source 设为「GitHub Actions」。
+# 项目页部署在 https://<user>.github.io/llmlint/ 下，故传 NUXT_APP_BASE_URL=/llmlint/；
+# 若用户/组织页或自有域名（根路径），改成 "/"。
+name: Deploy web to GitHub Pages
+
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - "web/**"
+      - "skill/**"
+      - "evals/report/**"
+      - ".github/workflows/deploy-web.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# 同一时刻只跑一个 Pages 部署
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - name: Install web deps
+        working-directory: web
+        run: bun install
+      - name: Generate static site
+        working-directory: web
+        env:
+          NUXT_APP_BASE_URL: /llmlint/
+        run: bun run generate
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: web/.output/public
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

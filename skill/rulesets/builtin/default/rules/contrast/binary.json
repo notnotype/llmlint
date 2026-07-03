@@ -1,0 +1,82 @@
+[
+  {
+    "id": "not-but-structure",
+    "namespace": "contrast.binary",
+    "title": "二元对比结构",
+    "level": "medium",
+    "note": "“不是...而是...”可以被稳定识别为候选结构，是否生硬仍需要结合上下文判断。",
+    "detector": {
+      "type": "regex",
+      "targets": [
+        "不是[^。！？\\n，,；;]*?[，,；;]?\\s*而是"
+      ]
+    },
+    "action": {
+      "type": "suggest",
+      "message": "判断前半部分是否在纠正真实误解；若只是制造戏剧化，可直接陈述“而是”后的内容。"
+    }
+  },
+  {
+    "id": "not-x-is-y",
+    "namespace": "contrast.binary",
+    "title": "问题定义对比",
+    "level": "medium",
+    "note": "定义式反转可以被静态识别，是否多余需要结合上下文判断。",
+    "detector": {
+      "type": "regex",
+      "targets": [
+        "(?:问题|答案|关键)不是[^。！？\\n，,；;]*?[，,；;]?\\s*(?:是|在于)"
+      ]
+    },
+    "action": {
+      "type": "suggest",
+      "message": "判断前半部分是否在重新框定问题；若只是铺垫反转，改为直接陈述核心判断。"
+    }
+  },
+  {
+    "id": "cn.contrast.binary.binary-contrast-comma",
+    "namespace": "contrast.binary",
+    "title": "不是而是",
+    "level": "medium",
+    "enabled": true,
+    "source": {
+      "canonicalKey": "contrast.binary\t\t(?:，|。)\\*(?:既不是|是|不是)\\*，(?:是|不是|而是|只是)\\*，",
+      "importedFrom": "curated-cn-rule-samples"
+    },
+    "detector": {
+      "type": "regex",
+      "targets": [
+        "(?:，|。)\\*(?:既不是|是|不是)\\*，(?:是|不是|而是|只是)\\*，"
+      ]
+    },
+    "action": {
+      "type": "replace",
+      "replacements": [
+        ""
+      ]
+    }
+  },
+  {
+    "id": "cn.contrast.binary.binary-contrast-period",
+    "namespace": "contrast.binary",
+    "title": "不是而是",
+    "level": "medium",
+    "enabled": true,
+    "source": {
+      "canonicalKey": "contrast.binary\t\t(?:，|。)\\*(?:既不是|是|不是)\\*，(?:是|不是|而是|只是)\\*。",
+      "importedFrom": "curated-cn-rule-samples"
+    },
+    "detector": {
+      "type": "regex",
+      "targets": [
+        "(?:，|。)\\*(?:既不是|是|不是)\\*，(?:是|不是|而是|只是)\\*。"
+      ]
+    },
+    "action": {
+      "type": "replace",
+      "replacements": [
+        ""
+      ]
+    }
+  }
+]

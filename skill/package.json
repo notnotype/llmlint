@@ -1,0 +1,37 @@
+{
+    "name": "llmlint",
+    "version": "2.0.0",
+    "private": true,
+    "type": "module",
+    "description": "CLI and Agent Skill for linting LLM-generated Chinese text (runs on Bun or Node via tsx).",
+    "keywords": [
+        "llm",
+        "linter",
+        "chinese",
+        "nlp",
+        "ai-writing",
+        "prose",
+        "text-polishing",
+        "anti-ai-slop",
+        "bun",
+        "agent-skill"
+    ],
+    "author": "notnotype",
+    "license": "PolyForm-Noncommercial-1.0.0",
+    "homepage": "https://github.com/notnotype/llmlint#readme",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/notnotype/llmlint.git"
+    },
+    "bugs": {
+        "url": "https://github.com/notnotype/llmlint/issues"
+    },
+    "bin": {
+        "llmlint": "./bin/llmlint.ts"
+    },
+    "dependencies": {
+        "commander": "^14.0.2",
+        "picocolors": "^1.1.1",
+        "tinyglobby": "^0.2.15"
+    }
+}

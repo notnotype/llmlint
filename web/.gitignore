@@ -1,0 +1,21 @@
+# Nuxt / build
+.nuxt/
+.output/
+dist/
+.data/
+
+# 依赖
+node_modules/
+
+# 环境变量与本地 SQLite 库（含判定数据，绝不入库）
+.env
+data.db
+data.db-*
+
+# 构建期预烘产物（由 scripts/build-*.ts 生成，不入库）
+app/data/registry.json
+public/report.json
+
+# 日志 / OS
+*.log
+.DS_Store

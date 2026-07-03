@@ -1,0 +1,25 @@
+[
+  {
+    "id": "cn.paragraph.split-long.split-long-paragraph",
+    "namespace": "paragraph.split-long",
+    "title": "分割较长段落[选开]",
+    "level": "medium",
+    "enabled": false,
+    "source": {
+      "canonicalKey": "paragraph.split-long\t\t^([,，。.、!！?？~～…—“”\"‘’「」〖〗（）()0-9a-zA-Z\\u4e00-\\u9fff]{150,200}。)([\\u4e00-\\u9fff])",
+      "importedFrom": "curated-cn-rule-samples"
+    },
+    "detector": {
+      "type": "regex",
+      "targets": [
+        "^([,，。.、!！?？~～…—“”\"‘’「」〖〗（）()0-9a-zA-Z\\u4e00-\\u9fff]{150,200}。)([\\u4e00-\\u9fff])"
+      ]
+    },
+    "action": {
+      "type": "replace",
+      "replacements": [
+        "$1\\n\\n$2"
+      ]
+    }
+  }
+]

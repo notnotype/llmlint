@@ -1,0 +1,61 @@
+{
+  "genre": "wuxia",
+  "plotId": "tianlong-babu",
+  "author": "金庸",
+  "samples": [
+    {
+      "file": "reference-0001.md",
+      "role": "reference",
+      "referenceSource": "book-segment",
+      "charCount": 4064,
+      "title": "第一回　青衫磊落险峰行",
+      "sourceFile": "001-天龙八部-金庸.epub",
+      "pubYear": 1963
+    },
+    {
+      "file": "reference-0002.md",
+      "role": "reference",
+      "referenceSource": "book-segment",
+      "charCount": 4186,
+      "title": "第一回　青衫磊落险峰行",
+      "sourceFile": "001-天龙八部-金庸.epub",
+      "pubYear": 1963
+    },
+    {
+      "file": "reference-0003.md",
+      "role": "reference",
+      "referenceSource": "book-segment",
+      "charCount": 4052,
+      "title": "第一回　青衫磊落险峰行",
+      "sourceFile": "001-天龙八部-金庸.epub",
+      "pubYear": 1963
+    },
+    {
+      "file": "reference-0004.md",
+      "role": "reference",
+      "referenceSource": "book-segment",
+      "charCount": 4012,
+      "title": "第一回　青衫磊落险峰行",
+      "sourceFile": "001-天龙八部-金庸.epub",
+      "pubYear": 1963
+    },
+    {
+      "file": "reference-0005.md",
+      "role": "reference",
+      "referenceSource": "book-segment",
+      "charCount": 4086,
+      "title": "第一回　青衫磊落险峰行",
+      "sourceFile": "001-天龙八部-金庸.epub",
+      "pubYear": 1963
+    },
+    {
+      "file": "reference-0006.md",
+      "role": "reference",
+      "referenceSource": "book-segment",
+      "charCount": 2605,
+      "title": "第一回　青衫磊落险峰行",
+      "sourceFile": "001-天龙八部-金庸.epub",
+      "pubYear": 1963
+    }
+  ]
+}

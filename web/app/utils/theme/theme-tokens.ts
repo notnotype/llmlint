@@ -1,0 +1,70 @@
+export type LlmlintTheme = "system" | "light" | "dark" | "sepia";
+export type ResolvedLlmlintTheme = Exclude<LlmlintTheme, "system">;
+export type ThemeVars = Record<`--${string}`, string>;
+
+export const LLMLINT_THEME_HOST_CLASS = "llmlint-theme";
+
+export const themeTokens: Record<ResolvedLlmlintTheme, ThemeVars> = {
+    light: {
+        "--bg-main": "#f8fafc",
+        "--bg-panel": "#ffffff",
+        "--bg-subtle": "#f1f5f9",
+        "--bg-hover": "#e2e8f0",
+        "--bg-input": "#ffffff",
+        "--text-main": "#0f172a",
+        "--text-secondary": "#475569",
+        "--text-muted": "#94a3b8",
+        "--text-inverse": "#ffffff",
+        "--border-color": "#e2e8f0",
+        "--border-strong": "#cbd5e1",
+        "--accent-main": "#2563eb",
+        "--accent-bg": "rgba(37, 99, 235, 0.10)",
+        "--accent-text": "#1d4ed8",
+        "--status-success": "#059669",
+        "--status-warning": "#d97706",
+        "--status-danger": "#dc2626",
+        "--shadow-panel": "0 18px 60px rgba(15, 23, 42, 0.16)",
+    },
+    dark: {
+        "--bg-main": "#101114",
+        "--bg-panel": "#181a1f",
+        "--bg-subtle": "#20232a",
+        "--bg-hover": "#2a2e37",
+        "--bg-input": "#111318",
+        "--text-main": "#f4f4f5",
+        "--text-secondary": "#cbd5e1",
+        "--text-muted": "#71717a",
+        "--text-inverse": "#111827",
+        "--border-color": "#2f333d",
+        "--border-strong": "#454b57",
+        "--accent-main": "#f59e0b",
+        "--accent-bg": "rgba(245, 158, 11, 0.15)",
+        "--accent-text": "#fbbf24",
+        "--status-success": "#34d399",
+        "--status-warning": "#fbbf24",
+        "--status-danger": "#fb7185",
+        "--shadow-panel": "0 18px 60px rgba(0, 0, 0, 0.38)",
+    },
+    sepia: {
+        "--bg-main": "#f3ead7",
+        "--bg-panel": "#fff8e8",
+        "--bg-subtle": "#eadfc7",
+        "--bg-hover": "#dfcfad",
+        "--bg-input": "#fffdf5",
+        "--text-main": "#3d2f1e",
+        "--text-secondary": "#705c45",
+        "--text-muted": "#a8947a",
+        "--text-inverse": "#fffaf0",
+        "--border-color": "#d7c5a7",
+        "--border-strong": "#c3ab87",
+        "--accent-main": "#b45309",
+        "--accent-bg": "rgba(180, 83, 9, 0.12)",
+        "--accent-text": "#92400e",
+        "--status-success": "#4d7c0f",
+        "--status-warning": "#b45309",
+        "--status-danger": "#b91c1c",
+        "--shadow-panel": "0 18px 60px rgba(91, 63, 28, 0.18)",
+    },
+};
+
+export const themeVarKeys = Object.keys(themeTokens.light) as Array<keyof typeof themeTokens.light>;

@@ -1,0 +1,938 @@
+[
+  {
+    "id": "cn.cliche.awkward-fit-judgment",
+    "namespace": "cliche",
+    "title": "弱化抽象评断词",
+    "level": "medium",
+    "enabled": true,
+    "note": "弱化抽象评断词",
+    "source": {
+      "canonicalKey": "cliche\t\t格格不入",
+      "importedFrom": "curated-cn-rule-samples"
+    },
+    "detector": {
+      "type": "regex",
+      "targets": [
+        "格格不入"
+      ]
+    },
+    "action": {
+      "type": "replace",
+      "replacements": [
+        "不合拍"
+      ]
+    }
+  },
+  {
+    "id": "cn.cliche.blank-face",
+    "namespace": "cliche",
+    "title": "弱化模板化面部描写",
+    "level": "medium",
+    "enabled": true,
+    "note": "弱化模板化面部描写",
+    "source": {
+      "canonicalKey": "cliche\t\t面无表情",
+      "importedFrom": "curated-cn-rule-samples"
+    },
+    "detector": {
+      "type": "regex",
+      "targets": [
+        "面无表情"
+      ]
+    },
+    "action": {
+      "type": "replace",
+      "replacements": [
+        "没什么表情"
+      ]
+    }
+  },
+  {
+    "id": "cn.cliche.chest-rise",
+    "namespace": "cliche",
+    "title": "删身体局部糖精特写",
+    "level": "medium",
+    "enabled": true,
+    "note": "删身体局部糖精特写",
+    "source": {
+      "canonicalKey": "cliche\t\t胸腔起伏",
+      "importedFrom": "curated-cn-rule-samples"
+    },
+    "detector": {
+      "type": "regex",
+      "targets": [
+        "胸腔起伏"
+      ]
+    },
+    "action": {
+      "type": "replace",
+      "replacements": [
+        ""
+      ]
+    }
+  },
+  {
+    "id": "cn.cliche.chest-vibration",
+    "namespace": "cliche",
+    "title": "删身体局部糖精特写",
+    "level": "medium",
+    "enabled": true,
+    "note": "删身体局部糖精特写",
+    "source": {
+      "canonicalKey": "cliche\t\t胸膛震动",
+      "importedFrom": "curated-cn-rule-samples"
+    },
+    "detector": {
+      "type": "regex",
+      "targets": [
+        "胸膛震动"
+      ]
+    },
+    "action": {
+      "type": "replace",
+      "replacements": [
+        ""
+      ]
+    }
+  },
+  {
+    "id": "cn.cliche.cold-touch-shell",
+    "namespace": "cliche",
+    "title": "删触感模板壳",
+    "level": "medium",
+    "enabled": true,
+    "note": "删触感模板壳",
+    "source": {
+      "canonicalKey": "cliche\t\t冰凉的触感",
+      "importedFrom": "curated-cn-rule-samples"
+    },
+    "detector": {
+      "type": "regex",
+      "targets": [
+        "冰凉的触感"
+      ]
+    },
+    "action": {
+      "type": "replace",
+      "replacements": [
+        ""
+      ]
+    }
+  },
+  {
+    "id": "cn.cliche.contrast-summary",
+    "namespace": "cliche",
+    "title": "缩短总结式对比句",
+    "level": "medium",
+    "enabled": true,
+    "note": "缩短总结式对比句",
+    "source": {
+      "canonicalKey": "cliche\t\t形成鲜明对比",
+      "importedFrom": "curated-cn-rule-samples"
+    },
+    "detector": {
+      "type": "regex",
+      "targets": [
+        "形成鲜明对比"
+      ]
+    },
+    "action": {
+      "type": "replace",
+      "replacements": [
+        "反差很大"
+      ]
+    }
+  },
+  {
+    "id": "cn.cliche.cup-collision",
+    "namespace": "cliche",
+    "title": "删接触音效细节",
+    "level": "medium",
+    "enabled": true,
+    "note": "删接触音效细节",
+    "source": {
+      "canonicalKey": "cliche\t\t杯子碰撞",
+      "importedFrom": "curated-cn-rule-samples"
+    },
+    "detector": {
+      "type": "regex",
+      "targets": [
+        "杯子碰撞"
+      ]
+    },
+    "action": {
+      "type": "replace",
+      "replacements": [
+        ""
+      ]
+    }
+  },
+  {
+    "id": "cn.cliche.direct-mouth-arc",
+    "namespace": "cliche",
+    "title": "嘴角弧度改成直接动作",
+    "level": "medium",
+    "enabled": true,
+    "note": "嘴角弧度改成直接动作",
+    "source": {
+      "canonicalKey": "cliche\t\t(?:^|[，,])(?:嘴角|唇角)(?:轻轻|微微|缓缓)?(?:勾起|扬起|牵起)(?:一抹|一点|些微)?弧度(?=。)",
+      "importedFrom": "curated-cn-rule-samples"
+    },
+    "detector": {
+      "type": "regex",
+      "targets": [
+        "(?:^|[，,])(?:嘴角|唇角)(?:轻轻|微微|缓缓)?(?:勾起|扬起|牵起)(?:一抹|一点|些微)?弧度(?=。)"
+      ]
+    },
+    "action": {
+      "type": "replace",
+      "replacements": [
+        "笑了一下"
+      ]
+    }
+  },
+  {
+    "id": "cn.cliche.drained-face",
+    "namespace": "cliche",
+    "title": "弱化模板化面色描写",
+    "level": "medium",
+    "enabled": true,
+    "note": "弱化模板化面色描写",
+    "source": {
+      "canonicalKey": "cliche\t\t面色尽失",
+      "importedFrom": "curated-cn-rule-samples"
+    },
+    "detector": {
+      "type": "regex",
+      "targets": [
+        "面色尽失"
+      ]
+    },
+    "action": {
+      "type": "replace",
+      "replacements": [
+        "脸色发白"
+      ]
+    }
+  },
+  {
+    "id": "cn.cliche.gaze-emotion-container",
+    "namespace": "cliche",
+    "title": "删眼神情绪总结壳",
+    "level": "medium",
+    "enabled": true,
+    "note": "删眼神情绪总结壳",
+    "source": {
+      "canonicalKey": "cliche\t\t(?:眼神|眼底|眼中)(?:里)?(?:带着|满是|透着)[\\u4e00-\\u9fff]{1,8}(?=[，,。])",
+      "importedFrom": "curated-cn-rule-samples"
+    },
+    "detector": {
+      "type": "regex",
+      "targets": [
+        "(?:眼神|眼底|眼中)(?:里)?(?:带着|满是|透着)[\\u4e00-\\u9fff]{1,8}(?=[，,。])"
+      ]
+    },
+    "action": {
+      "type": "replace",
+      "replacements": [
+        ""
+      ]
+    }
+  },
+  {
+    "id": "cn.cliche.hand-appearance-shell",
+    "namespace": "cliche",
+    "title": "删手部外观修饰壳",
+    "level": "medium",
+    "enabled": true,
+    "note": "删手部外观修饰壳",
+    "source": {
+      "canonicalKey": "cliche\t\t骨节分明的",
+      "importedFrom": "curated-cn-rule-samples"
+    },
+    "detector": {
+      "type": "regex",
+      "targets": [
+        "骨节分明的"
+      ]
+    },
+    "action": {
+      "type": "replace",
+      "replacements": [
+        ""
+      ]
+    }
+  },
+  {
+    "id": "cn.cliche.hand-color-clause",
+    "namespace": "cliche",
+    "title": "删除句子中各处分句",
+    "level": "medium",
+    "enabled": true,
+    "note": "删除句子中各处分句",
+    "source": {
+      "canonicalKey": "cliche\t\t[,，。](?:手指|骨节|指[尖节甲骨]|指关节)[\\u4e00-\\u9fff、]+(?:白了?|[白青血颜]色)(?=[,，。]|[,，:：][“「\"])",
+      "importedFrom": "curated-cn-rule-samples"
+    },
+    "detector": {
+      "type": "regex",
+      "targets": [
+        "[,，。](?:手指|骨节|指[尖节甲骨]|指关节)[\\u4e00-\\u9fff、]+(?:白了?|[白青血颜]色)(?=[,，。]|[,，:：][“「\"])"
+      ]
+    },
+    "action": {
+      "type": "replace",
+      "replacements": [
+        ""
+      ]
+    }
+  },
+  {
+    "id": "cn.cliche.hand-whitening-detail",
+    "namespace": "cliche",
+    "title": "删手部泛白特写",
+    "level": "medium",
+    "enabled": true,
+    "note": "删手部泛白特写",
+    "source": {
+      "canonicalKey": "cliche\t\t[,，](?:手指|骨节|指[尖节甲]|指关节)[\\u4e00-\\u9fff]{1,20}(?:白|[白青血颜]色)(?=[,，。])",
+      "importedFrom": "curated-cn-rule-samples"
+    },
+    "detector": {
+      "type": "regex",
+      "targets": [
+        "[,，](?:手指|骨节|指[尖节甲]|指关节)[\\u4e00-\\u9fff]{1,20}(?:白|[白青血颜]色)(?=[,，。])"
+      ]
+    },
+    "action": {
+      "type": "replace",
+      "replacements": [
+        ""
+      ]
+    }
+  },
+  {
+    "id": "cn.cliche.knuckle-crack",
+    "namespace": "cliche",
+    "title": "删身体局部糖精特写",
+    "level": "medium",
+    "enabled": true,
+    "note": "删身体局部糖精特写",
+    "source": {
+      "canonicalKey": "cliche\t\t骨节作响",
+      "importedFrom": "curated-cn-rule-samples"
+    },
+    "detector": {
+      "type": "regex",
+      "targets": [
+        "骨节作响"
+      ]
+    },
+    "action": {
+      "type": "replace",
+      "replacements": [
+        ""
+      ]
+    }
+  },
+  {
+    "id": "cn.cliche.mid-sentence-summary",
+    "namespace": "cliche",
+    "title": "删句中总结腔",
+    "level": "medium",
+    "enabled": true,
+    "note": "删句中总结腔",
+    "source": {
+      "canonicalKey": "cliche\t\t取而代之的[,，]?是|[，,](?:带着|[尾声]音|语[气调])[\\u4e00-\\u9fff]*(?=。)",
+      "importedFrom": "curated-cn-rule-samples"
+    },
+    "detector": {
+      "type": "regex",
+      "targets": [
+        "取而代之的[,，]?是|[，,](?:带着|[尾声]音|语[气调])[\\u4e00-\\u9fff]*(?=。)"
+      ]
+    },
+    "action": {
+      "type": "replace",
+      "replacements": [
+        ""
+      ]
+    }
+  },
+  {
+    "id": "cn.cliche.mouth-corner-arc-cliche",
+    "namespace": "cliche",
+    "title": "删嘴角弧度套话",
+    "level": "medium",
+    "enabled": true,
+    "note": "删嘴角弧度套话",
+    "source": {
+      "canonicalKey": "cliche\t\t[,，]嘴[角唇][\\u4e00-\\u9fff、]{1,20}弧度(?=。)",
+      "importedFrom": "curated-cn-rule-samples"
+    },
+    "detector": {
+      "type": "regex",
+      "targets": [
+        "[,，]嘴[角唇][\\u4e00-\\u9fff、]{1,20}弧度(?=。)"
+      ]
+    },
+    "action": {
+      "type": "replace",
+      "replacements": [
+        ""
+      ]
+    }
+  },
+  {
+    "id": "cn.cliche.personified-telling",
+    "namespace": "cliche",
+    "title": "弱化拟人化元叙述",
+    "level": "medium",
+    "enabled": true,
+    "note": "弱化拟人化元叙述",
+    "source": {
+      "canonicalKey": "cliche\t\t都在诉说着",
+      "importedFrom": "curated-cn-rule-samples"
+    },
+    "detector": {
+      "type": "regex",
+      "targets": [
+        "都在诉说着"
+      ]
+    },
+    "action": {
+      "type": "replace",
+      "replacements": [
+        "都显出"
+      ]
+    }
+  },
+  {
+    "id": "cn.cliche.personified-telling-short",
+    "namespace": "cliche",
+    "title": "弱化拟人化元叙述",
+    "level": "medium",
+    "enabled": true,
+    "note": "弱化拟人化元叙述",
+    "source": {
+      "canonicalKey": "cliche\t\t都在诉说",
+      "importedFrom": "curated-cn-rule-samples"
+    },
+    "detector": {
+      "type": "regex",
+      "targets": [
+        "都在诉说"
+      ]
+    },
+    "action": {
+      "type": "replace",
+      "replacements": [
+        "都显出"
+      ]
+    }
+  },
+  {
+    "id": "cn.cliche.quote-meta-as-if",
+    "namespace": "cliche",
+    "title": "弱化引语元叙述壳",
+    "level": "medium",
+    "enabled": true,
+    "note": "弱化引语元叙述壳",
+    "source": {
+      "canonicalKey": "cliche\t\t仿佛在说",
+      "importedFrom": "curated-cn-rule-samples"
+    },
+    "detector": {
+      "type": "regex",
+      "targets": [
+        "仿佛在说"
+      ]
+    },
+    "action": {
+      "type": "replace",
+      "replacements": [
+        "在说"
+      ]
+    }
+  },
+  {
+    "id": "cn.cliche.quote-meta-like",
+    "namespace": "cliche",
+    "title": "弱化引语元叙述壳",
+    "level": "medium",
+    "enabled": true,
+    "note": "弱化引语元叙述壳",
+    "source": {
+      "canonicalKey": "cliche\t\t像是在说",
+      "importedFrom": "curated-cn-rule-samples"
+    },
+    "detector": {
+      "type": "regex",
+      "targets": [
+        "像是在说"
+      ]
+    },
+    "action": {
+      "type": "replace",
+      "replacements": [
+        "在说"
+      ]
+    }
+  },
+  {
+    "id": "cn.cliche.quote-meta-seems",
+    "namespace": "cliche",
+    "title": "弱化引语元叙述壳",
+    "level": "medium",
+    "enabled": true,
+    "note": "弱化引语元叙述壳",
+    "source": {
+      "canonicalKey": "cliche\t\t好像在说",
+      "importedFrom": "curated-cn-rule-samples"
+    },
+    "detector": {
+      "type": "regex",
+      "targets": [
+        "好像在说"
+      ]
+    },
+    "action": {
+      "type": "replace",
+      "replacements": [
+        "在说"
+      ]
+    }
+  },
+  {
+    "id": "cn.cliche.rough-fingertip-touch",
+    "namespace": "cliche",
+    "title": "删触感模板壳",
+    "level": "medium",
+    "enabled": true,
+    "note": "删触感模板壳",
+    "source": {
+      "canonicalKey": "cliche\t\t粗糙的指腹",
+      "importedFrom": "curated-cn-rule-samples"
+    },
+    "detector": {
+      "type": "regex",
+      "targets": [
+        "粗糙的指腹"
+      ]
+    },
+    "action": {
+      "type": "replace",
+      "replacements": [
+        ""
+      ]
+    }
+  },
+  {
+    "id": "cn.cliche.table-cup-touch",
+    "namespace": "cliche",
+    "title": "删接触音效细节",
+    "level": "medium",
+    "enabled": true,
+    "note": "删接触音效细节",
+    "source": {
+      "canonicalKey": "cliche\t\t杯底触碰桌面",
+      "importedFrom": "curated-cn-rule-samples"
+    },
+    "detector": {
+      "type": "regex",
+      "targets": [
+        "杯底触碰桌面"
+      ]
+    },
+    "action": {
+      "type": "replace",
+      "replacements": [
+        ""
+      ]
+    }
+  },
+  {
+    "id": "cn.cliche.teeth-clenched-speech",
+    "namespace": "cliche",
+    "title": "弱化咬字方式模板",
+    "level": "medium",
+    "enabled": true,
+    "note": "弱化咬字方式模板",
+    "source": {
+      "canonicalKey": "cliche\t\t从牙缝里挤出",
+      "importedFrom": "curated-cn-rule-samples"
+    },
+    "detector": {
+      "type": "regex",
+      "targets": [
+        "从牙缝里挤出"
+      ]
+    },
+    "action": {
+      "type": "replace",
+      "replacements": [
+        "说出"
+      ]
+    }
+  },
+  {
+    "id": "cn.cliche.teeth-pressed-speech",
+    "namespace": "cliche",
+    "title": "弱化咬字方式模板",
+    "level": "medium",
+    "enabled": true,
+    "note": "弱化咬字方式模板",
+    "source": {
+      "canonicalKey": "cliche\t\t从齿间挤出",
+      "importedFrom": "curated-cn-rule-samples"
+    },
+    "detector": {
+      "type": "regex",
+      "targets": [
+        "从齿间挤出"
+      ]
+    },
+    "action": {
+      "type": "replace",
+      "replacements": [
+        "说出"
+      ]
+    }
+  },
+  {
+    "id": "cn.cliche.throat-roll",
+    "namespace": "cliche",
+    "title": "删身体局部糖精特写",
+    "level": "medium",
+    "enabled": true,
+    "note": "删身体局部糖精特写",
+    "source": {
+      "canonicalKey": "cliche\t\t喉咙滚出",
+      "importedFrom": "curated-cn-rule-samples"
+    },
+    "detector": {
+      "type": "regex",
+      "targets": [
+        "喉咙滚出"
+      ]
+    },
+    "action": {
+      "type": "replace",
+      "replacements": [
+        ""
+      ]
+    }
+  },
+  {
+    "id": "cn.cliche.tongue-roll",
+    "namespace": "cliche",
+    "title": "删身体局部糖精特写",
+    "level": "medium",
+    "enabled": true,
+    "note": "删身体局部糖精特写",
+    "source": {
+      "canonicalKey": "cliche\t\t舌尖滚过",
+      "importedFrom": "curated-cn-rule-samples"
+    },
+    "detector": {
+      "type": "regex",
+      "targets": [
+        "舌尖滚过"
+      ]
+    },
+    "action": {
+      "type": "replace",
+      "replacements": [
+        ""
+      ]
+    }
+  },
+  {
+    "id": "cn.cliche.trailing-callus-clause",
+    "namespace": "cliche",
+    "title": "只删末尾或对话前置分句",
+    "level": "medium",
+    "enabled": true,
+    "note": "只删末尾或对话前置分句",
+    "source": {
+      "canonicalKey": "cliche\t\t[,，。][\\u4e00-\\u9fff、]+茧子?(?=。|[,，:：][“「\"])",
+      "importedFrom": "curated-cn-rule-samples"
+    },
+    "detector": {
+      "type": "regex",
+      "targets": [
+        "[,，。][\\u4e00-\\u9fff、]+茧子?(?=。|[,，:：][“「\"])"
+      ]
+    },
+    "action": {
+      "type": "replace",
+      "replacements": [
+        ""
+      ]
+    }
+  },
+  {
+    "id": "cn.cliche.trailing-mouth-arc-clause",
+    "namespace": "cliche",
+    "title": "只删末尾或对话前置分句",
+    "level": "medium",
+    "enabled": true,
+    "note": "只删末尾或对话前置分句",
+    "source": {
+      "canonicalKey": "cliche\t\t[,，](?:嘴角|勾)[\\u4e00-\\u9fff、]+弧度(?=。|[,，:：][“「\"])",
+      "importedFrom": "curated-cn-rule-samples"
+    },
+    "detector": {
+      "type": "regex",
+      "targets": [
+        "[,，](?:嘴角|勾)[\\u4e00-\\u9fff、]+弧度(?=。|[,，:：][“「\"])"
+      ]
+    },
+    "action": {
+      "type": "replace",
+      "replacements": [
+        ""
+      ]
+    }
+  },
+  {
+    "id": "cn.cliche.trailing-sensory-clause",
+    "namespace": "cliche",
+    "title": "只删末尾或对话前置分句",
+    "level": "medium",
+    "enabled": true,
+    "note": "只删末尾或对话前置分句",
+    "source": {
+      "canonicalKey": "cliche\t\t[,，。](?:带着|展现|喉咙|指甲|[尾声]音|语[气调])[\\u4e00-\\u9fff、]+(?=。|[,，:：][“「\"])",
+      "importedFrom": "curated-cn-rule-samples"
+    },
+    "detector": {
+      "type": "regex",
+      "targets": [
+        "[,，。](?:带着|展现|喉咙|指甲|[尾声]音|语[气调])[\\u4e00-\\u9fff、]+(?=。|[,，:：][“「\"])"
+      ]
+    },
+    "action": {
+      "type": "replace",
+      "replacements": [
+        ""
+      ]
+    }
+  },
+  {
+    "id": "cn.cliche.trailing-sound-clause",
+    "namespace": "cliche",
+    "title": "只删末尾或对话前置分句",
+    "level": "medium",
+    "enabled": true,
+    "note": "只删末尾或对话前置分句",
+    "source": {
+      "canonicalKey": "cliche\t\t[,，]发出[\\u4e00-\\u9fff“”\"、]+[声音响](?=。|[,，:：][“「\"])",
+      "importedFrom": "curated-cn-rule-samples"
+    },
+    "detector": {
+      "type": "regex",
+      "targets": [
+        "[,，]发出[\\u4e00-\\u9fff“”\"、]+[声音响](?=。|[,，:：][“「\"])"
+      ]
+    },
+    "action": {
+      "type": "replace",
+      "replacements": [
+        ""
+      ]
+    }
+  },
+  {
+    "id": "cn.cliche.trained-instinct",
+    "namespace": "cliche",
+    "title": "删机械化修饰",
+    "level": "medium",
+    "enabled": true,
+    "note": "删机械化修饰",
+    "source": {
+      "canonicalKey": "cliche\t\t训练有素的本能",
+      "importedFrom": "curated-cn-rule-samples"
+    },
+    "detector": {
+      "type": "regex",
+      "targets": [
+        "训练有素的本能"
+      ]
+    },
+    "action": {
+      "type": "replace",
+      "replacements": [
+        "本能"
+      ]
+    }
+  },
+  {
+    "id": "cn.cliche.vague-transition-phrase",
+    "namespace": "cliche",
+    "title": "删特定词汇或短语",
+    "level": "medium",
+    "enabled": true,
+    "note": "删特定词汇或短语",
+    "source": {
+      "canonicalKey": "cliche\t\t(?<!套)近乎于?|取而代之的[,，]?是",
+      "importedFrom": "curated-cn-rule-samples"
+    },
+    "detector": {
+      "type": "regex",
+      "targets": [
+        "(?<!套)近乎于?|取而代之的[,，]?是"
+      ]
+    },
+    "action": {
+      "type": "replace",
+      "replacements": [
+        ""
+      ]
+    }
+  },
+  {
+    "id": "cn.cliche.voice-emotion-container",
+    "namespace": "cliche",
+    "title": "删声音状态容器壳",
+    "level": "medium",
+    "enabled": true,
+    "note": "删声音状态容器壳",
+    "source": {
+      "canonicalKey": "cliche\t\t(?:声音|语气|语调)里(?:带着|满是|透着)[\\u4e00-\\u9fff]{1,8}(?=[，,。])",
+      "importedFrom": "curated-cn-rule-samples"
+    },
+    "detector": {
+      "type": "regex",
+      "targets": [
+        "(?:声音|语气|语调)里(?:带着|满是|透着)[\\u4e00-\\u9fff]{1,8}(?=[，,。])"
+      ]
+    },
+    "action": {
+      "type": "replace",
+      "replacements": [
+        ""
+      ]
+    }
+  },
+  {
+    "id": "cn.cliche.voice-evaluation-abrupt",
+    "namespace": "cliche",
+    "title": "删声音评价壳",
+    "level": "medium",
+    "enabled": true,
+    "note": "删声音评价壳",
+    "source": {
+      "canonicalKey": "cliche\t\t声音格外突兀",
+      "importedFrom": "curated-cn-rule-samples"
+    },
+    "detector": {
+      "type": "regex",
+      "targets": [
+        "声音格外突兀"
+      ]
+    },
+    "action": {
+      "type": "replace",
+      "replacements": [
+        ""
+      ]
+    }
+  },
+  {
+    "id": "cn.cliche.voice-evaluation-clear",
+    "namespace": "cliche",
+    "title": "删声音评价壳",
+    "level": "medium",
+    "enabled": true,
+    "note": "删声音评价壳",
+    "source": {
+      "canonicalKey": "cliche\t\t声音格外清晰",
+      "importedFrom": "curated-cn-rule-samples"
+    },
+    "detector": {
+      "type": "regex",
+      "targets": [
+        "声音格外清晰"
+      ]
+    },
+    "action": {
+      "type": "replace",
+      "replacements": [
+        ""
+      ]
+    }
+  },
+  {
+    "id": "cn.cliche.voice-travel-shell",
+    "namespace": "cliche",
+    "title": "删声音传递过程壳",
+    "level": "medium",
+    "enabled": true,
+    "note": "删声音传递过程壳",
+    "source": {
+      "canonicalKey": "cliche\t\t(?:(?:声音|话音|嗓音)[\\u4e00-\\u9fff]{0,4}回荡|(?:声音|话音|嗓音)(?:贴着|顺着)[\\u4e00-\\u9fff]{0,6}传来)(?=[，,。])",
+      "importedFrom": "curated-cn-rule-samples"
+    },
+    "detector": {
+      "type": "regex",
+      "targets": [
+        "(?:(?:声音|话音|嗓音)[\\u4e00-\\u9fff]{0,4}回荡|(?:声音|话音|嗓音)(?:贴着|顺着)[\\u4e00-\\u9fff]{0,6}传来)(?=[，,。])"
+      ]
+    },
+    "action": {
+      "type": "replace",
+      "replacements": [
+        ""
+      ]
+    }
+  },
+  {
+    "id": "cn.cliche.warm-palm-touch",
+    "namespace": "cliche",
+    "title": "删触感模板壳",
+    "level": "medium",
+    "enabled": true,
+    "note": "删触感模板壳",
+    "source": {
+      "canonicalKey": "cliche\t\t掌心干燥温热",
+      "importedFrom": "curated-cn-rule-samples"
+    },
+    "detector": {
+      "type": "regex",
+      "targets": [
+        "掌心干燥温热"
+      ]
+    },
+    "action": {
+      "type": "replace",
+      "replacements": [
+        ""
+      ]
+    }
+  },
+  {
+    "id": "cn.cliche.words-chewing",
+    "namespace": "cliche",
+    "title": "删身体局部糖精特写",
+    "level": "medium",
+    "enabled": true,
+    "note": "删身体局部糖精特写",
+    "source": {
+      "canonicalKey": "cliche\t\t咀嚼字句",
+      "importedFrom": "curated-cn-rule-samples"
+    },
+    "detector": {
+      "type": "regex",
+      "targets": [
+        "咀嚼字句"
+      ]
+    },
+    "action": {
+      "type": "replace",
+      "replacements": [
+        ""
+      ]
+    }
+  }
+]
