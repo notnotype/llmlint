@@ -1,0 +1,50 @@
+[
+  {
+    "id": "cn.punctuation.dedup.ellipsis-dash-tail",
+    "namespace": "punctuation.dedup",
+    "title": "省略号和破折号去尾巴",
+    "level": "medium",
+    "enabled": true,
+    "note": "省略号和破折号去尾巴",
+    "source": {
+      "canonicalKey": "punctuation.dedup\t\t(?<=……)[….]+|(?<=——)—+",
+      "importedFrom": "curated-cn-rule-samples"
+    },
+    "detector": {
+      "type": "regex",
+      "targets": [
+        "(?<=……)[….]+|(?<=——)—+"
+      ]
+    },
+    "action": {
+      "type": "replace",
+      "replacements": [
+        ""
+      ]
+    }
+  },
+  {
+    "id": "cn.punctuation.dedup.repeated-symbols",
+    "namespace": "punctuation.dedup",
+    "title": "连续符号去重",
+    "level": "medium",
+    "enabled": true,
+    "note": "连续符号去重",
+    "source": {
+      "canonicalKey": "punctuation.dedup\t\t([,，。~～!！?？])\\1+",
+      "importedFrom": "curated-cn-rule-samples"
+    },
+    "detector": {
+      "type": "regex",
+      "targets": [
+        "([,，。~～!！?？])\\1+"
+      ]
+    },
+    "action": {
+      "type": "replace",
+      "replacements": [
+        "$1"
+      ]
+    }
+  }
+]

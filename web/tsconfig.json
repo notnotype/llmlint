@@ -1,0 +1,9 @@
+{
+    // 继承 Nuxt 生成的 .nuxt/tsconfig.json。
+    // 覆写 vueCompilerOptions.plugins 为空：Nuxt 4.3 会往里写 `vue-router/volar/sfc-route-blocks`，
+    // 但 vue-router 4.6 已移除该子路径 → vue-tsc 加载失败崩溃。本项目不用 <route> 自定义块，置空即可。
+    "extends": "./.nuxt/tsconfig.json",
+    "vueCompilerOptions": {
+        "plugins": []
+    }
+}

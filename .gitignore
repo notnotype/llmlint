@@ -16,5 +16,11 @@ Thumbs.db
 .vscode/
 *.swp
 
-# llmlint 评测 harness（consumer 代码 / 语料）：本地运行，绝不发布到公开 llmlint 仓
-evals/
+# llmlint 评测临时输出。evals/ 本身是开发仓的一等资产，进入 git；但下面这些是可再生的跑分产物，不进 git（每跑必变、churn 大）。
+evals/fixture-report/
+evals/report/
+evals/tmp/
+evals/.cache/
+
+# eval 真实配置（可含 CLI provider 密钥）；模板 = evals/eval.config.example.json 进 git
+evals/eval.config.json

@@ -1,0 +1,255 @@
+[
+  {
+    "id": "cn.action-expression.calm-voice-shell",
+    "namespace": "action-expression",
+    "title": "动作与神态",
+    "level": "medium",
+    "enabled": true,
+    "source": {
+      "canonicalKey": "action-expression\t\t(?:声音依旧|很)?平稳(?:与|，)?",
+      "importedFrom": "curated-cn-rule-samples"
+    },
+    "detector": {
+      "type": "regex",
+      "targets": [
+        "(?:声音依旧|很)?平稳(?:与|，)?"
+      ]
+    },
+    "action": {
+      "type": "replace",
+      "replacements": [
+        ""
+      ]
+    }
+  },
+  {
+    "id": "cn.action-expression.explicit-teasing-tone",
+    "namespace": "action-expression",
+    "title": "动作与神态",
+    "level": "medium",
+    "enabled": true,
+    "source": {
+      "canonicalKey": "action-expression\t\t却?带有?明显的?戏谑",
+      "importedFrom": "curated-cn-rule-samples"
+    },
+    "detector": {
+      "type": "regex",
+      "targets": [
+        "却?带有?明显的?戏谑"
+      ]
+    },
+    "action": {
+      "type": "replace",
+      "replacements": [
+        ""
+      ]
+    }
+  },
+  {
+    "id": "cn.action-expression.flat-tone-shell",
+    "namespace": "action-expression",
+    "title": "动作与神态",
+    "level": "medium",
+    "enabled": true,
+    "source": {
+      "canonicalKey": "action-expression\t\t(?:用平淡的语气|语气平淡地)",
+      "importedFrom": "curated-cn-rule-samples"
+    },
+    "detector": {
+      "type": "regex",
+      "targets": [
+        "(?:用平淡的语气|语气平淡地)"
+      ]
+    },
+    "action": {
+      "type": "replace",
+      "replacements": [
+        ""
+      ]
+    }
+  },
+  {
+    "id": "cn.action-expression.force-white-knuckle",
+    "namespace": "action-expression",
+    "title": "动作与神态",
+    "level": "medium",
+    "enabled": true,
+    "source": {
+      "canonicalKey": "action-expression\t\t因为用力而泛白",
+      "importedFrom": "curated-cn-rule-samples"
+    },
+    "detector": {
+      "type": "regex",
+      "targets": [
+        "因为用力而泛白"
+      ]
+    },
+    "action": {
+      "type": "replace",
+      "replacements": [
+        "用力"
+      ]
+    }
+  },
+  {
+    "id": "cn.action-expression.mouth-corner-arc",
+    "namespace": "action-expression",
+    "title": "动作与神态",
+    "level": "medium",
+    "enabled": true,
+    "source": {
+      "canonicalKey": "action-expression\t\t(?:嘴|唇)角(?:弯出|翘起|扯出|勾起)一?个(?:好看的|没有温度的|的)?弧度",
+      "importedFrom": "curated-cn-rule-samples"
+    },
+    "detector": {
+      "type": "regex",
+      "targets": [
+        "(?:嘴|唇)角(?:弯出|翘起|扯出|勾起)一?个(?:好看的|没有温度的|的)?弧度"
+      ]
+    },
+    "action": {
+      "type": "replace",
+      "replacements": [
+        "嘴唇上扬"
+      ]
+    }
+  },
+  {
+    "id": "cn.action-expression.mouth-corner-hook",
+    "namespace": "action-expression",
+    "title": "动作与神态",
+    "level": "medium",
+    "enabled": true,
+    "source": {
+      "canonicalKey": "action-expression\t\t嘴角勾",
+      "importedFrom": "curated-cn-rule-samples"
+    },
+    "detector": {
+      "type": "regex",
+      "targets": [
+        "嘴角勾"
+      ]
+    },
+    "action": {
+      "type": "replace",
+      "replacements": [
+        "嘴唇上扬"
+      ]
+    }
+  },
+  {
+    "id": "cn.action-expression.rough-manner-modifier",
+    "namespace": "action-expression",
+    "title": "动作与神态",
+    "level": "medium",
+    "enabled": true,
+    "source": {
+      "canonicalKey": "action-expression\t\t(?:粗重|粗暴|疯狂)(?:的|地)?",
+      "importedFrom": "curated-cn-rule-samples"
+    },
+    "detector": {
+      "type": "regex",
+      "targets": [
+        "(?:粗重|粗暴|疯狂)(?:的|地)?"
+      ]
+    },
+    "action": {
+      "type": "replace",
+      "replacements": [
+        ""
+      ]
+    }
+  },
+  {
+    "id": "cn.action-expression.scream-to-whimper",
+    "namespace": "action-expression",
+    "title": "动作与神态",
+    "level": "medium",
+    "enabled": true,
+    "source": {
+      "canonicalKey": "action-expression\t\t尖叫",
+      "importedFrom": "curated-cn-rule-samples"
+    },
+    "detector": {
+      "type": "regex",
+      "targets": [
+        "尖叫"
+      ]
+    },
+    "action": {
+      "type": "replace",
+      "replacements": [
+        "呜咽"
+      ]
+    }
+  },
+  {
+    "id": "cn.action-expression.teasing-attitude-shell",
+    "namespace": "action-expression",
+    "title": "动作与神态",
+    "level": "medium",
+    "enabled": true,
+    "source": {
+      "canonicalKey": "action-expression\t\t(?:以|用)?戏谑的态度",
+      "importedFrom": "curated-cn-rule-samples"
+    },
+    "detector": {
+      "type": "regex",
+      "targets": [
+        "(?:以|用)?戏谑的态度"
+      ]
+    },
+    "action": {
+      "type": "replace",
+      "replacements": [
+        ""
+      ]
+    }
+  },
+  {
+    "id": "cn.action-expression.teasing-modifier",
+    "namespace": "action-expression",
+    "title": "动作与神态",
+    "level": "medium",
+    "enabled": true,
+    "source": {
+      "canonicalKey": "action-expression\t\t的?戏谑(?:的|地)?",
+      "importedFrom": "curated-cn-rule-samples"
+    },
+    "detector": {
+      "type": "regex",
+      "targets": [
+        "的?戏谑(?:的|地)?"
+      ]
+    },
+    "action": {
+      "type": "replace",
+      "replacements": [
+        ""
+      ]
+    }
+  },
+  {
+    "id": "cn.action-expression.tightly-clenched",
+    "namespace": "action-expression",
+    "title": "动作与神态",
+    "level": "medium",
+    "enabled": true,
+    "source": {
+      "canonicalKey": "action-expression\t\t绞得紧紧的",
+      "importedFrom": "curated-cn-rule-samples"
+    },
+    "detector": {
+      "type": "regex",
+      "targets": [
+        "绞得紧紧的"
+      ]
+    },
+    "action": {
+      "type": "replace",
+      "replacements": [
+        "绞紧"
+      ]
+    }
+  }
+]

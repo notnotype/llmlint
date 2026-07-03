@@ -1,0 +1,122 @@
+[
+  {
+    "id": "cn.modifier.measure.empty-measure-word",
+    "namespace": "modifier.measure",
+    "title": "删空泛量词壳",
+    "level": "medium",
+    "enabled": true,
+    "note": "删空泛量词壳",
+    "source": {
+      "canonicalKey": "modifier.measure\t\t一丝(?!不[挂苟])|(?<=[这那着被是以用有了和出起到过成为])(?:几分|一?股子?|[一某][种缕抹点道层声])",
+      "importedFrom": "curated-cn-rule-samples"
+    },
+    "detector": {
+      "type": "regex",
+      "targets": [
+        "一丝(?!不[挂苟])|(?<=[这那着被是以用有了和出起到过成为])(?:几分|一?股子?|[一某][种缕抹点道层声])"
+      ]
+    },
+    "action": {
+      "type": "replace",
+      "replacements": [
+        ""
+      ]
+    }
+  },
+  {
+    "id": "cn.modifier.measure.hand-callus-adjective",
+    "namespace": "modifier.measure",
+    "title": "删除手部形容词",
+    "level": "medium",
+    "enabled": true,
+    "note": "删除手部形容词",
+    "source": {
+      "canonicalKey": "modifier.measure\t\t(?:[布长带生][满有着]|满是)[薄老厚]茧的",
+      "importedFrom": "curated-cn-rule-samples"
+    },
+    "detector": {
+      "type": "regex",
+      "targets": [
+        "(?:[布长带生][满有着]|满是)[薄老厚]茧的"
+      ]
+    },
+    "action": {
+      "type": "replace",
+      "replacements": [
+        ""
+      ]
+    }
+  },
+  {
+    "id": "cn.modifier.measure.physiological-label",
+    "namespace": "modifier.measure",
+    "title": "删除生理/生理性",
+    "level": "medium",
+    "enabled": true,
+    "note": "删除生理/生理性",
+    "source": {
+      "canonicalKey": "modifier.measure\t\t生理性?(?=[眼泪]|快感)|生理(?:性|层面|本能)的",
+      "importedFrom": "curated-cn-rule-samples"
+    },
+    "detector": {
+      "type": "regex",
+      "targets": [
+        "生理性?(?=[眼泪]|快感)|生理(?:性|层面|本能)的"
+      ]
+    },
+    "action": {
+      "type": "replace",
+      "replacements": [
+        ""
+      ]
+    }
+  },
+  {
+    "id": "cn.modifier.measure.specific-measure-word",
+    "namespace": "modifier.measure",
+    "title": "删除特定量词",
+    "level": "medium",
+    "enabled": true,
+    "note": "删除特定量词",
+    "source": {
+      "canonicalKey": "modifier.measure\t\t一丝丝|一丝(?!不[挂苟])|(?<=[这那着被是以用有了和出起到过成为])(?:几分(?!钟)|一?股(?!沟)子?|[这那]种|[一某][种缕抹点道层声])(?=[\\u4e00-\\u9fff])",
+      "importedFrom": "curated-cn-rule-samples"
+    },
+    "detector": {
+      "type": "regex",
+      "targets": [
+        "一丝丝|一丝(?!不[挂苟])|(?<=[这那着被是以用有了和出起到过成为])(?:几分(?!钟)|一?股(?!沟)子?|[这那]种|[一某][种缕抹点道层声])(?=[\\u4e00-\\u9fff])"
+      ]
+    },
+    "action": {
+      "type": "replace",
+      "replacements": [
+        ""
+      ]
+    }
+  },
+  {
+    "id": "cn.modifier.measure.subject-measure-word",
+    "namespace": "modifier.measure",
+    "title": "删除主语的量词",
+    "level": "medium",
+    "enabled": true,
+    "note": "删除主语的量词",
+    "source": {
+      "canonicalKey": "modifier.measure\t\t(?<=^|[,，。])(?:一股(?!脑)子?|[这那]具)",
+      "importedFrom": "curated-cn-rule-samples"
+    },
+    "detector": {
+      "type": "regex",
+      "targets": [
+        "(?<=^|[,，。])(?:一股(?!脑)子?|[这那]具)"
+      ]
+    },
+    "action": {
+      "type": "replace",
+      "replacements": [
+        ""
+      ]
+    }
+  }
+]
