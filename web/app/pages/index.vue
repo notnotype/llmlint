@@ -334,10 +334,17 @@ watch(() => filteredIssues.value, (newIssues) => {
 
 <template>
     <div class="flex h-screen flex-col bg-[var(--bg-main)] text-[var(--text-main)]">
-        <AppHeader :registry="registry" />
+        <AppHeader />
         <main class="min-h-0 flex-1 overflow-hidden">
             <Transition name="home-state" mode="out-in">
-                <HomeInputPanel v-if="!isWorkbench" key="home" v-model="text" @submit="startCheck" />
+                <HomeInputPanel
+                    v-if="!isWorkbench"
+                    key="home"
+                    v-model="text"
+                    :active-regex-rules="registry.regexRules.length"
+                    :llm-rules="registry.llmRules.length"
+                    @submit="startCheck"
+                />
                 <div
                     v-else
                     key="workbench"
@@ -442,14 +449,30 @@ watch(() => filteredIssues.value, (newIssues) => {
 
 .analysis-grid {
     animation: analysis-grid-in 0.34s cubic-bezier(0.22, 1, 0.36, 1);
+    background: var(--bg-main);
 }
 
 .analysis-text-pane {
+    position: relative;
+    background: var(--bg-input);
     animation: analysis-text-dock 0.46s cubic-bezier(0.22, 1, 0.36, 1);
     transform-origin: center left;
 }
 
+.analysis-text-pane::before {
+    position: absolute;
+    z-index: 6;
+    top: 0;
+    left: 0;
+    width: 5rem;
+    height: 2px;
+    background: var(--accent-pop);
+    content: "";
+    pointer-events: none;
+}
+
 .analysis-report-pane {
+    background: var(--bg-main);
     animation: analysis-report-in 0.38s cubic-bezier(0.22, 1, 0.36, 1) 0.04s both;
 }
 
@@ -463,7 +486,8 @@ watch(() => filteredIssues.value, (newIssues) => {
     justify-content: center;
     border-left: 1px solid var(--border-color);
     border-right: 1px solid var(--border-color);
-    background: var(--bg-panel);
+    background-color: var(--bg-panel);
+    background-image: repeating-linear-gradient(135deg, transparent 0 4px, var(--manga-dot) 4px 5px);
     touch-action: none;
 }
 
@@ -522,6 +546,17 @@ watch(() => filteredIssues.value, (newIssues) => {
     to {
         opacity: 1;
         transform: translateX(0);
+    }
+}
+
+@media (max-width: 767px) {
+    .analysis-text-pane {
+        flex: 0 0 44%;
+    }
+
+    .analysis-report-pane {
+        flex: 1 1 56%;
+        overflow: hidden;
     }
 }
 

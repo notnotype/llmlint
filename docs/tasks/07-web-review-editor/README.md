@@ -2973,6 +2973,26 @@ Constraints:
 - Full `bun test tests/llmlint.test.ts` was attempted twice, but multiple CLI subprocess tests hit the existing 5s timeout / Windows temp cleanup instability after long-running `--help` / check commands. The failures cascaded after temporary directories were removed and are not treated as meaningful assertions for this change.
 - `cd web && bun run build` was attempted. Client and server bundles completed after existing Nuxt module-preload, VueUse pure annotation, and chunk-size warnings, but Nitro server packaging stayed silent for several minutes; the build process tree was stopped and this run is not claimed as pass.
 
+### 2026-07-14 source 删除 diff 重叠修复
+
+- 用户截图暴露 source 模式删除 diff 与当前正文叠字：`HighlightedTextarea` 为保持 textarea/背板字符布局一致，曾用绝对定位伪元素把完整旧文字绘制在删除锚点的正文基线上；删除文本比插入文本长时，旧文会覆盖当前正文。
+- source 模式现只在删除锚点上方显示红色 `-N` 字符数徽标，徽标不参与正文排版；完整旧文继续由 preview diff 和“复制当前修改上下文”承载。
+- 删除字符数从原始 diff 计算后传给背板，零宽字符即使转换成可读标签也仍按真实字符数计数。
+- 与原计划的出入：保留 source textarea 精确 offset 和不改变布局的约束，但撤回“基线显示完整删除文本”的视觉方案；该组合无法同时保证当前正文可读，改以紧凑锚点表达删除事件。
+- 验证：`cd web && bun run typecheck` 通过（保留已知 `vue-router/volar/sfc-route-blocks` 警告）；本地页面实际应用“从来不是被动响应，而是”候选替换，在用户截图同尺寸 `1534×465` 下生成 `-11` 徽标，旧文不再覆盖当前正文，页面无新增横向溢出；`390×844` 下同样无文档级横向溢出。
+
+### 2026-07-14 漫画工作台视觉对齐
+
+- `IssueCard` 接入新的主题表面、轻量漫画阴影与三色卡片顶线；工作台编辑区增加印刷强调线，分隔器改用漫画网点纹理。调整只作用于视觉层，规则分组、命中定位、候选修复和批注行为不变。
+- 窄屏工作台新增正文/报告明确高度比例，避免报告区的固有内容把正文编辑区压缩到 1px；390x844 实测为正文 334px、报告 425px，交互控件无横向越界。
+- `cd web && bun run typecheck` 通过；既有 `vue-router/volar/sfc-route-blocks` 提示仍保留。
+
+### 2026-07-14 规则卡片遗留样式清理
+
+- `IssueCard` 的修复按钮已经按 2026-07-03 约定改为常驻显示，旧的 focus/touch `opacity: 1` 规则不再改变任何计算样式，本轮删除这三段死 CSS。
+- 没有拆分或改写 `ReviewEditor`；严格未使用符号检查为 0，继续重构会触及审稿状态、Markdown offset 与快捷键合同，当前没有足够收益支撑该回归面。
+- `cd web && bun run typecheck` 通过；规则卡片定位、替换和报告渲染由同一浏览器工作台链路复验通过。
+
 ## TODO / Follow-ups
 
 - Improve rendered Markdown source-offset mapping after the first usable version is proven.

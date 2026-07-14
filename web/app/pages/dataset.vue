@@ -69,10 +69,15 @@ function sampleLabel(sample: DatasetSample): string {
     <div class="flex min-h-screen flex-col bg-[var(--bg-main)] text-[var(--text-main)]">
         <AppHeader />
         <!-- 未加载：拖放区 -->
-        <main v-if="!dataset" class="mx-auto w-full max-w-7xl flex-1 p-4">
-            <div class="py-16">
+        <main v-if="!dataset" class="mx-auto grid w-full max-w-7xl flex-1 items-center gap-8 px-4 py-7 sm:px-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(28rem,1.1fr)] lg:px-8 lg:py-10">
+            <section class="min-w-0">
+                <div class="mb-5 border-l-4 border-[var(--accent-signal)] pl-4">
+                    <div class="font-mono text-[10px] font-black text-[var(--accent-text)]">DATASET / D-01</div>
+                    <h1 class="mt-2 text-2xl font-black text-[var(--text-main)]">{{ t("header.dataset") }}</h1>
+                </div>
                 <DatasetDrop :error="error" @file="loadFile" />
-            </div>
+            </section>
+            <WorkspacePreview kind="dataset" />
         </main>
         <!-- 已加载：左树 + 右内容 -->
         <main v-else class="flex min-h-0 flex-1">

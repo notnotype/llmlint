@@ -122,7 +122,7 @@ flowchart TB
 | `humanMedianScore` / `aiMedianScore` | 两侧 docScore 中位 | 分离度直观量 | `detectorStat` |
 | `modelRanking` | 各模型 docScore 中位（越低越像人） | 选 writer 模型 / "最像人类"榜 | `modelRanking` |
 | `humanAgentFalseRate` | 人类侧 `review:agent` 桶命中率中位 | **误杀率**（检测器天花板） | `agentFireRate` |
-| `holdout`（可选） | train/test 两侧 AUC | 泛化校验（防过拟合，I7） | `splitHoldout` |
+| `holdout`（可选） | train/test 两侧 AUC | 泛化校验（防过拟合，I7）；只切至少存在一组有效 `pairRef` 的 reference/render 题组 | `splitHoldout` |
 
 **扫描边界**：纯扫描只覆盖 regex 规则（300+ 条，见 `report.activeRegexRules`）；少数 **LLM 规则**（如 `register-mismatch` = 机器人数据化）需 LLM judge，属第 ③ 层，本层标"需 LLM 通道，regex 不该管"。
 
@@ -139,7 +139,7 @@ flowchart TB
 meta.json: { genre, plotId, author?, samples: [
   { file, role:"reference"|"render"|"repair",
     model?, modelVersion?, styleKey?, difficulty?,
-    split?:"train"|"test", referenceSource?, pairRef?, charCount?, title?, sourceFile?, pubYear? }
+    promptVersion?, split?:"train"|"test", referenceSource?, pairRef?, charCount?, title?, sourceFile?, pubYear? }
 ]}
 ```
 
@@ -147,6 +147,9 @@ meta.json: { genre, plotId, author?, samples: [
 - 允许只有 reference 的题组（无 render 时只出人类侧命中率 + 误杀基线）。
 - `charCount` 消费侧自算（去空白码点），meta 里的仅供参考。
 - render 的 `pairRef` 必填才进逐章配对；缺 `pairRef` 的 render 不计入配对。
+- render 的 `promptVersion` 是样本级必填字段，也是 I8 的审计真相源；题组级 `promptVersion` 只能记录 brief 等生成上下文，不能替代逐 render 标记。
+- 生成报告前必须验证全部 render sample 的 `promptVersion`：任何缺失或多个版本并存都直接失败，不产出混合报告。
+- holdout 的题组数、train/test 切分、规则拟合集和两侧 AUC 都只使用至少存在一组 `render.pairRef → reference.file` 有效映射的题组；reference-only、render 无 `pairRef` 或悬空 `pairRef` 的题组不计入 holdout 门槛。
 
 ## 7. 三层评测路线图
 
@@ -182,5 +185,7 @@ meta.json: { genre, plotId, author?, samples: [
 - 模型榜（越低越像人）：doubao 14.71（⚠ 空/短 render 混淆，不可信）< deepseek 19.89 < mimo 24.91。
 - 最干净 AI tell：`cliche.baguwen.dialogue-colon-to-comma`（prevLift 7.67，逐章 10/10）。
 - holdout 未启用（2 题组 < 4，自动关闭）。
+
+**基线冻结（2026-07-14）**：当前观测到的 ROC-AUC `0.530` 来自 Task 08 扩量但 render 尚未补齐的中间语料状态，不是可发布基线，也不能据此得出规则质量结论。只有 Task 08 M3 外部检测器对照与 M4 小验证轮完成，且样本级 prompt 版本校验、配对 holdout 均通过后，才允许更新本节基线。
 
 完整每轮变更与出入见 [编年 walkthrough](../docs/tasks/03-llmlint-eval-harness/README.md)。

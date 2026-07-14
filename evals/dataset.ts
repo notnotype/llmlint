@@ -27,6 +27,7 @@ function main(): void {
         role: sample.role,
         model: sample.model,
         pairRef: sample.pairRef,
+        promptVersion: sample.promptVersion,
         difficulty: sample.difficulty,
         referenceSource: sample.referenceSource,
         charCount: sample.charCount,

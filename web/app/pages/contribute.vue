@@ -235,7 +235,7 @@ async function submitAnnotation(): Promise<void> {
 
 <template>
     <div class="flex h-screen flex-col bg-[var(--bg-main)] text-[var(--text-main)]">
-        <AppHeader :registry="registry" />
+        <AppHeader />
         <main v-if="step === 'draft'" class="min-h-0 flex-1 overflow-auto">
             <!-- 上传 + 盲评 -->
             <form class="mx-auto grid max-w-5xl gap-5 px-4 py-5" @submit.prevent="submitBlindReview">

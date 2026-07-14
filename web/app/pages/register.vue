@@ -62,9 +62,8 @@ onMounted(async () => {
 <template>
     <div class="flex min-h-screen flex-col bg-[var(--bg-main)] text-[var(--text-main)]">
         <AppHeader />
-        <main class="flex flex-1 items-center justify-center px-4 py-10">
-            <!-- 注册表单 -->
-            <form class="grid w-full max-w-sm gap-4 rounded-md border border-[var(--border-color)] bg-[var(--bg-panel)] p-5 shadow-sm" @submit.prevent="submit">
+        <AuthWorkspace mode="register">
+            <form class="auth-form grid w-full max-w-md gap-4 border border-[var(--border-strong)] bg-[var(--bg-input)] p-6" @submit.prevent="submit">
                 <div class="grid gap-1">
                     <h1 class="text-lg font-semibold">{{ t("auth.registerTitle") }}</h1>
                     <p class="text-sm text-[var(--text-muted)]">{{ t("auth.registerDescription") }}</p>
@@ -85,6 +84,6 @@ onMounted(async () => {
                 </button>
                 <NuxtLink class="text-center text-sm text-[var(--accent-main)] hover:underline" :to="`/login?redirect=${encodeURIComponent(redirectTarget())}`">{{ t("auth.loginLink") }}</NuxtLink>
             </form>
-        </main>
+        </AuthWorkspace>
     </div>
 </template>

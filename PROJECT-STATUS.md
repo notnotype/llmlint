@@ -135,9 +135,21 @@ Task 07 latest supplement addendum（2026-07-03）：source textarea menu 的 to
 
 Task 07 latest supplement addendum（2026-07-03）：修复入口发现性与规则元数据收紧：右侧 IssueCard 的可修复命中现在常驻显示 `能修复` / `候选修复` 标签和应用按钮，不再依赖 hover 才露出；规则 loader 会读取规则 JSON 中的 `review` / `fixability` 字段，并把最终 `fixability` 约束到真实能力，只有 `regex` + `replace` 可保持 `auto` / `candidate`，`suggest` / `llm` 规则会回落为 `manual`，避免 UI 把不可替换命中伪装成可修复。`cd web && bun run typecheck` 与聚焦单测通过；完整 llmlint 测试文件在 Windows 5s CLI 子进程超时下仍不稳定，本轮未声明全量通过；`web build` client/server 完成后 Nitro server packaging 长时间无输出，已停止该 build 进程树。
 
+Task 07 latest supplement addendum（2026-07-14）：修复 source 模式删除 diff 与当前正文重叠导致文字叠飞。旧方案为保持 textarea 精确布局，把整段删除文本绝对定位到正文基线；当删除文本长于插入文本时，两层文字必然互相覆盖。source 背板现改为在删除锚点上方显示紧凑的红色 `-N` 字符数徽标，不再绘制整段旧文；完整删除内容仍保留在 preview diff 与当前修改上下文中。实际方案与旧计划的出入：保留“不改变 textarea 布局”的硬约束，但放弃 source 基线上的全文删除线展示，优先保证正文可读性与定位稳定。`web:typecheck` 通过；本地浏览器在用户截图同尺寸 `1534×465` 与窄屏 `390×844` 验证无正文叠字或新增横向溢出。
+
+Task 05 latest supplement addendum（2026-07-14）：Web 完成二次元漫画编辑部 / 稿件扫描终端视觉改造。全局主题、Header、首页扫描台、历史分镜卡和工作台面板统一为青绿/珊瑚红/金色/炭黑/纸白印刷体系；保留工具第一屏和全部检测行为。移动端补充正文/报告高度约束，修复 390px 工作台正文被 flex 压到 1px 的问题。`web:typecheck` 通过；1280x720 light/dark 与 390x844 首页/工作台检查无横向溢出。原计划的原创角色位图因当前无可用内置图像生成工具未落地，本轮改用代码原生漫画视觉，未要求或读取用户 API Key。
+
+Task 07 latest supplement addendum（2026-07-14）：审稿工作台的规则卡片、编辑面板和分隔器对齐漫画主题，分别加入三色印刷顶线、主题表面和网点纹理；只改视觉，不改命中定位、替换、批注或审稿状态。窄屏正文/报告分区修复后在 390x844 下分别保有 334px/425px 可操作高度。
+
+Task 05 latest supplement addendum（2026-07-14）：前端代码整理完成。严格 `vue-tsc` 未发现未使用 TS，因此没有高风险拆分 `ReviewEditor`；首页桌面/移动历史卡片从两套重复模板收口为一套响应式模板，`HomeInputPanel` 从 641 行降到 529 行，并补齐历史入口、评分和展开按钮的原生语义。删除 `AppHeader` 未读取的 `registry` prop、IssueCard 死 opacity CSS 与 5 个无用途标记类。`web:typecheck` 通过；桌面历史收起/展开、评分、进入工作台及 390x844 无横向越界浏览器链路通过。
+
+Task 05/06 latest supplement addendum（2026-07-14）：Web 全站空态密度优化完成。报告页增加 AUC/PAIR/RULES 与规则信号报告预览，数据集页增加 corpus tree 与 reference/render 配对预览，首页无历史状态增加真实 registry 状态台（303 regex / 8 LLM）；登录/注册共用稿件审阅场景外壳，保留原认证逻辑。实际范围没有重做已足够密集的审稿工作台，而是集中填补报告、数据集、认证页和首页无历史状态。`web:typecheck` 通过；1280x720 深浅主题及 390x844 报告、数据集、登录/注册检查无横向溢出。为保护用户本地历史，没有清空现有记录去截图无历史状态台。
+
+Task 08 latest supplement addendum（2026-07-14）：评测可信度前置守门完成。render prompt 版本改为每个 sample 的必填审计字段；generator 新生成时写入版本，断点复用旧文件前强校验，score 对缺版本或跨版本直接退出且不产报告，成功报告记录唯一 `renderPromptVersion`。holdout 门槛、切分、规则 train 拟合与 AUC 只使用存在有效 `pairRef → reference.file` 映射的题组，reference-only/悬空配对不再虚增题组数。聚焦测试 12/12、根 typecheck、fixture AUC 1.000 通过；当前 corpus 28 个旧 render 缺样本级版本，已确认被守门拒绝。Task 08 M3/M4 完成前冻结新基线，当前 `0.530` 仅是 reference 已扩量但 render 未补齐的中间语料状态，不能作为规则质量结论。
+
 ## Known Follow-ups
 
-- **Task 08 Eval Pipeline Hardening（Planned，已锁计划待实现）**：环 ① 全链路硬化 + 小验证轮——calibre 批转 mobi + reference catalog 建模（`neuro-book/datasets/aigc-detection`，104 本）+ 2–3 新题组；generator 硬化（commander、eval 配置文件、prompt 版本化注册表守 I8、`claude -p`/`codex exec` CLI transport 走 stdin、per-provider 限流、token 预算预估/实报）；可换外部 AIGC 检测器 client（首个 = HF yuchuantian/AIGC_text_detector）+ sidecar 缓存 + report 外部对照节；跑 2–3 题组 × 4–6 模型（含 ≥1 CLI 模型）验证。计划与验收见 [docs/tasks/08-eval-pipeline-hardening/README.md](docs/tasks/08-eval-pipeline-hardening/README.md)。
+- **Task 08 Eval Pipeline Hardening（M1/M2 + 可信度守门已落地，M3/M4 待完成）**：已完成数据摄入底座、generator 硬化及样本级 prompt 版本/配对 holdout 守门；下一步是可换外部 AIGC 检测器 client（首个 = HF yuchuantian/AIGC_text_detector）+ sidecar 缓存 + report 外部对照节，再跑 2–3 题组 × 4–6 模型（含 ≥1 CLI 模型）小验证。M3/M4 完成前不发布新基线。计划与验收见 [docs/tasks/08-eval-pipeline-hardening/README.md](docs/tasks/08-eval-pipeline-hardening/README.md)。
 - **Eval M3**：更多题材/题组/模型 + 文风预设档 + holdout 切分；补稀疏规则 prevalence 口径、真 1:1 同 brief 配对；稳后把「规则体检表」正式交 Task 02 驱动规则修复。之后 M4（repair + critic）、M5（LLM 规则判别 + 产品成绩单 + 显形回归集）。
 - **规则质量**：真实中文小说上 human 桶候选偏多（破折号、比喻、泛词、量词），需按 eval lift 证据重审 review 路由与误伤治理。
 - **语料合规**：`evals/corpus/` 当前随私有仓保存；**转公开前必须先移除或 gitignore `evals/corpus/`，只留 fixture**。

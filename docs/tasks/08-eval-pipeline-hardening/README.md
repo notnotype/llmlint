@@ -29,7 +29,7 @@
 | catalog 位置 | **数据旁**：`C:\Users\notnotype\Documents\CodeRepository\GithubProjects\neuro-book\datasets\aigc-detection\catalog.json`（llmlint evals 通过配置 `datasetsRoot` 跨仓读） |
 | CLI 模型用途 | 默认只进 **render 面板**（造 AI 样本）；brief 抽取器仍用 HTTP 模型（CLI 慢、无 usage） |
 | detector 本轮角色 | **eval 侧批量打分 + 报告对照**（reference 应低分 / render 应高分 = 外部效度）；web 端接入后置 |
-| prompt 配置化 × I8 | prompt 做成**带版本 key 的 preset 注册表**（如 `brief-v2`、`render-v1`），meta.json 记 `promptVersion`；跨版本语料不混同一张报告 |
+| prompt 配置化 × I8 | prompt 做成**带版本 key 的 preset 注册表**（如 `brief-v2`、`render-v1`）；每个 render sample 记自己的 `promptVersion`，缺失或跨版本时 score 硬失败，不产混合报告 |
 
 ## 资源清单
 
@@ -57,7 +57,7 @@
 
 ### M2 generator 硬化
 - **配置双文件**：`evals/eval.config.json`（真实配置，**gitignore**，可含密钥/env 值）+ `evals/eval.config.example.json`（无密钥，进 git；沿仓里 `llmlint.config.example.ts` 先例）。内容：render 面板、抽取器、prompt 版本选择、per-provider 限流 + **重试参数（maxAttempts/退避基数——现为代码常量，提为配置）**、datasetsRoot、detector 配置（端点/chunkChars/聚合方式）。CLI flag > config > 默认。
-- `evals/generator/prompts.ts`：preset 注册表（现 brief.ts v2 / render.ts v1 的 prompt 移入，带版本 key）；meta.json 每题组记 `promptVersion {brief, render}`；score 端发现混版本→报错或分组警告（守 I8）。
+- `evals/generator/prompts.ts`：preset 注册表（现 brief.ts v2 / render.ts v1 的 prompt 移入，带版本 key）；每个 render sample 写 `promptVersion`，题组级字段只保留 brief/生成上下文；score 端发现缺版本或混版本直接失败（守 I8）。
 - CLI transport：provider 配置 `transport: "cli"` + 命令模板；**prompt 走 stdin 传**（brief 数千字中文，Windows 命令行参数长度/转义/编码都是坑，禁止拼进 argv）；**system+user 合并契约显式化**（统一 `system\n\n---\n\nuser` 或用 CLI 的 system-prompt flag，所有 CLI 模型同一规则，保证与 HTTP 模型输入等价、byModel 可比）；并发固定 1；**claude 通道用 `--output-format json` 拿真实 usage**（codex 无则标"估算"）。插入现有 retry seam。
 - 限流：per-provider `{concurrency, minIntervalMs}` 信号量（简单实现即可，别引重库）。
 - token 预算 `evals/generator/budget.ts`：`generate --estimate` 干跑 = 按 brief 字数 + targetChars 折算（初始系数中文 ≈ chars/1.5）× 待生成篇数，分模型汇总打印；真跑后实报 = usage 累计；**自校准：每轮真跑后记录 estimate vs actual 比率，下轮估算用实测比率修正系数**。先只报 token 数，换算钱后置。
@@ -81,6 +81,15 @@
 - ⚠ **modelRanking 混面板 caveat**：新面板只 render 新题组，旧题组是旧 3 模型 → 全 corpus 模型排名把"模型差异"和"题材差异"混在一起；报告按题组/题材分层看排名，walkthrough 明写此 caveat。
 - 更新本 walkthrough（实际结果 vs 计划出入）+ PROJECT-STATUS + METHODOLOGY §8 基线快照（若指标变化）。
 
+### 2026-07-14 评测可信度守门（已完成）
+
+- **prompt 版本改为样本级真相源**：`Sample.promptVersion` 由 corpus loader 透传，generator 对每个新 render 写入所用 render prompt 版本；断点续跑会在任何模型调用前预检已有文件，缺版本或与本轮版本不一致时直接停止，不会用题组默认值给旧文件“补身份”。
+- **混合报告硬阻断**：`score.ts` 在扫描前校验全部 render；任一缺版本或多个版本并存都以退出码 1 结束，不创建新报告。成功报告新增 `renderPromptVersion` 顶层审计字段。当前 corpus 的 28 个旧 render 均缺样本级版本，守门验证已确认被拒绝；在版本来源被确认或重新生成前，不得人工猜填。
+- **holdout 只认有效配对题组**：题组必须至少存在一条 `render.pairRef → reference.file` 同题组映射，才计入 `HOLDOUT_MIN_GROUPS`、train/test 切分、规则拟合集和 holdout AUC。reference-only、缺 `pairRef` 或悬空引用的题组全部排除。
+- **针对性测试**：新增缺版本、混版本、单版本三组 corpus 合同测试；metrics 新增“4 个有效配对 + reference-only 仍按 4 组切分”和“总题组足够但仅 3 个有效配对仍关闭 holdout”测试。聚焦测试 12/12、根类型检查、fixture 端到端打分（AUC 1.000）通过。
+- **基线发布冻结**：Task 08 M3 外部检测器对照和 M4 小验证轮完成前不发布新基线。当前观测 `0.530` 只是扩量过程中 reference 已增加、render 尚未补齐的中间语料状态，不能用于评价规则质量，也不写入 METHODOLOGY 基线快照。
+- **与原计划的出入**：本轮只完成可信度前置守门，没有把 M3/M4 冒充完成，也没有为通过新校验而猜测旧 render 的 prompt 版本；外部检测器批量对照、4–6 模型补齐和首次正式配对 holdout 仍按后续里程碑执行。
+
 ## 验收
 
 1. `bun test` 过（budget/限流/transport/分块聚合的纯函数部分按需加测，勿过度测试）。
@@ -88,6 +97,8 @@
 3. 断点续跑实测：kill 后重跑，已完成 brief/render/detector 分全部跳过。
 4. 密钥合规：`.agent/llm_api.txt` 的 key 未出现在任何进 git 的文件里；`eval.config.json` 已 gitignore，`eval.config.example.json` 无密钥。
 5. CLI 模型的 render 输入与 HTTP 模型等价（同 prompt 版本 + 同合并契约），byModel 可比。
+6. 任一 render 缺样本级 `promptVersion` 或 corpus 内存在多个 render prompt 版本时，`score.ts` 必须失败且不覆盖报告。
+7. holdout 门槛与 train/test 数量只统计存在有效 reference/render 映射的题组。
 
 ## 风险 / 开放项
 

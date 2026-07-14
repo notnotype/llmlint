@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import {computed, onMounted, ref} from "vue";
-import type {LlmlintRegistry} from "../types";
 import {useAuthState} from "../composables/useAuthState";
 import {useLlmlintI18n} from "../composables/useLlmlintI18n";
 import {useLlmlintTheme} from "../composables/useLlmlintTheme";
@@ -10,8 +9,6 @@ import Dropdown from "./common/Dropdown.vue";
 import SettingsDialog from "./SettingsDialog.vue";
 
 // 顶部栏：产品标识 + 导航 + 辅助入口 + 设置/用户。
-// registry 由检测页传入，当前 header 消费这个 prop 但不展示规则统计。
-defineProps<{registry?: LlmlintRegistry}>();
 
 // useRoute 由 Nuxt 自动导入。
 const route = useRoute();
@@ -23,6 +20,12 @@ const {resolvedTheme, setTheme} = useLlmlintTheme();
 const {t} = useLlmlintI18n();
 const showAbout = ref(false);
 const showSettings = ref(false);
+const navItems = computed(() => [
+    {to: "/", label: t("header.check")},
+    {to: "/report", label: t("header.report")},
+    {to: "/dataset", label: t("header.dataset")},
+    {to: "/contribute", label: t("header.contribute")},
+]);
 const userMenuItems = computed<DropdownItem[]>(() => {
     if (currentUser.value) {
         return [
@@ -93,26 +96,23 @@ onMounted(async () => {
 </script>
 
 <template>
-    <header class="sticky top-0 z-40 flex h-12 shrink-0 items-center justify-between border-b border-[var(--border-color)] bg-[var(--bg-panel)]/92 text-[var(--text-main)] backdrop-blur">
+    <header class="anime-header sticky top-0 z-40 flex min-h-12 shrink-0 flex-wrap items-center justify-between border-b border-[var(--border-color)] bg-[var(--bg-panel)]/94 text-[var(--text-main)] backdrop-blur">
         <div class="flex min-w-0 items-center gap-2">
-            <NuxtLink to="/" class="flex h-12 w-12 shrink-0 items-center justify-center text-[var(--accent-text)] transition-colors hover:bg-[var(--bg-hover)]" title="llmlint">
+            <NuxtLink to="/" class="anime-brand-mark flex h-12 w-12 shrink-0 items-center justify-center text-[var(--text-inverse)] transition-transform hover:-translate-y-0.5" title="llmlint">
                 <span class="i-lucide-scan-text h-5 w-5" />
             </NuxtLink>
             <div class="flex min-w-0 items-baseline gap-2">
-                <span class="text-lg font-bold tracking-tight">llmlint</span>
-                <span class="hidden text-sm text-[var(--text-muted)] sm:inline">{{ t("header.subtitle") }}</span>
+                <span class="anime-wordmark text-lg font-black">llmlint</span>
+                <span class="hidden text-xs text-[var(--text-muted)] lg:inline">{{ t("header.subtitle") }}</span>
             </div>
-            <div class="hidden h-4 w-px bg-[var(--border-color)] sm:block"></div>
+            <div class="hidden h-5 w-px bg-[var(--border-strong)] md:block"></div>
             <!-- 主导航 -->
-            <nav class="flex min-w-0 items-center gap-1 text-sm">
-                <NuxtLink to="/" class="rounded px-2 py-1 hover:bg-[var(--bg-hover)]" :class="route.path === '/' ? 'font-semibold text-[var(--text-main)]' : 'text-[var(--text-muted)]'">{{ t("header.check") }}</NuxtLink>
-                <NuxtLink to="/report" class="rounded px-2 py-1 hover:bg-[var(--bg-hover)]" :class="route.path === '/report' ? 'font-semibold text-[var(--text-main)]' : 'text-[var(--text-muted)]'">{{ t("header.report") }}</NuxtLink>
-                <NuxtLink to="/dataset" class="rounded px-2 py-1 hover:bg-[var(--bg-hover)]" :class="route.path === '/dataset' ? 'font-semibold text-[var(--text-main)]' : 'text-[var(--text-muted)]'">{{ t("header.dataset") }}</NuxtLink>
-                <NuxtLink to="/contribute" class="rounded px-2 py-1 hover:bg-[var(--bg-hover)]" :class="route.path === '/contribute' ? 'font-semibold text-[var(--text-main)]' : 'text-[var(--text-muted)]'">{{ t("header.contribute") }}</NuxtLink>
+            <nav class="hidden min-w-0 items-center gap-1 text-sm md:flex">
+                <NuxtLink v-for="item in navItems" :key="item.to" :to="item.to" class="anime-nav-link px-2.5 py-1.5 text-[var(--text-muted)]" :class="route.path === item.to ? 'is-active' : ''">{{ item.label }}</NuxtLink>
             </nav>
         </div>
         <div class="flex shrink-0 items-center gap-1 text-sm text-[var(--text-muted)]">
-            <a class="hidden h-8 items-center gap-1.5 rounded-full border border-[var(--border-color)] bg-[var(--bg-subtle)] px-3 text-xs font-medium text-[var(--text-secondary)] transition hover:bg-[var(--bg-hover)] hover:text-[var(--text-main)] sm:inline-flex shadow-sm" href="https://github.com/notnotype/llmlint" target="_blank" rel="noreferrer">
+            <a class="hidden h-8 items-center gap-1.5 rounded border border-[var(--border-color)] bg-[var(--bg-subtle)] px-3 text-xs font-semibold text-[var(--text-secondary)] transition hover:border-[var(--accent-main)] hover:text-[var(--text-main)] sm:inline-flex" href="https://github.com/notnotype/llmlint" target="_blank" rel="noreferrer">
                 <span class="i-lucide-github h-4 w-4" />
                 <span>{{ t("header.github") }}</span>
             </a>
@@ -137,5 +137,72 @@ onMounted(async () => {
             <AboutPanel v-if="showAbout" @close="showAbout = false" />
             <SettingsDialog v-model="showSettings" />
         </div>
+        <nav class="anime-mobile-nav flex h-9 w-full items-stretch overflow-x-auto border-t border-[var(--border-color)] px-2 md:hidden">
+            <NuxtLink v-for="item in navItems" :key="`mobile-${item.to}`" :to="item.to" class="anime-nav-link flex min-w-18 flex-1 items-center justify-center px-2 text-xs text-[var(--text-muted)]" :class="route.path === item.to ? 'is-active' : ''">{{ item.label }}</NuxtLink>
+        </nav>
     </header>
 </template>
+
+<style scoped>
+.anime-header {
+    box-shadow: 0 1px 0 color-mix(in srgb, var(--accent-main) 24%, transparent);
+}
+
+.anime-header::after {
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    width: min(18rem, 38vw);
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent-pop) 0 34%, var(--accent-signal) 34% 57%, var(--accent-main) 57%);
+    content: "";
+}
+
+.anime-brand-mark {
+    background: var(--manga-ink);
+    clip-path: polygon(0 0, 100% 0, 100% 68%, 72% 100%, 0 100%);
+}
+
+.anime-wordmark {
+    color: var(--manga-ink);
+}
+
+.anime-wordmark::after {
+    color: var(--accent-pop);
+    content: "/";
+    margin-left: 0.2rem;
+}
+
+.anime-nav-link {
+    position: relative;
+    white-space: nowrap;
+    transition: color 0.16s ease, background-color 0.16s ease;
+}
+
+.anime-nav-link:hover {
+    background: var(--bg-hover);
+    color: var(--text-main);
+}
+
+.anime-nav-link.is-active {
+    color: var(--text-main);
+    font-weight: 800;
+}
+
+.anime-nav-link.is-active::after {
+    position: absolute;
+    right: 0.55rem;
+    bottom: 0;
+    left: 0.55rem;
+    height: 2px;
+    background: var(--accent-main);
+    content: "";
+}
+
+@media (max-width: 767px) {
+    .anime-header::after {
+        bottom: 35px;
+        width: 7rem;
+    }
+}
+</style>

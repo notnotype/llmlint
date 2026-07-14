@@ -128,6 +128,7 @@ const sourceDiffRanges = computed(() => [...(props.diffs ?? []), ...sourceRepair
     start: diff.from,
     end: diff.to,
     deleted: diffTextLabel(diff.deleted),
+    deletedCount: [...diff.deleted].length,
     inserted: diff.inserted,
     source: diff.source,
     title: diff.title,

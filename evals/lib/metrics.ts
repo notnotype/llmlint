@@ -193,9 +193,15 @@ function detectorStat(human: SampleScan[], ai: SampleScan[]): DetectorStat {
 
 type HoldoutSplit = {trainScans: SampleScan[]; testScans: SampleScan[]; trainGroups: string[]; testGroups: string[]};
 
-/** 确定性切题组：按 genre/plotId 排序，末尾 round(ratio·N) 组作 test，其余 train。 */
+/** 至少存在一条 render.pairRef 指向同题组 reference.file 的题组，才有资格进入 holdout。 */
+export function countPairedGroups(scans: SampleScan[]): number {
+    return pairedGroupKeys(scans).size;
+}
+
+/** 确定性切配对题组：按 genre/plotId 排序，末尾 round(ratio·N) 组作 test，其余 train。 */
 function splitHoldout(scans: SampleScan[], ratio: number): HoldoutSplit | null {
-    const keys = [...new Set(scans.map(plotKey))].sort((left, right) => left.localeCompare(right));
+    const pairedKeys = pairedGroupKeys(scans);
+    const keys = [...pairedKeys].sort((left, right) => left.localeCompare(right));
     if (keys.length < HOLDOUT_MIN_GROUPS) {
         return null;
     }
@@ -203,11 +209,36 @@ function splitHoldout(scans: SampleScan[], ratio: number): HoldoutSplit | null {
     const testGroups = keys.slice(keys.length - testCount);
     const testSet = new Set(testGroups);
     return {
-        trainScans: scans.filter((scan) => !testSet.has(plotKey(scan))),
+        trainScans: scans.filter((scan) => pairedKeys.has(plotKey(scan)) && !testSet.has(plotKey(scan))),
         testScans: scans.filter((scan) => testSet.has(plotKey(scan))),
         trainGroups: keys.slice(0, keys.length - testCount),
         testGroups,
     };
+}
+
+/** 收集至少有一组有效 reference/render 映射的题组 key。 */
+function pairedGroupKeys(scans: SampleScan[]): Set<string> {
+    const references = new Map<string, Set<string>>();
+    for (const scan of scans) {
+        if (scan.sample.role !== "reference") {
+            continue;
+        }
+        const key = plotKey(scan);
+        const files = references.get(key) ?? new Set<string>();
+        files.add(scan.sample.file);
+        references.set(key, files);
+    }
+    const paired = new Set<string>();
+    for (const scan of scans) {
+        if (scan.sample.role !== "render" || !scan.sample.pairRef) {
+            continue;
+        }
+        const key = plotKey(scan);
+        if (references.get(key)?.has(scan.sample.pairRef)) {
+            paired.add(key);
+        }
+    }
+    return paired;
 }
 
 function holdoutStat(split: HoldoutSplit, ratio: number): HoldoutStat {
