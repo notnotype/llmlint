@@ -47,6 +47,290 @@
       "title": "《后宫·甄嬛传》 浮云蔽白日(5)",
       "sourceFile": "014-后宫·甄嬛传-流潋紫.epub",
       "pubYear": 2007
+    },
+    {
+      "file": "render-0001-deepseek-deepseek-v4-flash.md",
+      "role": "render",
+      "model": "deepseek/deepseek-v4-flash",
+      "difficulty": "raw",
+      "pairRef": "reference-0001.md",
+      "charCount": 2226
+    },
+    {
+      "file": "render-0001-xiaomi-token-plan-cn-mimo-v2.5-pro.md",
+      "role": "render",
+      "model": "xiaomi-token-plan-cn/mimo-v2.5-pro",
+      "difficulty": "raw",
+      "pairRef": "reference-0001.md",
+      "charCount": 2252
+    },
+    {
+      "file": "render-0001-elysiver-gemini-gemini-3.1-pro.md",
+      "role": "render",
+      "model": "elysiver-gemini/gemini-3.1-pro",
+      "difficulty": "raw",
+      "pairRef": "reference-0001.md",
+      "charCount": 2211
+    },
+    {
+      "file": "render-0001-anyrouter-codex-gpt-5.5.md",
+      "role": "render",
+      "model": "anyrouter-codex/gpt-5.5",
+      "difficulty": "raw",
+      "pairRef": "reference-0001.md",
+      "charCount": 1875
+    },
+    {
+      "file": "render-0001-anyrouter-claude-claude-opus-4-81M.md",
+      "role": "render",
+      "model": "anyrouter-claude/claude-opus-4-8[1M]",
+      "difficulty": "raw",
+      "pairRef": "reference-0001.md",
+      "charCount": 1330
+    },
+    {
+      "file": "render-0001-anyrouter-claude-claude-fable-51M.md",
+      "role": "render",
+      "model": "anyrouter-claude/claude-fable-5[1M]",
+      "difficulty": "raw",
+      "pairRef": "reference-0001.md",
+      "charCount": 1449
+    },
+    {
+      "file": "render-0002-deepseek-deepseek-v4-flash.md",
+      "role": "render",
+      "model": "deepseek/deepseek-v4-flash",
+      "difficulty": "raw",
+      "pairRef": "reference-0002.md",
+      "charCount": 2427
+    },
+    {
+      "file": "render-0002-xiaomi-token-plan-cn-mimo-v2.5-pro.md",
+      "role": "render",
+      "model": "xiaomi-token-plan-cn/mimo-v2.5-pro",
+      "difficulty": "raw",
+      "pairRef": "reference-0002.md",
+      "charCount": 2326
+    },
+    {
+      "file": "render-0002-elysiver-gemini-gemini-3.1-pro.md",
+      "role": "render",
+      "model": "elysiver-gemini/gemini-3.1-pro",
+      "difficulty": "raw",
+      "pairRef": "reference-0002.md",
+      "charCount": 2416
+    },
+    {
+      "file": "render-0002-anyrouter-codex-gpt-5.5.md",
+      "role": "render",
+      "model": "anyrouter-codex/gpt-5.5",
+      "difficulty": "raw",
+      "pairRef": "reference-0002.md",
+      "charCount": 1464
+    },
+    {
+      "file": "render-0002-anyrouter-claude-claude-opus-4-81M.md",
+      "role": "render",
+      "model": "anyrouter-claude/claude-opus-4-8[1M]",
+      "difficulty": "raw",
+      "pairRef": "reference-0002.md",
+      "charCount": 1057
+    },
+    {
+      "file": "render-0002-anyrouter-claude-claude-fable-51M.md",
+      "role": "render",
+      "model": "anyrouter-claude/claude-fable-5[1M]",
+      "difficulty": "raw",
+      "pairRef": "reference-0002.md",
+      "charCount": 1178
+    },
+    {
+      "file": "render-0003-deepseek-deepseek-v4-flash.md",
+      "role": "render",
+      "model": "deepseek/deepseek-v4-flash",
+      "difficulty": "raw",
+      "pairRef": "reference-0003.md",
+      "charCount": 2074
+    },
+    {
+      "file": "render-0003-xiaomi-token-plan-cn-mimo-v2.5-pro.md",
+      "role": "render",
+      "model": "xiaomi-token-plan-cn/mimo-v2.5-pro",
+      "difficulty": "raw",
+      "pairRef": "reference-0003.md",
+      "charCount": 2677
+    },
+    {
+      "file": "render-0003-elysiver-gemini-gemini-3.1-pro.md",
+      "role": "render",
+      "model": "elysiver-gemini/gemini-3.1-pro",
+      "difficulty": "raw",
+      "pairRef": "reference-0003.md",
+      "charCount": 1791
+    },
+    {
+      "file": "render-0003-anyrouter-codex-gpt-5.5.md",
+      "role": "render",
+      "model": "anyrouter-codex/gpt-5.5",
+      "difficulty": "raw",
+      "pairRef": "reference-0003.md",
+      "charCount": 1449
+    },
+    {
+      "file": "render-0003-anyrouter-claude-claude-opus-4-81M.md",
+      "role": "render",
+      "model": "anyrouter-claude/claude-opus-4-8[1M]",
+      "difficulty": "raw",
+      "pairRef": "reference-0003.md",
+      "charCount": 1476
+    },
+    {
+      "file": "render-0003-anyrouter-claude-claude-fable-51M.md",
+      "role": "render",
+      "model": "anyrouter-claude/claude-fable-5[1M]",
+      "difficulty": "raw",
+      "pairRef": "reference-0003.md",
+      "charCount": 1500
+    },
+    {
+      "file": "render-0004-deepseek-deepseek-v4-flash.md",
+      "role": "render",
+      "model": "deepseek/deepseek-v4-flash",
+      "difficulty": "raw",
+      "pairRef": "reference-0004.md",
+      "charCount": 2905
+    },
+    {
+      "file": "render-0004-xiaomi-token-plan-cn-mimo-v2.5-pro.md",
+      "role": "render",
+      "model": "xiaomi-token-plan-cn/mimo-v2.5-pro",
+      "difficulty": "raw",
+      "pairRef": "reference-0004.md",
+      "charCount": 2385
+    },
+    {
+      "file": "render-0004-elysiver-gemini-gemini-3.1-pro.md",
+      "role": "render",
+      "model": "elysiver-gemini/gemini-3.1-pro",
+      "difficulty": "raw",
+      "pairRef": "reference-0004.md",
+      "charCount": 2619
+    },
+    {
+      "file": "render-0004-anyrouter-codex-gpt-5.5.md",
+      "role": "render",
+      "model": "anyrouter-codex/gpt-5.5",
+      "difficulty": "raw",
+      "pairRef": "reference-0004.md",
+      "charCount": 1561
+    },
+    {
+      "file": "render-0004-anyrouter-claude-claude-opus-4-81M.md",
+      "role": "render",
+      "model": "anyrouter-claude/claude-opus-4-8[1M]",
+      "difficulty": "raw",
+      "pairRef": "reference-0004.md",
+      "charCount": 1306
+    },
+    {
+      "file": "render-0004-anyrouter-claude-claude-fable-51M.md",
+      "role": "render",
+      "model": "anyrouter-claude/claude-fable-5[1M]",
+      "difficulty": "raw",
+      "pairRef": "reference-0004.md",
+      "charCount": 1427
+    },
+    {
+      "file": "render-0005-deepseek-deepseek-v4-flash.md",
+      "role": "render",
+      "model": "deepseek/deepseek-v4-flash",
+      "difficulty": "raw",
+      "pairRef": "reference-0005.md",
+      "charCount": 2426
+    },
+    {
+      "file": "render-0005-xiaomi-token-plan-cn-mimo-v2.5-pro.md",
+      "role": "render",
+      "model": "xiaomi-token-plan-cn/mimo-v2.5-pro",
+      "difficulty": "raw",
+      "pairRef": "reference-0005.md",
+      "charCount": 2540
+    },
+    {
+      "file": "render-0005-elysiver-gemini-gemini-3.1-pro.md",
+      "role": "render",
+      "model": "elysiver-gemini/gemini-3.1-pro",
+      "difficulty": "raw",
+      "pairRef": "reference-0005.md",
+      "charCount": 2378
+    },
+    {
+      "file": "render-0005-anyrouter-codex-gpt-5.5.md",
+      "role": "render",
+      "model": "anyrouter-codex/gpt-5.5",
+      "difficulty": "raw",
+      "pairRef": "reference-0005.md",
+      "charCount": 1829
+    },
+    {
+      "file": "render-0005-anyrouter-claude-claude-opus-4-81M.md",
+      "role": "render",
+      "model": "anyrouter-claude/claude-opus-4-8[1M]",
+      "difficulty": "raw",
+      "pairRef": "reference-0005.md",
+      "charCount": 1445
+    },
+    {
+      "file": "render-0005-anyrouter-claude-claude-fable-51M.md",
+      "role": "render",
+      "model": "anyrouter-claude/claude-fable-5[1M]",
+      "difficulty": "raw",
+      "pairRef": "reference-0005.md",
+      "charCount": 1462
+    },
+    {
+      "file": "repair-0001-elysiver-gemini-gemini-3.1-pro.md",
+      "role": "repair",
+      "model": "deepseek/deepseek-v4-flash",
+      "pairRef": "reference-0001.md",
+      "repairOf": "render-0001-elysiver-gemini-gemini-3.1-pro.md",
+      "charCount": 2176,
+      "promptVersion": {
+        "repair": "repair-v1"
+      }
+    },
+    {
+      "file": "repair-0001-deepseek-deepseek-v4-flash.md",
+      "role": "repair",
+      "model": "deepseek/deepseek-v4-flash",
+      "pairRef": "reference-0001.md",
+      "repairOf": "render-0001-deepseek-deepseek-v4-flash.md",
+      "charCount": 2184,
+      "promptVersion": {
+        "repair": "repair-v1"
+      }
+    },
+    {
+      "file": "repair-0002-deepseek-deepseek-v4-flash.md",
+      "role": "repair",
+      "model": "deepseek/deepseek-v4-flash",
+      "pairRef": "reference-0002.md",
+      "repairOf": "render-0002-deepseek-deepseek-v4-flash.md",
+      "charCount": 2400,
+      "promptVersion": {
+        "repair": "repair-v1"
+      }
     }
-  ]
+  ],
+  "promptVersion": {
+    "brief": "brief-v2",
+    "render": "render-v1"
+  },
+  "classification": {
+    "source": "llm",
+    "model": "deepseek/deepseek-v4-flash",
+    "classifiedAt": "2026-07-06T10:53:40.159Z",
+    "pov": "first",
+    "textType": "novel"
+  }
 }

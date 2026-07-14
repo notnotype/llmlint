@@ -14,6 +14,7 @@ data.db-*
 
 # 构建期预烘产物（由 scripts/build-*.ts 生成，不入库）
 app/data/registry.json
+app/data/rules-report.json
 public/report.json
 
 # 日志 / OS

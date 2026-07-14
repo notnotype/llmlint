@@ -372,7 +372,7 @@ export default {
 
 需求：把 llmlint 准备为独立可发布形态（Bun CLI + Agent Skill）。
 
-决策：第一版不做 npm/Homebrew/Docker/编辑器扩展；许可证 PolyForm Noncommercial 1.0.0；版本源 `package.json.version`，`SKILL.md metadata.version` 与 `src/version.ts` 同步为 `2.0.0`。
+决策：第一版不做 npm/Homebrew/Docker/编辑器扩展；当时许可证为 PolyForm Noncommercial 1.0.0（2026-07-10 起由 Task 20 迁移为 `AGPL-3.0-only`）；版本源 `package.json.version`，`SKILL.md metadata.version` 与 `src/version.ts` 同步为 `2.0.0`。
 
 已完成：初始化独立工作副本，保留 `SKILL.md`/`references/`/`rulesets/`/`src/`/`bin/`/`llmlint.config.example.ts`；新增 `README.md`/`CHANGELOG.md`/`CONTRIBUTING.md`/`AGENTS.md`/`LICENSE`/`tsconfig.json`/`tests/llmlint.test.ts`/`.gitignore`/`.gitattributes`/`bun.lock`；默认规则资产对齐 61 规则文件 / 340 / 311。
 
@@ -429,3 +429,27 @@ export default {
 - llmlint 历史源头：[Task 01 anti-ai-slop / llmlint skill](../01-anti-ai-slop-skill/README.md)
 - 评测体系（本任务下游消费者）：[Task 03 llmlint Eval Harness](../03-llmlint-eval-harness/README.md)
 - 独立仓由来：[Task 04 llmlint Standalone Development Repository](../04-llmlint-standalone-repo/README.md)
+
+## 2026-07-11 第一版报告驱动的规则精简
+
+用户用 `evals/report/report.json` 与典型 AI 小说正文复核后指出：页面把大量规则显示为“可自动替换”，批量替换完成后反而没有候选可交给 LLM。
+
+诊断确认规则数据本身有 303 条 regex：3 auto / 253 candidate / 47 manual；真正错误是工作台把 `candidate` 与 `auto` 合并进一键静态修复。典型正文原始 116 命中、29 个 agent 候选；旧口径批量应用 81 处后 agent 候选归零。
+
+本轮收紧三个边界：
+
+- `auto` 只表示无需上下文判断的机械清理；`candidate` 只提供替换草案，允许用户逐条或按主动选中的规则应用，绝不进入一键机械修复。
+- `report.json` 作为创作 task profile 的选择证据：LLM 修复清单排除 `noise/anti`，保留 strong/weak、insufficient 与未测规则；不物理删除规则超集。
+- 新增规则级默认策略，报告中的 4 条 strong 规则覆盖粗粒度 human namespace 路由进入 agent 桶：`subject-measure-word`、`repeated-de-pairs`、`absolute-claim-modifier`、`optional-mood-modifiers`。
+
+典型正文新口径：机械修复 0 处，agent 候选 29 处，其中 task profile 保留 23 处（5 strong / 17 weak / 1 未测），不再出现“一键修复后 LLM 无事可做”。
+
+验证：聚焦单测 73/73；web client typecheck 与 server typecheck 通过。根 `bun run typecheck` 仍被既有 `evals-generator/*` alias 在根 tsconfig 中不可解析的 4 个错误阻塞，本轮未触碰该既有问题。
+
+## 2026-07-11 第二轮规则精简
+
+首轮仍把 253 条语义 replace 规则保留为默认 candidate，产品虽然不再批量应用，规则页和单条动作仍会暗示“已有安全替换”。第二轮把权限模型进一步收紧：`deriveFixability()` 默认 manual，namespace 策略除 3 条确定性机械规则外全部 manual。最终默认分布为 303 regex：auto=3、candidate=0、manual=300；用户配置仍可显式提升指定 regex replace 为 candidate。
+
+同时新增构建期 `creative-writing@1` profile，不删除规则资产，只从创作候选中排除 noise/anti 与 8 条稳定重叠规则。四个首轮收敛家族为程度副词、空泛量词、句尾比喻、二元转折；`sudden-moment` 收窄为只匹配“突然间/忽然间”。每条抑制记录 canonical rule、原因与说明，规则页可解释为什么未进入 profile。
+
+指定 `index2.md` 验收从首轮 23 个候选进一步收敛到 17 个：机械修复仍为 0，候选重复 span 为 0。与首轮计划的出入是撤销“strong 规则提升默认 candidate”的方向：verdict 只控制 profile 选择，不再影响直接应用权限。

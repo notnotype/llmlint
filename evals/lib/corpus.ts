@@ -14,6 +14,7 @@ type RawSampleMeta = {
     split?: string;
     referenceSource?: string;
     pairRef?: string;
+    repairOf?: string;
 };
 
 type RawGroupMeta = {genre?: string; plotId?: string; promptVersion?: {brief?: string; render?: string}; samples?: RawSampleMeta[]};
@@ -92,6 +93,7 @@ function toSample(raw: RawSampleMeta, genre: string, plotId: string, groupDir: s
         split: raw.split === "train" || raw.split === "test" ? raw.split : undefined,
         referenceSource: raw.referenceSource,
         pairRef: raw.pairRef,
+        repairOf: raw.repairOf,
         file: raw.file,
         absPath,
         text,

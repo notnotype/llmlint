@@ -60,12 +60,12 @@
       "charCount": 3713
     },
     {
-      "file": "render-0001-doubao-doubao-seed-2-1-pro-260628.md",
+      "file": "render-0001-elysiver-gemini-gemini-3.1-pro.md",
       "role": "render",
-      "model": "doubao/doubao-seed-2-1-pro-260628",
+      "model": "elysiver-gemini/gemini-3.1-pro",
       "difficulty": "raw",
       "pairRef": "reference-0001.md",
-      "charCount": 2946
+      "charCount": 2299
     },
     {
       "file": "render-0002-deepseek-deepseek-v4-flash.md",
@@ -84,12 +84,12 @@
       "charCount": 2897
     },
     {
-      "file": "render-0002-doubao-doubao-seed-2-1-pro-260628.md",
+      "file": "render-0002-elysiver-gemini-gemini-3.1-pro.md",
       "role": "render",
-      "model": "doubao/doubao-seed-2-1-pro-260628",
+      "model": "elysiver-gemini/gemini-3.1-pro",
       "difficulty": "raw",
       "pairRef": "reference-0002.md",
-      "charCount": 709
+      "charCount": 3358
     },
     {
       "file": "render-0003-deepseek-deepseek-v4-flash.md",
@@ -108,12 +108,12 @@
       "charCount": 3859
     },
     {
-      "file": "render-0003-doubao-doubao-seed-2-1-pro-260628.md",
+      "file": "render-0003-elysiver-gemini-gemini-3.1-pro.md",
       "role": "render",
-      "model": "doubao/doubao-seed-2-1-pro-260628",
+      "model": "elysiver-gemini/gemini-3.1-pro",
       "difficulty": "raw",
       "pairRef": "reference-0003.md",
-      "charCount": 2198
+      "charCount": 3710
     },
     {
       "file": "render-0004-deepseek-deepseek-v4-flash.md",
@@ -132,12 +132,12 @@
       "charCount": 8241
     },
     {
-      "file": "render-0004-doubao-doubao-seed-2-1-pro-260628.md",
+      "file": "render-0004-elysiver-gemini-gemini-3.1-pro.md",
       "role": "render",
-      "model": "doubao/doubao-seed-2-1-pro-260628",
+      "model": "elysiver-gemini/gemini-3.1-pro",
       "difficulty": "raw",
       "pairRef": "reference-0004.md",
-      "charCount": 2
+      "charCount": 5327
     },
     {
       "file": "render-0005-deepseek-deepseek-v4-flash.md",
@@ -156,12 +156,109 @@
       "charCount": 3531
     },
     {
-      "file": "render-0005-doubao-doubao-seed-2-1-pro-260628.md",
+      "file": "render-0005-elysiver-gemini-gemini-3.1-pro.md",
       "role": "render",
-      "model": "doubao/doubao-seed-2-1-pro-260628",
+      "model": "elysiver-gemini/gemini-3.1-pro",
       "difficulty": "raw",
       "pairRef": "reference-0005.md",
-      "charCount": 3341
+      "charCount": 4475
+    },
+    {
+      "file": "render-0001-anyrouter-claude-claude-fable-51M.md",
+      "role": "render",
+      "model": "anyrouter-claude/claude-fable-5[1M]",
+      "difficulty": "raw",
+      "pairRef": "reference-0001.md",
+      "charCount": 2087
+    },
+    {
+      "file": "render-0001-anyrouter-claude-claude-opus-4-81M.md",
+      "role": "render",
+      "model": "anyrouter-claude/claude-opus-4-8[1M]",
+      "difficulty": "raw",
+      "pairRef": "reference-0001.md",
+      "charCount": 3243
+    },
+    {
+      "file": "render-0001-anyrouter-codex-gpt-5.5.md",
+      "role": "render",
+      "model": "anyrouter-codex/gpt-5.5",
+      "difficulty": "raw",
+      "pairRef": "reference-0001.md",
+      "charCount": 3236
+    },
+    {
+      "file": "render-0002-anyrouter-claude-claude-fable-51M.md",
+      "role": "render",
+      "model": "anyrouter-claude/claude-fable-5[1M]",
+      "difficulty": "raw",
+      "pairRef": "reference-0002.md",
+      "charCount": 2492
+    },
+    {
+      "file": "render-0002-anyrouter-claude-claude-opus-4-81M.md",
+      "role": "render",
+      "model": "anyrouter-claude/claude-opus-4-8[1M]",
+      "difficulty": "raw",
+      "pairRef": "reference-0002.md",
+      "charCount": 1955
+    },
+    {
+      "file": "render-0002-anyrouter-codex-gpt-5.5.md",
+      "role": "render",
+      "model": "anyrouter-codex/gpt-5.5",
+      "difficulty": "raw",
+      "pairRef": "reference-0002.md",
+      "charCount": 3490
+    },
+    {
+      "file": "render-0003-anyrouter-claude-claude-opus-4-81M.md",
+      "role": "render",
+      "model": "anyrouter-claude/claude-opus-4-8[1M]",
+      "difficulty": "raw",
+      "pairRef": "reference-0003.md",
+      "charCount": 2899
+    },
+    {
+      "file": "render-0003-anyrouter-codex-gpt-5.5.md",
+      "role": "render",
+      "model": "anyrouter-codex/gpt-5.5",
+      "difficulty": "raw",
+      "pairRef": "reference-0003.md",
+      "charCount": 3544
+    },
+    {
+      "file": "repair-0001-xiaomi-token-plan-cn-mimo-v2.5-pro.md",
+      "role": "repair",
+      "model": "deepseek/deepseek-v4-flash",
+      "pairRef": "reference-0001.md",
+      "repairOf": "render-0001-xiaomi-token-plan-cn-mimo-v2.5-pro.md",
+      "charCount": 3602,
+      "promptVersion": {
+        "repair": "repair-v1"
+      }
+    },
+    {
+      "file": "repair-0001-anyrouter-codex-gpt-5.5.md",
+      "role": "repair",
+      "model": "deepseek/deepseek-v4-flash",
+      "pairRef": "reference-0001.md",
+      "repairOf": "render-0001-anyrouter-codex-gpt-5.5.md",
+      "charCount": 3160,
+      "promptVersion": {
+        "repair": "repair-v1"
+      }
     }
-  ]
+  ],
+  "promptVersion": {
+    "brief": "brief-v2",
+    "render": "render-v1"
+  },
+  "classification": {
+    "source": "llm",
+    "model": "deepseek/deepseek-v4-flash",
+    "classifiedAt": "2026-07-06T10:53:45.432Z",
+    "pov": "third",
+    "textType": "novel"
+  }
 }

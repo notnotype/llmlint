@@ -22,6 +22,8 @@ const props = defineProps<{
     comments: ReviewComment[];
     linkRequestToken: number;
     commentRequestToken: number;
+    /** W7 F2：内置「AI 改写选区」入口开关（宿主接了发起链才显示；playground 等未接场景隐藏）。 */
+    llmRewriteEnabled?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -31,6 +33,7 @@ const emit = defineEmits<{
     (e: "replace-selection", text: string): void;
     (e: "format-selection", command: MarkdownFormatCommand): void;
     (e: "link-selection", href: string): void;
+    (e: "llm-rewrite-selection"): void;
 }>();
 
 const commentOpen = ref(false);
@@ -391,6 +394,21 @@ function closeLink(): void {
                 >
                     <span :class="promptCopied ? 'i-lucide-check' : 'i-lucide-wand-sparkles'" class="h-3.5 w-3.5" />
                     <span>{{ t("review.copySelectionPrompt") }}</span>
+                </button>
+
+                <!-- W7 F2 内置 AI 改写选区（与「复制指令」外部路径并排；预览选区不可映射时禁用） -->
+                <button
+                    v-if="llmRewriteEnabled"
+                    type="button"
+                    class="review-selection-menu__button review-selection-menu__button--primary review-selection-menu__button--prompt"
+                    :disabled="!canUseSelection"
+                    :aria-label="canUseSelection ? t('review.llmRewriteSelectionTitle') : commentDisabledTitle"
+                    :title="canUseSelection ? t('review.llmRewriteSelectionTitle') : commentDisabledTitle"
+                    @mousedown.prevent
+                    @click="emit('llm-rewrite-selection')"
+                >
+                    <span class="i-lucide-bot h-3.5 w-3.5" />
+                    <span>{{ t("review.llmRewriteSelection") }}</span>
                 </button>
 
                 <button

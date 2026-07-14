@@ -1,0 +1,401 @@
+- generic [active] [ref=f6e1]:
+  - generic [ref=f6e4]:
+    - banner [ref=f6e5]:
+      - generic [ref=f6e6]:
+        - link "llmlint" [ref=f6e7] [cursor=pointer]:
+          - /url: /
+        - generic [ref=f6e9]:
+          - generic [ref=f6e10]: llmlint
+          - generic [ref=f6e11]: 中文 AI 味检测
+        - navigation [ref=f6e13]:
+          - link "检测" [ref=f6e14] [cursor=pointer]:
+            - /url: /
+          - link "评测报告" [ref=f6e15] [cursor=pointer]:
+            - /url: /report
+          - link "数据集" [ref=f6e16] [cursor=pointer]:
+            - /url: /dataset
+          - link "贡献数据" [ref=f6e17] [cursor=pointer]:
+            - /url: /contribute
+      - generic [ref=f6e18]:
+        - link "GitHub" [ref=f6e19] [cursor=pointer]:
+          - /url: https://github.com/notnotype/llmlint
+          - generic [ref=f6e21]: GitHub
+        - button "关于 / 使用说明" [ref=f6e22] [cursor=pointer]
+        - button "切换明暗" [ref=f6e24] [cursor=pointer]
+        - button "设置" [ref=f6e26] [cursor=pointer]
+        - button "T" [ref=f6e30] [cursor=pointer]:
+          - generic [ref=f6e31]: T
+    - main [ref=f6e32]:
+      - generic [ref=f6e73]:
+        - generic [ref=f6e75]:
+          - generic [ref=f6e76]:
+            - button "示例" [ref=f6e77] [cursor=pointer]
+            - button "清空" [ref=f6e78] [cursor=pointer]: 清空
+            - button "清理机械问题 (2)" [ref=f6e80] [cursor=pointer]: 清理机械问题 (2)
+            - generic [ref=f6e82]:
+              - generic [ref=f6e85]: 修复稿
+              - generic [ref=f6e86]: 原文 247 字
+              - generic [ref=f6e87]: 未修改
+            - generic [ref=f6e88]:
+              - button "上一处命中（Ctrl/Cmd+Alt+↑）" [ref=f6e89] [cursor=pointer]
+              - generic [ref=f6e91]: 0/18
+              - button "下一处命中（Ctrl/Cmd+Alt+↓）" [ref=f6e92] [cursor=pointer]
+            - generic "在正文里直接标出命中" [ref=f6e94]:
+              - checkbox "行内高亮" [checked] [ref=f6e95]
+              - text: 行内高亮
+            - generic "跳过代码块 / frontmatter / 链接" [ref=f6e96]:
+              - checkbox "Markdown 遮罩" [checked] [ref=f6e97]
+              - text: Markdown 遮罩
+            - generic [ref=f6e98]: 247 字
+          - generic [ref=f6e100]:
+            - generic [ref=f6e101]:
+              - generic [ref=f6e102]:
+                - button "切到源码模式（Ctrl/Cmd+Alt+T）" [pressed] [ref=f6e103] [cursor=pointer]:
+                  - generic [ref=f6e104]: 源码
+                - button "切到预览模式（Ctrl/Cmd+Alt+T）" [ref=f6e105] [cursor=pointer]:
+                  - generic [ref=f6e106]: 预览
+              - generic [ref=f6e107]:
+                - generic [ref=f6e110]: 18 命中
+                - generic [ref=f6e113]: 替换 0 / 删除 7
+                - generic [ref=f6e114]: 选择正文可添加批注
+            - generic [ref=f6e118]:
+              - generic: "值得注意的是，这不是一次普通的尝试——而是一场深刻的变革。 他站在窗前，目光如刀，心跳如鼓，思绪如潮。夜色如墨，浸染着这座沉默的城市。我们要做的，不是修修补补，而是从底层重构；不是被动响应，而是主动赋能，打通闭环，找到真正的抓手。 综上所述，唯有拥抱变化，才能在这个前所未有的时代立于不败之地。 这真的有用吗？？？句末还藏着一个零宽字符，点「清理机械问题」能去掉。 ```js // 代码块里的“其实”不该被检测（遮罩会跳过） const note = \"其实这里是代码\"; ```"
+              - textbox "在此粘贴中文稿件...（点“示例”可载入一段带 AI 味的样例）" [ref=f6e119]: "值得注意的是，这不是一次普通的尝试——而是一场深刻的变革。 他站在窗前，目光如刀，心跳如鼓，思绪如潮。夜色如墨，浸染着这座沉默的城市。我们要做的，不是修修补补，而是从底层重构；不是被动响应，而是主动赋能，打通闭环，找到真正的抓手。 综上所述，唯有拥抱变化，才能在这个前所未有的时代立于不败之地。 这真的有用吗？？？句末还藏着一个零宽字符，点「清理机械问题」能去掉。 ```js // 代码块里的“其实”不该被检测（遮罩会跳过） const note = \"其实这里是代码\"; ```"
+        - separator "拖拽调整报告面板宽度" [ref=f6e120]
+        - generic [ref=f6e122]:
+          - generic [ref=f6e123]:
+            - generic [ref=f6e124]:
+              - generic [ref=f6e125]: 受众
+              - generic [ref=f6e126]:
+                - button "Agent" [pressed] [ref=f6e127] [cursor=pointer]:
+                  - generic [ref=f6e128]: Agent
+                - button "人工" [ref=f6e129] [cursor=pointer]:
+                  - generic [ref=f6e130]: 人工
+                - button "机械" [ref=f6e131] [cursor=pointer]:
+                  - generic [ref=f6e132]: 机械
+                - button "全部" [ref=f6e133] [cursor=pointer]:
+                  - generic [ref=f6e134]: 全部
+            - generic [ref=f6e135]:
+              - generic [ref=f6e136]: 最低级别
+              - generic [ref=f6e137]:
+                - button "高" [ref=f6e138] [cursor=pointer]:
+                  - generic [ref=f6e139]: 高
+                - button "中" [ref=f6e140] [cursor=pointer]:
+                  - generic [ref=f6e141]: 中
+                - button "低" [pressed] [ref=f6e142] [cursor=pointer]:
+                  - generic [ref=f6e143]: 低
+            - button "命名空间 全部" [ref=f6e145] [cursor=pointer]:
+              - text: 命名空间
+              - generic [ref=f6e146]: 全部
+          - generic [ref=f6e148]:
+            - generic [ref=f6e149]: 共 18 处
+            - generic [ref=f6e150]: 高 0
+            - generic [ref=f6e151]: 中 14
+            - generic [ref=f6e152]: 低 4
+            - generic [ref=f6e153]:
+              - generic [ref=f6e154]: 已隐藏 8 条 · 扫描 303 条规则
+              - button "查看全部命中" [ref=f6e155] [cursor=pointer]: 查看全部命中
+              - button "复制 JSON" [ref=f6e157] [cursor=pointer]: 复制 JSON
+              - button "外部 LLM" [ref=f6e161] [cursor=pointer]:
+                - generic [ref=f6e163]: 外部 LLM
+          - generic [ref=f6e167]:
+            - generic [ref=f6e168]:
+              - generic [ref=f6e169]:
+                - generic [ref=f6e170]: 二元对比结构
+                - generic [ref=f6e171]: not-but-structure
+                - generic [ref=f6e172]: "[contrast.binary]"
+                - generic [ref=f6e173]:
+                  - generic [ref=f6e174]: 级别·中
+                  - generic [ref=f6e175]: 受众·Agent
+                  - generic [ref=f6e176]: 修复·手动
+                - generic [ref=f6e177]: 3 处
+                - button "查看规则详情：二元对比结构" [ref=f6e178] [cursor=pointer]: 详情
+              - list [ref=f6e180]:
+                - listitem [ref=f6e181]:
+                  - button "定位到正文：不是一次普通的尝试——而是" [ref=f6e182] [cursor=pointer]:
+                    - generic [ref=f6e183]: 1:9
+                    - generic [ref=f6e184]:
+                      - text: 值得注意的是，这
+                      - mark [ref=f6e185]: 不是一次普通的尝试——而是
+                      - text: 一场深刻的变革。
+                - listitem [ref=f6e186]:
+                  - button "定位到正文：不是修修补补，而是" [ref=f6e187] [cursor=pointer]:
+                    - generic [ref=f6e188]: 3:44
+                    - generic [ref=f6e189]:
+                      - text: 他站在窗前，目光如刀，心跳如鼓，思绪如潮。夜色如墨，浸染着这座沉默的城市。我们要做的，
+                      - mark [ref=f6e190]: 不是修修补补，而是
+                      - text: 从底层重构；不是被动响应，而是主动赋能，打通闭环，找到真正的抓手。
+                - listitem [ref=f6e191]:
+                  - button "定位到正文：不是被动响应，而是" [ref=f6e192] [cursor=pointer]:
+                    - generic [ref=f6e193]: 3:59
+                    - generic [ref=f6e194]:
+                      - text: 他站在窗前，目光如刀，心跳如鼓，思绪如潮。夜色如墨，浸染着这座沉默的城市。我们要做的，不是修修补补，而是从底层重构；
+                      - mark [ref=f6e195]: 不是被动响应，而是
+                      - text: 主动赋能，打通闭环，找到真正的抓手。
+            - generic [ref=f6e196]:
+              - generic [ref=f6e197]:
+                - generic [ref=f6e198]: 商务黑话候选
+                - generic [ref=f6e199]: business-jargon
+                - generic [ref=f6e200]: "[jargon.business]"
+                - generic [ref=f6e201]:
+                  - generic [ref=f6e202]: 级别·低
+                  - generic [ref=f6e203]: 受众·Agent
+                  - generic [ref=f6e204]: 修复·手动
+                - generic [ref=f6e205]: 3 处
+                - button "查看规则详情：商务黑话候选" [ref=f6e206] [cursor=pointer]: 详情
+              - list [ref=f6e208]:
+                - listitem [ref=f6e209]:
+                  - button "定位到正文：赋能" [ref=f6e210] [cursor=pointer]:
+                    - generic [ref=f6e211]: 3:70
+                    - generic [ref=f6e212]:
+                      - text: 他站在窗前，目光如刀，心跳如鼓，思绪如潮。夜色如墨，浸染着这座沉默的城市。我们要做的，不是修修补补，而是从底层重构；不是被动响应，而是主动
+                      - mark [ref=f6e213]: 赋能
+                      - text: ，打通闭环，找到真正的抓手。
+                - listitem [ref=f6e214]:
+                  - button "定位到正文：闭环" [ref=f6e215] [cursor=pointer]:
+                    - generic [ref=f6e216]: 3:75
+                    - generic [ref=f6e217]:
+                      - text: 他站在窗前，目光如刀，心跳如鼓，思绪如潮。夜色如墨，浸染着这座沉默的城市。我们要做的，不是修修补补，而是从底层重构；不是被动响应，而是主动赋能，打通
+                      - mark [ref=f6e218]: 闭环
+                      - text: ，找到真正的抓手。
+                - listitem [ref=f6e219]:
+                  - button "定位到正文：抓手" [ref=f6e220] [cursor=pointer]:
+                    - generic [ref=f6e221]: 3:83
+                    - generic [ref=f6e222]:
+                      - text: 他站在窗前，目光如刀，心跳如鼓，思绪如潮。夜色如墨，浸染着这座沉默的城市。我们要做的，不是修修补补，而是从底层重构；不是被动响应，而是主动赋能，打通闭环，找到真正的
+                      - mark [ref=f6e223]: 抓手
+                      - text: 。
+            - generic [ref=f6e224]:
+              - generic [ref=f6e225]:
+                - generic [ref=f6e226]: 修剪特定转折句
+                - generic [ref=f6e227]: cn.sentence.compound.contrastive-turn-preface
+                - generic [ref=f6e228]: "[sentence.compound]"
+                - generic [ref=f6e229]:
+                  - generic [ref=f6e230]: 级别·中
+                  - generic [ref=f6e231]: 受众·Agent
+                  - generic [ref=f6e232]: 修复·候选修复
+                - generic [ref=f6e233]: 2 处
+                - button "查看规则详情：修剪特定转折句" [ref=f6e234] [cursor=pointer]: 详情
+              - list [ref=f6e236]:
+                - listitem [ref=f6e237]:
+                  - button "定位到正文：不是修修补补，而是" [ref=f6e238] [cursor=pointer]:
+                    - generic [ref=f6e239]: 3:44
+                    - generic [ref=f6e240]:
+                      - text: 他站在窗前，目光如刀，心跳如鼓，思绪如潮。夜色如墨，浸染着这座沉默的城市。我们要做的，
+                      - mark [ref=f6e241]: 不是修修补补，而是
+                      - text: 从底层重构；不是被动响应，而是主动赋能，打通闭环，找到真正的抓手。
+                  - generic "候选修复" [ref=f6e242]
+                  - button "候选删除此处命中：不是修修补补，而是" [ref=f6e243] [cursor=pointer]:
+                    - generic [ref=f6e245]: 候选删除
+                - listitem [ref=f6e246]:
+                  - button "定位到正文：不是被动响应，而是" [ref=f6e247] [cursor=pointer]:
+                    - generic [ref=f6e248]: 3:59
+                    - generic [ref=f6e249]:
+                      - text: 他站在窗前，目光如刀，心跳如鼓，思绪如潮。夜色如墨，浸染着这座沉默的城市。我们要做的，不是修修补补，而是从底层重构；
+                      - mark [ref=f6e250]: 不是被动响应，而是
+                      - text: 主动赋能，打通闭环，找到真正的抓手。
+                  - generic "候选修复" [ref=f6e251]
+                  - button "候选删除此处命中：不是被动响应，而是" [ref=f6e252] [cursor=pointer]:
+                    - generic [ref=f6e254]: 候选删除
+            - generic [ref=f6e255]:
+              - generic [ref=f6e256]:
+                - generic [ref=f6e257]: 删未发生部分前半句
+                - generic [ref=f6e258]: cn.sentence.compound.unrealized-preface
+                - generic [ref=f6e259]: "[sentence.compound]"
+                - generic [ref=f6e260]:
+                  - generic [ref=f6e261]: 级别·中
+                  - generic [ref=f6e262]: 受众·Agent
+                  - generic [ref=f6e263]: 修复·候选修复
+                - generic [ref=f6e264]: 2 处
+                - button "查看规则详情：删未发生部分前半句" [ref=f6e265] [cursor=pointer]: 详情
+              - list [ref=f6e267]:
+                - listitem [ref=f6e268]:
+                  - button "定位到正文：不是修修补补，而是" [ref=f6e269] [cursor=pointer]:
+                    - generic [ref=f6e270]: 3:44
+                    - generic [ref=f6e271]:
+                      - text: 他站在窗前，目光如刀，心跳如鼓，思绪如潮。夜色如墨，浸染着这座沉默的城市。我们要做的，
+                      - mark [ref=f6e272]: 不是修修补补，而是
+                      - text: 从底层重构；不是被动响应，而是主动赋能，打通闭环，找到真正的抓手。
+                  - generic "候选修复" [ref=f6e273]
+                  - button "候选删除此处命中：不是修修补补，而是" [ref=f6e274] [cursor=pointer]:
+                    - generic [ref=f6e276]: 候选删除
+                - listitem [ref=f6e277]:
+                  - button "定位到正文：不是被动响应，而是" [ref=f6e278] [cursor=pointer]:
+                    - generic [ref=f6e279]: 3:59
+                    - generic [ref=f6e280]:
+                      - text: 他站在窗前，目光如刀，心跳如鼓，思绪如潮。夜色如墨，浸染着这座沉默的城市。我们要做的，不是修修补补，而是从底层重构；
+                      - mark [ref=f6e281]: 不是被动响应，而是
+                      - text: 主动赋能，打通闭环，找到真正的抓手。
+                  - generic "候选修复" [ref=f6e282]
+                  - button "候选删除此处命中：不是被动响应，而是" [ref=f6e283] [cursor=pointer]:
+                    - generic [ref=f6e285]: 候选删除
+            - generic [ref=f6e286]:
+              - generic [ref=f6e287]:
+                - generic [ref=f6e288]: 负向列举
+                - generic [ref=f6e289]: negative-listing
+                - generic [ref=f6e290]: "[contrast.negative-listing]"
+                - generic [ref=f6e291]:
+                  - generic [ref=f6e292]: 级别·中
+                  - generic [ref=f6e293]: 受众·Agent
+                  - generic [ref=f6e294]: 修复·手动
+                - generic [ref=f6e295]: 1 处
+                - button "查看规则详情：负向列举" [ref=f6e296] [cursor=pointer]: 详情
+              - list [ref=f6e298]:
+                - listitem [ref=f6e299]:
+                  - button "定位到正文：不是修修补补，而是从底层重构；不是" [ref=f6e300] [cursor=pointer]:
+                    - generic [ref=f6e301]: 3:44
+                    - generic [ref=f6e302]:
+                      - text: 他站在窗前，目光如刀，心跳如鼓，思绪如潮。夜色如墨，浸染着这座沉默的城市。我们要做的，
+                      - mark [ref=f6e303]: 不是修修补补，而是从底层重构；不是
+                      - text: 被动响应，而是主动赋能，打通闭环，找到真正的抓手。
+            - generic [ref=f6e304]:
+              - generic [ref=f6e305]:
+                - generic [ref=f6e306]: 喉舌式开头
+                - generic [ref=f6e307]: filler-worth-noting
+                - generic [ref=f6e308]: "[filler]"
+                - generic [ref=f6e309]:
+                  - generic [ref=f6e310]: 级别·中
+                  - generic [ref=f6e311]: 受众·Agent
+                  - generic [ref=f6e312]: 修复·候选修复
+                - generic [ref=f6e313]: 1 处
+                - button "查看规则详情：喉舌式开头" [ref=f6e314] [cursor=pointer]: 详情
+              - list [ref=f6e316]:
+                - listitem [ref=f6e317]:
+                  - button "定位到正文：值得注意的是" [ref=f6e318] [cursor=pointer]:
+                    - generic [ref=f6e319]: 1:1
+                    - generic [ref=f6e320]:
+                      - mark [ref=f6e321]: 值得注意的是
+                      - text: ，这不是一次普通的尝试——而是一场深刻的变革。
+                  - generic "候选修复" [ref=f6e322]
+                  - button "候选删除此处命中：值得注意的是" [ref=f6e323] [cursor=pointer]:
+                    - generic [ref=f6e325]: 候选删除
+            - generic [ref=f6e326]:
+              - generic [ref=f6e327]:
+                - generic [ref=f6e328]: 空洞拔高形容
+                - generic [ref=f6e329]: inflation-hollow-adjective
+                - generic [ref=f6e330]: "[inflation.significance]"
+                - generic [ref=f6e331]:
+                  - generic [ref=f6e332]: 级别·中
+                  - generic [ref=f6e333]: 受众·Agent
+                  - generic [ref=f6e334]: 修复·手动
+                - generic [ref=f6e335]: 1 处
+                - button "查看规则详情：空洞拔高形容" [ref=f6e336] [cursor=pointer]: 详情
+              - list [ref=f6e338]:
+                - listitem [ref=f6e339]:
+                  - button "定位到正文：深刻的变革" [ref=f6e340] [cursor=pointer]:
+                    - generic [ref=f6e341]: 1:24
+                    - generic [ref=f6e342]:
+                      - text: 值得注意的是，这不是一次普通的尝试——而是一场
+                      - mark [ref=f6e343]: 深刻的变革
+                      - text: 。
+            - generic [ref=f6e344]:
+              - generic [ref=f6e345]:
+                - generic [ref=f6e346]: 新颖性通胀
+                - generic [ref=f6e347]: inflation-novelty
+                - generic [ref=f6e348]: "[inflation.significance]"
+                - generic [ref=f6e349]:
+                  - generic [ref=f6e350]: 级别·中
+                  - generic [ref=f6e351]: 受众·Agent
+                  - generic [ref=f6e352]: 修复·手动
+                - generic [ref=f6e353]: 1 处
+                - button "查看规则详情：新颖性通胀" [ref=f6e354] [cursor=pointer]: 详情
+              - list [ref=f6e356]:
+                - listitem [ref=f6e357]:
+                  - button "定位到正文：前所未有" [ref=f6e358] [cursor=pointer]:
+                    - generic [ref=f6e359]: 5:18
+                    - generic [ref=f6e360]:
+                      - text: 综上所述，唯有拥抱变化，才能在这个
+                      - mark [ref=f6e361]: 前所未有
+                      - text: 的时代立于不败之地。
+            - generic [ref=f6e362]:
+              - generic [ref=f6e363]:
+                - generic [ref=f6e364]: 宏大时代开场
+                - generic [ref=f6e365]: opening-cliche-era
+                - generic [ref=f6e366]: "[opening.cliche]"
+                - generic [ref=f6e367]:
+                  - generic [ref=f6e368]: 级别·中
+                  - generic [ref=f6e369]: 受众·Agent
+                  - generic [ref=f6e370]: 修复·手动
+                - generic [ref=f6e371]: 1 处
+                - button "查看规则详情：宏大时代开场" [ref=f6e372] [cursor=pointer]: 详情
+              - list [ref=f6e374]:
+                - listitem [ref=f6e375]:
+                  - button "定位到正文：在这个前所未有的时代" [ref=f6e376] [cursor=pointer]:
+                    - generic [ref=f6e377]: 5:15
+                    - generic [ref=f6e378]:
+                      - text: 综上所述，唯有拥抱变化，才能
+                      - mark [ref=f6e379]: 在这个前所未有的时代
+                      - text: 立于不败之地。
+            - generic [ref=f6e380]:
+              - generic [ref=f6e381]:
+                - generic [ref=f6e382]: 金句式收束候选
+                - generic [ref=f6e383]: quotable-punchline-candidate
+                - generic [ref=f6e384]: "[punchline]"
+                - generic [ref=f6e385]:
+                  - generic [ref=f6e386]: 级别·低
+                  - generic [ref=f6e387]: 受众·Agent
+                  - generic [ref=f6e388]: 修复·手动
+                - generic [ref=f6e389]: 1 处
+                - button "查看规则详情：金句式收束候选" [ref=f6e390] [cursor=pointer]: 详情
+              - list [ref=f6e392]:
+                - listitem [ref=f6e393]:
+                  - button "定位到正文：真正的抓手" [ref=f6e394] [cursor=pointer]:
+                    - generic [ref=f6e395]: 3:80
+                    - generic [ref=f6e396]:
+                      - text: 他站在窗前，目光如刀，心跳如鼓，思绪如潮。夜色如墨，浸染着这座沉默的城市。我们要做的，不是修修补补，而是从底层重构；不是被动响应，而是主动赋能，打通闭环，找到
+                      - mark [ref=f6e397]: 真正的抓手
+                      - text: 。
+            - generic [ref=f6e398]:
+              - generic [ref=f6e399]:
+                - generic [ref=f6e400]: 修剪连续“不是…不是…”
+                - generic [ref=f6e401]: cn.sentence.compound.repeated-not-is
+                - generic [ref=f6e402]: "[sentence.compound]"
+                - generic [ref=f6e403]:
+                  - generic [ref=f6e404]: 级别·中
+                  - generic [ref=f6e405]: 受众·Agent
+                  - generic [ref=f6e406]: 修复·候选修复
+                - generic [ref=f6e407]: 1 处
+                - button "查看规则详情：修剪连续“不是…不是…”" [ref=f6e408] [cursor=pointer]: 详情
+              - list [ref=f6e410]:
+                - listitem [ref=f6e411]:
+                  - button "定位到正文：不是修修补补，而是" [ref=f6e412] [cursor=pointer]:
+                    - generic [ref=f6e413]: 3:44
+                    - generic [ref=f6e414]:
+                      - text: 他站在窗前，目光如刀，心跳如鼓，思绪如潮。夜色如墨，浸染着这座沉默的城市。我们要做的，
+                      - mark [ref=f6e415]: 不是修修补补，而是
+                      - text: 从底层重构；不是被动响应，而是主动赋能，打通闭环，找到真正的抓手。
+                  - generic "候选修复" [ref=f6e416]
+                  - button "候选删除此处命中：不是修修补补，而是" [ref=f6e417] [cursor=pointer]:
+                    - generic [ref=f6e419]: 候选删除
+            - generic [ref=f6e420]:
+              - generic [ref=f6e421]:
+                - generic [ref=f6e422]: 总结式过渡
+                - generic [ref=f6e423]: transition-summary-conclude
+                - generic [ref=f6e424]: "[transition.summary]"
+                - generic [ref=f6e425]:
+                  - generic [ref=f6e426]: 级别·中
+                  - generic [ref=f6e427]: 受众·Agent
+                  - generic [ref=f6e428]: 修复·候选修复
+                - generic [ref=f6e429]: 1 处
+                - button "查看规则详情：总结式过渡" [ref=f6e430] [cursor=pointer]: 详情
+              - list [ref=f6e432]:
+                - listitem [ref=f6e433]:
+                  - button "定位到正文：综上所述" [ref=f6e434] [cursor=pointer]:
+                    - generic [ref=f6e435]: 5:1
+                    - generic [ref=f6e436]:
+                      - mark [ref=f6e437]: 综上所述
+                      - text: ，唯有拥抱变化，才能在这个前所未有的时代立于不败之地。
+                  - generic "候选修复" [ref=f6e438]
+                  - button "候选删除此处命中：综上所述" [ref=f6e439] [cursor=pointer]:
+                    - generic [ref=f6e441]: 候选删除
+          - button "需 Agent 语义判断的规则（8 条，本页纯 regex 不检测）" [ref=f6e443] [cursor=pointer]: 需 Agent 语义判断的规则（8 条，本页纯 regex 不检测）
+  - generic:
+    - img
+  - generic [ref=f6e59]:
+    - button "Toggle Nuxt DevTools" [ref=f6e60] [cursor=pointer]:
+      - img [ref=f6e61]
+    - generic "Page load time" [ref=f6e64]:
+      - generic [ref=f6e65]: "9"
+      - generic [ref=f6e66]: ms
+    - button "Toggle Component Inspector" [ref=f6e68] [cursor=pointer]:
+      - img [ref=f6e69]

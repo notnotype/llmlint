@@ -17,7 +17,7 @@
         "agent-skill"
     ],
     "author": "notnotype",
-    "license": "PolyForm-Noncommercial-1.0.0",
+    "license": "AGPL-3.0-only",
     "homepage": "https://github.com/notnotype/llmlint#readme",
     "repository": {
         "type": "git",

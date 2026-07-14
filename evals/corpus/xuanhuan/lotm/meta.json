@@ -64,6 +64,14 @@
       "charCount": 2622
     },
     {
+      "file": "render-0001-elysiver-gemini-gemini-3.1-pro.md",
+      "role": "render",
+      "model": "elysiver-gemini/gemini-3.1-pro",
+      "difficulty": "raw",
+      "pairRef": "reference-0001.md",
+      "charCount": 2691
+    },
+    {
       "file": "render-0002-deepseek-deepseek-v4-flash.md",
       "role": "render",
       "model": "deepseek/deepseek-v4-flash",
@@ -80,12 +88,12 @@
       "charCount": 5081
     },
     {
-      "file": "render-0002-doubao-doubao-seed-2-1-pro-260628.md",
+      "file": "render-0002-elysiver-gemini-gemini-3.1-pro.md",
       "role": "render",
-      "model": "doubao/doubao-seed-2-1-pro-260628",
+      "model": "elysiver-gemini/gemini-3.1-pro",
       "difficulty": "raw",
       "pairRef": "reference-0002.md",
-      "charCount": 327
+      "charCount": 6147
     },
     {
       "file": "render-0003-deepseek-deepseek-v4-flash.md",
@@ -104,6 +112,14 @@
       "charCount": 3258
     },
     {
+      "file": "render-0003-elysiver-gemini-gemini-3.1-pro.md",
+      "role": "render",
+      "model": "elysiver-gemini/gemini-3.1-pro",
+      "difficulty": "raw",
+      "pairRef": "reference-0003.md",
+      "charCount": 4068
+    },
+    {
       "file": "render-0004-deepseek-deepseek-v4-flash.md",
       "role": "render",
       "model": "deepseek/deepseek-v4-flash",
@@ -120,12 +136,12 @@
       "charCount": 5763
     },
     {
-      "file": "render-0004-doubao-doubao-seed-2-1-pro-260628.md",
+      "file": "render-0004-elysiver-gemini-gemini-3.1-pro.md",
       "role": "render",
-      "model": "doubao/doubao-seed-2-1-pro-260628",
+      "model": "elysiver-gemini/gemini-3.1-pro",
       "difficulty": "raw",
       "pairRef": "reference-0004.md",
-      "charCount": 1699
+      "charCount": 4567
     },
     {
       "file": "render-0005-deepseek-deepseek-v4-flash.md",
@@ -144,12 +160,23 @@
       "charCount": 5139
     },
     {
-      "file": "render-0005-doubao-doubao-seed-2-1-pro-260628.md",
+      "file": "render-0005-elysiver-gemini-gemini-3.1-pro.md",
       "role": "render",
-      "model": "doubao/doubao-seed-2-1-pro-260628",
+      "model": "elysiver-gemini/gemini-3.1-pro",
       "difficulty": "raw",
       "pairRef": "reference-0005.md",
-      "charCount": 2942
+      "charCount": 5722
     }
-  ]
+  ],
+  "promptVersion": {
+    "brief": "brief-v2",
+    "render": "render-v1"
+  },
+  "classification": {
+    "source": "llm",
+    "model": "deepseek/deepseek-v4-flash",
+    "classifiedAt": "2026-07-06T10:53:58.258Z",
+    "pov": "third",
+    "textType": "novel"
+  }
 }

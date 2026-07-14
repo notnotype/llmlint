@@ -10,6 +10,8 @@ import {Plugin, PluginKey, TextSelection} from "@tiptap/pm/state";
 import {Decoration, DecorationSet} from "@tiptap/pm/view";
 import type {HighlightRange} from "../types";
 import type {ReviewComment, ReviewEditorMode, ReviewIssueMark, ReviewTextDiff, ReviewTextSelection} from "../utils/review-ranges";
+import type {ProjectedHeatChunk} from "../utils/repair-draft";
+import {heatColor, pAiPercent} from "../utils/contribute-workspace";
 import {useLlmlintI18n} from "../composables/useLlmlintI18n";
 import {useNotification} from "../composables/useNotification";
 import {useWebSettings} from "../composables/useWebSettings";
@@ -21,6 +23,7 @@ import {reviewReplacementActionLabel, reviewReplacementTitle} from "../utils/rev
 import HighlightedTextarea from "./HighlightedTextarea.vue";
 import ReviewSelectionMenu from "./ReviewSelectionMenu.vue";
 import ReviewSourceSelectionMenu from "./ReviewSourceSelectionMenu.vue";
+import RuleInlineMenu from "./RuleInlineMenu.vue";
 import SegmentedControl, {type SegmentedOption} from "./common/SegmentedControl.vue";
 
 const REVIEW_DECORATION_KEY = new PluginKey<DecorationSet>("llmlint-review-decorations");
@@ -32,15 +35,30 @@ const props = withDefaults(defineProps<{
     issueMarks: ReviewIssueMark[];
     comments: ReviewComment[];
     diffs?: ReviewTextDiff[];
-    repairDiffs?: ReviewTextDiff[];
     locateOffset?: number | null;
     activeIssueMark?: ReviewIssueMark | null;
     placeholder?: string;
+    /** W7 F2：选区菜单「AI 改写选区」入口开关（宿主接了 llm-rewrite-selection 发起链才置真）。 */
+    llmRewriteEnabled?: boolean;
+    /** R5：AI 改写审阅横幅打开等场景由宿主强开 diff 层（无视 settings.draftDiff 开关）。 */
+    forceDiffs?: boolean;
+    /** R6：检测器热力块（**draft 坐标**，宿主经 projectHeatChunks 投影后传入）；null/缺省 = 无热力数据（开关也不显示）。 */
+    heat?: ProjectedHeatChunk[] | null;
+    /** Task 17 A3：源码选区菜单「保存标注」入口开关（宿主接了 save-annotation 落库链才置真）。 */
+    annotateEnabled?: boolean;
 }>(), {
     locateOffset: null,
     activeIssueMark: null,
     placeholder: "",
+    llmRewriteEnabled: false,
+    forceDiffs: false,
+    heat: null,
+    annotateEnabled: false,
 });
+
+// Task 17 拍板①：预览视图禁用待删除（代码保留）。工具栏隐藏「源码/预览」切换、Ctrl/Cmd+Alt+T
+// 快捷键停用；宿主（TextPanel）强制 mode 恒为 "source"。预览相关代码不删，等后续拍板删除时一起清。
+const previewDisabled = true;
 
 type SelectionReplacement = {from: number; to: number; replacement: string};
 type MarkdownBlockRange = {from: number; to: number; block: string};
@@ -64,7 +82,10 @@ const emit = defineEmits<{
     (e: "clear-diff", id: string): void;
     (e: "clear-diffs"): void;
     (e: "accept-replacement", mark: ReviewIssueMark): void;
+    (e: "hide-rule", ruleId: string): void;
     (e: "replace-selection", payload: {from: number; to: number; replacement: string; title?: string; source?: "static" | "llm"; notify?: "clipboard" | "format"}): void;
+    (e: "llm-rewrite-selection", payload: {from: number; to: number; text: string; contextBefore: string; contextAfter: string}): void;
+    (e: "save-annotation", payload: {from: number; to: number; text: string; note: string}): void;
 }>();
 
 const selected = ref<ReviewTextSelection | null>(null);
@@ -82,6 +103,10 @@ const activeIssueCommentBody = ref("");
 const activeIssueCommentInput = ref<HTMLTextAreaElement | null>(null);
 const linkShortcutToken = ref(0);
 const commentShortcutToken = ref(0);
+// inline 规则菜单（R2）：点击命中高亮 / 校对符号后记录 mark + 锚元素，二者齐备才渲染菜单。
+// Task 17 A2：源码模式点击命中段没有可锚 DOM 节点，锚放宽为 floating-ui 虚拟锚点。
+const inlineMenuMark = ref<ReviewIssueMark | null>(null);
+const inlineMenuAnchor = ref<HTMLElement | {getBoundingClientRect: () => DOMRect} | null>(null);
 const {t} = useLlmlintI18n();
 const notification = useNotification();
 const {settings, patch} = useWebSettings();
@@ -112,19 +137,20 @@ const sourceCommentRanges = computed(() => props.comments.map((comment) => ({
     end: comment.to,
     active: comment.id === activeCommentId.value,
     resolved: comment.resolved === true,
+    stale: comment.stale === true,
     index: commentIndexMap.value.get(comment.id) ?? 0,
 })));
-const sourceReplacementRanges = computed(() => props.issueMarks
-    .filter((mark) => mark.replacement !== null)
-    .map((mark) => ({
-        start: mark.from,
-        end: mark.to,
-        label: replacementLabel(mark),
-        isDelete: mark.replacement === "",
-        active: props.activeIssueMark?.id === mark.id,
-    })));
-const sourceRepairDiffs = computed(() => (props.repairDiffs ?? []).filter((repairDiff) => !(props.diffs ?? []).some((diff) => doReviewDiffsOverlap(repairDiff, diff))));
-const sourceDiffRanges = computed(() => [...(props.diffs ?? []), ...sourceRepairDiffs.value].map((diff) => ({
+// 建议与已应用编辑显式分层：正文不再常驻画未应用替换（那会伪装成已应用改动），
+// 只给 active 命中一个定位轮廓；替换预览文本走工具条按钮与选区菜单（按需可供性）。
+const sourceActiveIssueRange = computed(() => props.activeIssueMark
+    ? {start: props.activeIssueMark.from, end: props.activeIssueMark.to}
+    : null);
+// diff 层开关（R5）：settings.draftDiff（用户偏好）或 forceDiffs（宿主强开，AI 改写审阅期）
+// 任一为真才消费 props.diffs；关闭时全部 diff 消费点（渲染/计数/巡检队列）读到空表。
+const effectiveDiffs = computed<ReviewTextDiff[]>(() => (settings.value.draftDiff || props.forceDiffs) ? (props.diffs ?? []) : []);
+// 编辑器热力层开关（R6）：偏好开 + 宿主传了非空热力块才生效。
+const heatActive = computed(() => settings.value.editorHeatmap && (props.heat?.length ?? 0) > 0);
+const sourceDiffRanges = computed(() => effectiveDiffs.value.map((diff) => ({
     start: diff.from,
     end: diff.to,
     deleted: diffTextLabel(diff.deleted),
@@ -134,8 +160,8 @@ const sourceDiffRanges = computed(() => [...(props.diffs ?? []), ...sourceRepair
     active: diff.id === activeDiffId.value,
 })));
 const unresolvedCommentCount = computed(() => props.comments.filter((comment) => comment.resolved !== true).length);
-const diffCount = computed(() => props.diffs?.length ?? 0);
-const diffReviewQueue = computed(() => [...(props.diffs ?? [])].sort((left, right) => left.from - right.from || left.id.localeCompare(right.id)));
+const diffCount = computed(() => effectiveDiffs.value.length);
+const diffReviewQueue = computed(() => [...effectiveDiffs.value].sort((left, right) => left.from - right.from || left.id.localeCompare(right.id)));
 const activeDiffIndex = computed(() => activeDiffId.value ? diffReviewQueue.value.findIndex((diff) => diff.id === activeDiffId.value) : -1);
 const diffReviewLabel = computed(() => {
     const queue = diffReviewQueue.value;
@@ -151,6 +177,8 @@ const commentIndexMap = computed(() => new Map(props.comments.map((comment, inde
 const replaceableIssueCount = computed(() => props.issueMarks.filter((mark) => mark.replacement !== null).length);
 const replacementIssueCount = computed(() => props.issueMarks.filter((mark) => mark.replacement !== null && mark.replacement !== "").length);
 const deleteIssueCount = computed(() => props.issueMarks.filter((mark) => mark.replacement === "").length);
+// 校对批注层开关（Task 15 P2-E 7b）：偏好记忆在 settings.proofreadMarks；只影响 preview 装饰渲染。
+const proofreadEnabled = computed(() => settings.value.proofreadMarks);
 const selectedLength = computed(() => selected.value?.mappable ? selected.value.end - selected.value.start : 0);
 const commentReviewQueue = computed(() => {
     const unresolved = props.comments.filter((comment) => comment.resolved !== true);
@@ -254,21 +282,6 @@ function commentActionTitle(base: string, comment: ReviewComment): string {
     return `${base}: ${compactReviewLabel(comment.quote)}`;
 }
 
-function doReviewDiffsOverlap(left: ReviewTextDiff, right: ReviewTextDiff): boolean {
-    const leftPoint = left.from === left.to;
-    const rightPoint = right.from === right.to;
-    if (leftPoint && rightPoint) {
-        return left.from === right.from;
-    }
-    if (leftPoint) {
-        return left.from >= right.from && left.from <= right.to;
-    }
-    if (rightPoint) {
-        return right.from >= left.from && right.from <= left.to;
-    }
-    return left.from < right.to && left.to > right.from;
-}
-
 function replacementLabel(mark: ReviewIssueMark): string {
     return mark.replacement === "" ? t("review.delete") : mark.replacement ?? "";
 }
@@ -370,6 +383,15 @@ const editor = useEditor({
         },
         handleClick: (_view, _position, event) => {
             const target = event.target as HTMLElement | null;
+            // 校对批注符号（7b + R2 行为反转）：点击建议文本 / 删除角标打开 inline 规则菜单（应用/隐藏在菜单里做）。
+            const proofreadNode = target?.closest<HTMLElement>("[data-proofread-issue-id]");
+            if (proofreadNode?.dataset.proofreadIssueId) {
+                const mark = props.issueMarks.find((item) => item.id === proofreadNode.dataset.proofreadIssueId);
+                if (mark) {
+                    openRuleMenu(mark, proofreadNode);
+                }
+                return true;
+            }
             const commentNode = target?.closest<HTMLElement>(".llmlint-comment-mark");
             if (commentNode?.dataset.commentId) {
                 void activateComment(commentNode.dataset.commentId);
@@ -386,7 +408,12 @@ const editor = useEditor({
             }
             const from = Number(issueNode.dataset.reviewFrom ?? NaN);
             if (Number.isFinite(from)) {
+                // 保留 caret-click（命中列表联动），同时打开 inline 规则菜单（R2）。
                 emit("caret-click", from);
+                const mark = props.issueMarks.find((item) => item.from === from && item.ruleId === issueNode.dataset.ruleId);
+                if (mark) {
+                    openRuleMenu(mark, issueNode);
+                }
                 return true;
             }
             return false;
@@ -428,11 +455,11 @@ watch(() => props.modelValue, (value) => {
     nextTick(() => refreshDecorations());
 });
 
-watch(() => [props.issueMarks, props.comments, props.diffs, props.modelValue, props.activeIssueMark] as const, () => {
+watch(() => [props.issueMarks, props.comments, effectiveDiffs.value, props.modelValue, props.activeIssueMark] as const, () => {
     if (activeCommentId.value && !props.comments.some((comment) => comment.id === activeCommentId.value)) {
         activeCommentId.value = null;
     }
-    if (activeDiffId.value && !(props.diffs ?? []).some((diff) => diff.id === activeDiffId.value)) {
+    if (activeDiffId.value && !effectiveDiffs.value.some((diff) => diff.id === activeDiffId.value)) {
         activeDiffId.value = null;
     }
     if (editingCommentId.value && !props.comments.some((comment) => comment.id === editingCommentId.value)) {
@@ -441,6 +468,17 @@ watch(() => [props.issueMarks, props.comments, props.diffs, props.modelValue, pr
     }
     refreshDecorations();
 }, {deep: true});
+
+// 正文或命中集变更（应用替换 / 重扫 / 隐藏规则）→ inline 规则菜单立即失效关闭（R2）。
+// 不并入上面的 deep watch：那里还监听 activeIssueMark，而 caret-click 联动会改它——菜单会刚开就被关。
+watch(() => [props.modelValue, props.issueMarks] as const, () => {
+    closeRuleMenu();
+});
+
+// 热力层开关 / 热力块数据变化时重建预览装饰（R6）。
+watch(() => [heatActive.value, props.heat] as const, () => {
+    refreshDecorations();
+});
 
 watch(() => props.comments.map((comment) => comment.id), (ids, previousIds) => {
     const previous = new Set(previousIds);
@@ -463,6 +501,11 @@ watch(() => props.activeIssueMark?.id, () => {
 });
 
 watch(activeDiffId, () => {
+    refreshDecorations();
+});
+
+// 校对批注开关变化时重建装饰（装饰集里含校对删除线与建议 widget）。
+watch(proofreadEnabled, () => {
     refreshDecorations();
 });
 
@@ -493,7 +536,49 @@ onBeforeUpdate(() => {
 function updateMode(value: string | number | boolean): void {
     const sourceOffset = selected.value?.source === "source" ? selected.value.end : undefined;
     clearSelectionState(sourceOffset);
+    closeRuleMenu();
     emit("update:mode", value === "preview" ? "preview" : "source");
+}
+
+/** 打开 inline 规则菜单（R2 preview 装饰点击 / Task 17 A2 源码命中点击——后者传虚拟锚点）。 */
+function openRuleMenu(mark: ReviewIssueMark, anchor: HTMLElement | {getBoundingClientRect: () => DOMRect}): void {
+    inlineMenuMark.value = mark;
+    inlineMenuAnchor.value = anchor;
+}
+
+/** 关闭 inline 规则菜单。 */
+function closeRuleMenu(): void {
+    inlineMenuMark.value = null;
+    inlineMenuAnchor.value = null;
+}
+
+/** 菜单「应用替换」：走既有 acceptReplacement（static splice / provenance 语义不变）。 */
+function handleRuleMenuApply(mark: ReviewIssueMark): void {
+    closeRuleMenu();
+    if (mark.replacement !== null) {
+        acceptReplacement(mark);
+    }
+}
+
+/** 菜单「隐藏此规则」：向宿主上抛 ruleId（TextPanel 写 ruleOverrides 并给撤销通知）。 */
+function handleRuleMenuHide(ruleId: string): void {
+    closeRuleMenu();
+    emit("hide-rule", ruleId);
+}
+
+/** 切换 diff 层显示（R5，偏好记忆；forceDiffs 强开期间开关不影响显隐）。 */
+function toggleDraftDiff(): void {
+    patch({draftDiff: !settings.value.draftDiff});
+}
+
+/** 切换编辑器热力层（R6，偏好记忆；watch 会随之重建预览装饰）。 */
+function toggleEditorHeatmap(): void {
+    patch({editorHeatmap: !settings.value.editorHeatmap});
+}
+
+/** 切换校对批注层（偏好记忆；watch 会随之重建预览装饰）。 */
+function toggleProofreadMarks(): void {
+    patch({proofreadMarks: !settings.value.proofreadMarks});
 }
 
 function updateSource(value: string): void {
@@ -587,17 +672,34 @@ function handleSourceFormatCommand(payload: SourceListFormatPayload): void {
     emit("caret-click", targetOffset);
 }
 
-function handleSourceCaretClick(offset: number): void {
+function handleSourceCaretClick(offset: number, meta?: {origin: "pointer" | "keyboard"; collapsed: boolean}): void {
     emit("caret-click", offset);
     const diff = diffAtSourceOffset(offset);
     if (diff) {
         activeDiffId.value = diff.id;
     }
     const comment = props.comments.find((item) => offset >= item.from && offset < item.to);
-    if (!comment) {
+    if (comment) {
+        void activateComment(comment.id);
         return;
     }
-    void activateComment(comment.id);
+    // Task 17 A2「点到什么开什么」：批注 > diff > 命中菜单——有 diff 时保留 diff 激活语义，不叠开菜单。
+    if (diff) {
+        return;
+    }
+    // 只有指针点击且光标折叠才开 inline 规则菜单（键盘移动 / 拖选不触发）；锚点用镜像法算出的虚拟光标矩形。
+    if (meta?.origin !== "pointer" || !meta.collapsed) {
+        return;
+    }
+    const mark = props.issueMarks.find((item) => offset >= item.from && offset < item.to);
+    if (!mark) {
+        closeRuleMenu();
+        return;
+    }
+    const rect = sourceEditor.value?.caretViewportRect(offset);
+    if (rect) {
+        openRuleMenu(mark, {getBoundingClientRect: () => rect});
+    }
 }
 
 function diffAtSourceOffset(offset: number): ReviewTextDiff | null {
@@ -728,6 +830,10 @@ function handleDocumentKeyDown(event: KeyboardEvent): void {
         return;
     }
     if (isModeToggleShortcut(event) && !isReviewTextInput(target)) {
+        // Task 17 拍板①：预览禁用期间源码/预览切换快捷键停用（吞掉事件避免落到浏览器默认行为之外的旧语义）。
+        if (previewDisabled) {
+            return;
+        }
         event.preventDefault();
         updateMode(props.mode === "source" ? "preview" : "source");
         return;
@@ -923,6 +1029,7 @@ function isReviewTextInput(target: HTMLElement | null): boolean {
     return Boolean(target?.closest([
         "[data-review-comment-input='true']",
         "[data-review-source-comment-input='true']",
+        "[data-review-source-annotation-input='true']",
         "[data-review-active-issue-comment-input='true']",
         "[data-review-link-input='true']",
         "[data-review-source-link-input='true']",
@@ -1040,7 +1147,7 @@ function diffContextValue(value: string): string {
 }
 
 async function copyActiveDiffContext(): Promise<void> {
-    const diff = activeDiffId.value ? (props.diffs ?? []).find((item) => item.id === activeDiffId.value) : null;
+    const diff = activeDiffId.value ? effectiveDiffs.value.find((item) => item.id === activeDiffId.value) : null;
     if (!diff) {
         return;
     }
@@ -1110,6 +1217,50 @@ async function replaceSelectionWithClipboard(): Promise<void> {
     } catch {
         notification.error(t("notify.clipboardReadFailed"));
     }
+}
+
+// W7 F2 选区 AI 改写的上下文窗：前后各约 300 字（UTF-16 码元），与 Task 07「复制选区优化指令」
+// 的局部语境思路一致——只给模型理解语境所需的邻近文本，不整篇随行。
+const LLM_SELECTION_CONTEXT_CHARS = 300;
+
+/**
+ * 选区菜单「AI 改写选区」动作：把当前选区（draft 坐标）连同选中文本与前后文窗上抛给宿主
+ * （contribute 据此发起 selection 模式 job）。text 用 modelValue 按坐标切出（mappable 选区
+ * 满足 slice(start,end)===text，与宿主返回时的快照校验同口径）；发出后收起选区菜单，编辑不锁。
+ */
+function requestLlmSelectionRewrite(): void {
+    const selection = selected.value;
+    if (!selection?.mappable) {
+        return;
+    }
+    const from = selection.start;
+    const to = selection.end;
+    emit("llm-rewrite-selection", {
+        from,
+        to,
+        text: props.modelValue.slice(from, to),
+        contextBefore: props.modelValue.slice(Math.max(0, from - LLM_SELECTION_CONTEXT_CHARS), from),
+        contextAfter: props.modelValue.slice(to, Math.min(props.modelValue.length, to + LLM_SELECTION_CONTEXT_CHARS)),
+    });
+    clearSelectionState(selection.end);
+}
+
+/**
+ * Task 17 A3 选区菜单「保存标注」：把当前选区（draft 坐标）+ 选中文本 + 标注正文上抛给宿主
+ * （contribute 经 TextPanel 的 draft→source 映射把坐标锚回 head.body 再落库）。发出后收起选区菜单。
+ */
+function saveSelectionAnnotation(note: string): void {
+    const selection = selected.value;
+    if (!selection?.mappable) {
+        return;
+    }
+    emit("save-annotation", {
+        from: selection.start,
+        to: selection.end,
+        text: props.modelValue.slice(selection.start, selection.end),
+        note,
+    });
+    clearSelectionState(selection.end);
 }
 
 function formatSelection(command: MarkdownFormatCommand): void {
@@ -1716,7 +1867,7 @@ function activateNewComment(id: string): void {
 }
 
 async function activateDiff(id: string): Promise<void> {
-    const diff = (props.diffs ?? []).find((item) => item.id === id);
+    const diff = effectiveDiffs.value.find((item) => item.id === id);
     if (!diff) {
         return;
     }
@@ -1770,7 +1921,7 @@ function clearActiveDiff(): void {
     emit("clear-diff", id);
     if (nextDiff) {
         nextTick(() => {
-            if ((props.diffs ?? []).some((diff) => diff.id === nextDiff.id)) {
+            if (effectiveDiffs.value.some((diff) => diff.id === nextDiff.id)) {
                 void activateDiff(nextDiff.id);
             }
         });
@@ -1872,15 +2023,41 @@ function refreshDecorations(targetEditor?: Editor): void {
     if (!currentEditor) {
         return;
     }
-    const decorations = buildPreviewDecorations(currentEditor, props.modelValue, props.issueMarks, props.comments, props.diffs ?? []);
+    const decorations = buildPreviewDecorations(currentEditor, props.modelValue, props.issueMarks, props.comments, effectiveDiffs.value, heatActive.value ? (props.heat ?? []) : []);
     currentEditor.view.dispatch(currentEditor.state.tr
         .setMeta(REVIEW_DECORATION_KEY, decorations)
         .setMeta("addToHistory", false));
 }
 
-function buildPreviewDecorations(currentEditor: Editor, source: string, issues: ReviewIssueMark[], comments: ReviewComment[], diffs: ReviewTextDiff[]): DecorationSet {
+function buildPreviewDecorations(currentEditor: Editor, source: string, issues: ReviewIssueMark[], comments: ReviewComment[], diffs: ReviewTextDiff[], heat: ProjectedHeatChunk[]): DecorationSet {
     const decorations: Decoration[] = [];
     const textMap = buildTextMap(currentEditor);
+    // —— 热力层（R6）先写：块底色 = P(AI) 梯度（heatColor，alpha 与只读视图同款）。
+    // 坐标口径：heat 为 draft 坐标（宿主经 projectHeatChunks 从 head.body 投影而来），
+    // 位置由 piece-table 映射跟随编辑，但 pAi 数值锚定 head 检测、编辑后渐陈旧属预期。
+    // 热力块常几百字跨段落，而 preview 文本图把段落间多个换行折叠为单个 \n——整块 needle
+    // 定位必失配，故按源文本行切成子段逐行定位（同块共享 pAi）。
+    // diff 装饰在热力之后写入：待审改动底色优先覆盖热力（.is-heat 下配套 CSS 保证）。
+    for (const chunk of heat) {
+        const heatStyle = `background-color: ${heatColor(chunk.pAi)};`;
+        const heatTitle = `P(AI) ${pAiPercent(chunk.pAi)}%`;
+        let lineStart = chunk.from;
+        while (lineStart < chunk.to) {
+            const breakIndex = source.indexOf("\n", lineStart);
+            const lineEnd = breakIndex >= 0 && breakIndex < chunk.to ? breakIndex : chunk.to;
+            if (lineEnd > lineStart) {
+                const range = locateSourceRangeInPreview(textMap, source, lineStart, lineEnd);
+                if (range && range.from < range.to) {
+                    decorations.push(Decoration.inline(range.from, range.to, {
+                        class: "llmlint-heat-chunk",
+                        style: heatStyle,
+                        title: heatTitle,
+                    }));
+                }
+            }
+            lineStart = lineEnd + 1;
+        }
+    }
     for (const diff of diffs) {
         const range = diff.inserted
             ? locateSourceRangeInPreview(textMap, source, diff.from, diff.to)
@@ -1914,7 +2091,17 @@ function buildPreviewDecorations(currentEditor: Editor, source: string, issues: 
     }
     for (const issue of issues) {
         const range = locateSourceRangeInPreview(textMap, source, issue.from, issue.to);
+        // 校对批注层（7b）：只对携带 replacement 的命中追加校对符号；复用本循环已算好的定位，
+        // 不引入第二遍字符串扫描（几百命中时定位是主开销，实测 400 命中 × 40k 字约 17ms）。
+        const proofread = proofreadEnabled.value && issue.replacement !== null;
         if (!range) {
+            // 纯插入型命中（from===to，无原文可删）：范围定位必空，退化为点定位只放插入符号。
+            if (proofread && issue.from === issue.to && issue.replacement) {
+                const point = locateSourcePointInPreview(textMap, source, issue.from);
+                if (point) {
+                    decorations.push(Decoration.widget(point.from, () => buildProofreadWidget(issue), {side: 1, key: `proofread-${issue.id}`}));
+                }
+            }
             continue;
         }
         decorations.push(Decoration.inline(range.from, range.to, {
@@ -1924,12 +2111,16 @@ function buildPreviewDecorations(currentEditor: Editor, source: string, issues: 
                 props.activeIssueMark?.id === issue.id ? "is-active" : "",
                 issue.replacement !== null ? "llmlint-issue-replaceable" : "",
                 issue.replacement === "" ? "llmlint-issue-delete-replacement" : "",
+                proofread ? "llmlint-proofread-original" : "",
             ].filter(Boolean).join(" "),
             "data-review-from": String(issue.from),
             "data-rule-id": issue.ruleId,
             "data-replacement-label": replacementLabel(issue),
             title: issue.replacement !== null ? replacementTitle(issue) : issue.title,
         }));
+        if (proofread) {
+            decorations.push(Decoration.widget(range.to, () => buildProofreadWidget(issue), {side: 1, key: `proofread-${issue.id}`}));
+        }
     }
     for (const comment of comments) {
         const range = locateSourceRangeInPreview(textMap, source, comment.from, comment.to);
@@ -1941,6 +2132,7 @@ function buildPreviewDecorations(currentEditor: Editor, source: string, issues: 
                 "llmlint-comment-mark",
                 activeCommentId.value === comment.id ? "is-active" : "",
                 comment.resolved === true ? "is-resolved" : "",
+                comment.stale === true ? "is-stale" : "",
             ].filter(Boolean).join(" "),
             "data-comment-id": comment.id,
             "data-comment-index": String(commentIndexMap.value.get(comment.id) ?? ""),
@@ -1948,6 +2140,35 @@ function buildPreviewDecorations(currentEditor: Editor, source: string, issues: 
         }));
     }
     return DecorationSet.create(currentEditor.state.doc, decorations);
+}
+
+/**
+ * 校对批注符号节点（7b）：替换型 = <ins> 建议文本（绿字虚线，区别于 diff-inserted 的绿底），
+ * 纯删除型 = 红色 × 角标；点击由 handleClick 按 data-proofread-issue-id 找回命中并应用。
+ * widget 带稳定 key（issue.id），装饰集重建时 ProseMirror 可复用 DOM 节点。
+ */
+function buildProofreadWidget(issue: ReviewIssueMark): HTMLElement {
+    const applyTitle = `${replacementTitle(issue)} · ${t("review.proofreadApplyHint")}`;
+    if (issue.replacement === "") {
+        const badge = document.createElement("span");
+        badge.className = "llmlint-proofread-delete-badge";
+        badge.textContent = "×";
+        badge.title = applyTitle;
+        badge.dataset.proofreadIssueId = issue.id;
+        return badge;
+    }
+    const node = document.createElement("ins");
+    node.className = "llmlint-proofread-insert";
+    node.textContent = proofreadInsertLabel(issue.replacement ?? "");
+    node.title = applyTitle;
+    node.dataset.proofreadIssueId = issue.id;
+    return node;
+}
+
+/** 行内建议文本标签：换行折算为 ↵，超长截断（完整替换文本在 title 与应用动作里）。 */
+function proofreadInsertLabel(replacement: string): string {
+    const visible = replacement.replaceAll("\n", "↵");
+    return visible.length > 48 ? `${visible.slice(0, 48)}…` : visible;
 }
 
 function locateSourcePointInPreview(textMap: {text: string; positions: Array<number | null>}, source: string, offset: number): {from: number; to: number} | null {
@@ -2154,12 +2375,20 @@ function selectionFromPreview(currentEditor: Editor): ReviewTextSelection | null
         disabledReason: t("review.previewMappingFailed"),
     };
 }
+
+// W7 F1：向宿主（TextPanel）暴露 diff 激活状态与激活动作——AI 改写审阅横幅经 TextPanel
+// 转调这里做「跳到下/上一处 llm diff」定位；键盘 Ctrl+Alt+N/P 与 clear-diff 机制不变。
+defineExpose({
+    activateDiff,
+    activeDiffId,
+});
 </script>
 
 <template>
     <div class="flex h-full min-h-0 flex-col">
         <div class="review-editor-toolbar flex flex-wrap items-center gap-2 border-b border-[var(--border-color)] bg-[var(--bg-panel)] px-3 py-2 text-sm">
-            <SegmentedControl :model-value="mode" :options="modeOptions" @update:model-value="updateMode" />
+            <!-- 源码/预览切换（Task 17 拍板①：预览禁用待删除，切换隐藏；mode 由宿主强制 source） -->
+            <SegmentedControl v-if="!previewDisabled" :model-value="mode" :options="modeOptions" @update:model-value="updateMode" />
             <div class="review-editor-toolbar__status min-w-0 flex-1">
                 <span class="review-editor-toolbar__chip">
                     <span class="i-lucide-scan-text h-3.5 w-3.5" />
@@ -2240,6 +2469,44 @@ function selectionFromPreview(currentEditor: Editor): ReviewTextSelection | null
                 </span>
                 <span v-else class="review-editor-toolbar__hint">{{ t("review.selectionHint") }}</span>
             </div>
+            <!-- 修改痕迹开关（R5）：草稿 vs 原文的未提交 diff 层，source/preview 双模式；AI 改写审阅期由宿主 forceDiffs 强开 -->
+            <button
+                type="button"
+                class="review-editor-toolbar__icon-button"
+                :class="(settings.draftDiff || forceDiffs) ? 'is-active' : ''"
+                :aria-pressed="settings.draftDiff || forceDiffs"
+                :aria-label="(settings.draftDiff || forceDiffs) ? t('review.draftDiffOnTitle') : t('review.draftDiffOffTitle')"
+                :title="(settings.draftDiff || forceDiffs) ? t('review.draftDiffOnTitle') : t('review.draftDiffOffTitle')"
+                @click="toggleDraftDiff"
+            >
+                <span class="i-lucide-git-compare h-3.5 w-3.5" />
+            </button>
+            <!-- 编辑器热力开关（R6 + Task 17 A2 移植镜像层）：source/preview 双模式，宿主传了热力块才显示 -->
+            <button
+                v-if="(heat?.length ?? 0) > 0"
+                type="button"
+                class="review-editor-toolbar__icon-button"
+                :class="settings.editorHeatmap ? 'is-active' : ''"
+                :aria-pressed="settings.editorHeatmap"
+                :aria-label="settings.editorHeatmap ? t('review.editorHeatmapOnTitle') : t('review.editorHeatmapOffTitle')"
+                :title="settings.editorHeatmap ? t('review.editorHeatmapOnTitle') : t('review.editorHeatmapOffTitle')"
+                @click="toggleEditorHeatmap"
+            >
+                <span class="i-lucide-thermometer h-3.5 w-3.5" />
+            </button>
+            <!-- 校对批注开关（7b）：仅预览模式生效——源码模式是 textarea 镜像层，无法行内插入建议文本 -->
+            <button
+                v-if="mode === 'preview'"
+                type="button"
+                class="review-editor-toolbar__icon-button"
+                :class="proofreadEnabled ? 'is-active' : ''"
+                :aria-pressed="proofreadEnabled"
+                :aria-label="proofreadEnabled ? t('review.proofreadOnTitle') : t('review.proofreadOffTitle')"
+                :title="proofreadEnabled ? t('review.proofreadOnTitle') : t('review.proofreadOffTitle')"
+                @click="toggleProofreadMarks"
+            >
+                <span class="i-lucide-pencil-ruler h-3.5 w-3.5" />
+            </button>
             <button
                 v-if="comments.length > 0"
                 type="button"
@@ -2332,9 +2599,10 @@ function selectionFromPreview(currentEditor: Editor): ReviewTextSelection | null
                         :model-value="modelValue"
                         :ranges="ranges"
                         :comment-ranges="sourceCommentRanges"
-                        :replacement-ranges="sourceReplacementRanges"
+                        :active-issue-range="sourceActiveIssueRange"
                         :diff-ranges="sourceDiffRanges"
                         :locate-offset="locateOffset"
+                        :heat="heatActive ? heat : null"
                         @update:model-value="updateSource"
                         @caret-click="handleSourceCaretClick"
                         @selection-change="handleSourceSelection"
@@ -2349,14 +2617,18 @@ function selectionFromPreview(currentEditor: Editor): ReviewTextSelection | null
                         :comments="comments"
                         :link-request-token="linkShortcutToken"
                         :comment-request-token="commentShortcutToken"
+                        :llm-rewrite-enabled="llmRewriteEnabled"
+                        :annotate-enabled="annotateEnabled"
                         @add-comment="addInlineComment"
                         @accept-replacement="acceptReplacement"
                         @replace-selection="replaceSelectionWithText"
                         @format-selection="formatSelection"
                         @link-selection="linkSelection"
+                        @llm-rewrite-selection="requestLlmSelectionRewrite"
+                        @save-annotation="saveSelectionAnnotation"
                     />
                 </div>
-                <div v-else class="llmlint-review-editor h-full min-h-0 overflow-auto bg-[var(--bg-input)] px-5 py-4 text-[var(--text-main)]">
+                <div v-else class="llmlint-review-editor h-full min-h-0 overflow-auto bg-[var(--bg-input)] px-5 py-4 text-[var(--text-main)]" :class="[proofreadEnabled ? 'is-proofread' : '', heatActive ? 'is-heat' : '']">
                     <EditorContent :editor="editor" @vue:mounted="void refreshPreviewDecorationsAfterMount()" />
                     <ReviewSelectionMenu
                         v-if="editor && selected"
@@ -2368,15 +2640,27 @@ function selectionFromPreview(currentEditor: Editor): ReviewTextSelection | null
                         :comments="comments"
                         :link-request-token="linkShortcutToken"
                         :comment-request-token="commentShortcutToken"
+                        :llm-rewrite-enabled="llmRewriteEnabled"
                         @add-comment="addInlineComment"
                         @locate-source="locateSelectionInSource"
                         @accept-replacement="acceptReplacement"
                         @replace-selection="replaceSelectionWithText"
                         @format-selection="formatSelection"
                         @link-selection="linkSelection"
+                        @llm-rewrite-selection="requestLlmSelectionRewrite"
                     />
                 </div>
             </div>
+
+            <!-- inline 规则菜单（R2 + Task 17 A2）：preview 点命中装饰 / source 点命中段（虚拟锚点）共用；Teleport 到主题宿主 -->
+            <RuleInlineMenu
+                v-if="inlineMenuMark && inlineMenuAnchor"
+                :mark="inlineMenuMark"
+                :anchor="inlineMenuAnchor"
+                @apply="handleRuleMenuApply"
+                @hide="handleRuleMenuHide"
+                @close="closeRuleMenu"
+            />
 
             <div
                 v-if="comments.length > 0 && commentsOpen"
@@ -2467,6 +2751,11 @@ function selectionFromPreview(currentEditor: Editor): ReviewTextSelection | null
                                 :class="activeCommentId === comment.id ? 'bg-[var(--accent-main)] text-white' : ''"
                             >{{ commentIndexMap.get(comment.id) }}</span>
                             <div class="line-clamp-2 min-w-0 flex-1 text-[var(--text-muted)]">{{ comment.quote }}</div>
+                            <span
+                                v-if="comment.stale"
+                                class="shrink-0 rounded-full bg-orange-500/15 px-1.5 py-0.5 text-[10px] font-medium text-orange-700 dark:text-orange-300"
+                                :title="t('review.commentStaleTitle')"
+                            >{{ t("review.commentStale") }}</span>
                             <span
                                 class="shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-medium"
                                 :class="comment.resolved ? 'bg-emerald-500/12 text-emerald-700 dark:text-emerald-300' : 'bg-amber-500/14 text-amber-700 dark:text-amber-300'"
@@ -2884,7 +3173,8 @@ function selectionFromPreview(currentEditor: Editor): ReviewTextSelection | null
     box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-main) 62%, transparent), 0 0 0 5px color-mix(in srgb, var(--accent-main) 16%, transparent);
 }
 
-:deep(.llmlint-issue-replaceable)::after {
+/* 建议按需显示：替换预览标签与删除线只在 active 命中上出现，非 active 命中仅保留底色。 */
+:deep(.llmlint-issue-replaceable.is-active)::after {
     content: " -> " attr(data-replacement-label);
     margin-left: 0.25rem;
     border-radius: 3px;
@@ -2894,7 +3184,7 @@ function selectionFromPreview(currentEditor: Editor): ReviewTextSelection | null
     font-size: 0.88em;
 }
 
-:deep(.llmlint-issue-delete-replacement) {
+:deep(.llmlint-issue-delete-replacement.is-active) {
     border-radius: 0;
     background: transparent;
     color: #b91c1c !important;
@@ -2904,8 +3194,95 @@ function selectionFromPreview(currentEditor: Editor): ReviewTextSelection | null
     text-decoration-skip-ink: none;
 }
 
-:deep(.llmlint-issue-delete-replacement)::after {
+:deep(.llmlint-issue-delete-replacement.is-active)::after {
     content: none;
+}
+
+/* —— 校对批注层（Task 15 P2-E 7b）——
+   与既有三层的视觉区分：命中高亮 = 级别底色（保留）；diff 已删除 = 红色纯文本 widget（内容已不在文中）；
+   diff 已插入 = 绿底实块（已应用改动）。校对层表达「尚未应用的建议」：原文保留底色并叠中性删除线，
+   建议文本用绿字 + 虚线下划线（非实底 → 一眼可辨未应用），纯删除用红色 × 角标。 */
+:deep(.llmlint-proofread-original) {
+    text-decoration-line: line-through;
+    text-decoration-color: color-mix(in srgb, #dc2626 60%, transparent);
+    text-decoration-thickness: 1.5px;
+    text-decoration-skip-ink: none;
+}
+
+:deep(.llmlint-proofread-insert) {
+    margin-left: 2px;
+    border-bottom: 1px dashed rgb(5, 150, 105);
+    border-radius: 2px;
+    padding: 0 1px;
+    color: rgb(5, 150, 105);
+    cursor: pointer;
+    font-size: 0.92em;
+    text-decoration: none;
+}
+
+:deep(.llmlint-proofread-insert:hover) {
+    background: rgba(16, 185, 129, 0.16);
+}
+
+:deep(.llmlint-proofread-delete-badge) {
+    display: inline-flex;
+    margin-left: 1px;
+    min-width: 0.95em;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid color-mix(in srgb, #dc2626 55%, transparent);
+    border-radius: 999px;
+    vertical-align: super;
+    color: #dc2626;
+    cursor: pointer;
+    font-size: 0.62em;
+    font-weight: 700;
+    line-height: 1.3;
+}
+
+:deep(.llmlint-proofread-delete-badge:hover) {
+    background: rgba(220, 38, 38, 0.14);
+}
+
+/* 校对模式下 active 命中不再用 ::after 复读建议文本（widget 已常驻行内，避免双份）。 */
+.llmlint-review-editor.is-proofread :deep(.llmlint-issue-replaceable.is-active)::after {
+    content: none;
+}
+
+/* —— 编辑器热力层（Task 16 R6）——
+   热力开时正文按检测分块铺 P(AI) 梯度底色（inline style，绿→红），规则命中的级别底色让位、
+   改为下划线标注——「底色 vs 下划线」区分两种信号，对齐只读视图 ReadOnlyHighlightedText 的口径
+   （high=红 / medium=琥珀 / low=灰，2px 下划线 + offset）。 */
+.llmlint-review-editor.is-heat :deep(.llmlint-issue-mark) {
+    background: transparent;
+    text-decoration-line: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 2px;
+    text-decoration-skip-ink: none;
+}
+
+.llmlint-review-editor.is-heat :deep(.llmlint-issue-high) {
+    text-decoration-color: rgb(239, 68, 68);
+}
+
+.llmlint-review-editor.is-heat :deep(.llmlint-issue-medium) {
+    text-decoration-color: rgb(245, 158, 11);
+}
+
+.llmlint-review-editor.is-heat :deep(.llmlint-issue-low) {
+    text-decoration-color: rgb(161, 161, 170);
+}
+
+/* 校对删除线与热力下划线并存（text-decoration-line 支持多值，避免高优先级规则吃掉删除线）。 */
+.llmlint-review-editor.is-heat :deep(.llmlint-issue-mark.llmlint-proofread-original),
+.llmlint-review-editor.is-heat :deep(.llmlint-issue-delete-replacement.is-active) {
+    text-decoration-line: underline line-through;
+}
+
+/* diff 已插入底色优先覆盖热力：热力块用 inline style 背景（优先级高于 class），
+   这里用 !important 把待审改动的绿底抬回最上层（装饰写入顺序 heat → diff 与之配套）。 */
+.llmlint-review-editor.is-heat :deep(.llmlint-diff-inserted) {
+    background: color-mix(in srgb, #10b981 18%, transparent) !important;
 }
 
 :deep(.llmlint-comment-mark) {
@@ -2924,6 +3301,12 @@ function selectionFromPreview(currentEditor: Editor): ReviewTextSelection | null
 :deep(.llmlint-comment-mark.is-resolved) {
     border-bottom-style: dashed;
     opacity: 0.72;
+}
+
+/* stale：批注锚定的原句在草稿中已被改写，用点状橙色下划线提示。 */
+:deep(.llmlint-comment-mark.is-stale) {
+    border-bottom-style: dotted;
+    border-bottom-color: #f97316;
 }
 
 :deep(.llmlint-comment-mark[data-comment-index])::after {

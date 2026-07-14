@@ -2,7 +2,7 @@
 
 > Lint and polish LLM-generated Chinese text — locate AI writing tells deterministically, fix them with judgment.
 
-[![License: PolyForm Noncommercial 1.0.0](https://img.shields.io/badge/License-PolyForm--Noncommercial--1.0.0-blue.svg)](./LICENSE)
+[![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](./LICENSE)
 [![Runtime: Node.js or Bun](https://img.shields.io/badge/Runtime-Node.js%20or%20Bun-green.svg)](#requirements)
 [![Version](https://img.shields.io/badge/version-2.0.0-green.svg)](./package.json)
 
@@ -96,6 +96,8 @@ Every rule carries three orthogonal axes — don't conflate them:
 - **`review`** — `agent` / `human` / `none`. *Audience*: who should look at a hit. `check` defaults to `--review agent`, so author-preference noise (dashes, similes, generic adverbs) is parked in the `human` bucket and mechanical hits in `none`. Use `--review human` / `--review all` to see the rest.
 - **`fixability`** — `auto` / `candidate` / `manual`. Mechanical fix capability. `fix` only applies `auto` rules.
 
+The default ruleset has only three context-free mechanical `auto` rules, no default `candidate` rules, and treats everything else as `manual`. A user config may still promote explicitly chosen regex `replace` rules to `candidate` for one-by-one confirmation. An `action.replace` value is only a replacement template; **it does not grant permission to apply the edit**. The final authority always comes from the materialized `fixability` value.
+
 `review` (audience) is **not** the same as `detector` (detection method):
 
 - **`detector`** decides *how* a problem is found: `regex` → matched statically by `check`; `llm` → reviewed by the agent via `show-llm-rules`.
@@ -163,4 +165,4 @@ Recommended install via the [`skills`](https://skills.sh) CLI — `npx skills ad
 
 ## License
 
-[PolyForm Noncommercial License 1.0.0](./LICENSE) — free for any noncommercial purpose (personal use, research, education, nonprofits, government). Commercial use requires a separate license. Copyright © 2026 notnotype.
+[GNU Affero General Public License v3.0 only](./LICENSE), identified by the SPDX expression `AGPL-3.0-only`. Use, study, modification, distribution, and commercial use are permitted. Modified versions that are distributed or made available to users over a network must provide the corresponding source code under the AGPLv3. Copyright © 2026 notnotype.

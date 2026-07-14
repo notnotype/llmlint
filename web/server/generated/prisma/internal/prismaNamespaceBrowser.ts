@@ -53,9 +53,16 @@ export const AnyNull = runtime.AnyNull
 export const ModelName = {
   User: 'User',
   Text: 'Text',
+  Revision: 'Revision',
   DocJudgment: 'DocJudgment',
   SpanAnnotation: 'SpanAnnotation',
-  MachineRecord: 'MachineRecord'
+  MachineScan: 'MachineScan',
+  MachineDetect: 'MachineDetect',
+  MachineLlmReview: 'MachineLlmReview',
+  AgentSession: 'AgentSession',
+  AgentSessionEntry: 'AgentSessionEntry',
+  AgentInvocation: 'AgentInvocation',
+  MachineDetectRun: 'MachineDetectRun'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -90,14 +97,17 @@ export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof User
 
 export const TextScalarFieldEnum = {
   id: 'id',
-  body: 'body',
-  charCount: 'charCount',
   genre: 'genre',
   pov: 'pov',
   textType: 'textType',
+  genreSource: 'genreSource',
+  povSource: 'povSource',
+  textTypeSource: 'textTypeSource',
   originKind: 'originKind',
   declaredProvenance: 'declaredProvenance',
-  goldProvenance: 'goldProvenance',
+  sourceNote: 'sourceNote',
+  modelKey: 'modelKey',
+  genParamsJson: 'genParamsJson',
   uploaderId: 'uploaderId',
   visibility: 'visibility',
   consent: 'consent',
@@ -107,13 +117,30 @@ export const TextScalarFieldEnum = {
 export type TextScalarFieldEnum = (typeof TextScalarFieldEnum)[keyof typeof TextScalarFieldEnum]
 
 
-export const DocJudgmentScalarFieldEnum = {
+export const RevisionScalarFieldEnum = {
   id: 'id',
   textId: 'textId',
+  ordinal: 'ordinal',
+  parentId: 'parentId',
+  body: 'body',
+  charCount: 'charCount',
+  transitionKind: 'transitionKind',
+  provenanceJson: 'provenanceJson',
+  revealedAt: 'revealedAt',
+  createdAt: 'createdAt'
+} as const
+
+export type RevisionScalarFieldEnum = (typeof RevisionScalarFieldEnum)[keyof typeof RevisionScalarFieldEnum]
+
+
+export const DocJudgmentScalarFieldEnum = {
+  id: 'id',
+  revisionId: 'revisionId',
   userId: 'userId',
   aiFlavor: 'aiFlavor',
   wantReadOn: 'wantReadOn',
-  phase: 'phase',
+  improvementScore: 'improvementScore',
+  comment: 'comment',
   blind: 'blind',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -124,9 +151,8 @@ export type DocJudgmentScalarFieldEnum = (typeof DocJudgmentScalarFieldEnum)[key
 
 export const SpanAnnotationScalarFieldEnum = {
   id: 'id',
-  textId: 'textId',
+  revisionId: 'revisionId',
   userId: 'userId',
-  target: 'target',
   start: 'start',
   end: 'end',
   note: 'note',
@@ -136,19 +162,106 @@ export const SpanAnnotationScalarFieldEnum = {
 export type SpanAnnotationScalarFieldEnum = (typeof SpanAnnotationScalarFieldEnum)[keyof typeof SpanAnnotationScalarFieldEnum]
 
 
-export const MachineRecordScalarFieldEnum = {
+export const MachineScanScalarFieldEnum = {
   id: 'id',
-  textId: 'textId',
+  revisionId: 'revisionId',
   engineVersion: 'engineVersion',
   hitsJson: 'hitsJson',
-  editContent: 'editContent',
-  llmAiFlavor: 'llmAiFlavor',
-  llmNote: 'llmNote',
-  scannedAt: 'scannedAt',
+  docScore: 'docScore',
+  scannedAt: 'scannedAt'
+} as const
+
+export type MachineScanScalarFieldEnum = (typeof MachineScanScalarFieldEnum)[keyof typeof MachineScanScalarFieldEnum]
+
+
+export const MachineDetectScalarFieldEnum = {
+  id: 'id',
+  revisionId: 'revisionId',
+  detectorName: 'detectorName',
+  detectorVersion: 'detectorVersion',
+  chunkChars: 'chunkChars',
+  docPAi: 'docPAi',
+  maxPAi: 'maxPAi',
+  chunksJson: 'chunksJson',
+  checkedAt: 'checkedAt'
+} as const
+
+export type MachineDetectScalarFieldEnum = (typeof MachineDetectScalarFieldEnum)[keyof typeof MachineDetectScalarFieldEnum]
+
+
+export const MachineLlmReviewScalarFieldEnum = {
+  id: 'id',
+  revisionId: 'revisionId',
+  sessionId: 'sessionId',
+  invocationId: 'invocationId',
+  model: 'model',
+  promptVersion: 'promptVersion',
+  score: 'score',
+  confidence: 'confidence',
+  hitsJson: 'hitsJson',
+  reportJson: 'reportJson',
+  judgedAt: 'judgedAt'
+} as const
+
+export type MachineLlmReviewScalarFieldEnum = (typeof MachineLlmReviewScalarFieldEnum)[keyof typeof MachineLlmReviewScalarFieldEnum]
+
+
+export const AgentSessionScalarFieldEnum = {
+  id: 'id',
+  revisionId: 'revisionId',
+  userId: 'userId',
+  profileKey: 'profileKey',
+  status: 'status',
+  activeLeafId: 'activeLeafId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type AgentSessionScalarFieldEnum = (typeof AgentSessionScalarFieldEnum)[keyof typeof AgentSessionScalarFieldEnum]
+
+
+export const AgentSessionEntryScalarFieldEnum = {
+  id: 'id',
+  sessionId: 'sessionId',
+  invocationId: 'invocationId',
+  parentId: 'parentId',
+  kind: 'kind',
+  payloadJson: 'payloadJson',
   createdAt: 'createdAt'
 } as const
 
-export type MachineRecordScalarFieldEnum = (typeof MachineRecordScalarFieldEnum)[keyof typeof MachineRecordScalarFieldEnum]
+export type AgentSessionEntryScalarFieldEnum = (typeof AgentSessionEntryScalarFieldEnum)[keyof typeof AgentSessionEntryScalarFieldEnum]
+
+
+export const AgentInvocationScalarFieldEnum = {
+  id: 'id',
+  sessionId: 'sessionId',
+  mode: 'mode',
+  phase: 'phase',
+  status: 'status',
+  inputJson: 'inputJson',
+  resultJson: 'resultJson',
+  error: 'error',
+  turns: 'turns',
+  createdAt: 'createdAt',
+  finishedAt: 'finishedAt'
+} as const
+
+export type AgentInvocationScalarFieldEnum = (typeof AgentInvocationScalarFieldEnum)[keyof typeof AgentInvocationScalarFieldEnum]
+
+
+export const MachineDetectRunScalarFieldEnum = {
+  id: 'id',
+  revisionId: 'revisionId',
+  status: 'status',
+  attempt: 'attempt',
+  error: 'error',
+  createdAt: 'createdAt',
+  startedAt: 'startedAt',
+  finishedAt: 'finishedAt'
+} as const
+
+export type MachineDetectRunScalarFieldEnum = (typeof MachineDetectRunScalarFieldEnum)[keyof typeof MachineDetectRunScalarFieldEnum]
 
 
 export const SortOrder = {

@@ -1,11 +1,15 @@
 import type {H3Event} from "h3";
 import {readBody} from "h3";
 import {z} from "zod";
+// taxonomy 白名单单源在 evals/lib/taxonomy.ts（nuxt alias `evals` → ../evals/lib，nitro 侧同样生效）。
+import {GENRES, TEXT_TYPES, inTaxonomy} from "evals/taxonomy";
 
 export const IdentityRoleSchema = z.enum(["reader", "writer", "editor", "pro"]);
 export const ProvenanceSchema = z.enum(["human", "ai", "mixed", "unknown"]);
 export const VisibilitySchema = z.enum(["private", "public"]);
-export const AnnotationTargetSchema = z.enum(["original", "edit"]);
+
+// 客户端可提交的修订边类型：upload 只由服务器给 rev0，客户端不可自报。
+export const ClientTransitionKindSchema = z.enum(["static_fix", "llm_fix", "user_fix"]);
 
 export const LoginRequestDtoSchema = z.object({
     username: z.string().trim().min(3).max(32).regex(/^[A-Za-z0-9_-]+$/),
@@ -18,48 +22,59 @@ export const RegisterRequestDtoSchema = z.object({
     identityRole: IdentityRoleSchema.default("reader"),
 });
 
+// 上传原文：服务器据此建 Text 信封 + rev0（+ 同步 MachineScan，先算后藏）。
+// 自报三项全可选：genre/textType 必须命中 taxonomy 白名单（宁缺勿错，错值污染分层切片）；sourceNote=作品名。
+// originKind / *Source 等服务器字段客户端不可设（zod 未列字段一律剥除）。
 export const CreateTextDtoSchema = z.object({
     text: z.string().min(1).max(60_000),
-    declaredProvenance: ProvenanceSchema,
+    declaredProvenance: ProvenanceSchema.default("unknown"),
+    genre: z.string().refine((key) => inTaxonomy(GENRES, key), "genre 不在预定义题材值集").optional(),
+    textType: z.string().refine((key) => inTaxonomy(TEXT_TYPES, key), "textType 不在预定义体裁值集").optional(),
+    sourceNote: z.string().trim().min(1).max(200).optional(),
     visibility: VisibilitySchema,
     consent: z.boolean(),
 });
 
-export const CreateJudgmentDtoSchema = z.object({
+// 提交一个新修订(rev1+)：在 parent 之上产出改文版本。ordinal 由服务器算，upload 边不可由客户端提交。
+export const CreateRevisionDtoSchema = z.object({
     textId: z.string().min(1),
-    aiFlavor: z.number().int().min(0).max(5),
-    wantReadOn: z.number().int().min(0).max(5),
+    parentId: z.string().min(1),
+    body: z.string().min(1).max(60_000),
+    transitionKind: ClientTransitionKindSchema,
+    provenanceJson: z.string().max(200_000).optional(),
 });
+
+// 判定挂在 revision 上；四轴全可选但至少一项（五步①盲评两轴可跳、④复评四件套）。
+// blind 由服务器按 revealedAt 判定；improvementScore 仅对有 parent 的 revision 合法（服务器校验）。
+export const CreateJudgmentDtoSchema = z.object({
+    revisionId: z.string().min(1),
+    aiFlavor: z.number().int().min(0).max(5).optional(),
+    wantReadOn: z.number().int().min(0).max(5).optional(),
+    improvementScore: z.number().int().min(0).max(5).optional(),
+    comment: z.string().min(1).max(4000).optional(),
+}).refine(
+    (dto) => dto.aiFlavor !== undefined || dto.wantReadOn !== undefined || dto.improvementScore !== undefined || dto.comment !== undefined,
+    "至少提供一项判定（aiFlavor / wantReadOn / improvementScore / comment）",
+);
 
 export const SpanDtoSchema = z.object({
     start: z.number().int().min(0),
     end: z.number().int().min(0),
 });
 
+// 标注挂在 revision 上；"评原文/评改动"由 revision.ordinal 派生，不再需要 target。
 export const CreateAnnotationDtoSchema = z.object({
-    textId: z.string().min(1),
-    target: AnnotationTargetSchema,
+    revisionId: z.string().min(1),
     span: SpanDtoSchema.refine((span) => span.end > span.start, "span.end 必须大于 span.start"),
     note: z.string().min(1).max(2000),
-});
-
-export const SubmitScanDtoSchema = z.object({
-    textId: z.string().min(1),
-    engineVersion: z.string().trim().min(1).max(120),
-    hits: z.array(z.object({
-        ruleId: z.string().min(1).max(200),
-        span: SpanDtoSchema.refine((span) => span.end > span.start, "span.end 必须大于 span.start"),
-        level: z.string().min(1).max(40),
-        review: z.string().min(1).max(40),
-    })).max(5000),
 });
 
 export type LoginRequestDto = z.infer<typeof LoginRequestDtoSchema>;
 export type RegisterRequestDto = z.infer<typeof RegisterRequestDtoSchema>;
 export type CreateTextDto = z.infer<typeof CreateTextDtoSchema>;
+export type CreateRevisionDto = z.infer<typeof CreateRevisionDtoSchema>;
 export type CreateJudgmentDto = z.infer<typeof CreateJudgmentDtoSchema>;
 export type CreateAnnotationDto = z.infer<typeof CreateAnnotationDtoSchema>;
-export type SubmitScanDto = z.infer<typeof SubmitScanDtoSchema>;
 
 /**
  * 统一解析并校验 JSON body，避免 API 端重复写 zod 错误处理。

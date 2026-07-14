@@ -1,0 +1,263 @@
+- generic [ref=f1e1]:
+  - generic [ref=f1e69]:
+    - banner [ref=f1e70]:
+      - generic [ref=f1e71]:
+        - link "llmlint" [ref=f1e72] [cursor=pointer]:
+          - /url: /
+        - generic [ref=f1e74]:
+          - generic [ref=f1e75]: llmlint
+          - generic [ref=f1e76]: 中文 AI 味检测
+        - navigation [ref=f1e78]:
+          - link "检测" [ref=f1e79] [cursor=pointer]:
+            - /url: /
+          - link "评测报告" [ref=f1e80] [cursor=pointer]:
+            - /url: /report
+          - link "数据集" [ref=f1e81] [cursor=pointer]:
+            - /url: /dataset
+          - link "贡献数据" [ref=f1e82] [cursor=pointer]:
+            - /url: /contribute
+      - generic [ref=f1e83]:
+        - link "GitHub" [ref=f1e84] [cursor=pointer]:
+          - /url: https://github.com/notnotype/llmlint
+          - generic [ref=f1e86]: GitHub
+        - button "关于 / 使用说明" [ref=f1e87] [cursor=pointer]
+        - button "切换明暗" [ref=f1e89] [cursor=pointer]
+        - button "设置" [ref=f1e91] [cursor=pointer]
+        - button "R" [ref=f1e95] [cursor=pointer]:
+          - generic [ref=f1e96]: R
+    - navigation [ref=f1e142]:
+      - generic [ref=f1e143]:
+        - generic [ref=f1e144]: "1"
+        - text: 盲评 · 揭示
+      - generic [ref=f1e145]: →
+      - generic [ref=f1e146]:
+        - generic [ref=f1e147]: "2"
+        - text: 改文
+      - generic [ref=f1e148]: →
+      - generic [ref=f1e149]:
+        - generic [ref=f1e150]: "3"
+        - text: 验收
+    - main [ref=f1e348]:
+      - generic [ref=f1e350]:
+        - generic [ref=f1e351]:
+          - generic [ref=f1e352]:
+            - generic [ref=f1e355]: 修复稿
+            - generic [ref=f1e356]: 原文 133 字
+            - generic [ref=f1e357]: 未修改
+          - generic [ref=f1e358]:
+            - button "上一处命中（Ctrl/Cmd+Alt+↑）" [ref=f1e359] [cursor=pointer]
+            - generic [ref=f1e361]: 0/7
+            - button "下一处命中（Ctrl/Cmd+Alt+↓）" [ref=f1e362] [cursor=pointer]
+          - generic "在正文里直接标出命中" [ref=f1e364]:
+            - checkbox "行内高亮" [checked] [ref=f1e365]
+            - text: 行内高亮
+          - generic "跳过代码块 / frontmatter / 链接" [ref=f1e366]:
+            - checkbox "Markdown 遮罩" [ref=f1e367]
+            - text: Markdown 遮罩
+          - generic [ref=f1e368]: 133 字
+        - generic [ref=f1e370]:
+          - generic [ref=f1e371]:
+            - generic [ref=f1e372]:
+              - button "切到源码模式（Ctrl/Cmd+Alt+T）" [pressed] [ref=f1e373] [cursor=pointer]:
+                - generic [ref=f1e374]: 源码
+              - button "切到预览模式（Ctrl/Cmd+Alt+T）" [ref=f1e375] [cursor=pointer]:
+                - generic [ref=f1e376]: 预览
+            - generic [ref=f1e377]:
+              - generic [ref=f1e380]: 7 命中
+              - generic [ref=f1e383]: 替换 1 / 删除 5
+              - generic [ref=f1e384]: 选择正文可添加批注
+          - generic [ref=f1e388]:
+            - generic: 夜色如墨，笼罩着整座城市。她站在窗前，望着远方，心中涌起一阵莫名的情绪。这 -> 这是 不是简单的悲伤，而是一种深深的、无法言说的孤独。值得一提的是，这样的夜晚总是让人思绪万千。仿佛整个世界都陷入了沉默，只剩下她一个人，孤独地面对着这一切。总而言之，她知道，明天又将是崭新的一天。
+            - textbox "在此粘贴中文稿件...（点“示例”可载入一段带 AI 味的样例）" [active] [ref=f1e389]: 夜色如墨，笼罩着整座城市。她站在窗前，望着远方，心中涌起一阵莫名的情绪。这不是简单的悲伤，而是一种深深的、无法言说的孤独。值得一提的是，这样的夜晚总是让人思绪万千。仿佛整个世界都陷入了沉默，只剩下她一个人，孤独地面对着这一切。总而言之，她知道，明天又将是崭新的一天。
+      - generic [ref=f1e390]:
+        - generic [ref=f1e391]:
+          - generic [ref=f1e392]: 改后命中 19
+          - generic [ref=f1e393]: 原文 19
+          - button "返回报告" [ref=f1e394] [cursor=pointer]
+          - button "提交改后版本" [disabled] [ref=f1e395]: 提交改后版本
+        - generic [ref=f1e397]:
+          - generic [ref=f1e398]:
+            - generic [ref=f1e399]: 受众
+            - generic [ref=f1e400]:
+              - button "Agent" [pressed] [ref=f1e401] [cursor=pointer]:
+                - generic [ref=f1e402]: Agent
+              - button "人工" [ref=f1e403] [cursor=pointer]:
+                - generic [ref=f1e404]: 人工
+              - button "机械" [ref=f1e405] [cursor=pointer]:
+                - generic [ref=f1e406]: 机械
+              - button "全部" [ref=f1e407] [cursor=pointer]:
+                - generic [ref=f1e408]: 全部
+          - generic [ref=f1e409]:
+            - generic [ref=f1e410]: 最低级别
+            - generic [ref=f1e411]:
+              - button "高" [ref=f1e412] [cursor=pointer]:
+                - generic [ref=f1e413]: 高
+              - button "中" [ref=f1e414] [cursor=pointer]:
+                - generic [ref=f1e415]: 中
+              - button "低" [pressed] [ref=f1e416] [cursor=pointer]:
+                - generic [ref=f1e417]: 低
+          - button "命名空间 全部" [ref=f1e419] [cursor=pointer]:
+            - text: 命名空间
+            - generic [ref=f1e420]: 全部
+        - generic [ref=f1e424]:
+          - generic [ref=f1e425]:
+            - generic [ref=f1e426]:
+              - generic [ref=f1e427]: 二元对比结构
+              - generic [ref=f1e428]: not-but-structure
+              - generic [ref=f1e429]: "[contrast.binary]"
+              - generic [ref=f1e430]:
+                - generic [ref=f1e431]: 级别·中
+                - generic [ref=f1e432]: 受众·Agent
+                - generic [ref=f1e433]: 修复·手动
+              - generic [ref=f1e434]: 1 处
+              - button "查看规则详情：二元对比结构" [ref=f1e435] [cursor=pointer]: 详情
+            - list [ref=f1e437]:
+              - listitem [ref=f1e438]:
+                - button "定位到正文：不是简单的悲伤，而是" [ref=f1e439] [cursor=pointer]:
+                  - generic [ref=f1e440]: 1:38
+                  - generic [ref=f1e441]:
+                    - text: 夜色如墨，笼罩着整座城市。她站在窗前，望着远方，心中涌起一阵莫名的情绪。这
+                    - mark [ref=f1e442]: 不是简单的悲伤，而是
+                    - text: 一种深深的、无法言说的孤独。值得一提的是，这样的夜晚总是让人思绪万千。仿佛整个世界都陷入了沉默，只剩下她一个人，孤独地面对着这一切。总而言之，她知道，明天又将是崭新的一天。
+          - generic [ref=f1e443]:
+            - generic [ref=f1e444]:
+              - generic [ref=f1e445]: 开场宣告套话
+              - generic [ref=f1e446]: opening-cliche-announce
+              - generic [ref=f1e447]: "[opening.cliche]"
+              - generic [ref=f1e448]:
+                - generic [ref=f1e449]: 级别·中
+                - generic [ref=f1e450]: 受众·Agent
+                - generic [ref=f1e451]: 修复·候选修复
+              - generic [ref=f1e452]: 1 处
+              - button "查看规则详情：开场宣告套话" [ref=f1e453] [cursor=pointer]: 详情
+            - list [ref=f1e455]:
+              - listitem [ref=f1e456]:
+                - button "定位到正文：值得一提的是" [ref=f1e457] [cursor=pointer]:
+                  - generic [ref=f1e458]: 1:62
+                  - generic [ref=f1e459]:
+                    - text: 夜色如墨，笼罩着整座城市。她站在窗前，望着远方，心中涌起一阵莫名的情绪。这不是简单的悲伤，而是一种深深的、无法言说的孤独。
+                    - mark [ref=f1e460]: 值得一提的是
+                    - text: ，这样的夜晚总是让人思绪万千。仿佛整个世界都陷入了沉默，只剩下她一个人，孤独地面对着这一切。总而言之，她知道，明天又将是崭新的一天。
+                - generic "候选修复" [ref=f1e461]
+                - button "候选删除此处命中：值得一提的是" [ref=f1e462] [cursor=pointer]:
+                  - generic [ref=f1e464]: 候选删除
+          - generic [ref=f1e465]:
+            - generic [ref=f1e466]:
+              - generic [ref=f1e467]: 正则-高级替换
+              - generic [ref=f1e468]: cn.regex.advanced.empty-quantifier
+              - generic [ref=f1e469]: "[regex.advanced]"
+              - generic [ref=f1e470]:
+                - generic [ref=f1e471]: 级别·中
+                - generic [ref=f1e472]: 受众·Agent
+                - generic [ref=f1e473]: 修复·候选修复
+              - generic [ref=f1e474]: 1 处
+              - button "查看规则详情：正则-高级替换" [ref=f1e475] [cursor=pointer]: 详情
+            - list [ref=f1e477]:
+              - listitem [ref=f1e478]:
+                - button "定位到正文：一种" [ref=f1e479] [cursor=pointer]:
+                  - generic [ref=f1e480]: 1:48
+                  - generic [ref=f1e481]:
+                    - text: 夜色如墨，笼罩着整座城市。她站在窗前，望着远方，心中涌起一阵莫名的情绪。这不是简单的悲伤，而是
+                    - mark [ref=f1e482]: 一种
+                    - text: 深深的、无法言说的孤独。值得一提的是，这样的夜晚总是让人思绪万千。仿佛整个世界都陷入了沉默，只剩下她一个人，孤独地面对着这一切。总而言之，她知道，明天又将是崭新的一天。
+                - generic "候选修复" [ref=f1e483]
+                - button "候选删除此处命中：一种" [ref=f1e484] [cursor=pointer]:
+                  - generic [ref=f1e486]: 候选删除
+          - generic [ref=f1e487]:
+            - generic [ref=f1e488]:
+              - generic [ref=f1e489]: 修剪特定转折句
+              - generic [ref=f1e490]: cn.sentence.compound.contrastive-turn-preface
+              - generic [ref=f1e491]: "[sentence.compound]"
+              - generic [ref=f1e492]:
+                - generic [ref=f1e493]: 级别·中
+                - generic [ref=f1e494]: 受众·Agent
+                - generic [ref=f1e495]: 修复·候选修复
+              - generic [ref=f1e496]: 1 处
+              - button "查看规则详情：修剪特定转折句" [ref=f1e497] [cursor=pointer]: 详情
+            - list [ref=f1e499]:
+              - listitem [ref=f1e500]:
+                - button "定位到正文：不是简单的悲伤，而是" [ref=f1e501] [cursor=pointer]:
+                  - generic [ref=f1e502]: 1:38
+                  - generic [ref=f1e503]:
+                    - text: 夜色如墨，笼罩着整座城市。她站在窗前，望着远方，心中涌起一阵莫名的情绪。这
+                    - mark [ref=f1e504]: 不是简单的悲伤，而是
+                    - text: 一种深深的、无法言说的孤独。值得一提的是，这样的夜晚总是让人思绪万千。仿佛整个世界都陷入了沉默，只剩下她一个人，孤独地面对着这一切。总而言之，她知道，明天又将是崭新的一天。
+                - generic "候选修复" [ref=f1e505]
+                - button "候选删除此处命中：不是简单的悲伤，而是" [ref=f1e506] [cursor=pointer]:
+                  - generic [ref=f1e508]: 候选删除
+          - generic [ref=f1e509]:
+            - generic [ref=f1e510]:
+              - generic [ref=f1e511]: 删单层否定对比前半句
+              - generic [ref=f1e512]: cn.sentence.compound.single-negative-contrast
+              - generic [ref=f1e513]: "[sentence.compound]"
+              - generic [ref=f1e514]:
+                - generic [ref=f1e515]: 级别·中
+                - generic [ref=f1e516]: 受众·Agent
+                - generic [ref=f1e517]: 修复·候选修复
+              - generic [ref=f1e518]: 1 处
+              - button "查看规则详情：删单层否定对比前半句" [ref=f1e519] [cursor=pointer]: 详情
+            - list [ref=f1e521]:
+              - listitem [ref=f1e522]:
+                - button "定位到正文：这不是简单的悲伤，而是" [ref=f1e523] [cursor=pointer]:
+                  - generic [ref=f1e524]: 1:37
+                  - generic [ref=f1e525]:
+                    - text: 夜色如墨，笼罩着整座城市。她站在窗前，望着远方，心中涌起一阵莫名的情绪。
+                    - mark [ref=f1e526]: 这不是简单的悲伤，而是
+                    - text: 一种深深的、无法言说的孤独。值得一提的是，这样的夜晚总是让人思绪万千。仿佛整个世界都陷入了沉默，只剩下她一个人，孤独地面对着这一切。总而言之，她知道，明天又将是崭新的一天。
+                - generic "候选修复" [ref=f1e527]
+                - button "候选替换此处命中：这不是简单的悲伤，而是" [ref=f1e528] [cursor=pointer]:
+                  - generic [ref=f1e530]: 候选替换
+          - generic [ref=f1e531]:
+            - generic [ref=f1e532]:
+              - generic [ref=f1e533]: 删未发生部分前半句
+              - generic [ref=f1e534]: cn.sentence.compound.unrealized-preface
+              - generic [ref=f1e535]: "[sentence.compound]"
+              - generic [ref=f1e536]:
+                - generic [ref=f1e537]: 级别·中
+                - generic [ref=f1e538]: 受众·Agent
+                - generic [ref=f1e539]: 修复·候选修复
+              - generic [ref=f1e540]: 1 处
+              - button "查看规则详情：删未发生部分前半句" [ref=f1e541] [cursor=pointer]: 详情
+            - list [ref=f1e543]:
+              - listitem [ref=f1e544]:
+                - button "定位到正文：不是简单的悲伤，而是" [ref=f1e545] [cursor=pointer]:
+                  - generic [ref=f1e546]: 1:38
+                  - generic [ref=f1e547]:
+                    - text: 夜色如墨，笼罩着整座城市。她站在窗前，望着远方，心中涌起一阵莫名的情绪。这
+                    - mark [ref=f1e548]: 不是简单的悲伤，而是
+                    - text: 一种深深的、无法言说的孤独。值得一提的是，这样的夜晚总是让人思绪万千。仿佛整个世界都陷入了沉默，只剩下她一个人，孤独地面对着这一切。总而言之，她知道，明天又将是崭新的一天。
+                - generic "候选修复" [ref=f1e549]
+                - button "候选删除此处命中：不是简单的悲伤，而是" [ref=f1e550] [cursor=pointer]:
+                  - generic [ref=f1e552]: 候选删除
+          - generic [ref=f1e553]:
+            - generic [ref=f1e554]:
+              - generic [ref=f1e555]: 总结式过渡
+              - generic [ref=f1e556]: transition-summary-conclude
+              - generic [ref=f1e557]: "[transition.summary]"
+              - generic [ref=f1e558]:
+                - generic [ref=f1e559]: 级别·中
+                - generic [ref=f1e560]: 受众·Agent
+                - generic [ref=f1e561]: 修复·候选修复
+              - generic [ref=f1e562]: 1 处
+              - button "查看规则详情：总结式过渡" [ref=f1e563] [cursor=pointer]: 详情
+            - list [ref=f1e565]:
+              - listitem [ref=f1e566]:
+                - button "定位到正文：总而言之" [ref=f1e567] [cursor=pointer]:
+                  - generic [ref=f1e568]: 1:114
+                  - generic [ref=f1e569]:
+                    - text: 夜色如墨，笼罩着整座城市。她站在窗前，望着远方，心中涌起一阵莫名的情绪。这不是简单的悲伤，而是一种深深的、无法言说的孤独。值得一提的是，这样的夜晚总是让人思绪万千。仿佛整个世界都陷入了沉默，只剩下她一个人，孤独地面对着这一切。
+                    - mark [ref=f1e570]: 总而言之
+                    - text: ，她知道，明天又将是崭新的一天。
+                - generic "候选修复" [ref=f1e571]
+                - button "候选删除此处命中：总而言之" [ref=f1e572] [cursor=pointer]:
+                  - generic [ref=f1e574]: 候选删除
+  - generic:
+    - img
+  - generic [ref=f1e55]:
+    - button "Toggle Nuxt DevTools" [ref=f1e56] [cursor=pointer]:
+      - img [ref=f1e57]
+    - generic "Page load time" [ref=f1e60]:
+      - generic [ref=f1e61]: "88"
+      - generic [ref=f1e62]: ms
+    - button "Toggle Component Inspector" [ref=f1e64] [cursor=pointer]:
+      - img [ref=f1e65]

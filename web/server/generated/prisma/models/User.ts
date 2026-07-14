@@ -271,6 +271,7 @@ export type UserWhereInput = {
   texts?: Prisma.TextListRelationFilter
   judgments?: Prisma.DocJudgmentListRelationFilter
   annotations?: Prisma.SpanAnnotationListRelationFilter
+  agentSessions?: Prisma.AgentSessionListRelationFilter
 }
 
 export type UserOrderByWithRelationInput = {
@@ -288,6 +289,7 @@ export type UserOrderByWithRelationInput = {
   texts?: Prisma.TextOrderByRelationAggregateInput
   judgments?: Prisma.DocJudgmentOrderByRelationAggregateInput
   annotations?: Prisma.SpanAnnotationOrderByRelationAggregateInput
+  agentSessions?: Prisma.AgentSessionOrderByRelationAggregateInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -308,6 +310,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   texts?: Prisma.TextListRelationFilter
   judgments?: Prisma.DocJudgmentListRelationFilter
   annotations?: Prisma.SpanAnnotationListRelationFilter
+  agentSessions?: Prisma.AgentSessionListRelationFilter
 }, "id" | "username">
 
 export type UserOrderByWithAggregationInput = {
@@ -360,6 +363,7 @@ export type UserCreateInput = {
   texts?: Prisma.TextCreateNestedManyWithoutUploaderInput
   judgments?: Prisma.DocJudgmentCreateNestedManyWithoutUserInput
   annotations?: Prisma.SpanAnnotationCreateNestedManyWithoutUserInput
+  agentSessions?: Prisma.AgentSessionCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -377,6 +381,7 @@ export type UserUncheckedCreateInput = {
   texts?: Prisma.TextUncheckedCreateNestedManyWithoutUploaderInput
   judgments?: Prisma.DocJudgmentUncheckedCreateNestedManyWithoutUserInput
   annotations?: Prisma.SpanAnnotationUncheckedCreateNestedManyWithoutUserInput
+  agentSessions?: Prisma.AgentSessionUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserUpdateInput = {
@@ -393,6 +398,7 @@ export type UserUpdateInput = {
   texts?: Prisma.TextUpdateManyWithoutUploaderNestedInput
   judgments?: Prisma.DocJudgmentUpdateManyWithoutUserNestedInput
   annotations?: Prisma.SpanAnnotationUpdateManyWithoutUserNestedInput
+  agentSessions?: Prisma.AgentSessionUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -410,6 +416,7 @@ export type UserUncheckedUpdateInput = {
   texts?: Prisma.TextUncheckedUpdateManyWithoutUploaderNestedInput
   judgments?: Prisma.DocJudgmentUncheckedUpdateManyWithoutUserNestedInput
   annotations?: Prisma.SpanAnnotationUncheckedUpdateManyWithoutUserNestedInput
+  agentSessions?: Prisma.AgentSessionUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -584,6 +591,20 @@ export type UserUpdateOneRequiredWithoutAnnotationsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutAnnotationsInput, Prisma.UserUpdateWithoutAnnotationsInput>, Prisma.UserUncheckedUpdateWithoutAnnotationsInput>
 }
 
+export type UserCreateNestedOneWithoutAgentSessionsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutAgentSessionsInput, Prisma.UserUncheckedCreateWithoutAgentSessionsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutAgentSessionsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutAgentSessionsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutAgentSessionsInput, Prisma.UserUncheckedCreateWithoutAgentSessionsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutAgentSessionsInput
+  upsert?: Prisma.UserUpsertWithoutAgentSessionsInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutAgentSessionsInput, Prisma.UserUpdateWithoutAgentSessionsInput>, Prisma.UserUncheckedUpdateWithoutAgentSessionsInput>
+}
+
 export type UserCreateWithoutTextsInput = {
   username: string
   displayName?: string
@@ -597,6 +618,7 @@ export type UserCreateWithoutTextsInput = {
   updatedAt?: Date | string
   judgments?: Prisma.DocJudgmentCreateNestedManyWithoutUserInput
   annotations?: Prisma.SpanAnnotationCreateNestedManyWithoutUserInput
+  agentSessions?: Prisma.AgentSessionCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutTextsInput = {
@@ -613,6 +635,7 @@ export type UserUncheckedCreateWithoutTextsInput = {
   updatedAt?: Date | string
   judgments?: Prisma.DocJudgmentUncheckedCreateNestedManyWithoutUserInput
   annotations?: Prisma.SpanAnnotationUncheckedCreateNestedManyWithoutUserInput
+  agentSessions?: Prisma.AgentSessionUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutTextsInput = {
@@ -644,6 +667,7 @@ export type UserUpdateWithoutTextsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   judgments?: Prisma.DocJudgmentUpdateManyWithoutUserNestedInput
   annotations?: Prisma.SpanAnnotationUpdateManyWithoutUserNestedInput
+  agentSessions?: Prisma.AgentSessionUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutTextsInput = {
@@ -660,6 +684,7 @@ export type UserUncheckedUpdateWithoutTextsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   judgments?: Prisma.DocJudgmentUncheckedUpdateManyWithoutUserNestedInput
   annotations?: Prisma.SpanAnnotationUncheckedUpdateManyWithoutUserNestedInput
+  agentSessions?: Prisma.AgentSessionUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutJudgmentsInput = {
@@ -675,6 +700,7 @@ export type UserCreateWithoutJudgmentsInput = {
   updatedAt?: Date | string
   texts?: Prisma.TextCreateNestedManyWithoutUploaderInput
   annotations?: Prisma.SpanAnnotationCreateNestedManyWithoutUserInput
+  agentSessions?: Prisma.AgentSessionCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutJudgmentsInput = {
@@ -691,6 +717,7 @@ export type UserUncheckedCreateWithoutJudgmentsInput = {
   updatedAt?: Date | string
   texts?: Prisma.TextUncheckedCreateNestedManyWithoutUploaderInput
   annotations?: Prisma.SpanAnnotationUncheckedCreateNestedManyWithoutUserInput
+  agentSessions?: Prisma.AgentSessionUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutJudgmentsInput = {
@@ -722,6 +749,7 @@ export type UserUpdateWithoutJudgmentsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   texts?: Prisma.TextUpdateManyWithoutUploaderNestedInput
   annotations?: Prisma.SpanAnnotationUpdateManyWithoutUserNestedInput
+  agentSessions?: Prisma.AgentSessionUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutJudgmentsInput = {
@@ -738,6 +766,7 @@ export type UserUncheckedUpdateWithoutJudgmentsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   texts?: Prisma.TextUncheckedUpdateManyWithoutUploaderNestedInput
   annotations?: Prisma.SpanAnnotationUncheckedUpdateManyWithoutUserNestedInput
+  agentSessions?: Prisma.AgentSessionUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutAnnotationsInput = {
@@ -753,6 +782,7 @@ export type UserCreateWithoutAnnotationsInput = {
   updatedAt?: Date | string
   texts?: Prisma.TextCreateNestedManyWithoutUploaderInput
   judgments?: Prisma.DocJudgmentCreateNestedManyWithoutUserInput
+  agentSessions?: Prisma.AgentSessionCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutAnnotationsInput = {
@@ -769,6 +799,7 @@ export type UserUncheckedCreateWithoutAnnotationsInput = {
   updatedAt?: Date | string
   texts?: Prisma.TextUncheckedCreateNestedManyWithoutUploaderInput
   judgments?: Prisma.DocJudgmentUncheckedCreateNestedManyWithoutUserInput
+  agentSessions?: Prisma.AgentSessionUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutAnnotationsInput = {
@@ -800,6 +831,7 @@ export type UserUpdateWithoutAnnotationsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   texts?: Prisma.TextUpdateManyWithoutUploaderNestedInput
   judgments?: Prisma.DocJudgmentUpdateManyWithoutUserNestedInput
+  agentSessions?: Prisma.AgentSessionUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAnnotationsInput = {
@@ -816,6 +848,89 @@ export type UserUncheckedUpdateWithoutAnnotationsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   texts?: Prisma.TextUncheckedUpdateManyWithoutUploaderNestedInput
   judgments?: Prisma.DocJudgmentUncheckedUpdateManyWithoutUserNestedInput
+  agentSessions?: Prisma.AgentSessionUncheckedUpdateManyWithoutUserNestedInput
+}
+
+export type UserCreateWithoutAgentSessionsInput = {
+  username: string
+  displayName?: string
+  passwordHash: string
+  role?: $Enums.UserRole
+  identityRole?: $Enums.IdentityRole
+  status?: $Enums.UserStatus
+  sessionVersion?: number
+  lastLoginAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  texts?: Prisma.TextCreateNestedManyWithoutUploaderInput
+  judgments?: Prisma.DocJudgmentCreateNestedManyWithoutUserInput
+  annotations?: Prisma.SpanAnnotationCreateNestedManyWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutAgentSessionsInput = {
+  id?: number
+  username: string
+  displayName?: string
+  passwordHash: string
+  role?: $Enums.UserRole
+  identityRole?: $Enums.IdentityRole
+  status?: $Enums.UserStatus
+  sessionVersion?: number
+  lastLoginAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  texts?: Prisma.TextUncheckedCreateNestedManyWithoutUploaderInput
+  judgments?: Prisma.DocJudgmentUncheckedCreateNestedManyWithoutUserInput
+  annotations?: Prisma.SpanAnnotationUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutAgentSessionsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutAgentSessionsInput, Prisma.UserUncheckedCreateWithoutAgentSessionsInput>
+}
+
+export type UserUpsertWithoutAgentSessionsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutAgentSessionsInput, Prisma.UserUncheckedUpdateWithoutAgentSessionsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutAgentSessionsInput, Prisma.UserUncheckedCreateWithoutAgentSessionsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutAgentSessionsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutAgentSessionsInput, Prisma.UserUncheckedUpdateWithoutAgentSessionsInput>
+}
+
+export type UserUpdateWithoutAgentSessionsInput = {
+  username?: Prisma.StringFieldUpdateOperationsInput | string
+  displayName?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  identityRole?: Prisma.EnumIdentityRoleFieldUpdateOperationsInput | $Enums.IdentityRole
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  sessionVersion?: Prisma.IntFieldUpdateOperationsInput | number
+  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  texts?: Prisma.TextUpdateManyWithoutUploaderNestedInput
+  judgments?: Prisma.DocJudgmentUpdateManyWithoutUserNestedInput
+  annotations?: Prisma.SpanAnnotationUpdateManyWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutAgentSessionsInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  username?: Prisma.StringFieldUpdateOperationsInput | string
+  displayName?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  identityRole?: Prisma.EnumIdentityRoleFieldUpdateOperationsInput | $Enums.IdentityRole
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  sessionVersion?: Prisma.IntFieldUpdateOperationsInput | number
+  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  texts?: Prisma.TextUncheckedUpdateManyWithoutUploaderNestedInput
+  judgments?: Prisma.DocJudgmentUncheckedUpdateManyWithoutUserNestedInput
+  annotations?: Prisma.SpanAnnotationUncheckedUpdateManyWithoutUserNestedInput
 }
 
 
@@ -827,12 +942,14 @@ export type UserCountOutputType = {
   texts: number
   judgments: number
   annotations: number
+  agentSessions: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   texts?: boolean | UserCountOutputTypeCountTextsArgs
   judgments?: boolean | UserCountOutputTypeCountJudgmentsArgs
   annotations?: boolean | UserCountOutputTypeCountAnnotationsArgs
+  agentSessions?: boolean | UserCountOutputTypeCountAgentSessionsArgs
 }
 
 /**
@@ -866,6 +983,13 @@ export type UserCountOutputTypeCountAnnotationsArgs<ExtArgs extends runtime.Type
   where?: Prisma.SpanAnnotationWhereInput
 }
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountAgentSessionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.AgentSessionWhereInput
+}
+
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -882,6 +1006,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   texts?: boolean | Prisma.User$textsArgs<ExtArgs>
   judgments?: boolean | Prisma.User$judgmentsArgs<ExtArgs>
   annotations?: boolean | Prisma.User$annotationsArgs<ExtArgs>
+  agentSessions?: boolean | Prisma.User$agentSessionsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -932,6 +1057,7 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   texts?: boolean | Prisma.User$textsArgs<ExtArgs>
   judgments?: boolean | Prisma.User$judgmentsArgs<ExtArgs>
   annotations?: boolean | Prisma.User$annotationsArgs<ExtArgs>
+  agentSessions?: boolean | Prisma.User$agentSessionsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -943,6 +1069,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     texts: Prisma.$TextPayload<ExtArgs>[]
     judgments: Prisma.$DocJudgmentPayload<ExtArgs>[]
     annotations: Prisma.$SpanAnnotationPayload<ExtArgs>[]
+    agentSessions: Prisma.$AgentSessionPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: number
@@ -1353,6 +1480,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   texts<T extends Prisma.User$textsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$textsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TextPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   judgments<T extends Prisma.User$judgmentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$judgmentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$DocJudgmentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   annotations<T extends Prisma.User$annotationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$annotationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SpanAnnotationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  agentSessions<T extends Prisma.User$agentSessionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$agentSessionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AgentSessionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1853,6 +1981,30 @@ export type User$annotationsArgs<ExtArgs extends runtime.Types.Extensions.Intern
   take?: number
   skip?: number
   distinct?: Prisma.SpanAnnotationScalarFieldEnum | Prisma.SpanAnnotationScalarFieldEnum[]
+}
+
+/**
+ * User.agentSessions
+ */
+export type User$agentSessionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the AgentSession
+   */
+  select?: Prisma.AgentSessionSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the AgentSession
+   */
+  omit?: Prisma.AgentSessionOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AgentSessionInclude<ExtArgs> | null
+  where?: Prisma.AgentSessionWhereInput
+  orderBy?: Prisma.AgentSessionOrderByWithRelationInput | Prisma.AgentSessionOrderByWithRelationInput[]
+  cursor?: Prisma.AgentSessionWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.AgentSessionScalarFieldEnum | Prisma.AgentSessionScalarFieldEnum[]
 }
 
 /**

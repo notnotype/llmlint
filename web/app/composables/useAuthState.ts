@@ -10,7 +10,7 @@ export type AuthUser = {
 };
 
 type AuthSession = {
-    authEnabled: true;
+    authEnabled: boolean;
     user: AuthUser | null;
 };
 
@@ -20,12 +20,14 @@ type AuthSession = {
 export function useAuthState() {
     const user = useState<AuthUser | null>("llmlint-auth-user", () => null);
     const loaded = useState<boolean>("llmlint-auth-loaded", () => false);
+    const authEnabled = useState<boolean>("llmlint-auth-enabled", () => true);
 
     /**
      * 刷新当前 session 用户。
      */
     async function refresh(): Promise<AuthUser | null> {
         const session = await $fetch<AuthSession>("/api/auth/me");
+        authEnabled.value = session.authEnabled;
         user.value = session.user;
         loaded.value = true;
         return user.value;
@@ -35,6 +37,9 @@ export function useAuthState() {
      * 登出并清理本地登录态。
      */
     async function logout(): Promise<void> {
+        if (!authEnabled.value) {
+            return;
+        }
         await $fetch("/api/auth/logout", {method: "POST"});
         user.value = null;
         loaded.value = true;
@@ -47,5 +52,5 @@ export function useAuthState() {
         return resolveApiErrorMessage(error, fallback);
     }
 
-    return {user, loaded, refresh, logout, errorMessage};
+    return {user, loaded, authEnabled, refresh, logout, errorMessage};
 }

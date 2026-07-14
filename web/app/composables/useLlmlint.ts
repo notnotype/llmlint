@@ -88,6 +88,20 @@ export function useLlmlint() {
         return summary;
     }
 
+    // 判别强度排序权重（Task 17 需求 4）：强判别规则排最前，反指标殿后；未测/数据不足居中偏后。
+    const VERDICT_RANK: Record<string, number> = {strong: 5, weak: 4, insufficient: 2, noise: 1, anti: 0};
+    const UNTESTED_RANK = 3;
+
+    /** 规则的判别强度权重（未烘焙 verdicts 时全部同权=退化为原命中数排序）。 */
+    function verdictRank(ruleId: string): number {
+        const verdicts = baseRegistry.ruleVerdicts;
+        if (verdicts === undefined) {
+            return UNTESTED_RANK;
+        }
+        const verdict = verdicts[ruleId]?.verdict;
+        return verdict === undefined ? UNTESTED_RANK : VERDICT_RANK[verdict] ?? UNTESTED_RANK;
+    }
+
     function groupByRule(issues: Issue[]): RuleGroup[] {
         const groups = new Map<string, RuleGroup>();
         for (const issue of issues) {
@@ -98,8 +112,11 @@ export function useLlmlint() {
                 groups.set(issue.rule.id, {rule: issue.rule, issues: [issue]});
             }
         }
-        // 命中密集的规则排前面，方便优先处理。
-        return [...groups.values()].sort((left, right) => right.issues.length - left.issues.length);
+        // 判别强度优先（strong 组最前，用户先处理最像 AI 的问题），同档内命中密集的排前面（Task 17 需求 4）。
+        return [...groups.values()].sort((left, right) => {
+            const rankDiff = verdictRank(right.rule.id) - verdictRank(left.rule.id);
+            return rankDiff !== 0 ? rankDiff : right.issues.length - left.issues.length;
+        });
     }
 
     function namespaceOptions(): string[] {
@@ -157,8 +174,8 @@ export function useLlmlint() {
         return findIssueAtOffset(text, issues, offset);
     }
 
-    // 一键机械修复（fixability:auto）：只清零宽字符 / 连续标点等确定性问题，复用引擎的 applyAutoFix。
-    // 返回修复后文本与本次清理数（scanAll=false 时跳过代码块/frontmatter）。
+    // 一键机械修复（fixability:auto）：只清零宽字符 / 连续标点等无需语境判断的问题。
+    // report verdict 衡量 AI 判别力，不决定机械修复安全性；candidate 永远不进入这里。
     function autoFix(text: string, scanAll: boolean): {fixed: string; count: number; changes: AutoFixChange[]} {
         if (!text) {
             return {fixed: text, count: 0, changes: []};

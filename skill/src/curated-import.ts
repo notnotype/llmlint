@@ -230,7 +230,8 @@ async function buildRuleset(
 
     const curatedRules = [...drafts.values()]
         .sort((left, right) => left.id.localeCompare(right.id))
-        .map(toRuleRecord);
+        .map(toRuleRecord)
+        .map(applyCuratedPatch);
     const rules: LintRuleRecord[] = [
         ...DEFAULT_BASE_RULES,
         ...curatedRules,
@@ -338,6 +339,22 @@ function toRuleRecord(draft: CuratedRuleDraft): LintRuleRecord {
             type: "replace",
             replacements: draft.replacements,
         },
+    };
+}
+
+/**
+ * 策展素材之上的稳定人工收敛层：保留来源 canonicalKey，但修正已被 overlap 评测证实的过宽 detector。
+ * 规则生成必须经过这里，避免直接修改生成 JSON 后下次重建又回退。
+ */
+function applyCuratedPatch(rule: LintRuleRecord): LintRuleRecord {
+    if (rule.id !== "cn.cliche.baguwen.sudden-moment" || !("detector" in rule)) {
+        return rule;
+    }
+    return {
+        ...rule,
+        note: "只检查“突然间/忽然间”；普通“突然/忽然”由程度副词 canonical family 判断，避免同 span 重复命中。",
+        source: {...rule.source, version: "creative-profile-v1"},
+        detector: {type: "regex", targets: ["(?:突|忽)然间，?"]},
     };
 }
 

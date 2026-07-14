@@ -1,7 +1,18 @@
 import type {MessageKey} from "../i18n/messages";
+import type {Issue} from "../types";
 import type {ReviewIssueMark} from "./review-ranges";
 
 type Translate = (key: MessageKey, params?: Record<string, string | number>) => string;
+
+/** 命中是否提供可显式应用的替换：candidate 必须由用户逐条或按选中规则确认。 */
+export function isIssueReplacementApplicable(issue: Issue): boolean {
+    return (issue.rule.fixability === "auto" || issue.rule.fixability === "candidate") && issue.rule.action.type === "replace";
+}
+
+/** 命中是否属于无需上下文判断的机械修复；只有 auto 可进入一键批量修复。 */
+export function isIssueAutoApplicable(issue: Issue): boolean {
+    return issue.rule.fixability === "auto" && issue.rule.action.type === "replace";
+}
 
 /** 返回命中级别在编辑器 UI 中的短标签。 */
 export function reviewIssueLevelLabel(mark: ReviewIssueMark | null, t: Translate): string {

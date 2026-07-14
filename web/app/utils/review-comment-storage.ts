@@ -1,17 +1,19 @@
-import type {ReviewComment} from "./review-ranges";
+import type {ReviewAnnotation} from "./review-ranges";
 
-const STORAGE_KEY = "llmlint.reviewComments.v1";
+// v2：批注改为源锚定（Task 11）。key 按**原文**（plan.source）指纹，存 ReviewAnnotation；
+// 草稿坐标不落储，恢复后由 piece-table 现算投影。v1（按草稿文本 key）数据直接废弃。
+const STORAGE_KEY = "llmlint.reviewComments.v2";
 const MAX_ENTRIES = 20;
 
-type StoredReviewCommentEntry = {
+type StoredReviewAnnotationEntry = {
     textKey: string;
     updatedAt: number;
-    comments: ReviewComment[];
+    annotations: ReviewAnnotation[];
 };
 
 /**
- * 为当前 Markdown 正文生成稳定指纹，用于本地恢复 sidecar 批注。
- * 这里不写回 Markdown，只把批注绑定到完全相同的正文内容。
+ * 为原文生成稳定指纹，用于本地恢复 sidecar 批注。
+ * 这里不写回正文，只把批注绑定到完全相同的原文内容。
  */
 export function reviewCommentTextKey(text: string): string {
     let hash = 0x811c9dc5;
@@ -23,36 +25,37 @@ export function reviewCommentTextKey(text: string): string {
 }
 
 /**
- * 从浏览器 localStorage 恢复当前正文的批注；恢复前校验 quote 与正文片段一致。
+ * 从浏览器 localStorage 恢复某原文的批注；恢复前校验锚点区间在原文边界内。
+ * quote 是建注时的选区快照（可能取自草稿），故不与原文切片比对。
  */
-export function loadStoredReviewComments(text: string): ReviewComment[] {
-    if (!import.meta.client || !text.trim()) {
+export function loadStoredReviewAnnotations(source: string): ReviewAnnotation[] {
+    if (!import.meta.client || !source.trim()) {
         return [];
     }
-    const entry = readEntries().find((item) => item.textKey === reviewCommentTextKey(text));
+    const entry = readEntries().find((item) => item.textKey === reviewCommentTextKey(source));
     if (!entry) {
         return [];
     }
-    return entry.comments.filter((comment) => isCommentValidForText(text, comment));
+    return entry.annotations.filter((annotation) => isAnnotationValidForSource(source, annotation));
 }
 
 /**
- * 保存当前正文的 sidecar 批注。空批注会删除对应正文记录，避免旧批注复活。
+ * 保存某原文的 sidecar 批注。空批注会删除对应原文记录，避免旧批注复活。
  */
-export function saveStoredReviewComments(text: string, comments: ReviewComment[]): void {
-    if (!import.meta.client || !text.trim()) {
+export function saveStoredReviewAnnotations(source: string, annotations: ReviewAnnotation[]): void {
+    if (!import.meta.client || !source.trim()) {
         return;
     }
-    const textKey = reviewCommentTextKey(text);
-    const validComments = comments
-        .filter((comment) => isCommentValidForText(text, comment))
-        .map((comment) => ({...comment}));
+    const textKey = reviewCommentTextKey(source);
+    const validAnnotations = annotations
+        .filter((annotation) => isAnnotationValidForSource(source, annotation))
+        .map((annotation) => ({...annotation}));
     const nextEntries = readEntries().filter((entry) => entry.textKey !== textKey);
-    if (validComments.length > 0) {
+    if (validAnnotations.length > 0) {
         nextEntries.unshift({
             textKey,
             updatedAt: Date.now(),
-            comments: validComments,
+            annotations: validAnnotations,
         });
     }
     writeEntries(nextEntries
@@ -61,9 +64,9 @@ export function saveStoredReviewComments(text: string, comments: ReviewComment[]
 }
 
 /**
- * 删除某一份正文对应的本地 sidecar 批注。
+ * 删除某一份原文对应的本地 sidecar 批注。
  */
-export function removeStoredReviewCommentsForText(text: string): void {
+export function removeStoredReviewAnnotationsForText(text: string): void {
     if (!import.meta.client || !text.trim()) {
         return;
     }
@@ -74,14 +77,14 @@ export function removeStoredReviewCommentsForText(text: string): void {
 /**
  * 清空全部本地 sidecar 批注。
  */
-export function clearStoredReviewComments(): void {
+export function clearStoredReviewAnnotations(): void {
     if (!import.meta.client) {
         return;
     }
     writeEntries([]);
 }
 
-function readEntries(): StoredReviewCommentEntry[] {
+function readEntries(): StoredReviewAnnotationEntry[] {
     try {
         const raw = window.localStorage.getItem(STORAGE_KEY);
         const parsed = raw ? JSON.parse(raw) as unknown : [];
@@ -94,7 +97,7 @@ function readEntries(): StoredReviewCommentEntry[] {
     }
 }
 
-function writeEntries(entries: StoredReviewCommentEntry[]): void {
+function writeEntries(entries: StoredReviewAnnotationEntry[]): void {
     try {
         window.localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
     } catch {
@@ -102,23 +105,23 @@ function writeEntries(entries: StoredReviewCommentEntry[]): void {
     }
 }
 
-function normalizeEntry(value: unknown): StoredReviewCommentEntry[] {
-    if (!isObject(value) || typeof value.textKey !== "string" || typeof value.updatedAt !== "number" || !Array.isArray(value.comments)) {
+function normalizeEntry(value: unknown): StoredReviewAnnotationEntry[] {
+    if (!isObject(value) || typeof value.textKey !== "string" || typeof value.updatedAt !== "number" || !Array.isArray(value.annotations)) {
         return [];
     }
-    const comments = value.comments.flatMap((comment) => normalizeComment(comment));
+    const annotations = value.annotations.flatMap((annotation) => normalizeAnnotation(annotation));
     return [{
         textKey: value.textKey,
         updatedAt: value.updatedAt,
-        comments,
+        annotations,
     }];
 }
 
-function normalizeComment(value: unknown): ReviewComment[] {
+function normalizeAnnotation(value: unknown): ReviewAnnotation[] {
     if (!isObject(value)
         || typeof value.id !== "string"
-        || typeof value.from !== "number"
-        || typeof value.to !== "number"
+        || typeof value.sourceFrom !== "number"
+        || typeof value.sourceTo !== "number"
         || typeof value.quote !== "string"
         || typeof value.body !== "string"
         || (value.source !== "user" && value.source !== "rule")
@@ -127,8 +130,8 @@ function normalizeComment(value: unknown): ReviewComment[] {
     }
     return [{
         id: value.id,
-        from: value.from,
-        to: value.to,
+        sourceFrom: value.sourceFrom,
+        sourceTo: value.sourceTo,
         quote: value.quote,
         body: value.body,
         source: value.source,
@@ -136,14 +139,13 @@ function normalizeComment(value: unknown): ReviewComment[] {
     }];
 }
 
-function isCommentValidForText(text: string, comment: ReviewComment): boolean {
-    return Number.isInteger(comment.from)
-        && Number.isInteger(comment.to)
-        && comment.from >= 0
-        && comment.to > comment.from
-        && comment.to <= text.length
-        && comment.quote.length > 0
-        && text.slice(comment.from, comment.to) === comment.quote;
+function isAnnotationValidForSource(source: string, annotation: ReviewAnnotation): boolean {
+    return Number.isInteger(annotation.sourceFrom)
+        && Number.isInteger(annotation.sourceTo)
+        && annotation.sourceFrom >= 0
+        && annotation.sourceTo >= annotation.sourceFrom
+        && annotation.sourceTo <= source.length
+        && annotation.quote.length > 0;
 }
 
 function isObject(value: unknown): value is Record<string, unknown> {

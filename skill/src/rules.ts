@@ -2,7 +2,7 @@ import {existsSync} from "node:fs";
 import {readFile, readdir, stat} from "node:fs/promises";
 import {dirname, relative, resolve} from "node:path";
 import {fileURLToPath} from "node:url";
-import {DEFAULT_NAMESPACE_ALIASES, DEFAULT_NAMESPACE_POLICY} from "./namespaces";
+import {DEFAULT_NAMESPACE_ALIASES, DEFAULT_NAMESPACE_POLICY, DEFAULT_RULE_POLICY} from "./namespaces";
 import {materializeRules} from "./rule-registry";
 import type {
     ActiveRuleRecord,
@@ -198,13 +198,14 @@ function normalizeRule(
 
     // 解析最终 review / fixability，优先级：规则自带字段 > 命名空间策略表 > detector/action 推导。
     // fixability 最后还要受规则能力约束：只有 regex + replace 才能进入 auto/candidate。
-    const policy = DEFAULT_NAMESPACE_POLICY[namespace];
+    const namespacePolicy = DEFAULT_NAMESPACE_POLICY[namespace];
+    const rulePolicy = DEFAULT_RULE_POLICY[rule.id];
     return {
         ...rule,
         namespace,
         ruleset: manifest.id,
-        review: rule.review ?? policy?.review ?? deriveReview(rule),
-        fixability: resolveFixability(rule, policy?.fixability),
+        review: rule.review ?? rulePolicy?.review ?? namespacePolicy?.review ?? deriveReview(rule),
+        fixability: resolveFixability(rule, rulePolicy?.fixability ?? namespacePolicy?.fixability),
     };
 }
 
@@ -213,12 +214,9 @@ function deriveReview(_rule: DeclarativeRuleRecord): Review {
     return "agent";
 }
 
-/** detector/action 推导默认修复能力：有替换候选记 candidate，否则 manual。 */
-function deriveFixability(rule: DeclarativeRuleRecord): Fixability {
-    if (rule.detector.type === "llm") {
-        return "manual";
-    }
-    return rule.action.type === "replace" ? "candidate" : "manual";
+/** detector/action 推导默认修复能力：语义 replace 只是模板，不自动获得可应用权限。 */
+function deriveFixability(_rule: DeclarativeRuleRecord): Fixability {
+    return "manual";
 }
 
 function resolveFixability(rule: DeclarativeRuleRecord, policyFixability: Fixability | undefined): Fixability {

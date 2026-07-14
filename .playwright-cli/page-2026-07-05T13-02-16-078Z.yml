@@ -1,0 +1,190 @@
+- generic [active] [ref=f8e1]:
+  - generic [ref=f8e3]:
+    - generic [ref=f8e4]:
+      - banner [ref=f8e5]:
+        - generic [ref=f8e6]:
+          - link "llmlint" [ref=f8e7] [cursor=pointer]:
+            - /url: /
+          - generic [ref=f8e9]:
+            - generic [ref=f8e10]: llmlint
+            - generic [ref=f8e11]: 中文 AI 味检测
+          - navigation [ref=f8e13]:
+            - link "检测" [ref=f8e14] [cursor=pointer]:
+              - /url: /
+            - link "评测报告" [ref=f8e15] [cursor=pointer]:
+              - /url: /report
+            - link "数据集" [ref=f8e16] [cursor=pointer]:
+              - /url: /dataset
+            - link "贡献数据" [ref=f8e17] [cursor=pointer]:
+              - /url: /contribute
+        - generic [ref=f8e18]:
+          - link "GitHub" [ref=f8e19] [cursor=pointer]:
+            - /url: https://github.com/notnotype/llmlint
+            - generic [ref=f8e21]: GitHub
+          - button "关于 / 使用说明" [ref=f8e22] [cursor=pointer]
+          - button "切换明暗" [ref=f8e24] [cursor=pointer]
+          - button "设置" [ref=f8e26] [cursor=pointer]
+          - button "T" [ref=f8e30] [cursor=pointer]:
+            - generic [ref=f8e31]: T
+      - navigation [ref=f8e89]:
+        - generic [ref=f8e90]:
+          - generic [ref=f8e91]: "1"
+          - text: 盲评 · 揭示
+        - generic [ref=f8e92]: →
+        - generic [ref=f8e93]:
+          - generic [ref=f8e94]: "2"
+          - text: 改文
+        - generic [ref=f8e95]: →
+        - generic [ref=f8e96]:
+          - generic [ref=f8e97]: "3"
+          - text: 验收
+      - main [ref=f8e207]:
+        - generic [ref=f8e209]:
+          - generic [ref=f8e210]:
+            - generic [ref=f8e213]:
+              - generic [ref=f8e216]: 修复稿
+              - generic [ref=f8e217]: 原文 75 字
+              - generic [ref=f8e218]: 净 -2 字
+              - button "回到原文" [ref=f8e348] [cursor=pointer]:
+                - generic [ref=f8e350]: 回到原文
+            - generic [ref=f8e219]:
+              - button "上一处命中（Ctrl/Cmd+Alt+↑）" [ref=f8e220] [cursor=pointer]
+              - generic [ref=f8e222]: 0/3
+              - button "下一处命中（Ctrl/Cmd+Alt+↓）" [ref=f8e223] [cursor=pointer]
+            - generic "在正文里直接标出命中" [ref=f8e225]:
+              - checkbox "行内高亮" [checked] [ref=f8e226]
+              - text: 行内高亮
+            - generic "跳过代码块 / frontmatter / 链接" [ref=f8e227]:
+              - checkbox "Markdown 遮罩" [ref=f8e228]
+              - text: Markdown 遮罩
+            - generic [ref=f8e229]: 73 字
+          - generic [ref=f8e231]:
+            - generic [ref=f8e232]:
+              - generic [ref=f8e233]:
+                - button "切到源码模式（Ctrl/Cmd+Alt+T）" [pressed] [ref=f8e234] [cursor=pointer]:
+                  - generic [ref=f8e235]: 源码
+                - button "切到预览模式（Ctrl/Cmd+Alt+T）" [ref=f8e236] [cursor=pointer]:
+                  - generic [ref=f8e237]: 预览
+              - generic [ref=f8e238]:
+                - generic [ref=f8e241]: 3 命中
+                - generic [ref=f8e244]: 替换 0 / 删除 2
+                - generic [ref=f8e351]:
+                  - button "上一处修改（Ctrl/Cmd+Alt+P）" [ref=f8e352] [cursor=pointer]
+                  - generic [ref=f8e354]: 0/1
+                  - button "下一处修改（Ctrl/Cmd+Alt+N）" [ref=f8e355] [cursor=pointer]
+                  - button "先选择一处修改" [disabled] [ref=f8e357]
+                  - button "先选择一处修改" [disabled] [ref=f8e359]
+                  - button "清除当前文本的修改标注" [ref=f8e361] [cursor=pointer]:
+                    - generic [ref=f8e363]: 1 处修改
+                - generic [ref=f8e245]: 选择正文可添加批注
+            - generic [ref=f8e249]:
+              - generic: 值得注意的是，这不仅仅是一次尝试，而是一场深刻的变革。他站在窗前，目光如刀，心跳如鼓。综上所述，我们唯有拥抱变化，才能立于不败之地。这真的有用吗？？？ 值得注意的是，这不仅仅是一次尝试，而是一场深刻的变革。他站在窗前，目光如刀，心跳如鼓。综上所述，我们唯有拥抱变化，才能立于不败之地。这真的有用吗？
+              - textbox "在此粘贴中文稿件...（点“示例”可载入一段带 AI 味的样例）" [ref=f8e250]: 值得注意的是，这不仅仅是一次尝试，而是一场深刻的变革。他站在窗前，目光如刀，心跳如鼓。综上所述，我们唯有拥抱变化，才能立于不败之地。这真的有用吗？
+        - generic [ref=f8e251]:
+          - generic [ref=f8e252]:
+            - generic [ref=f8e253]: 改后命中 6
+            - generic [ref=f8e254]: 原文 7
+            - generic [ref=f8e365]: ↓ 降低
+            - button "返回报告" [ref=f8e255] [cursor=pointer]
+            - button "提交改后版本" [ref=f8e256] [cursor=pointer]: 提交改后版本
+          - generic [ref=f8e258]:
+            - generic [ref=f8e259]:
+              - generic [ref=f8e260]: 受众
+              - generic [ref=f8e261]:
+                - button "Agent" [pressed] [ref=f8e262] [cursor=pointer]:
+                  - generic [ref=f8e263]: Agent
+                - button "人工" [ref=f8e264] [cursor=pointer]:
+                  - generic [ref=f8e265]: 人工
+                - button "机械" [ref=f8e266] [cursor=pointer]:
+                  - generic [ref=f8e267]: 机械
+                - button "全部" [ref=f8e268] [cursor=pointer]:
+                  - generic [ref=f8e269]: 全部
+            - generic [ref=f8e270]:
+              - generic [ref=f8e271]: 最低级别
+              - generic [ref=f8e272]:
+                - button "高" [ref=f8e273] [cursor=pointer]:
+                  - generic [ref=f8e274]: 高
+                - button "中" [ref=f8e275] [cursor=pointer]:
+                  - generic [ref=f8e276]: 中
+                - button "低" [pressed] [ref=f8e277] [cursor=pointer]:
+                  - generic [ref=f8e278]: 低
+            - button "命名空间 全部" [ref=f8e280] [cursor=pointer]:
+              - text: 命名空间
+              - generic [ref=f8e281]: 全部
+          - generic [ref=f8e285]:
+            - generic [ref=f8e286]:
+              - generic [ref=f8e287]:
+                - generic [ref=f8e288]: 喉舌式开头
+                - generic [ref=f8e289]: filler-worth-noting
+                - generic [ref=f8e290]: "[filler]"
+                - generic [ref=f8e291]:
+                  - generic [ref=f8e292]: 级别·中
+                  - generic [ref=f8e293]: 受众·Agent
+                  - generic [ref=f8e294]: 修复·候选修复
+                - generic [ref=f8e295]: 1 处
+                - button "查看规则详情：喉舌式开头" [ref=f8e296] [cursor=pointer]: 详情
+              - list [ref=f8e298]:
+                - listitem [ref=f8e299]:
+                  - button "定位到正文：值得注意的是" [ref=f8e300] [cursor=pointer]:
+                    - generic [ref=f8e301]: 1:1
+                    - generic [ref=f8e302]:
+                      - mark [ref=f8e303]: 值得注意的是
+                      - text: ，这不仅仅是一次尝试，而是一场深刻的变革。他站在窗前，目光如刀，心跳如鼓。综上所述，我们唯有拥抱变化，才能立于不败之地。这真的有用吗？
+                  - generic "候选修复" [ref=f8e304]
+                  - button "候选删除此处命中：值得注意的是" [ref=f8e305] [cursor=pointer]:
+                    - generic [ref=f8e307]: 候选删除
+            - generic [ref=f8e308]:
+              - generic [ref=f8e309]:
+                - generic [ref=f8e310]: 空洞拔高形容
+                - generic [ref=f8e311]: inflation-hollow-adjective
+                - generic [ref=f8e312]: "[inflation.significance]"
+                - generic [ref=f8e313]:
+                  - generic [ref=f8e314]: 级别·中
+                  - generic [ref=f8e315]: 受众·Agent
+                  - generic [ref=f8e316]: 修复·手动
+                - generic [ref=f8e317]: 1 处
+                - button "查看规则详情：空洞拔高形容" [ref=f8e318] [cursor=pointer]: 详情
+              - list [ref=f8e320]:
+                - listitem [ref=f8e321]:
+                  - button "定位到正文：深刻的变革" [ref=f8e322] [cursor=pointer]:
+                    - generic [ref=f8e323]: 1:22
+                    - generic [ref=f8e324]:
+                      - text: 值得注意的是，这不仅仅是一次尝试，而是一场
+                      - mark [ref=f8e325]: 深刻的变革
+                      - text: 。他站在窗前，目光如刀，心跳如鼓。综上所述，我们唯有拥抱变化，才能立于不败之地。这真的有用吗？
+            - generic [ref=f8e326]:
+              - generic [ref=f8e327]:
+                - generic [ref=f8e328]: 总结式过渡
+                - generic [ref=f8e329]: transition-summary-conclude
+                - generic [ref=f8e330]: "[transition.summary]"
+                - generic [ref=f8e331]:
+                  - generic [ref=f8e332]: 级别·中
+                  - generic [ref=f8e333]: 受众·Agent
+                  - generic [ref=f8e334]: 修复·候选修复
+                - generic [ref=f8e335]: 1 处
+                - button "查看规则详情：总结式过渡" [ref=f8e336] [cursor=pointer]: 详情
+              - list [ref=f8e338]:
+                - listitem [ref=f8e339]:
+                  - button "定位到正文：综上所述" [ref=f8e340] [cursor=pointer]:
+                    - generic [ref=f8e341]: 1:44
+                    - generic [ref=f8e342]:
+                      - text: 值得注意的是，这不仅仅是一次尝试，而是一场深刻的变革。他站在窗前，目光如刀，心跳如鼓。
+                      - mark [ref=f8e343]: 综上所述
+                      - text: ，我们唯有拥抱变化，才能立于不败之地。这真的有用吗？
+                  - generic "候选修复" [ref=f8e344]
+                  - button "候选删除此处命中：综上所述" [ref=f8e345] [cursor=pointer]:
+                    - generic [ref=f8e347]: 候选删除
+    - generic [ref=f8e366]:
+      - generic [ref=f8e367]: 已清理 1 处机械问题
+      - button "撤销" [ref=f8e368] [cursor=pointer]
+      - button
+  - generic:
+    - img
+  - generic [ref=f8e75]:
+    - button "Toggle Nuxt DevTools" [ref=f8e76] [cursor=pointer]:
+      - img [ref=f8e77]
+    - generic "Page load time" [ref=f8e80]:
+      - generic [ref=f8e81]: "10"
+      - generic [ref=f8e82]: ms
+    - button "Toggle Component Inspector" [ref=f8e84] [cursor=pointer]:
+      - img [ref=f8e85]

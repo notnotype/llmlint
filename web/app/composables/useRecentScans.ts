@@ -1,5 +1,5 @@
 import {watch} from "vue";
-import {clearStoredReviewComments, removeStoredReviewCommentsForText} from "../utils/review-comment-storage";
+import {clearStoredReviewAnnotations, removeStoredReviewAnnotationsForText} from "../utils/review-comment-storage";
 
 export interface RecentScan {
     id: string;
@@ -165,7 +165,7 @@ export function useRecentScans() {
     function removeScan(id: string): void {
         const scan = scans.value.find((item) => item.id === id);
         if (scan) {
-            removeStoredReviewCommentsForText(scan.text);
+            removeStoredReviewAnnotationsForText(scan.text);
         }
         scans.value = scans.value.filter((item) => item.id !== id);
     }
@@ -174,7 +174,7 @@ export function useRecentScans() {
      * 清空全部历史。
      */
     function clearScans(): void {
-        clearStoredReviewComments();
+        clearStoredReviewAnnotations();
         scans.value = [];
     }
 

@@ -27,25 +27,26 @@ export type AggregateText = {
 }
 
 export type TextAvgAggregateOutputType = {
-  charCount: number | null
   uploaderId: number | null
 }
 
 export type TextSumAggregateOutputType = {
-  charCount: number | null
   uploaderId: number | null
 }
 
 export type TextMinAggregateOutputType = {
   id: string | null
-  body: string | null
-  charCount: number | null
   genre: string | null
   pov: string | null
   textType: string | null
+  genreSource: $Enums.ClassificationSource | null
+  povSource: $Enums.ClassificationSource | null
+  textTypeSource: $Enums.ClassificationSource | null
   originKind: $Enums.OriginKind | null
   declaredProvenance: $Enums.Provenance | null
-  goldProvenance: $Enums.TrueProvenance | null
+  sourceNote: string | null
+  modelKey: string | null
+  genParamsJson: string | null
   uploaderId: number | null
   visibility: $Enums.Visibility | null
   consent: boolean | null
@@ -54,14 +55,17 @@ export type TextMinAggregateOutputType = {
 
 export type TextMaxAggregateOutputType = {
   id: string | null
-  body: string | null
-  charCount: number | null
   genre: string | null
   pov: string | null
   textType: string | null
+  genreSource: $Enums.ClassificationSource | null
+  povSource: $Enums.ClassificationSource | null
+  textTypeSource: $Enums.ClassificationSource | null
   originKind: $Enums.OriginKind | null
   declaredProvenance: $Enums.Provenance | null
-  goldProvenance: $Enums.TrueProvenance | null
+  sourceNote: string | null
+  modelKey: string | null
+  genParamsJson: string | null
   uploaderId: number | null
   visibility: $Enums.Visibility | null
   consent: boolean | null
@@ -70,14 +74,17 @@ export type TextMaxAggregateOutputType = {
 
 export type TextCountAggregateOutputType = {
   id: number
-  body: number
-  charCount: number
   genre: number
   pov: number
   textType: number
+  genreSource: number
+  povSource: number
+  textTypeSource: number
   originKind: number
   declaredProvenance: number
-  goldProvenance: number
+  sourceNote: number
+  modelKey: number
+  genParamsJson: number
   uploaderId: number
   visibility: number
   consent: number
@@ -87,25 +94,26 @@ export type TextCountAggregateOutputType = {
 
 
 export type TextAvgAggregateInputType = {
-  charCount?: true
   uploaderId?: true
 }
 
 export type TextSumAggregateInputType = {
-  charCount?: true
   uploaderId?: true
 }
 
 export type TextMinAggregateInputType = {
   id?: true
-  body?: true
-  charCount?: true
   genre?: true
   pov?: true
   textType?: true
+  genreSource?: true
+  povSource?: true
+  textTypeSource?: true
   originKind?: true
   declaredProvenance?: true
-  goldProvenance?: true
+  sourceNote?: true
+  modelKey?: true
+  genParamsJson?: true
   uploaderId?: true
   visibility?: true
   consent?: true
@@ -114,14 +122,17 @@ export type TextMinAggregateInputType = {
 
 export type TextMaxAggregateInputType = {
   id?: true
-  body?: true
-  charCount?: true
   genre?: true
   pov?: true
   textType?: true
+  genreSource?: true
+  povSource?: true
+  textTypeSource?: true
   originKind?: true
   declaredProvenance?: true
-  goldProvenance?: true
+  sourceNote?: true
+  modelKey?: true
+  genParamsJson?: true
   uploaderId?: true
   visibility?: true
   consent?: true
@@ -130,14 +141,17 @@ export type TextMaxAggregateInputType = {
 
 export type TextCountAggregateInputType = {
   id?: true
-  body?: true
-  charCount?: true
   genre?: true
   pov?: true
   textType?: true
+  genreSource?: true
+  povSource?: true
+  textTypeSource?: true
   originKind?: true
   declaredProvenance?: true
-  goldProvenance?: true
+  sourceNote?: true
+  modelKey?: true
+  genParamsJson?: true
   uploaderId?: true
   visibility?: true
   consent?: true
@@ -233,14 +247,17 @@ export type TextGroupByArgs<ExtArgs extends runtime.Types.Extensions.InternalArg
 
 export type TextGroupByOutputType = {
   id: string
-  body: string
-  charCount: number
   genre: string | null
   pov: string | null
   textType: string | null
+  genreSource: $Enums.ClassificationSource | null
+  povSource: $Enums.ClassificationSource | null
+  textTypeSource: $Enums.ClassificationSource | null
   originKind: $Enums.OriginKind
   declaredProvenance: $Enums.Provenance | null
-  goldProvenance: $Enums.TrueProvenance | null
+  sourceNote: string | null
+  modelKey: string | null
+  genParamsJson: string | null
   uploaderId: number
   visibility: $Enums.Visibility
   consent: boolean
@@ -272,42 +289,44 @@ export type TextWhereInput = {
   OR?: Prisma.TextWhereInput[]
   NOT?: Prisma.TextWhereInput | Prisma.TextWhereInput[]
   id?: Prisma.StringFilter<"Text"> | string
-  body?: Prisma.StringFilter<"Text"> | string
-  charCount?: Prisma.IntFilter<"Text"> | number
   genre?: Prisma.StringNullableFilter<"Text"> | string | null
   pov?: Prisma.StringNullableFilter<"Text"> | string | null
   textType?: Prisma.StringNullableFilter<"Text"> | string | null
+  genreSource?: Prisma.EnumClassificationSourceNullableFilter<"Text"> | $Enums.ClassificationSource | null
+  povSource?: Prisma.EnumClassificationSourceNullableFilter<"Text"> | $Enums.ClassificationSource | null
+  textTypeSource?: Prisma.EnumClassificationSourceNullableFilter<"Text"> | $Enums.ClassificationSource | null
   originKind?: Prisma.EnumOriginKindFilter<"Text"> | $Enums.OriginKind
   declaredProvenance?: Prisma.EnumProvenanceNullableFilter<"Text"> | $Enums.Provenance | null
-  goldProvenance?: Prisma.EnumTrueProvenanceNullableFilter<"Text"> | $Enums.TrueProvenance | null
+  sourceNote?: Prisma.StringNullableFilter<"Text"> | string | null
+  modelKey?: Prisma.StringNullableFilter<"Text"> | string | null
+  genParamsJson?: Prisma.StringNullableFilter<"Text"> | string | null
   uploaderId?: Prisma.IntFilter<"Text"> | number
   visibility?: Prisma.EnumVisibilityFilter<"Text"> | $Enums.Visibility
   consent?: Prisma.BoolFilter<"Text"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Text"> | Date | string
   uploader?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
-  judgments?: Prisma.DocJudgmentListRelationFilter
-  annotations?: Prisma.SpanAnnotationListRelationFilter
-  machineRecord?: Prisma.XOR<Prisma.MachineRecordNullableScalarRelationFilter, Prisma.MachineRecordWhereInput> | null
+  revisions?: Prisma.RevisionListRelationFilter
 }
 
 export type TextOrderByWithRelationInput = {
   id?: Prisma.SortOrder
-  body?: Prisma.SortOrder
-  charCount?: Prisma.SortOrder
   genre?: Prisma.SortOrderInput | Prisma.SortOrder
   pov?: Prisma.SortOrderInput | Prisma.SortOrder
   textType?: Prisma.SortOrderInput | Prisma.SortOrder
+  genreSource?: Prisma.SortOrderInput | Prisma.SortOrder
+  povSource?: Prisma.SortOrderInput | Prisma.SortOrder
+  textTypeSource?: Prisma.SortOrderInput | Prisma.SortOrder
   originKind?: Prisma.SortOrder
   declaredProvenance?: Prisma.SortOrderInput | Prisma.SortOrder
-  goldProvenance?: Prisma.SortOrderInput | Prisma.SortOrder
+  sourceNote?: Prisma.SortOrderInput | Prisma.SortOrder
+  modelKey?: Prisma.SortOrderInput | Prisma.SortOrder
+  genParamsJson?: Prisma.SortOrderInput | Prisma.SortOrder
   uploaderId?: Prisma.SortOrder
   visibility?: Prisma.SortOrder
   consent?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   uploader?: Prisma.UserOrderByWithRelationInput
-  judgments?: Prisma.DocJudgmentOrderByRelationAggregateInput
-  annotations?: Prisma.SpanAnnotationOrderByRelationAggregateInput
-  machineRecord?: Prisma.MachineRecordOrderByWithRelationInput
+  revisions?: Prisma.RevisionOrderByRelationAggregateInput
 }
 
 export type TextWhereUniqueInput = Prisma.AtLeast<{
@@ -315,34 +334,38 @@ export type TextWhereUniqueInput = Prisma.AtLeast<{
   AND?: Prisma.TextWhereInput | Prisma.TextWhereInput[]
   OR?: Prisma.TextWhereInput[]
   NOT?: Prisma.TextWhereInput | Prisma.TextWhereInput[]
-  body?: Prisma.StringFilter<"Text"> | string
-  charCount?: Prisma.IntFilter<"Text"> | number
   genre?: Prisma.StringNullableFilter<"Text"> | string | null
   pov?: Prisma.StringNullableFilter<"Text"> | string | null
   textType?: Prisma.StringNullableFilter<"Text"> | string | null
+  genreSource?: Prisma.EnumClassificationSourceNullableFilter<"Text"> | $Enums.ClassificationSource | null
+  povSource?: Prisma.EnumClassificationSourceNullableFilter<"Text"> | $Enums.ClassificationSource | null
+  textTypeSource?: Prisma.EnumClassificationSourceNullableFilter<"Text"> | $Enums.ClassificationSource | null
   originKind?: Prisma.EnumOriginKindFilter<"Text"> | $Enums.OriginKind
   declaredProvenance?: Prisma.EnumProvenanceNullableFilter<"Text"> | $Enums.Provenance | null
-  goldProvenance?: Prisma.EnumTrueProvenanceNullableFilter<"Text"> | $Enums.TrueProvenance | null
+  sourceNote?: Prisma.StringNullableFilter<"Text"> | string | null
+  modelKey?: Prisma.StringNullableFilter<"Text"> | string | null
+  genParamsJson?: Prisma.StringNullableFilter<"Text"> | string | null
   uploaderId?: Prisma.IntFilter<"Text"> | number
   visibility?: Prisma.EnumVisibilityFilter<"Text"> | $Enums.Visibility
   consent?: Prisma.BoolFilter<"Text"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Text"> | Date | string
   uploader?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
-  judgments?: Prisma.DocJudgmentListRelationFilter
-  annotations?: Prisma.SpanAnnotationListRelationFilter
-  machineRecord?: Prisma.XOR<Prisma.MachineRecordNullableScalarRelationFilter, Prisma.MachineRecordWhereInput> | null
+  revisions?: Prisma.RevisionListRelationFilter
 }, "id">
 
 export type TextOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
-  body?: Prisma.SortOrder
-  charCount?: Prisma.SortOrder
   genre?: Prisma.SortOrderInput | Prisma.SortOrder
   pov?: Prisma.SortOrderInput | Prisma.SortOrder
   textType?: Prisma.SortOrderInput | Prisma.SortOrder
+  genreSource?: Prisma.SortOrderInput | Prisma.SortOrder
+  povSource?: Prisma.SortOrderInput | Prisma.SortOrder
+  textTypeSource?: Prisma.SortOrderInput | Prisma.SortOrder
   originKind?: Prisma.SortOrder
   declaredProvenance?: Prisma.SortOrderInput | Prisma.SortOrder
-  goldProvenance?: Prisma.SortOrderInput | Prisma.SortOrder
+  sourceNote?: Prisma.SortOrderInput | Prisma.SortOrder
+  modelKey?: Prisma.SortOrderInput | Prisma.SortOrder
+  genParamsJson?: Prisma.SortOrderInput | Prisma.SortOrder
   uploaderId?: Prisma.SortOrder
   visibility?: Prisma.SortOrder
   consent?: Prisma.SortOrder
@@ -359,14 +382,17 @@ export type TextScalarWhereWithAggregatesInput = {
   OR?: Prisma.TextScalarWhereWithAggregatesInput[]
   NOT?: Prisma.TextScalarWhereWithAggregatesInput | Prisma.TextScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"Text"> | string
-  body?: Prisma.StringWithAggregatesFilter<"Text"> | string
-  charCount?: Prisma.IntWithAggregatesFilter<"Text"> | number
   genre?: Prisma.StringNullableWithAggregatesFilter<"Text"> | string | null
   pov?: Prisma.StringNullableWithAggregatesFilter<"Text"> | string | null
   textType?: Prisma.StringNullableWithAggregatesFilter<"Text"> | string | null
+  genreSource?: Prisma.EnumClassificationSourceNullableWithAggregatesFilter<"Text"> | $Enums.ClassificationSource | null
+  povSource?: Prisma.EnumClassificationSourceNullableWithAggregatesFilter<"Text"> | $Enums.ClassificationSource | null
+  textTypeSource?: Prisma.EnumClassificationSourceNullableWithAggregatesFilter<"Text"> | $Enums.ClassificationSource | null
   originKind?: Prisma.EnumOriginKindWithAggregatesFilter<"Text"> | $Enums.OriginKind
   declaredProvenance?: Prisma.EnumProvenanceNullableWithAggregatesFilter<"Text"> | $Enums.Provenance | null
-  goldProvenance?: Prisma.EnumTrueProvenanceNullableWithAggregatesFilter<"Text"> | $Enums.TrueProvenance | null
+  sourceNote?: Prisma.StringNullableWithAggregatesFilter<"Text"> | string | null
+  modelKey?: Prisma.StringNullableWithAggregatesFilter<"Text"> | string | null
+  genParamsJson?: Prisma.StringNullableWithAggregatesFilter<"Text"> | string | null
   uploaderId?: Prisma.IntWithAggregatesFilter<"Text"> | number
   visibility?: Prisma.EnumVisibilityWithAggregatesFilter<"Text"> | $Enums.Visibility
   consent?: Prisma.BoolWithAggregatesFilter<"Text"> | boolean
@@ -375,90 +401,97 @@ export type TextScalarWhereWithAggregatesInput = {
 
 export type TextCreateInput = {
   id?: string
-  body: string
-  charCount: number
   genre?: string | null
   pov?: string | null
   textType?: string | null
+  genreSource?: $Enums.ClassificationSource | null
+  povSource?: $Enums.ClassificationSource | null
+  textTypeSource?: $Enums.ClassificationSource | null
   originKind?: $Enums.OriginKind
   declaredProvenance?: $Enums.Provenance | null
-  goldProvenance?: $Enums.TrueProvenance | null
+  sourceNote?: string | null
+  modelKey?: string | null
+  genParamsJson?: string | null
   visibility?: $Enums.Visibility
   consent: boolean
   createdAt?: Date | string
   uploader: Prisma.UserCreateNestedOneWithoutTextsInput
-  judgments?: Prisma.DocJudgmentCreateNestedManyWithoutTextInput
-  annotations?: Prisma.SpanAnnotationCreateNestedManyWithoutTextInput
-  machineRecord?: Prisma.MachineRecordCreateNestedOneWithoutTextInput
+  revisions?: Prisma.RevisionCreateNestedManyWithoutTextInput
 }
 
 export type TextUncheckedCreateInput = {
   id?: string
-  body: string
-  charCount: number
   genre?: string | null
   pov?: string | null
   textType?: string | null
+  genreSource?: $Enums.ClassificationSource | null
+  povSource?: $Enums.ClassificationSource | null
+  textTypeSource?: $Enums.ClassificationSource | null
   originKind?: $Enums.OriginKind
   declaredProvenance?: $Enums.Provenance | null
-  goldProvenance?: $Enums.TrueProvenance | null
+  sourceNote?: string | null
+  modelKey?: string | null
+  genParamsJson?: string | null
   uploaderId: number
   visibility?: $Enums.Visibility
   consent: boolean
   createdAt?: Date | string
-  judgments?: Prisma.DocJudgmentUncheckedCreateNestedManyWithoutTextInput
-  annotations?: Prisma.SpanAnnotationUncheckedCreateNestedManyWithoutTextInput
-  machineRecord?: Prisma.MachineRecordUncheckedCreateNestedOneWithoutTextInput
+  revisions?: Prisma.RevisionUncheckedCreateNestedManyWithoutTextInput
 }
 
 export type TextUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  body?: Prisma.StringFieldUpdateOperationsInput | string
-  charCount?: Prisma.IntFieldUpdateOperationsInput | number
   genre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pov?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   textType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  genreSource?: Prisma.NullableEnumClassificationSourceFieldUpdateOperationsInput | $Enums.ClassificationSource | null
+  povSource?: Prisma.NullableEnumClassificationSourceFieldUpdateOperationsInput | $Enums.ClassificationSource | null
+  textTypeSource?: Prisma.NullableEnumClassificationSourceFieldUpdateOperationsInput | $Enums.ClassificationSource | null
   originKind?: Prisma.EnumOriginKindFieldUpdateOperationsInput | $Enums.OriginKind
   declaredProvenance?: Prisma.NullableEnumProvenanceFieldUpdateOperationsInput | $Enums.Provenance | null
-  goldProvenance?: Prisma.NullableEnumTrueProvenanceFieldUpdateOperationsInput | $Enums.TrueProvenance | null
+  sourceNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  modelKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  genParamsJson?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   visibility?: Prisma.EnumVisibilityFieldUpdateOperationsInput | $Enums.Visibility
   consent?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   uploader?: Prisma.UserUpdateOneRequiredWithoutTextsNestedInput
-  judgments?: Prisma.DocJudgmentUpdateManyWithoutTextNestedInput
-  annotations?: Prisma.SpanAnnotationUpdateManyWithoutTextNestedInput
-  machineRecord?: Prisma.MachineRecordUpdateOneWithoutTextNestedInput
+  revisions?: Prisma.RevisionUpdateManyWithoutTextNestedInput
 }
 
 export type TextUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  body?: Prisma.StringFieldUpdateOperationsInput | string
-  charCount?: Prisma.IntFieldUpdateOperationsInput | number
   genre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pov?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   textType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  genreSource?: Prisma.NullableEnumClassificationSourceFieldUpdateOperationsInput | $Enums.ClassificationSource | null
+  povSource?: Prisma.NullableEnumClassificationSourceFieldUpdateOperationsInput | $Enums.ClassificationSource | null
+  textTypeSource?: Prisma.NullableEnumClassificationSourceFieldUpdateOperationsInput | $Enums.ClassificationSource | null
   originKind?: Prisma.EnumOriginKindFieldUpdateOperationsInput | $Enums.OriginKind
   declaredProvenance?: Prisma.NullableEnumProvenanceFieldUpdateOperationsInput | $Enums.Provenance | null
-  goldProvenance?: Prisma.NullableEnumTrueProvenanceFieldUpdateOperationsInput | $Enums.TrueProvenance | null
+  sourceNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  modelKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  genParamsJson?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   uploaderId?: Prisma.IntFieldUpdateOperationsInput | number
   visibility?: Prisma.EnumVisibilityFieldUpdateOperationsInput | $Enums.Visibility
   consent?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  judgments?: Prisma.DocJudgmentUncheckedUpdateManyWithoutTextNestedInput
-  annotations?: Prisma.SpanAnnotationUncheckedUpdateManyWithoutTextNestedInput
-  machineRecord?: Prisma.MachineRecordUncheckedUpdateOneWithoutTextNestedInput
+  revisions?: Prisma.RevisionUncheckedUpdateManyWithoutTextNestedInput
 }
 
 export type TextCreateManyInput = {
   id?: string
-  body: string
-  charCount: number
   genre?: string | null
   pov?: string | null
   textType?: string | null
+  genreSource?: $Enums.ClassificationSource | null
+  povSource?: $Enums.ClassificationSource | null
+  textTypeSource?: $Enums.ClassificationSource | null
   originKind?: $Enums.OriginKind
   declaredProvenance?: $Enums.Provenance | null
-  goldProvenance?: $Enums.TrueProvenance | null
+  sourceNote?: string | null
+  modelKey?: string | null
+  genParamsJson?: string | null
   uploaderId: number
   visibility?: $Enums.Visibility
   consent: boolean
@@ -467,14 +500,17 @@ export type TextCreateManyInput = {
 
 export type TextUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  body?: Prisma.StringFieldUpdateOperationsInput | string
-  charCount?: Prisma.IntFieldUpdateOperationsInput | number
   genre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pov?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   textType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  genreSource?: Prisma.NullableEnumClassificationSourceFieldUpdateOperationsInput | $Enums.ClassificationSource | null
+  povSource?: Prisma.NullableEnumClassificationSourceFieldUpdateOperationsInput | $Enums.ClassificationSource | null
+  textTypeSource?: Prisma.NullableEnumClassificationSourceFieldUpdateOperationsInput | $Enums.ClassificationSource | null
   originKind?: Prisma.EnumOriginKindFieldUpdateOperationsInput | $Enums.OriginKind
   declaredProvenance?: Prisma.NullableEnumProvenanceFieldUpdateOperationsInput | $Enums.Provenance | null
-  goldProvenance?: Prisma.NullableEnumTrueProvenanceFieldUpdateOperationsInput | $Enums.TrueProvenance | null
+  sourceNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  modelKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  genParamsJson?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   visibility?: Prisma.EnumVisibilityFieldUpdateOperationsInput | $Enums.Visibility
   consent?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -482,14 +518,17 @@ export type TextUpdateManyMutationInput = {
 
 export type TextUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  body?: Prisma.StringFieldUpdateOperationsInput | string
-  charCount?: Prisma.IntFieldUpdateOperationsInput | number
   genre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pov?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   textType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  genreSource?: Prisma.NullableEnumClassificationSourceFieldUpdateOperationsInput | $Enums.ClassificationSource | null
+  povSource?: Prisma.NullableEnumClassificationSourceFieldUpdateOperationsInput | $Enums.ClassificationSource | null
+  textTypeSource?: Prisma.NullableEnumClassificationSourceFieldUpdateOperationsInput | $Enums.ClassificationSource | null
   originKind?: Prisma.EnumOriginKindFieldUpdateOperationsInput | $Enums.OriginKind
   declaredProvenance?: Prisma.NullableEnumProvenanceFieldUpdateOperationsInput | $Enums.Provenance | null
-  goldProvenance?: Prisma.NullableEnumTrueProvenanceFieldUpdateOperationsInput | $Enums.TrueProvenance | null
+  sourceNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  modelKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  genParamsJson?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   uploaderId?: Prisma.IntFieldUpdateOperationsInput | number
   visibility?: Prisma.EnumVisibilityFieldUpdateOperationsInput | $Enums.Visibility
   consent?: Prisma.BoolFieldUpdateOperationsInput | boolean
@@ -508,14 +547,17 @@ export type TextOrderByRelationAggregateInput = {
 
 export type TextCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
-  body?: Prisma.SortOrder
-  charCount?: Prisma.SortOrder
   genre?: Prisma.SortOrder
   pov?: Prisma.SortOrder
   textType?: Prisma.SortOrder
+  genreSource?: Prisma.SortOrder
+  povSource?: Prisma.SortOrder
+  textTypeSource?: Prisma.SortOrder
   originKind?: Prisma.SortOrder
   declaredProvenance?: Prisma.SortOrder
-  goldProvenance?: Prisma.SortOrder
+  sourceNote?: Prisma.SortOrder
+  modelKey?: Prisma.SortOrder
+  genParamsJson?: Prisma.SortOrder
   uploaderId?: Prisma.SortOrder
   visibility?: Prisma.SortOrder
   consent?: Prisma.SortOrder
@@ -523,20 +565,22 @@ export type TextCountOrderByAggregateInput = {
 }
 
 export type TextAvgOrderByAggregateInput = {
-  charCount?: Prisma.SortOrder
   uploaderId?: Prisma.SortOrder
 }
 
 export type TextMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
-  body?: Prisma.SortOrder
-  charCount?: Prisma.SortOrder
   genre?: Prisma.SortOrder
   pov?: Prisma.SortOrder
   textType?: Prisma.SortOrder
+  genreSource?: Prisma.SortOrder
+  povSource?: Prisma.SortOrder
+  textTypeSource?: Prisma.SortOrder
   originKind?: Prisma.SortOrder
   declaredProvenance?: Prisma.SortOrder
-  goldProvenance?: Prisma.SortOrder
+  sourceNote?: Prisma.SortOrder
+  modelKey?: Prisma.SortOrder
+  genParamsJson?: Prisma.SortOrder
   uploaderId?: Prisma.SortOrder
   visibility?: Prisma.SortOrder
   consent?: Prisma.SortOrder
@@ -545,14 +589,17 @@ export type TextMaxOrderByAggregateInput = {
 
 export type TextMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
-  body?: Prisma.SortOrder
-  charCount?: Prisma.SortOrder
   genre?: Prisma.SortOrder
   pov?: Prisma.SortOrder
   textType?: Prisma.SortOrder
+  genreSource?: Prisma.SortOrder
+  povSource?: Prisma.SortOrder
+  textTypeSource?: Prisma.SortOrder
   originKind?: Prisma.SortOrder
   declaredProvenance?: Prisma.SortOrder
-  goldProvenance?: Prisma.SortOrder
+  sourceNote?: Prisma.SortOrder
+  modelKey?: Prisma.SortOrder
+  genParamsJson?: Prisma.SortOrder
   uploaderId?: Prisma.SortOrder
   visibility?: Prisma.SortOrder
   consent?: Prisma.SortOrder
@@ -560,7 +607,6 @@ export type TextMinOrderByAggregateInput = {
 }
 
 export type TextSumOrderByAggregateInput = {
-  charCount?: Prisma.SortOrder
   uploaderId?: Prisma.SortOrder
 }
 
@@ -615,16 +661,16 @@ export type NullableStringFieldUpdateOperationsInput = {
   set?: string | null
 }
 
+export type NullableEnumClassificationSourceFieldUpdateOperationsInput = {
+  set?: $Enums.ClassificationSource | null
+}
+
 export type EnumOriginKindFieldUpdateOperationsInput = {
   set?: $Enums.OriginKind
 }
 
 export type NullableEnumProvenanceFieldUpdateOperationsInput = {
   set?: $Enums.Provenance | null
-}
-
-export type NullableEnumTrueProvenanceFieldUpdateOperationsInput = {
-  set?: $Enums.TrueProvenance | null
 }
 
 export type EnumVisibilityFieldUpdateOperationsInput = {
@@ -635,82 +681,56 @@ export type BoolFieldUpdateOperationsInput = {
   set?: boolean
 }
 
-export type TextCreateNestedOneWithoutJudgmentsInput = {
-  create?: Prisma.XOR<Prisma.TextCreateWithoutJudgmentsInput, Prisma.TextUncheckedCreateWithoutJudgmentsInput>
-  connectOrCreate?: Prisma.TextCreateOrConnectWithoutJudgmentsInput
+export type TextCreateNestedOneWithoutRevisionsInput = {
+  create?: Prisma.XOR<Prisma.TextCreateWithoutRevisionsInput, Prisma.TextUncheckedCreateWithoutRevisionsInput>
+  connectOrCreate?: Prisma.TextCreateOrConnectWithoutRevisionsInput
   connect?: Prisma.TextWhereUniqueInput
 }
 
-export type TextUpdateOneRequiredWithoutJudgmentsNestedInput = {
-  create?: Prisma.XOR<Prisma.TextCreateWithoutJudgmentsInput, Prisma.TextUncheckedCreateWithoutJudgmentsInput>
-  connectOrCreate?: Prisma.TextCreateOrConnectWithoutJudgmentsInput
-  upsert?: Prisma.TextUpsertWithoutJudgmentsInput
+export type TextUpdateOneRequiredWithoutRevisionsNestedInput = {
+  create?: Prisma.XOR<Prisma.TextCreateWithoutRevisionsInput, Prisma.TextUncheckedCreateWithoutRevisionsInput>
+  connectOrCreate?: Prisma.TextCreateOrConnectWithoutRevisionsInput
+  upsert?: Prisma.TextUpsertWithoutRevisionsInput
   connect?: Prisma.TextWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.TextUpdateToOneWithWhereWithoutJudgmentsInput, Prisma.TextUpdateWithoutJudgmentsInput>, Prisma.TextUncheckedUpdateWithoutJudgmentsInput>
-}
-
-export type TextCreateNestedOneWithoutAnnotationsInput = {
-  create?: Prisma.XOR<Prisma.TextCreateWithoutAnnotationsInput, Prisma.TextUncheckedCreateWithoutAnnotationsInput>
-  connectOrCreate?: Prisma.TextCreateOrConnectWithoutAnnotationsInput
-  connect?: Prisma.TextWhereUniqueInput
-}
-
-export type TextUpdateOneRequiredWithoutAnnotationsNestedInput = {
-  create?: Prisma.XOR<Prisma.TextCreateWithoutAnnotationsInput, Prisma.TextUncheckedCreateWithoutAnnotationsInput>
-  connectOrCreate?: Prisma.TextCreateOrConnectWithoutAnnotationsInput
-  upsert?: Prisma.TextUpsertWithoutAnnotationsInput
-  connect?: Prisma.TextWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.TextUpdateToOneWithWhereWithoutAnnotationsInput, Prisma.TextUpdateWithoutAnnotationsInput>, Prisma.TextUncheckedUpdateWithoutAnnotationsInput>
-}
-
-export type TextCreateNestedOneWithoutMachineRecordInput = {
-  create?: Prisma.XOR<Prisma.TextCreateWithoutMachineRecordInput, Prisma.TextUncheckedCreateWithoutMachineRecordInput>
-  connectOrCreate?: Prisma.TextCreateOrConnectWithoutMachineRecordInput
-  connect?: Prisma.TextWhereUniqueInput
-}
-
-export type TextUpdateOneRequiredWithoutMachineRecordNestedInput = {
-  create?: Prisma.XOR<Prisma.TextCreateWithoutMachineRecordInput, Prisma.TextUncheckedCreateWithoutMachineRecordInput>
-  connectOrCreate?: Prisma.TextCreateOrConnectWithoutMachineRecordInput
-  upsert?: Prisma.TextUpsertWithoutMachineRecordInput
-  connect?: Prisma.TextWhereUniqueInput
-  update?: Prisma.XOR<Prisma.XOR<Prisma.TextUpdateToOneWithWhereWithoutMachineRecordInput, Prisma.TextUpdateWithoutMachineRecordInput>, Prisma.TextUncheckedUpdateWithoutMachineRecordInput>
+  update?: Prisma.XOR<Prisma.XOR<Prisma.TextUpdateToOneWithWhereWithoutRevisionsInput, Prisma.TextUpdateWithoutRevisionsInput>, Prisma.TextUncheckedUpdateWithoutRevisionsInput>
 }
 
 export type TextCreateWithoutUploaderInput = {
   id?: string
-  body: string
-  charCount: number
   genre?: string | null
   pov?: string | null
   textType?: string | null
+  genreSource?: $Enums.ClassificationSource | null
+  povSource?: $Enums.ClassificationSource | null
+  textTypeSource?: $Enums.ClassificationSource | null
   originKind?: $Enums.OriginKind
   declaredProvenance?: $Enums.Provenance | null
-  goldProvenance?: $Enums.TrueProvenance | null
+  sourceNote?: string | null
+  modelKey?: string | null
+  genParamsJson?: string | null
   visibility?: $Enums.Visibility
   consent: boolean
   createdAt?: Date | string
-  judgments?: Prisma.DocJudgmentCreateNestedManyWithoutTextInput
-  annotations?: Prisma.SpanAnnotationCreateNestedManyWithoutTextInput
-  machineRecord?: Prisma.MachineRecordCreateNestedOneWithoutTextInput
+  revisions?: Prisma.RevisionCreateNestedManyWithoutTextInput
 }
 
 export type TextUncheckedCreateWithoutUploaderInput = {
   id?: string
-  body: string
-  charCount: number
   genre?: string | null
   pov?: string | null
   textType?: string | null
+  genreSource?: $Enums.ClassificationSource | null
+  povSource?: $Enums.ClassificationSource | null
+  textTypeSource?: $Enums.ClassificationSource | null
   originKind?: $Enums.OriginKind
   declaredProvenance?: $Enums.Provenance | null
-  goldProvenance?: $Enums.TrueProvenance | null
+  sourceNote?: string | null
+  modelKey?: string | null
+  genParamsJson?: string | null
   visibility?: $Enums.Visibility
   consent: boolean
   createdAt?: Date | string
-  judgments?: Prisma.DocJudgmentUncheckedCreateNestedManyWithoutTextInput
-  annotations?: Prisma.SpanAnnotationUncheckedCreateNestedManyWithoutTextInput
-  machineRecord?: Prisma.MachineRecordUncheckedCreateNestedOneWithoutTextInput
+  revisions?: Prisma.RevisionUncheckedCreateNestedManyWithoutTextInput
 }
 
 export type TextCreateOrConnectWithoutUploaderInput = {
@@ -743,294 +763,128 @@ export type TextScalarWhereInput = {
   OR?: Prisma.TextScalarWhereInput[]
   NOT?: Prisma.TextScalarWhereInput | Prisma.TextScalarWhereInput[]
   id?: Prisma.StringFilter<"Text"> | string
-  body?: Prisma.StringFilter<"Text"> | string
-  charCount?: Prisma.IntFilter<"Text"> | number
   genre?: Prisma.StringNullableFilter<"Text"> | string | null
   pov?: Prisma.StringNullableFilter<"Text"> | string | null
   textType?: Prisma.StringNullableFilter<"Text"> | string | null
+  genreSource?: Prisma.EnumClassificationSourceNullableFilter<"Text"> | $Enums.ClassificationSource | null
+  povSource?: Prisma.EnumClassificationSourceNullableFilter<"Text"> | $Enums.ClassificationSource | null
+  textTypeSource?: Prisma.EnumClassificationSourceNullableFilter<"Text"> | $Enums.ClassificationSource | null
   originKind?: Prisma.EnumOriginKindFilter<"Text"> | $Enums.OriginKind
   declaredProvenance?: Prisma.EnumProvenanceNullableFilter<"Text"> | $Enums.Provenance | null
-  goldProvenance?: Prisma.EnumTrueProvenanceNullableFilter<"Text"> | $Enums.TrueProvenance | null
+  sourceNote?: Prisma.StringNullableFilter<"Text"> | string | null
+  modelKey?: Prisma.StringNullableFilter<"Text"> | string | null
+  genParamsJson?: Prisma.StringNullableFilter<"Text"> | string | null
   uploaderId?: Prisma.IntFilter<"Text"> | number
   visibility?: Prisma.EnumVisibilityFilter<"Text"> | $Enums.Visibility
   consent?: Prisma.BoolFilter<"Text"> | boolean
   createdAt?: Prisma.DateTimeFilter<"Text"> | Date | string
 }
 
-export type TextCreateWithoutJudgmentsInput = {
+export type TextCreateWithoutRevisionsInput = {
   id?: string
-  body: string
-  charCount: number
   genre?: string | null
   pov?: string | null
   textType?: string | null
+  genreSource?: $Enums.ClassificationSource | null
+  povSource?: $Enums.ClassificationSource | null
+  textTypeSource?: $Enums.ClassificationSource | null
   originKind?: $Enums.OriginKind
   declaredProvenance?: $Enums.Provenance | null
-  goldProvenance?: $Enums.TrueProvenance | null
+  sourceNote?: string | null
+  modelKey?: string | null
+  genParamsJson?: string | null
   visibility?: $Enums.Visibility
   consent: boolean
   createdAt?: Date | string
   uploader: Prisma.UserCreateNestedOneWithoutTextsInput
-  annotations?: Prisma.SpanAnnotationCreateNestedManyWithoutTextInput
-  machineRecord?: Prisma.MachineRecordCreateNestedOneWithoutTextInput
 }
 
-export type TextUncheckedCreateWithoutJudgmentsInput = {
+export type TextUncheckedCreateWithoutRevisionsInput = {
   id?: string
-  body: string
-  charCount: number
   genre?: string | null
   pov?: string | null
   textType?: string | null
+  genreSource?: $Enums.ClassificationSource | null
+  povSource?: $Enums.ClassificationSource | null
+  textTypeSource?: $Enums.ClassificationSource | null
   originKind?: $Enums.OriginKind
   declaredProvenance?: $Enums.Provenance | null
-  goldProvenance?: $Enums.TrueProvenance | null
+  sourceNote?: string | null
+  modelKey?: string | null
+  genParamsJson?: string | null
   uploaderId: number
   visibility?: $Enums.Visibility
   consent: boolean
   createdAt?: Date | string
-  annotations?: Prisma.SpanAnnotationUncheckedCreateNestedManyWithoutTextInput
-  machineRecord?: Prisma.MachineRecordUncheckedCreateNestedOneWithoutTextInput
 }
 
-export type TextCreateOrConnectWithoutJudgmentsInput = {
+export type TextCreateOrConnectWithoutRevisionsInput = {
   where: Prisma.TextWhereUniqueInput
-  create: Prisma.XOR<Prisma.TextCreateWithoutJudgmentsInput, Prisma.TextUncheckedCreateWithoutJudgmentsInput>
+  create: Prisma.XOR<Prisma.TextCreateWithoutRevisionsInput, Prisma.TextUncheckedCreateWithoutRevisionsInput>
 }
 
-export type TextUpsertWithoutJudgmentsInput = {
-  update: Prisma.XOR<Prisma.TextUpdateWithoutJudgmentsInput, Prisma.TextUncheckedUpdateWithoutJudgmentsInput>
-  create: Prisma.XOR<Prisma.TextCreateWithoutJudgmentsInput, Prisma.TextUncheckedCreateWithoutJudgmentsInput>
+export type TextUpsertWithoutRevisionsInput = {
+  update: Prisma.XOR<Prisma.TextUpdateWithoutRevisionsInput, Prisma.TextUncheckedUpdateWithoutRevisionsInput>
+  create: Prisma.XOR<Prisma.TextCreateWithoutRevisionsInput, Prisma.TextUncheckedCreateWithoutRevisionsInput>
   where?: Prisma.TextWhereInput
 }
 
-export type TextUpdateToOneWithWhereWithoutJudgmentsInput = {
+export type TextUpdateToOneWithWhereWithoutRevisionsInput = {
   where?: Prisma.TextWhereInput
-  data: Prisma.XOR<Prisma.TextUpdateWithoutJudgmentsInput, Prisma.TextUncheckedUpdateWithoutJudgmentsInput>
+  data: Prisma.XOR<Prisma.TextUpdateWithoutRevisionsInput, Prisma.TextUncheckedUpdateWithoutRevisionsInput>
 }
 
-export type TextUpdateWithoutJudgmentsInput = {
+export type TextUpdateWithoutRevisionsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  body?: Prisma.StringFieldUpdateOperationsInput | string
-  charCount?: Prisma.IntFieldUpdateOperationsInput | number
   genre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pov?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   textType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  genreSource?: Prisma.NullableEnumClassificationSourceFieldUpdateOperationsInput | $Enums.ClassificationSource | null
+  povSource?: Prisma.NullableEnumClassificationSourceFieldUpdateOperationsInput | $Enums.ClassificationSource | null
+  textTypeSource?: Prisma.NullableEnumClassificationSourceFieldUpdateOperationsInput | $Enums.ClassificationSource | null
   originKind?: Prisma.EnumOriginKindFieldUpdateOperationsInput | $Enums.OriginKind
   declaredProvenance?: Prisma.NullableEnumProvenanceFieldUpdateOperationsInput | $Enums.Provenance | null
-  goldProvenance?: Prisma.NullableEnumTrueProvenanceFieldUpdateOperationsInput | $Enums.TrueProvenance | null
+  sourceNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  modelKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  genParamsJson?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   visibility?: Prisma.EnumVisibilityFieldUpdateOperationsInput | $Enums.Visibility
   consent?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   uploader?: Prisma.UserUpdateOneRequiredWithoutTextsNestedInput
-  annotations?: Prisma.SpanAnnotationUpdateManyWithoutTextNestedInput
-  machineRecord?: Prisma.MachineRecordUpdateOneWithoutTextNestedInput
 }
 
-export type TextUncheckedUpdateWithoutJudgmentsInput = {
+export type TextUncheckedUpdateWithoutRevisionsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  body?: Prisma.StringFieldUpdateOperationsInput | string
-  charCount?: Prisma.IntFieldUpdateOperationsInput | number
   genre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pov?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   textType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  genreSource?: Prisma.NullableEnumClassificationSourceFieldUpdateOperationsInput | $Enums.ClassificationSource | null
+  povSource?: Prisma.NullableEnumClassificationSourceFieldUpdateOperationsInput | $Enums.ClassificationSource | null
+  textTypeSource?: Prisma.NullableEnumClassificationSourceFieldUpdateOperationsInput | $Enums.ClassificationSource | null
   originKind?: Prisma.EnumOriginKindFieldUpdateOperationsInput | $Enums.OriginKind
   declaredProvenance?: Prisma.NullableEnumProvenanceFieldUpdateOperationsInput | $Enums.Provenance | null
-  goldProvenance?: Prisma.NullableEnumTrueProvenanceFieldUpdateOperationsInput | $Enums.TrueProvenance | null
+  sourceNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  modelKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  genParamsJson?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   uploaderId?: Prisma.IntFieldUpdateOperationsInput | number
   visibility?: Prisma.EnumVisibilityFieldUpdateOperationsInput | $Enums.Visibility
   consent?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  annotations?: Prisma.SpanAnnotationUncheckedUpdateManyWithoutTextNestedInput
-  machineRecord?: Prisma.MachineRecordUncheckedUpdateOneWithoutTextNestedInput
-}
-
-export type TextCreateWithoutAnnotationsInput = {
-  id?: string
-  body: string
-  charCount: number
-  genre?: string | null
-  pov?: string | null
-  textType?: string | null
-  originKind?: $Enums.OriginKind
-  declaredProvenance?: $Enums.Provenance | null
-  goldProvenance?: $Enums.TrueProvenance | null
-  visibility?: $Enums.Visibility
-  consent: boolean
-  createdAt?: Date | string
-  uploader: Prisma.UserCreateNestedOneWithoutTextsInput
-  judgments?: Prisma.DocJudgmentCreateNestedManyWithoutTextInput
-  machineRecord?: Prisma.MachineRecordCreateNestedOneWithoutTextInput
-}
-
-export type TextUncheckedCreateWithoutAnnotationsInput = {
-  id?: string
-  body: string
-  charCount: number
-  genre?: string | null
-  pov?: string | null
-  textType?: string | null
-  originKind?: $Enums.OriginKind
-  declaredProvenance?: $Enums.Provenance | null
-  goldProvenance?: $Enums.TrueProvenance | null
-  uploaderId: number
-  visibility?: $Enums.Visibility
-  consent: boolean
-  createdAt?: Date | string
-  judgments?: Prisma.DocJudgmentUncheckedCreateNestedManyWithoutTextInput
-  machineRecord?: Prisma.MachineRecordUncheckedCreateNestedOneWithoutTextInput
-}
-
-export type TextCreateOrConnectWithoutAnnotationsInput = {
-  where: Prisma.TextWhereUniqueInput
-  create: Prisma.XOR<Prisma.TextCreateWithoutAnnotationsInput, Prisma.TextUncheckedCreateWithoutAnnotationsInput>
-}
-
-export type TextUpsertWithoutAnnotationsInput = {
-  update: Prisma.XOR<Prisma.TextUpdateWithoutAnnotationsInput, Prisma.TextUncheckedUpdateWithoutAnnotationsInput>
-  create: Prisma.XOR<Prisma.TextCreateWithoutAnnotationsInput, Prisma.TextUncheckedCreateWithoutAnnotationsInput>
-  where?: Prisma.TextWhereInput
-}
-
-export type TextUpdateToOneWithWhereWithoutAnnotationsInput = {
-  where?: Prisma.TextWhereInput
-  data: Prisma.XOR<Prisma.TextUpdateWithoutAnnotationsInput, Prisma.TextUncheckedUpdateWithoutAnnotationsInput>
-}
-
-export type TextUpdateWithoutAnnotationsInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  body?: Prisma.StringFieldUpdateOperationsInput | string
-  charCount?: Prisma.IntFieldUpdateOperationsInput | number
-  genre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  pov?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  textType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  originKind?: Prisma.EnumOriginKindFieldUpdateOperationsInput | $Enums.OriginKind
-  declaredProvenance?: Prisma.NullableEnumProvenanceFieldUpdateOperationsInput | $Enums.Provenance | null
-  goldProvenance?: Prisma.NullableEnumTrueProvenanceFieldUpdateOperationsInput | $Enums.TrueProvenance | null
-  visibility?: Prisma.EnumVisibilityFieldUpdateOperationsInput | $Enums.Visibility
-  consent?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  uploader?: Prisma.UserUpdateOneRequiredWithoutTextsNestedInput
-  judgments?: Prisma.DocJudgmentUpdateManyWithoutTextNestedInput
-  machineRecord?: Prisma.MachineRecordUpdateOneWithoutTextNestedInput
-}
-
-export type TextUncheckedUpdateWithoutAnnotationsInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  body?: Prisma.StringFieldUpdateOperationsInput | string
-  charCount?: Prisma.IntFieldUpdateOperationsInput | number
-  genre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  pov?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  textType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  originKind?: Prisma.EnumOriginKindFieldUpdateOperationsInput | $Enums.OriginKind
-  declaredProvenance?: Prisma.NullableEnumProvenanceFieldUpdateOperationsInput | $Enums.Provenance | null
-  goldProvenance?: Prisma.NullableEnumTrueProvenanceFieldUpdateOperationsInput | $Enums.TrueProvenance | null
-  uploaderId?: Prisma.IntFieldUpdateOperationsInput | number
-  visibility?: Prisma.EnumVisibilityFieldUpdateOperationsInput | $Enums.Visibility
-  consent?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  judgments?: Prisma.DocJudgmentUncheckedUpdateManyWithoutTextNestedInput
-  machineRecord?: Prisma.MachineRecordUncheckedUpdateOneWithoutTextNestedInput
-}
-
-export type TextCreateWithoutMachineRecordInput = {
-  id?: string
-  body: string
-  charCount: number
-  genre?: string | null
-  pov?: string | null
-  textType?: string | null
-  originKind?: $Enums.OriginKind
-  declaredProvenance?: $Enums.Provenance | null
-  goldProvenance?: $Enums.TrueProvenance | null
-  visibility?: $Enums.Visibility
-  consent: boolean
-  createdAt?: Date | string
-  uploader: Prisma.UserCreateNestedOneWithoutTextsInput
-  judgments?: Prisma.DocJudgmentCreateNestedManyWithoutTextInput
-  annotations?: Prisma.SpanAnnotationCreateNestedManyWithoutTextInput
-}
-
-export type TextUncheckedCreateWithoutMachineRecordInput = {
-  id?: string
-  body: string
-  charCount: number
-  genre?: string | null
-  pov?: string | null
-  textType?: string | null
-  originKind?: $Enums.OriginKind
-  declaredProvenance?: $Enums.Provenance | null
-  goldProvenance?: $Enums.TrueProvenance | null
-  uploaderId: number
-  visibility?: $Enums.Visibility
-  consent: boolean
-  createdAt?: Date | string
-  judgments?: Prisma.DocJudgmentUncheckedCreateNestedManyWithoutTextInput
-  annotations?: Prisma.SpanAnnotationUncheckedCreateNestedManyWithoutTextInput
-}
-
-export type TextCreateOrConnectWithoutMachineRecordInput = {
-  where: Prisma.TextWhereUniqueInput
-  create: Prisma.XOR<Prisma.TextCreateWithoutMachineRecordInput, Prisma.TextUncheckedCreateWithoutMachineRecordInput>
-}
-
-export type TextUpsertWithoutMachineRecordInput = {
-  update: Prisma.XOR<Prisma.TextUpdateWithoutMachineRecordInput, Prisma.TextUncheckedUpdateWithoutMachineRecordInput>
-  create: Prisma.XOR<Prisma.TextCreateWithoutMachineRecordInput, Prisma.TextUncheckedCreateWithoutMachineRecordInput>
-  where?: Prisma.TextWhereInput
-}
-
-export type TextUpdateToOneWithWhereWithoutMachineRecordInput = {
-  where?: Prisma.TextWhereInput
-  data: Prisma.XOR<Prisma.TextUpdateWithoutMachineRecordInput, Prisma.TextUncheckedUpdateWithoutMachineRecordInput>
-}
-
-export type TextUpdateWithoutMachineRecordInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  body?: Prisma.StringFieldUpdateOperationsInput | string
-  charCount?: Prisma.IntFieldUpdateOperationsInput | number
-  genre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  pov?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  textType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  originKind?: Prisma.EnumOriginKindFieldUpdateOperationsInput | $Enums.OriginKind
-  declaredProvenance?: Prisma.NullableEnumProvenanceFieldUpdateOperationsInput | $Enums.Provenance | null
-  goldProvenance?: Prisma.NullableEnumTrueProvenanceFieldUpdateOperationsInput | $Enums.TrueProvenance | null
-  visibility?: Prisma.EnumVisibilityFieldUpdateOperationsInput | $Enums.Visibility
-  consent?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  uploader?: Prisma.UserUpdateOneRequiredWithoutTextsNestedInput
-  judgments?: Prisma.DocJudgmentUpdateManyWithoutTextNestedInput
-  annotations?: Prisma.SpanAnnotationUpdateManyWithoutTextNestedInput
-}
-
-export type TextUncheckedUpdateWithoutMachineRecordInput = {
-  id?: Prisma.StringFieldUpdateOperationsInput | string
-  body?: Prisma.StringFieldUpdateOperationsInput | string
-  charCount?: Prisma.IntFieldUpdateOperationsInput | number
-  genre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  pov?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  textType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
-  originKind?: Prisma.EnumOriginKindFieldUpdateOperationsInput | $Enums.OriginKind
-  declaredProvenance?: Prisma.NullableEnumProvenanceFieldUpdateOperationsInput | $Enums.Provenance | null
-  goldProvenance?: Prisma.NullableEnumTrueProvenanceFieldUpdateOperationsInput | $Enums.TrueProvenance | null
-  uploaderId?: Prisma.IntFieldUpdateOperationsInput | number
-  visibility?: Prisma.EnumVisibilityFieldUpdateOperationsInput | $Enums.Visibility
-  consent?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  judgments?: Prisma.DocJudgmentUncheckedUpdateManyWithoutTextNestedInput
-  annotations?: Prisma.SpanAnnotationUncheckedUpdateManyWithoutTextNestedInput
 }
 
 export type TextCreateManyUploaderInput = {
   id?: string
-  body: string
-  charCount: number
   genre?: string | null
   pov?: string | null
   textType?: string | null
+  genreSource?: $Enums.ClassificationSource | null
+  povSource?: $Enums.ClassificationSource | null
+  textTypeSource?: $Enums.ClassificationSource | null
   originKind?: $Enums.OriginKind
   declaredProvenance?: $Enums.Provenance | null
-  goldProvenance?: $Enums.TrueProvenance | null
+  sourceNote?: string | null
+  modelKey?: string | null
+  genParamsJson?: string | null
   visibility?: $Enums.Visibility
   consent: boolean
   createdAt?: Date | string
@@ -1038,50 +892,55 @@ export type TextCreateManyUploaderInput = {
 
 export type TextUpdateWithoutUploaderInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  body?: Prisma.StringFieldUpdateOperationsInput | string
-  charCount?: Prisma.IntFieldUpdateOperationsInput | number
   genre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pov?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   textType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  genreSource?: Prisma.NullableEnumClassificationSourceFieldUpdateOperationsInput | $Enums.ClassificationSource | null
+  povSource?: Prisma.NullableEnumClassificationSourceFieldUpdateOperationsInput | $Enums.ClassificationSource | null
+  textTypeSource?: Prisma.NullableEnumClassificationSourceFieldUpdateOperationsInput | $Enums.ClassificationSource | null
   originKind?: Prisma.EnumOriginKindFieldUpdateOperationsInput | $Enums.OriginKind
   declaredProvenance?: Prisma.NullableEnumProvenanceFieldUpdateOperationsInput | $Enums.Provenance | null
-  goldProvenance?: Prisma.NullableEnumTrueProvenanceFieldUpdateOperationsInput | $Enums.TrueProvenance | null
+  sourceNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  modelKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  genParamsJson?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   visibility?: Prisma.EnumVisibilityFieldUpdateOperationsInput | $Enums.Visibility
   consent?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  judgments?: Prisma.DocJudgmentUpdateManyWithoutTextNestedInput
-  annotations?: Prisma.SpanAnnotationUpdateManyWithoutTextNestedInput
-  machineRecord?: Prisma.MachineRecordUpdateOneWithoutTextNestedInput
+  revisions?: Prisma.RevisionUpdateManyWithoutTextNestedInput
 }
 
 export type TextUncheckedUpdateWithoutUploaderInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  body?: Prisma.StringFieldUpdateOperationsInput | string
-  charCount?: Prisma.IntFieldUpdateOperationsInput | number
   genre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pov?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   textType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  genreSource?: Prisma.NullableEnumClassificationSourceFieldUpdateOperationsInput | $Enums.ClassificationSource | null
+  povSource?: Prisma.NullableEnumClassificationSourceFieldUpdateOperationsInput | $Enums.ClassificationSource | null
+  textTypeSource?: Prisma.NullableEnumClassificationSourceFieldUpdateOperationsInput | $Enums.ClassificationSource | null
   originKind?: Prisma.EnumOriginKindFieldUpdateOperationsInput | $Enums.OriginKind
   declaredProvenance?: Prisma.NullableEnumProvenanceFieldUpdateOperationsInput | $Enums.Provenance | null
-  goldProvenance?: Prisma.NullableEnumTrueProvenanceFieldUpdateOperationsInput | $Enums.TrueProvenance | null
+  sourceNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  modelKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  genParamsJson?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   visibility?: Prisma.EnumVisibilityFieldUpdateOperationsInput | $Enums.Visibility
   consent?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  judgments?: Prisma.DocJudgmentUncheckedUpdateManyWithoutTextNestedInput
-  annotations?: Prisma.SpanAnnotationUncheckedUpdateManyWithoutTextNestedInput
-  machineRecord?: Prisma.MachineRecordUncheckedUpdateOneWithoutTextNestedInput
+  revisions?: Prisma.RevisionUncheckedUpdateManyWithoutTextNestedInput
 }
 
 export type TextUncheckedUpdateManyWithoutUploaderInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  body?: Prisma.StringFieldUpdateOperationsInput | string
-  charCount?: Prisma.IntFieldUpdateOperationsInput | number
   genre?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   pov?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   textType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  genreSource?: Prisma.NullableEnumClassificationSourceFieldUpdateOperationsInput | $Enums.ClassificationSource | null
+  povSource?: Prisma.NullableEnumClassificationSourceFieldUpdateOperationsInput | $Enums.ClassificationSource | null
+  textTypeSource?: Prisma.NullableEnumClassificationSourceFieldUpdateOperationsInput | $Enums.ClassificationSource | null
   originKind?: Prisma.EnumOriginKindFieldUpdateOperationsInput | $Enums.OriginKind
   declaredProvenance?: Prisma.NullableEnumProvenanceFieldUpdateOperationsInput | $Enums.Provenance | null
-  goldProvenance?: Prisma.NullableEnumTrueProvenanceFieldUpdateOperationsInput | $Enums.TrueProvenance | null
+  sourceNote?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  modelKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  genParamsJson?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   visibility?: Prisma.EnumVisibilityFieldUpdateOperationsInput | $Enums.Visibility
   consent?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1093,13 +952,11 @@ export type TextUncheckedUpdateManyWithoutUploaderInput = {
  */
 
 export type TextCountOutputType = {
-  judgments: number
-  annotations: number
+  revisions: number
 }
 
 export type TextCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  judgments?: boolean | TextCountOutputTypeCountJudgmentsArgs
-  annotations?: boolean | TextCountOutputTypeCountAnnotationsArgs
+  revisions?: boolean | TextCountOutputTypeCountRevisionsArgs
 }
 
 /**
@@ -1115,49 +972,46 @@ export type TextCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensi
 /**
  * TextCountOutputType without action
  */
-export type TextCountOutputTypeCountJudgmentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  where?: Prisma.DocJudgmentWhereInput
-}
-
-/**
- * TextCountOutputType without action
- */
-export type TextCountOutputTypeCountAnnotationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  where?: Prisma.SpanAnnotationWhereInput
+export type TextCountOutputTypeCountRevisionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.RevisionWhereInput
 }
 
 
 export type TextSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
-  body?: boolean
-  charCount?: boolean
   genre?: boolean
   pov?: boolean
   textType?: boolean
+  genreSource?: boolean
+  povSource?: boolean
+  textTypeSource?: boolean
   originKind?: boolean
   declaredProvenance?: boolean
-  goldProvenance?: boolean
+  sourceNote?: boolean
+  modelKey?: boolean
+  genParamsJson?: boolean
   uploaderId?: boolean
   visibility?: boolean
   consent?: boolean
   createdAt?: boolean
   uploader?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  judgments?: boolean | Prisma.Text$judgmentsArgs<ExtArgs>
-  annotations?: boolean | Prisma.Text$annotationsArgs<ExtArgs>
-  machineRecord?: boolean | Prisma.Text$machineRecordArgs<ExtArgs>
+  revisions?: boolean | Prisma.Text$revisionsArgs<ExtArgs>
   _count?: boolean | Prisma.TextCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["text"]>
 
 export type TextSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
-  body?: boolean
-  charCount?: boolean
   genre?: boolean
   pov?: boolean
   textType?: boolean
+  genreSource?: boolean
+  povSource?: boolean
+  textTypeSource?: boolean
   originKind?: boolean
   declaredProvenance?: boolean
-  goldProvenance?: boolean
+  sourceNote?: boolean
+  modelKey?: boolean
+  genParamsJson?: boolean
   uploaderId?: boolean
   visibility?: boolean
   consent?: boolean
@@ -1167,14 +1021,17 @@ export type TextSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
 
 export type TextSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
-  body?: boolean
-  charCount?: boolean
   genre?: boolean
   pov?: boolean
   textType?: boolean
+  genreSource?: boolean
+  povSource?: boolean
+  textTypeSource?: boolean
   originKind?: boolean
   declaredProvenance?: boolean
-  goldProvenance?: boolean
+  sourceNote?: boolean
+  modelKey?: boolean
+  genParamsJson?: boolean
   uploaderId?: boolean
   visibility?: boolean
   consent?: boolean
@@ -1184,26 +1041,27 @@ export type TextSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
 
 export type TextSelectScalar = {
   id?: boolean
-  body?: boolean
-  charCount?: boolean
   genre?: boolean
   pov?: boolean
   textType?: boolean
+  genreSource?: boolean
+  povSource?: boolean
+  textTypeSource?: boolean
   originKind?: boolean
   declaredProvenance?: boolean
-  goldProvenance?: boolean
+  sourceNote?: boolean
+  modelKey?: boolean
+  genParamsJson?: boolean
   uploaderId?: boolean
   visibility?: boolean
   consent?: boolean
   createdAt?: boolean
 }
 
-export type TextOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "body" | "charCount" | "genre" | "pov" | "textType" | "originKind" | "declaredProvenance" | "goldProvenance" | "uploaderId" | "visibility" | "consent" | "createdAt", ExtArgs["result"]["text"]>
+export type TextOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "genre" | "pov" | "textType" | "genreSource" | "povSource" | "textTypeSource" | "originKind" | "declaredProvenance" | "sourceNote" | "modelKey" | "genParamsJson" | "uploaderId" | "visibility" | "consent" | "createdAt", ExtArgs["result"]["text"]>
 export type TextInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   uploader?: boolean | Prisma.UserDefaultArgs<ExtArgs>
-  judgments?: boolean | Prisma.Text$judgmentsArgs<ExtArgs>
-  annotations?: boolean | Prisma.Text$annotationsArgs<ExtArgs>
-  machineRecord?: boolean | Prisma.Text$machineRecordArgs<ExtArgs>
+  revisions?: boolean | Prisma.Text$revisionsArgs<ExtArgs>
   _count?: boolean | Prisma.TextCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type TextIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1217,20 +1075,21 @@ export type $TextPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   name: "Text"
   objects: {
     uploader: Prisma.$UserPayload<ExtArgs>
-    judgments: Prisma.$DocJudgmentPayload<ExtArgs>[]
-    annotations: Prisma.$SpanAnnotationPayload<ExtArgs>[]
-    machineRecord: Prisma.$MachineRecordPayload<ExtArgs> | null
+    revisions: Prisma.$RevisionPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
-    body: string
-    charCount: number
     genre: string | null
     pov: string | null
     textType: string | null
+    genreSource: $Enums.ClassificationSource | null
+    povSource: $Enums.ClassificationSource | null
+    textTypeSource: $Enums.ClassificationSource | null
     originKind: $Enums.OriginKind
     declaredProvenance: $Enums.Provenance | null
-    goldProvenance: $Enums.TrueProvenance | null
+    sourceNote: string | null
+    modelKey: string | null
+    genParamsJson: string | null
     uploaderId: number
     visibility: $Enums.Visibility
     consent: boolean
@@ -1630,9 +1489,7 @@ readonly fields: TextFieldRefs;
 export interface Prisma__TextClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   uploader<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
-  judgments<T extends Prisma.Text$judgmentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Text$judgmentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$DocJudgmentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
-  annotations<T extends Prisma.Text$annotationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Text$annotationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SpanAnnotationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
-  machineRecord<T extends Prisma.Text$machineRecordArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Text$machineRecordArgs<ExtArgs>>): Prisma.Prisma__MachineRecordClient<runtime.Types.Result.GetResult<Prisma.$MachineRecordPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  revisions<T extends Prisma.Text$revisionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Text$revisionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RevisionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1663,14 +1520,17 @@ export interface Prisma__TextClient<T, Null = never, ExtArgs extends runtime.Typ
  */
 export interface TextFieldRefs {
   readonly id: Prisma.FieldRef<"Text", 'String'>
-  readonly body: Prisma.FieldRef<"Text", 'String'>
-  readonly charCount: Prisma.FieldRef<"Text", 'Int'>
   readonly genre: Prisma.FieldRef<"Text", 'String'>
   readonly pov: Prisma.FieldRef<"Text", 'String'>
   readonly textType: Prisma.FieldRef<"Text", 'String'>
+  readonly genreSource: Prisma.FieldRef<"Text", 'ClassificationSource'>
+  readonly povSource: Prisma.FieldRef<"Text", 'ClassificationSource'>
+  readonly textTypeSource: Prisma.FieldRef<"Text", 'ClassificationSource'>
   readonly originKind: Prisma.FieldRef<"Text", 'OriginKind'>
   readonly declaredProvenance: Prisma.FieldRef<"Text", 'Provenance'>
-  readonly goldProvenance: Prisma.FieldRef<"Text", 'TrueProvenance'>
+  readonly sourceNote: Prisma.FieldRef<"Text", 'String'>
+  readonly modelKey: Prisma.FieldRef<"Text", 'String'>
+  readonly genParamsJson: Prisma.FieldRef<"Text", 'String'>
   readonly uploaderId: Prisma.FieldRef<"Text", 'Int'>
   readonly visibility: Prisma.FieldRef<"Text", 'Visibility'>
   readonly consent: Prisma.FieldRef<"Text", 'Boolean'>
@@ -2074,70 +1934,27 @@ export type TextDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.Internal
 }
 
 /**
- * Text.judgments
+ * Text.revisions
  */
-export type Text$judgmentsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+export type Text$revisionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   /**
-   * Select specific fields to fetch from the DocJudgment
+   * Select specific fields to fetch from the Revision
    */
-  select?: Prisma.DocJudgmentSelect<ExtArgs> | null
+  select?: Prisma.RevisionSelect<ExtArgs> | null
   /**
-   * Omit specific fields from the DocJudgment
+   * Omit specific fields from the Revision
    */
-  omit?: Prisma.DocJudgmentOmit<ExtArgs> | null
+  omit?: Prisma.RevisionOmit<ExtArgs> | null
   /**
    * Choose, which related nodes to fetch as well
    */
-  include?: Prisma.DocJudgmentInclude<ExtArgs> | null
-  where?: Prisma.DocJudgmentWhereInput
-  orderBy?: Prisma.DocJudgmentOrderByWithRelationInput | Prisma.DocJudgmentOrderByWithRelationInput[]
-  cursor?: Prisma.DocJudgmentWhereUniqueInput
+  include?: Prisma.RevisionInclude<ExtArgs> | null
+  where?: Prisma.RevisionWhereInput
+  orderBy?: Prisma.RevisionOrderByWithRelationInput | Prisma.RevisionOrderByWithRelationInput[]
+  cursor?: Prisma.RevisionWhereUniqueInput
   take?: number
   skip?: number
-  distinct?: Prisma.DocJudgmentScalarFieldEnum | Prisma.DocJudgmentScalarFieldEnum[]
-}
-
-/**
- * Text.annotations
- */
-export type Text$annotationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the SpanAnnotation
-   */
-  select?: Prisma.SpanAnnotationSelect<ExtArgs> | null
-  /**
-   * Omit specific fields from the SpanAnnotation
-   */
-  omit?: Prisma.SpanAnnotationOmit<ExtArgs> | null
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.SpanAnnotationInclude<ExtArgs> | null
-  where?: Prisma.SpanAnnotationWhereInput
-  orderBy?: Prisma.SpanAnnotationOrderByWithRelationInput | Prisma.SpanAnnotationOrderByWithRelationInput[]
-  cursor?: Prisma.SpanAnnotationWhereUniqueInput
-  take?: number
-  skip?: number
-  distinct?: Prisma.SpanAnnotationScalarFieldEnum | Prisma.SpanAnnotationScalarFieldEnum[]
-}
-
-/**
- * Text.machineRecord
- */
-export type Text$machineRecordArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  /**
-   * Select specific fields to fetch from the MachineRecord
-   */
-  select?: Prisma.MachineRecordSelect<ExtArgs> | null
-  /**
-   * Omit specific fields from the MachineRecord
-   */
-  omit?: Prisma.MachineRecordOmit<ExtArgs> | null
-  /**
-   * Choose, which related nodes to fetch as well
-   */
-  include?: Prisma.MachineRecordInclude<ExtArgs> | null
-  where?: Prisma.MachineRecordWhereInput
+  distinct?: Prisma.RevisionScalarFieldEnum | Prisma.RevisionScalarFieldEnum[]
 }
 
 /**

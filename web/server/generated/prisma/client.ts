@@ -52,6 +52,11 @@ export type User = Prisma.UserModel
  */
 export type Text = Prisma.TextModel
 /**
+ * Model Revision
+ * 
+ */
+export type Revision = Prisma.RevisionModel
+/**
  * Model DocJudgment
  * 
  */
@@ -62,7 +67,37 @@ export type DocJudgment = Prisma.DocJudgmentModel
  */
 export type SpanAnnotation = Prisma.SpanAnnotationModel
 /**
- * Model MachineRecord
+ * Model MachineScan
  * 
  */
-export type MachineRecord = Prisma.MachineRecordModel
+export type MachineScan = Prisma.MachineScanModel
+/**
+ * Model MachineDetect
+ * 
+ */
+export type MachineDetect = Prisma.MachineDetectModel
+/**
+ * Model MachineLlmReview
+ * 
+ */
+export type MachineLlmReview = Prisma.MachineLlmReviewModel
+/**
+ * Model AgentSession
+ * 
+ */
+export type AgentSession = Prisma.AgentSessionModel
+/**
+ * Model AgentSessionEntry
+ * 
+ */
+export type AgentSessionEntry = Prisma.AgentSessionEntryModel
+/**
+ * Model AgentInvocation
+ * 
+ */
+export type AgentInvocation = Prisma.AgentInvocationModel
+/**
+ * Model MachineDetectRun
+ * 
+ */
+export type MachineDetectRun = Prisma.MachineDetectRunModel

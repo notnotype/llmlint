@@ -17,6 +17,10 @@ const props = defineProps<{
     comments: ReviewComment[];
     linkRequestToken: number;
     commentRequestToken: number;
+    /** W7 F2：内置「AI 改写选区」入口开关（宿主接了发起链才显示；playground 等未接场景隐藏）。 */
+    llmRewriteEnabled?: boolean;
+    /** Task 17 A3：「保存标注」入口开关（contribute 工作台接了落库链才显示；playground 隐藏）。 */
+    annotateEnabled?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -25,11 +29,17 @@ const emit = defineEmits<{
     (e: "replace-selection", text: string): void;
     (e: "format-selection", command: MarkdownFormatCommand): void;
     (e: "link-selection", href: string): void;
+    (e: "llm-rewrite-selection"): void;
+    (e: "save-annotation", note: string): void;
 }>();
 
 const commentOpen = ref(false);
 const commentBody = ref("");
 const commentInput = ref<HTMLTextAreaElement | null>(null);
+// Task 17 A3 标注小表单（与批注表单同款交互，落库走 save-annotation 上抛链）。
+const annotateOpen = ref(false);
+const annotateNote = ref("");
+const annotateInput = ref<HTMLTextAreaElement | null>(null);
 const linkOpen = ref(false);
 const linkHref = ref("");
 const linkInput = ref<HTMLInputElement | null>(null);
@@ -41,7 +51,7 @@ const blockStyleMenuId = "llmlint-review-source-block-style-menu";
 
 const menuStyle = computed(() => {
     const anchor = props.selection.anchor ?? {left: 24, top: 24, height: 20, containerWidth: 0, containerHeight: 0, absoluteTop: 24};
-    const estimatedHeight = 44 + (props.issueMark ? 32 : 0) + (commentOpen.value ? 128 : 0) + (linkOpen.value ? 82 : 0) + (blockStyleOpen.value ? 88 : 0);
+    const estimatedHeight = 44 + (props.issueMark ? 32 : 0) + (commentOpen.value || annotateOpen.value ? 128 : 0) + (linkOpen.value ? 82 : 0) + (blockStyleOpen.value ? 88 : 0);
     const shouldPlaceAbove = anchor.containerHeight > 0 && anchor.top + anchor.height + estimatedHeight + 8 > anchor.containerHeight;
     const estimatedWidth = estimateMenuWidth();
     const menuWidth = anchor.containerWidth > 0 ? Math.min(estimatedWidth, Math.max(0, anchor.containerWidth - 16)) : estimatedWidth;
@@ -121,6 +131,7 @@ const {
     beforeOpen: () => {
         closeComment();
         closeLink();
+        closeAnnotate();
     },
     apply: (command) => {
         emit("format-selection", command);
@@ -132,6 +143,7 @@ watch(() => `${props.selection.source}:${props.selection.start}:${props.selectio
     promptCopied.value = false;
     closeComment();
     closeLink();
+    closeAnnotate();
     closeBlockStyle();
 });
 
@@ -224,6 +236,7 @@ async function replaceSelectionWithClipboard(): Promise<void> {
 function openComment(): void {
     closeLink();
     closeBlockStyle();
+    closeAnnotate();
     commentOpen.value = true;
     nextTick(() => {
         commentInput.value?.focus();
@@ -248,6 +261,7 @@ function closeComment(): void {
 function openLink(): void {
     closeComment();
     closeBlockStyle();
+    closeAnnotate();
     linkOpen.value = true;
     linkHref.value = markdownSelectionLinkInputHref(props.documentText, props.selection.start, props.selection.end, props.selection.text);
     nextTick(() => {
@@ -275,6 +289,32 @@ function removeLink(): void {
 function closeLink(): void {
     linkOpen.value = false;
     linkHref.value = "";
+}
+
+/** Task 17 A3：打开标注小表单（与批注/链接表单互斥）。 */
+function openAnnotate(): void {
+    closeComment();
+    closeLink();
+    closeBlockStyle();
+    annotateOpen.value = true;
+    nextTick(() => {
+        annotateInput.value?.focus();
+    });
+}
+
+/** 提交标注：note 上抛给宿主落库（坐标映射与 POST 在宿主侧做）。 */
+function submitAnnotate(): void {
+    const note = annotateNote.value.trim();
+    if (!note) {
+        return;
+    }
+    emit("save-annotation", note);
+    closeAnnotate();
+}
+
+function closeAnnotate(): void {
+    annotateOpen.value = false;
+    annotateNote.value = "";
 }
 
 </script>
@@ -308,6 +348,18 @@ function closeLink(): void {
             <button type="button" class="review-source-selection-menu__button review-source-selection-menu__button--primary review-source-selection-menu__button--prompt" :aria-label="t('review.copySelectionPromptTitle')" :title="t('review.copySelectionPromptTitle')" @click="void copyOptimizationPrompt()">
                 <span :class="promptCopied ? 'i-lucide-check' : 'i-lucide-wand-sparkles'" class="h-3.5 w-3.5" />
                 <span>{{ t("review.copySelectionPrompt") }}</span>
+            </button>
+
+            <!-- W7 F2 内置 AI 改写选区（与「复制指令」外部路径并排；通道 503 后宿主收开关只剩复制降级路） -->
+            <button v-if="llmRewriteEnabled" type="button" class="review-source-selection-menu__button review-source-selection-menu__button--primary review-source-selection-menu__button--prompt" :aria-label="t('review.llmRewriteSelectionTitle')" :title="t('review.llmRewriteSelectionTitle')" @click="emit('llm-rewrite-selection')">
+                <span class="i-lucide-bot h-3.5 w-3.5" />
+                <span>{{ t("review.llmRewriteSelection") }}</span>
+            </button>
+
+            <!-- Task 17 A3 保存标注（只读标注模式融合进编辑器：选区 → 标注表单 → 宿主映射回版本正文坐标落库） -->
+            <button v-if="annotateEnabled" type="button" class="review-source-selection-menu__button review-source-selection-menu__button--primary" :aria-label="t('review.annotateSelectionTitle')" :title="t('review.annotateSelectionTitle')" @click="openAnnotate">
+                <span class="i-lucide-highlighter h-3.5 w-3.5" />
+                <span>{{ t("review.annotateSelection") }}</span>
             </button>
 
             <button type="button" class="review-source-selection-menu__button review-source-selection-menu__button--icon" :aria-label="t('review.replaceSelectionFromClipboardTitle')" :title="t('review.replaceSelectionFromClipboardTitle')" @click="void replaceSelectionWithClipboard()">
@@ -424,6 +476,27 @@ function closeLink(): void {
             <div class="review-source-selection-menu__actions">
                 <button type="button" data-review-source-comment-cancel="true" class="review-source-selection-menu__cancel" :aria-label="t('common.cancel')" :title="t('common.cancel')" @click="closeComment">{{ t("common.cancel") }}</button>
                 <button type="submit" data-review-source-comment-submit="true" class="review-source-selection-menu__submit" :disabled="!commentBody.trim()" :aria-label="t('review.saveComment')" :title="t('review.saveComment')">{{ t("review.saveComment") }}</button>
+            </div>
+        </form>
+
+        <!-- Task 17 A3 标注表单（与批注表单同款交互；数据集标注，非编辑面批注） -->
+        <form v-else-if="annotateOpen" data-review-source-annotation-form="true" class="review-source-selection-menu__comment" @submit.prevent="submitAnnotate">
+            <textarea
+                ref="annotateInput"
+                v-model="annotateNote"
+                data-review-source-annotation-input="true"
+                class="review-source-selection-menu__input"
+                rows="3"
+                maxlength="2000"
+                :aria-label="t('review.annotateSelection')"
+                :placeholder="t('review.annotationNotePlaceholder')"
+                @keydown.esc.prevent.stop="closeAnnotate"
+                @keydown.ctrl.enter.prevent.stop="submitAnnotate"
+                @keydown.meta.enter.prevent.stop="submitAnnotate"
+            ></textarea>
+            <div class="review-source-selection-menu__actions">
+                <button type="button" data-review-source-annotation-cancel="true" class="review-source-selection-menu__cancel" :aria-label="t('common.cancel')" :title="t('common.cancel')" @click="closeAnnotate">{{ t("common.cancel") }}</button>
+                <button type="submit" data-review-source-annotation-submit="true" class="review-source-selection-menu__submit" :disabled="!annotateNote.trim()" :aria-label="t('review.annotateSelection')" :title="t('review.annotateSelection')">{{ t("review.annotateSelection") }}</button>
             </div>
         </form>
 

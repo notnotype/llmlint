@@ -258,14 +258,16 @@
     "title": "八股句式/短语删除",
     "level": "medium",
     "enabled": true,
+    "note": "只检查“突然间/忽然间”；普通“突然/忽然”由程度副词 canonical family 判断，避免同 span 重复命中。",
     "source": {
+      "version": "creative-profile-v1",
       "canonicalKey": "cliche.baguwen\t\t(?:突|忽)然间?，?",
       "importedFrom": "curated-cn-rule-samples"
     },
     "detector": {
       "type": "regex",
       "targets": [
-        "(?:突|忽)然间?，?"
+        "(?:突|忽)然间，?"
       ]
     },
     "action": {

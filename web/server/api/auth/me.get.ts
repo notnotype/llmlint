@@ -1,5 +1,5 @@
 import type {AuthSessionDto} from "../../utils/auth";
-import {getCurrentUser, toAuthUser} from "../../utils/auth";
+import {getCurrentUser, isAuthEnabled, toAuthUser} from "../../utils/auth";
 
 /**
  * 返回当前 session 对应的有效用户。
@@ -7,7 +7,7 @@ import {getCurrentUser, toAuthUser} from "../../utils/auth";
 export default defineEventHandler(async (event): Promise<AuthSessionDto> => {
     const user = await getCurrentUser(event);
     return {
-        authEnabled: true,
+        authEnabled: isAuthEnabled(event),
         user: user ? toAuthUser(user) : null,
     };
 });

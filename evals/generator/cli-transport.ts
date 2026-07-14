@@ -24,20 +24,22 @@ export type CliModel = {
     command: string[];
     env: Record<string, string>;
     timeoutMs: number;
-    output: "json" | "text";
+    output: "text" | "claude-json" | "codex-json";
 };
 
 const DEFAULT_CLI_TIMEOUT_MS = 600_000;
 
-/** 从 eval.config 的 cliProviders 解析一个 CLI 模型。 */
-export function resolveCliModel(providerId: string, modelId: string, cfg: CliProviderConfig): CliModel {
+/** 从 eval.config 的 cliProviders 解析一个 CLI 模型。proxy 注入子进程 env（所有 provider 走 http proxy）。 */
+export function resolveCliModel(providerId: string, modelId: string, cfg: CliProviderConfig, proxy?: string): CliModel {
+    // proxy → 子进程 HTTP(S)_PROXY（claude/codex 都是 Node/Rust 客户端，读这两个环境变量）。
+    const proxyEnv: Record<string, string> = proxy ? {HTTP_PROXY: proxy, HTTPS_PROXY: proxy, http_proxy: proxy, https_proxy: proxy} : {};
     return {
         kind: "cli",
         modelKey: `${providerId}/${modelId}`,
         providerId,
         modelId,
         command: cfg.command.map((part) => part.replace("{MODEL}", modelId)),
-        env: cfg.env ?? {},
+        env: {...proxyEnv, ...(cfg.env ?? {})},
         timeoutMs: cfg.timeoutMs ?? DEFAULT_CLI_TIMEOUT_MS,
         output: cfg.output ?? "text",
     };
@@ -56,10 +58,42 @@ export async function completeCliOnce(model: CliModel, system: string, user: str
     if (code !== 0) {
         return {content: [], stopReason: "error", errorMessage: `CLI exit=${code}：${(stderr || stdout).slice(-400)}`};
     }
-    if (model.output === "json") {
+    if (model.output === "claude-json") {
         return parseClaudeJson(stdout);
     }
+    if (model.output === "codex-json") {
+        return parseCodexJson(stdout);
+    }
     return {content: [{type: "text", text: stdout.trim()}], stopReason: "stop"};
+}
+
+/** 解析 `codex exec --json` 的 JSONL：取最后一条 item.completed 且 item.type=agent_message 的 text。导出供单测。 */
+export function parseCodexJson(stdout: string): CliAssistantMessage {
+    let answer = "";
+    let inputTokens: number | undefined;
+    let outputTokens: number | undefined;
+    for (const line of stdout.split(/\r?\n/u)) {
+        const trimmed = line.trim();
+        if (!trimmed.startsWith("{")) {
+            continue;
+        }
+        try {
+            const ev = JSON.parse(trimmed) as {type?: string; item?: {type?: string; text?: string}; usage?: {input_tokens?: number; output_tokens?: number}};
+            if (ev.type === "item.completed" && ev.item?.type === "agent_message" && typeof ev.item.text === "string") {
+                answer = ev.item.text; // 取最后一条（覆盖），多轮时以末条为准
+            }
+            if (ev.type === "turn.completed" && ev.usage) {
+                inputTokens = ev.usage.input_tokens;
+                outputTokens = ev.usage.output_tokens;
+            }
+        } catch {
+            // 非 JSON 行跳过
+        }
+    }
+    if (!answer.trim()) {
+        return {content: [], stopReason: "error", errorMessage: `codex --json 无 agent_message：${stdout.slice(-200)}`};
+    }
+    return {content: [{type: "text", text: answer.trim()}], stopReason: "stop", usage: {input: inputTokens, output: outputTokens}};
 }
 
 /** 解析 `claude -p --output-format json` 的结果：result 字段 = 正文，usage 带真实 token 数。 */

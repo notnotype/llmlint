@@ -1,40 +1,83 @@
 {
-    "$comment": "eval 配置模板（进 git，无密钥）。复制为 evals/eval.config.json（已 gitignore）后填真实 env/key。字段说明见 generator/eval-config.ts。modelsConfig/datasetsRoot 相对路径按 llmlint 仓根解析。",
+    "$comment": "eval 配置模板（进 git，无密钥）。复制为 evals/eval.config.json（已 gitignore）后填真实 env/key。字段说明见 generator/eval-config.ts。modelsConfig/datasetsRoot 相对路径按 llmlint 仓根解析。proxy 对所有 provider 生效（anyrouter 必须走代理）。",
     "modelsConfig": "../neuro-book/workspace/.nbook/config.json",
+    "proxy": "http://127.0.0.1:7890",
+    "providerTimeouts": {
+        "doubao": 600000
+    },
+    "$note_bailian": "bailian(qwen3.7-plus/qwen3.6-plus/kimi-k2.6/MiniMax-M2.5) 暂禁用不测：config.json 里 bailian apiKey 为空，需先补一个百炼(dashscope) key 才能加进 renderModels。",
     "datasetsRoot": "C:/Users/notnotype/Documents/CodeRepository/GithubProjects/neuro-book/datasets/aigc-detection",
     "renderModels": [
         "deepseek/deepseek-v4-flash",
         "xiaomi-token-plan-cn/mimo-v2.5-pro",
-        "doubao/doubao-seed-2-1-pro-260628",
-        "elysiver-gemini/gemini-3.1-pro",
-        "elysiver-glm/glm-5.2"
+        "elysiver-gemini/gemini-3.1-pro"
     ],
     "extractor": "xiaomi-token-plan-cn/mimo-v2.5-pro",
-    "prompts": {"brief": "brief-v2", "render": "render-v1"},
-    "retry": {"maxAttempts": 3, "backoffBaseMs": 1000},
+    "prompts": {
+        "brief": "brief-v2",
+        "render": "render-v1"
+    },
+    "retry": {
+        "maxAttempts": 3,
+        "backoffBaseMs": 1000
+    },
     "rateLimit": {
-        "default": {"concurrency": 1, "minIntervalMs": 0},
+        "default": {
+            "concurrency": 1,
+            "minIntervalMs": 0
+        },
         "perProvider": {
-            "anyrouter-claude": {"concurrency": 1, "minIntervalMs": 2000},
-            "anyrouter-codex": {"concurrency": 1, "minIntervalMs": 2000}
+            "anyrouter-claude": {
+                "concurrency": 1,
+                "minIntervalMs": 2000
+            },
+            "anyrouter-codex": {
+                "concurrency": 1,
+                "minIntervalMs": 2000
+            }
         }
     },
     "cliProviders": {
+        "$comment": "CLI transport 经 proxy 已端到端验证（2026-07-03）：codex/gpt-5.5 ✅；claude 需两条件——① 用有额度的 anyrouter 账号 key（30 账号轮换，见 CodeProjects/anyrouter/anyrouter.js apikey）② 模型名带 [1M] 后缀启用 1M 上下文（否则 400 请启用1m上下文；exhausted 账号则 503）。opus-4-8[1M] ✅ 端到端；sonnet[1M] 偏慢易超时。默认 render 面板不含 CLI，需要时显式 --models 加。",
         "anyrouter-claude": {
             "transport": "cli",
-            "command": ["claude", "-p", "--output-format", "json", "--model", "{MODEL}"],
-            "env": {"ANTHROPIC_BASE_URL": "https://anyrouter.top", "ANTHROPIC_AUTH_TOKEN": "<真实 key 只填在 gitignored 的 eval.config.json>"},
-            "models": ["claude-sonnet-4-5-20250929", "claude-opus-4-8", "claude-fable-5"],
-            "timeoutMs": 600000,
-            "output": "json"
+            "command": [
+                "claude",
+                "-p",
+                "--output-format",
+                "json",
+                "--model",
+                "{MODEL}"
+            ],
+            "env": {
+                "ANTHROPIC_BASE_URL": "https://anyrouter.top",
+                "ANTHROPIC_AUTH_TOKEN": "<有额度账号 key，只填在 gitignored 的 eval.config.json>"
+            },
+            "models": [
+                "claude-opus-4-8[1M]",
+                "claude-fable-5[1M]"
+            ],
+            "timeoutMs": 300000,
+            "output": "claude-json"
         },
         "anyrouter-codex": {
             "transport": "cli",
-            "command": ["codex", "exec", "--model", "{MODEL}", "-"],
-            "env": {"CODEX_API_KEY": "<真实 key 只填在 gitignored 的 eval.config.json>"},
-            "models": ["gpt-5.5"],
-            "timeoutMs": 600000,
-            "output": "text"
+            "command": [
+                "codex",
+                "exec",
+                "--json",
+                "--model",
+                "{MODEL}",
+                "-"
+            ],
+            "env": {
+                "CODEX_API_KEY": "<真实 key 只填在 gitignored 的 eval.config.json>"
+            },
+            "models": [
+                "gpt-5.5"
+            ],
+            "timeoutMs": 300000,
+            "output": "codex-json"
         }
     },
     "detector": {
@@ -43,5 +86,15 @@
         "chunkChars": 450,
         "minIntervalMs": 1500,
         "version": "hf-space-2026-07-03"
+    },
+    "classifier": {
+        "$comment": "LLM 文本分类（题材/体裁/视角补空，classifier/classify.ts）；须 HTTP 模型（CLI 无工具协议）；值集见 evals/lib/taxonomy.ts；模型统一先用 mimo（D-E 拍板，Task 13）",
+        "model": "xiaomi-token-plan-cn/mimo-v2.5-pro",
+        "maxChars": 2000
+    },
+    "repair": {
+        "$comment": "采集线 A repair 一轮修复（generator/repair.ts）：render → llmlint 命中问题清单 → LLM 润色出 repair 样本（I5 单独统计，不进 lift）。推荐稳定 HTTP 模型（现统一 mimo，D-E 拍板）；promptVersion 缺省 = repair-v1（generator/prompts.ts 注册表，改 prompt 必须加新版本 key，I8）",
+        "model": "xiaomi-token-plan-cn/mimo-v2.5-pro",
+        "promptVersion": "repair-v1"
     }
 }

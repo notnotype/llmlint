@@ -87,38 +87,49 @@ export const DEFAULT_NAMESPACE_POLICY: Record<string, NamespacePolicy> = {
     "punctuation.dedup": {review: "none", fixability: "auto"},
 
     // 标点风格：破折号及其增殖在中文小说里高度依赖作者偏好，默认交人工
-    "punctuation.dash": {review: "human", fixability: "candidate"},
-    "punctuation.dash-proliferation": {review: "human", fixability: "candidate"},
-    "punctuation.dash-ellipsis-proliferation": {review: "human", fixability: "candidate"},
-    "proliferation.mixed": {review: "human", fixability: "candidate"},
+    "punctuation.dash": {review: "human", fixability: "manual"},
+    "punctuation.dash-proliferation": {review: "human", fixability: "manual"},
+    "punctuation.dash-ellipsis-proliferation": {review: "human", fixability: "manual"},
+    "proliferation.mixed": {review: "human", fixability: "manual"},
 
     // 比喻：regex 难以判断是否原创妙喻，误伤率高，默认交人工
-    "metaphor": {review: "human", fixability: "candidate"},
-    "metaphor.like": {review: "human", fixability: "candidate"},
+    "metaphor": {review: "human", fixability: "manual"},
+    "metaphor.like": {review: "human", fixability: "manual"},
 
     // 泛词 / 形副词系：替换候选多但语境敏感，默认交人工
-    "modifier": {review: "human", fixability: "candidate"},
-    "modifier.measure": {review: "human", fixability: "candidate"},
-    "modifier.extreme": {review: "human", fixability: "candidate"},
-    "modifier.physiological": {review: "human", fixability: "candidate"},
-    "absolute": {review: "human", fixability: "candidate"},
-    "abstraction.hollow": {review: "human", fixability: "candidate"},
+    "modifier": {review: "human", fixability: "manual"},
+    "modifier.measure": {review: "human", fixability: "manual"},
+    "modifier.extreme": {review: "human", fixability: "manual"},
+    "modifier.physiological": {review: "human", fixability: "manual"},
+    "absolute": {review: "human", fixability: "manual"},
+    "abstraction.hollow": {review: "human", fixability: "manual"},
 
     // 结构与评分：段落切分、节奏评分属于宏观风格，不适合逐条喂 Agent
-    "paragraph.merge-short": {review: "human", fixability: "candidate"},
-    "paragraph.split-long": {review: "human", fixability: "candidate"},
+    "paragraph.merge-short": {review: "human", fixability: "manual"},
+    "paragraph.split-long": {review: "human", fixability: "manual"},
     "rhythm": {review: "human", fixability: "manual"},
-    "numeral.three": {review: "human", fixability: "candidate"},
+    "numeral.three": {review: "human", fixability: "manual"},
 
     // 工程师腔 / 自媒体腔：技术语境与网络用语都可能合理，误杀率高，默认交人工
-    "jargon.engineer": {review: "human", fixability: "candidate"},
-    "jargon.social": {review: "human", fixability: "candidate"},
+    "jargon.engineer": {review: "human", fixability: "manual"},
+    "jargon.social": {review: "human", fixability: "manual"},
     // 翻译腔：介词框架常合理，戏剧化碎句可能是刻意节奏，默认交人工
-    "translationese": {review: "human", fixability: "candidate"},
-    "structure.fragment": {review: "human", fixability: "candidate"},
+    "translationese": {review: "human", fixability: "manual"},
+    "structure.fragment": {review: "human", fixability: "manual"},
 
     // 机械痕迹：零宽字符是确定性清理，安全自动修复；同形字需确认是否有意外文，默认交人工。
     // 占位符 / chatbot 泄漏走 derive=agent 默认展示（成稿里出现即明显错误）。
     "mechanical.zero-width": {review: "none", fixability: "auto"},
-    "mechanical.homoglyph": {review: "human", fixability: "candidate"},
+    "mechanical.homoglyph": {review: "human", fixability: "manual"},
+};
+
+/**
+ * 第一版创作语料报告确认的 strong 规则级路由覆盖。
+ * 这些规则所在 namespace 默认偏人工，但规则本身有稳定区分力，应交 Agent 结合上下文判断。
+ */
+export const DEFAULT_RULE_POLICY: Record<string, NamespacePolicy> = {
+    "cn.modifier.measure.subject-measure-word": {review: "agent"},
+    "cn.proliferation.mixed.repeated-de-pairs": {review: "agent"},
+    "cn.modifier.absolute-claim-modifier": {review: "agent"},
+    "cn.modifier.optional-mood-modifiers": {review: "agent"},
 };

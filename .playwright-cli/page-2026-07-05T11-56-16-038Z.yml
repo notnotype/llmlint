@@ -1,0 +1,155 @@
+- generic [active] [ref=f7e1]:
+  - generic [ref=f7e3]:
+    - generic [ref=f7e4]:
+      - banner [ref=f7e5]:
+        - generic [ref=f7e6]:
+          - link "llmlint" [ref=f7e7] [cursor=pointer]:
+            - /url: /
+          - generic [ref=f7e9]:
+            - generic [ref=f7e10]: llmlint
+            - generic [ref=f7e11]: 中文 AI 味检测
+          - navigation [ref=f7e13]:
+            - link "检测" [ref=f7e14] [cursor=pointer]:
+              - /url: /
+            - link "评测报告" [ref=f7e15] [cursor=pointer]:
+              - /url: /report
+            - link "数据集" [ref=f7e16] [cursor=pointer]:
+              - /url: /dataset
+            - link "贡献数据" [ref=f7e17] [cursor=pointer]:
+              - /url: /contribute
+        - generic [ref=f7e18]:
+          - link "GitHub" [ref=f7e19] [cursor=pointer]:
+            - /url: https://github.com/notnotype/llmlint
+            - generic [ref=f7e21]: GitHub
+          - button "关于 / 使用说明" [ref=f7e22] [cursor=pointer]
+          - button "切换明暗" [ref=f7e24] [cursor=pointer]
+          - button "设置" [ref=f7e26] [cursor=pointer]
+          - button "T" [ref=f7e30] [cursor=pointer]:
+            - generic [ref=f7e31]: T
+      - navigation [ref=f7e89]:
+        - generic [ref=f7e90]:
+          - generic [ref=f7e91]: "1"
+          - text: 盲评 · 揭示
+        - generic [ref=f7e92]: →
+        - generic [ref=f7e93]:
+          - generic [ref=f7e94]: "2"
+          - text: 改文
+        - generic [ref=f7e95]: →
+        - generic [ref=f7e96]:
+          - generic [ref=f7e97]: "3"
+          - text: 验收
+      - main [ref=f7e98]:
+        - generic [ref=f7e99]:
+          - generic [ref=f7e100]:
+            - generic [ref=f7e101]: 正文高亮
+            - generic [ref=f7e102]: 可见字数 50
+          - generic [ref=f7e104]: 值得注意的是，这不仅仅是一次尝试，而是一场深刻的变革。综上所述，我们唯有拥抱变化。这真的有用吗？？？
+        - generic [ref=f7e105]:
+          - generic [ref=f7e106]:
+            - generic [ref=f7e107]:
+              - generic [ref=f7e108]: 盲评分已保存
+              - generic [ref=f7e109]: AI 味 3/5
+              - generic [ref=f7e110]: 想读 3/5
+              - generic [ref=f7e111]: engine 2.0.0
+              - button "开始改文优化" [ref=f7e112] [cursor=pointer]: 开始改文优化
+            - generic [ref=f7e114]: 命中 3 条：high 0 / medium 3 / low 0
+          - generic [ref=f7e115]:
+            - generic [ref=f7e116]:
+              - generic [ref=f7e117]: 受众
+              - generic [ref=f7e118]:
+                - button "Agent" [pressed] [ref=f7e119] [cursor=pointer]:
+                  - generic [ref=f7e120]: Agent
+                - button "人工" [ref=f7e121] [cursor=pointer]:
+                  - generic [ref=f7e122]: 人工
+                - button "机械" [ref=f7e123] [cursor=pointer]:
+                  - generic [ref=f7e124]: 机械
+                - button "全部" [ref=f7e125] [cursor=pointer]:
+                  - generic [ref=f7e126]: 全部
+            - generic [ref=f7e127]:
+              - generic [ref=f7e128]: 最低级别
+              - generic [ref=f7e129]:
+                - button "高" [ref=f7e130] [cursor=pointer]:
+                  - generic [ref=f7e131]: 高
+                - button "中" [ref=f7e132] [cursor=pointer]:
+                  - generic [ref=f7e133]: 中
+                - button "低" [pressed] [ref=f7e134] [cursor=pointer]:
+                  - generic [ref=f7e135]: 低
+            - button "命名空间 全部" [ref=f7e137] [cursor=pointer]:
+              - text: 命名空间
+              - generic [ref=f7e138]: 全部
+          - generic [ref=f7e142]:
+            - generic [ref=f7e143]:
+              - generic [ref=f7e144]:
+                - generic [ref=f7e145]: 喉舌式开头
+                - generic [ref=f7e146]: filler-worth-noting
+                - generic [ref=f7e147]: "[filler]"
+                - generic [ref=f7e148]:
+                  - generic [ref=f7e149]: 级别·中
+                  - generic [ref=f7e150]: 受众·Agent
+                  - generic [ref=f7e151]: 修复·候选修复
+                - generic [ref=f7e152]: 1 处
+                - button "查看规则详情：喉舌式开头" [ref=f7e153] [cursor=pointer]: 详情
+              - list [ref=f7e155]:
+                - listitem [ref=f7e156]:
+                  - button "定位到正文：值得注意的是" [ref=f7e157] [cursor=pointer]:
+                    - generic [ref=f7e158]: 1:1
+                    - generic [ref=f7e159]:
+                      - mark [ref=f7e160]: 值得注意的是
+                      - text: ，这不仅仅是一次尝试，而是一场深刻的变革。综上所述，我们唯有拥抱变化。这真的有用吗？？？
+                  - generic "候选修复" [ref=f7e161]
+                  - button "候选删除此处命中：值得注意的是" [ref=f7e162] [cursor=pointer]:
+                    - generic [ref=f7e164]: 候选删除
+            - generic [ref=f7e165]:
+              - generic [ref=f7e166]:
+                - generic [ref=f7e167]: 空洞拔高形容
+                - generic [ref=f7e168]: inflation-hollow-adjective
+                - generic [ref=f7e169]: "[inflation.significance]"
+                - generic [ref=f7e170]:
+                  - generic [ref=f7e171]: 级别·中
+                  - generic [ref=f7e172]: 受众·Agent
+                  - generic [ref=f7e173]: 修复·手动
+                - generic [ref=f7e174]: 1 处
+                - button "查看规则详情：空洞拔高形容" [ref=f7e175] [cursor=pointer]: 详情
+              - list [ref=f7e177]:
+                - listitem [ref=f7e178]:
+                  - button "定位到正文：深刻的变革" [ref=f7e179] [cursor=pointer]:
+                    - generic [ref=f7e180]: 1:22
+                    - generic [ref=f7e181]:
+                      - text: 值得注意的是，这不仅仅是一次尝试，而是一场
+                      - mark [ref=f7e182]: 深刻的变革
+                      - text: 。综上所述，我们唯有拥抱变化。这真的有用吗？？？
+            - generic [ref=f7e183]:
+              - generic [ref=f7e184]:
+                - generic [ref=f7e185]: 总结式过渡
+                - generic [ref=f7e186]: transition-summary-conclude
+                - generic [ref=f7e187]: "[transition.summary]"
+                - generic [ref=f7e188]:
+                  - generic [ref=f7e189]: 级别·中
+                  - generic [ref=f7e190]: 受众·Agent
+                  - generic [ref=f7e191]: 修复·候选修复
+                - generic [ref=f7e192]: 1 处
+                - button "查看规则详情：总结式过渡" [ref=f7e193] [cursor=pointer]: 详情
+              - list [ref=f7e195]:
+                - listitem [ref=f7e196]:
+                  - button "定位到正文：综上所述" [ref=f7e197] [cursor=pointer]:
+                    - generic [ref=f7e198]: 1:28
+                    - generic [ref=f7e199]:
+                      - text: 值得注意的是，这不仅仅是一次尝试，而是一场深刻的变革。
+                      - mark [ref=f7e200]: 综上所述
+                      - text: ，我们唯有拥抱变化。这真的有用吗？？？
+                  - generic "候选修复" [ref=f7e201]
+                  - button "候选删除此处命中：综上所述" [ref=f7e202] [cursor=pointer]:
+                    - generic [ref=f7e204]: 候选删除
+    - generic [ref=f7e205]:
+      - generic [ref=f7e206]: 盲评已保存，检测报告已揭示
+      - button
+  - generic:
+    - img
+  - generic [ref=f7e75]:
+    - button "Toggle Nuxt DevTools" [ref=f7e76] [cursor=pointer]:
+      - img [ref=f7e77]
+    - generic "Page load time" [ref=f7e80]:
+      - generic [ref=f7e81]: "10"
+      - generic [ref=f7e82]: ms
+    - button "Toggle Component Inspector" [ref=f7e84] [cursor=pointer]:
+      - img [ref=f7e85]

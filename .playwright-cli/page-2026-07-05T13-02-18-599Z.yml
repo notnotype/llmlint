@@ -1,0 +1,73 @@
+- generic [active] [ref=f8e1]:
+  - generic [ref=f8e3]:
+    - generic [ref=f8e4]:
+      - banner [ref=f8e5]:
+        - generic [ref=f8e6]:
+          - link "llmlint" [ref=f8e7] [cursor=pointer]:
+            - /url: /
+          - generic [ref=f8e9]:
+            - generic [ref=f8e10]: llmlint
+            - generic [ref=f8e11]: 中文 AI 味检测
+          - navigation [ref=f8e13]:
+            - link "检测" [ref=f8e14] [cursor=pointer]:
+              - /url: /
+            - link "评测报告" [ref=f8e15] [cursor=pointer]:
+              - /url: /report
+            - link "数据集" [ref=f8e16] [cursor=pointer]:
+              - /url: /dataset
+            - link "贡献数据" [ref=f8e17] [cursor=pointer]:
+              - /url: /contribute
+        - generic [ref=f8e18]:
+          - link "GitHub" [ref=f8e19] [cursor=pointer]:
+            - /url: https://github.com/notnotype/llmlint
+            - generic [ref=f8e21]: GitHub
+          - button "关于 / 使用说明" [ref=f8e22] [cursor=pointer]
+          - button "切换明暗" [ref=f8e24] [cursor=pointer]
+          - button "设置" [ref=f8e26] [cursor=pointer]
+          - button "T" [ref=f8e30] [cursor=pointer]:
+            - generic [ref=f8e31]: T
+      - navigation [ref=f8e89]:
+        - generic [ref=f8e90]:
+          - generic [ref=f8e91]: "1"
+          - text: 盲评 · 揭示
+        - generic [ref=f8e92]: →
+        - generic [ref=f8e93]:
+          - generic [ref=f8e94]: "2"
+          - text: 改文
+        - generic [ref=f8e95]: →
+        - generic [ref=f8e96]:
+          - generic [ref=f8e97]: "3"
+          - text: 验收
+      - main [ref=f8e369]:
+        - generic [ref=f8e370]:
+          - heading "改后验收" [level=1] [ref=f8e371]
+          - generic [ref=f8e372]:
+            - generic [ref=f8e373]:
+              - generic [ref=f8e374]: llmlint 命中
+              - generic [ref=f8e375]: 原文 7 → 改后 6 ↓ 降低
+            - generic [ref=f8e376]: 外部 AIGC 检测器概率对比：待接入（D5 的检测器腿）
+          - generic [ref=f8e377]:
+            - generic [ref=f8e378]: 对改后版本再打一次分（非盲）
+            - generic [ref=f8e379]: AI 味作采集数据留存；本地验收只看「命中↓ 且 想追更不降」（检测器概率待接）。
+            - generic [ref=f8e380]:
+              - generic [ref=f8e381]: AI 味 3（盲评时 3）
+              - slider "AI 味 3（盲评时 3）" [ref=f8e382]: "3"
+            - generic [ref=f8e383]:
+              - generic [ref=f8e384]: 想追更 3（盲评时 3）
+              - slider "想追更 3（盲评时 3）" [ref=f8e385]: "3"
+            - button "提交复评" [ref=f8e386] [cursor=pointer]: 提交复评
+          - button "继续改文" [ref=f8e389] [cursor=pointer]
+    - generic [ref=f8e366]:
+      - generic [ref=f8e367]: 已清理 1 处机械问题
+      - button "撤销" [ref=f8e368] [cursor=pointer]
+      - button
+  - generic:
+    - img
+  - generic [ref=f8e75]:
+    - button "Toggle Nuxt DevTools" [ref=f8e76] [cursor=pointer]:
+      - img [ref=f8e77]
+    - generic "Page load time" [ref=f8e80]:
+      - generic [ref=f8e81]: "10"
+      - generic [ref=f8e82]: ms
+    - button "Toggle Component Inspector" [ref=f8e84] [cursor=pointer]:
+      - img [ref=f8e85]

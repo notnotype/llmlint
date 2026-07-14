@@ -2,7 +2,7 @@
 
 > 为 LLM 生成的中文文本做 lint 与润色 —— 用规则稳定定位 AI 味，再交给人/Agent 结合语境判断修复。
 
-[![License: PolyForm Noncommercial 1.0.0](https://img.shields.io/badge/License-PolyForm--Noncommercial--1.0.0-blue.svg)](./LICENSE)
+[![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](./LICENSE)
 [![Runtime: Node.js or Bun](https://img.shields.io/badge/Runtime-Node.js%20or%20Bun-green.svg)](#运行要求)
 [![Version](https://img.shields.io/badge/version-2.0.0-green.svg)](./package.json)
 
@@ -96,6 +96,8 @@ bun bin/llmlint.ts check chapter.md --format json
 - **`review`** —— `agent` / `human` / `none`。*审查受众*：一条命中默认给谁看。`check` 默认 `--review agent`，把破折号、比喻、泛词形副词等更偏作者偏好的命中放进 `human` 桶、机械命中放进 `none` 桶。用 `--review human` / `--review all` 查看其它桶。
 - **`fixability`** —— `auto` / `candidate` / `manual`。机械修复能力。`fix` 只应用 `auto` 规则。
 
+默认规则集中只有 3 条无需语境判断的机械规则是 `auto`，没有默认 `candidate`，其余规则均为 `manual`。用户仍可在配置中把明确选中的 regex `replace` 规则提升为 `candidate`，供逐条人工确认。规则数据里的 `action.replace` 只是替换模板，**不代表允许直接应用**；最终权限始终由 materialize 后的 `fixability` 决定。
+
 `review`（受众）和 `detector`（检测手段）是**两个不同概念**：
 
 - **`detector`** 决定问题*怎么被发现*：`regex` 由 `check` 静态扫描命中；`llm` 由 `show-llm-rules` 交给 Agent 全文审查。
@@ -163,7 +165,7 @@ export default {
 
 ## 许可证
 
-[PolyForm Noncommercial License 1.0.0](./LICENSE) —— 任何非商业用途（个人使用、研究、教育、非营利组织、政府机构）均可免费使用；商业用途需另行授权。Copyright © 2026 notnotype。
+[GNU Affero General Public License v3.0（仅此版本）](./LICENSE)，SPDX 标识为 `AGPL-3.0-only`。允许使用、研究、修改、分发和商业使用；分发修改版或通过网络向用户提供修改版服务时，需要依照 AGPLv3 提供对应源代码。Copyright © 2026 notnotype。
 
 ---
 

@@ -47,6 +47,129 @@
       "title": "第三章：活下去的欲望（上）",
       "sourceFile": "026-无限恐怖-zhttty.txt",
       "pubYear": 2007
+    },
+    {
+      "file": "render-0001-deepseek-deepseek-v4-flash.md",
+      "role": "render",
+      "model": "deepseek/deepseek-v4-flash",
+      "difficulty": "raw",
+      "pairRef": "reference-0001.md",
+      "charCount": 4885
+    },
+    {
+      "file": "render-0001-xiaomi-token-plan-cn-mimo-v2.5-pro.md",
+      "role": "render",
+      "model": "xiaomi-token-plan-cn/mimo-v2.5-pro",
+      "difficulty": "raw",
+      "pairRef": "reference-0001.md",
+      "charCount": 5822
+    },
+    {
+      "file": "render-0001-elysiver-gemini-gemini-3.1-pro.md",
+      "role": "render",
+      "model": "elysiver-gemini/gemini-3.1-pro",
+      "difficulty": "raw",
+      "pairRef": "reference-0001.md",
+      "charCount": 4592
+    },
+    {
+      "file": "render-0002-deepseek-deepseek-v4-flash.md",
+      "role": "render",
+      "model": "deepseek/deepseek-v4-flash",
+      "difficulty": "raw",
+      "pairRef": "reference-0002.md",
+      "charCount": 3909
+    },
+    {
+      "file": "render-0002-xiaomi-token-plan-cn-mimo-v2.5-pro.md",
+      "role": "render",
+      "model": "xiaomi-token-plan-cn/mimo-v2.5-pro",
+      "difficulty": "raw",
+      "pairRef": "reference-0002.md",
+      "charCount": 4663
+    },
+    {
+      "file": "render-0002-elysiver-gemini-gemini-3.1-pro.md",
+      "role": "render",
+      "model": "elysiver-gemini/gemini-3.1-pro",
+      "difficulty": "raw",
+      "pairRef": "reference-0002.md",
+      "charCount": 4996
+    },
+    {
+      "file": "render-0003-deepseek-deepseek-v4-flash.md",
+      "role": "render",
+      "model": "deepseek/deepseek-v4-flash",
+      "difficulty": "raw",
+      "pairRef": "reference-0003.md",
+      "charCount": 4284
+    },
+    {
+      "file": "render-0003-xiaomi-token-plan-cn-mimo-v2.5-pro.md",
+      "role": "render",
+      "model": "xiaomi-token-plan-cn/mimo-v2.5-pro",
+      "difficulty": "raw",
+      "pairRef": "reference-0003.md",
+      "charCount": 4064
+    },
+    {
+      "file": "render-0003-elysiver-gemini-gemini-3.1-pro.md",
+      "role": "render",
+      "model": "elysiver-gemini/gemini-3.1-pro",
+      "difficulty": "raw",
+      "pairRef": "reference-0003.md",
+      "charCount": 5267
+    },
+    {
+      "file": "render-0004-deepseek-deepseek-v4-flash.md",
+      "role": "render",
+      "model": "deepseek/deepseek-v4-flash",
+      "difficulty": "raw",
+      "pairRef": "reference-0004.md",
+      "charCount": 4776
+    },
+    {
+      "file": "render-0004-xiaomi-token-plan-cn-mimo-v2.5-pro.md",
+      "role": "render",
+      "model": "xiaomi-token-plan-cn/mimo-v2.5-pro",
+      "difficulty": "raw",
+      "pairRef": "reference-0004.md",
+      "charCount": 5008
+    },
+    {
+      "file": "render-0005-deepseek-deepseek-v4-flash.md",
+      "role": "render",
+      "model": "deepseek/deepseek-v4-flash",
+      "difficulty": "raw",
+      "pairRef": "reference-0005.md",
+      "charCount": 4207
+    },
+    {
+      "file": "render-0005-xiaomi-token-plan-cn-mimo-v2.5-pro.md",
+      "role": "render",
+      "model": "xiaomi-token-plan-cn/mimo-v2.5-pro",
+      "difficulty": "raw",
+      "pairRef": "reference-0005.md",
+      "charCount": 5874
+    },
+    {
+      "file": "render-0005-elysiver-gemini-gemini-3.1-pro.md",
+      "role": "render",
+      "model": "elysiver-gemini/gemini-3.1-pro",
+      "difficulty": "raw",
+      "pairRef": "reference-0005.md",
+      "charCount": 4183
     }
-  ]
+  ],
+  "promptVersion": {
+    "brief": "brief-v2",
+    "render": "render-v1"
+  },
+  "classification": {
+    "source": "llm",
+    "model": "deepseek/deepseek-v4-flash",
+    "classifiedAt": "2026-07-06T10:53:53.470Z",
+    "pov": "third",
+    "textType": "novel"
+  }
 }
