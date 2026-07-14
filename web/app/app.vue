@@ -18,3 +18,37 @@ onMounted(() => {
         <NotificationViewport />
     </div>
 </template>
+
+<style>
+.llmlint-theme {
+    position: relative;
+    isolation: isolate;
+    font-family: "Microsoft YaHei UI", "Noto Sans SC", system-ui, sans-serif;
+    letter-spacing: 0;
+}
+
+.llmlint-theme::before {
+    position: fixed;
+    z-index: -1;
+    inset: 0;
+    background-image: radial-gradient(circle, var(--manga-dot) 0 0.75px, transparent 0.9px);
+    background-size: 7px 7px;
+    content: "";
+    opacity: 0.28;
+    pointer-events: none;
+}
+
+.llmlint-theme[data-theme="dark"]::before {
+    opacity: 0.18;
+}
+
+.llmlint-theme ::selection {
+    background: color-mix(in srgb, var(--accent-main) 34%, transparent);
+    color: var(--text-main);
+}
+
+.llmlint-theme :where(button, a, input, textarea, select):focus-visible {
+    outline: 2px solid var(--accent-main);
+    outline-offset: 2px;
+}
+</style>

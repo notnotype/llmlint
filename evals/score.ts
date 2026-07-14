@@ -5,9 +5,9 @@
 import {mkdirSync, writeFileSync} from "node:fs";
 import {join, resolve} from "node:path";
 import {Command} from "commander";
-import {loadCorpus} from "./lib/corpus";
+import {assertRenderPromptVersion, loadCorpus} from "./lib/corpus";
 import {scanAll} from "./lib/scan";
-import {computeMetrics, HOLDOUT_MIN_GROUPS} from "./lib/metrics";
+import {computeMetrics, countPairedGroups, HOLDOUT_MIN_GROUPS} from "./lib/metrics";
 import {buildReport} from "./lib/report";
 
 const DEFAULT_CORPUS = join(import.meta.dir, "corpus");
@@ -20,18 +20,15 @@ async function main(args: {corpus: string; out: string; minSupport: number; hold
     if (samples.length === 0) {
         fail(`语料为空（无可用样本）：${corpusRoot}`);
     }
-
-    // holdout 题组不足自动关闭（<4 组无统计意义），把降级如实写进报告警告。
-    const groupCount = new Set(samples.map((sample) => `${sample.genre}/${sample.plotId}`)).size;
-    let holdoutRatio = args.holdout;
-    if (holdoutRatio > 0 && groupCount < HOLDOUT_MIN_GROUPS) {
-        warnings.push(`holdout 已关闭：题组仅 ${groupCount} 个（<${HOLDOUT_MIN_GROUPS}），切分无统计意义。`);
-        holdoutRatio = 0;
-    }
+    const renderPromptVersion = assertRenderPromptVersion(samples);
 
     const {scans, ruleMetas, activeRegexRules} = await scanAll(samples);
-    const metrics = computeMetrics(scans, ruleMetas, args.minSupport, holdoutRatio);
-    const report = buildReport(corpusRoot, metrics, activeRegexRules, args.minSupport, warnings);
+    const pairedGroupCount = countPairedGroups(scans);
+    if (args.holdout > 0 && pairedGroupCount < HOLDOUT_MIN_GROUPS) {
+        warnings.push(`holdout 已关闭：有效 reference/render 配对题组仅 ${pairedGroupCount} 个（<${HOLDOUT_MIN_GROUPS}），切分无统计意义。`);
+    }
+    const metrics = computeMetrics(scans, ruleMetas, args.minSupport, args.holdout);
+    const report = buildReport(corpusRoot, metrics, activeRegexRules, args.minSupport, warnings, renderPromptVersion);
 
     const outDir = resolve(args.out);
     mkdirSync(outDir, {recursive: true});
@@ -79,4 +76,8 @@ program
     .action((opts: {corpus: string; out: string; minSupport: string; holdout: string}) =>
         main({corpus: opts.corpus, out: opts.out, minSupport: Number.parseInt(opts.minSupport, 10), holdout: Number.parseFloat(opts.holdout)}));
 
-await program.parseAsync(process.argv);
+try {
+    await program.parseAsync(process.argv);
+} catch (error) {
+    fail(error instanceof Error ? error.message : String(error));
+}

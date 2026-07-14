@@ -1,6 +1,6 @@
 // prompt 版本化注册表（守 I8：prompt 是版本化资产，改动必须新增版本 key，不许原地改）。
-// brief/render 的 prompt 统一在这里登记；meta.json 每题组记 promptVersion {brief, render}，
-// 跨版本语料不可混进同一张报告（消费侧发现混版本会告警）。
+// brief/render 的 prompt 统一在这里登记；每个 render sample 记录自己的 promptVersion，
+// 消费侧发现缺版本或跨版本时直接拒绝生成报告。
 
 export type PromptPreset = {
     /** 版本 key（如 brief-v2）：唯一、不可变；调 prompt = 加新 key */

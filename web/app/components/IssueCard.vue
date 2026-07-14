@@ -72,8 +72,8 @@ function issueMatchLabel(issue: Issue): string {
 <template>
     <div
         :data-rule-id="group.rule.id"
-        class="rounded-lg border bg-white p-3 transition-colors dark:bg-zinc-900"
-        :class="isActive ? 'border-amber-400 ring-2 ring-amber-400/60 dark:border-amber-500' : 'border-zinc-200 dark:border-zinc-800'"
+        class="issue-card border bg-[var(--bg-panel)] p-3 transition-colors"
+        :class="isActive ? 'border-[var(--accent-main)] ring-2 ring-[var(--accent-main)]/45' : 'border-[var(--border-color)]'"
     >
         <!-- 头部 -->
         <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
@@ -81,7 +81,7 @@ function issueMatchLabel(issue: Issue): string {
             <span class="font-mono text-xs text-zinc-400">{{ group.rule.id }}</span>
             <span class="font-mono text-xs text-zinc-500">[{{ group.rule.namespace }}]</span>
             <DimensionBadges :rule="group.rule" />
-            <span class="ml-auto rounded bg-zinc-100 px-1.5 py-0.5 text-xs text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">{{ t("issue.count", {count: group.issues.length}) }}</span>
+            <span class="ml-auto rounded bg-[var(--bg-subtle)] px-1.5 py-0.5 text-xs font-bold text-[var(--text-secondary)]">{{ t("issue.count", {count: group.issues.length}) }}</span>
             <button
                 class="inline-flex items-center gap-1 text-xs text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200"
                 :aria-label="t('issue.openRuleTitle', {title: group.rule.title})"
@@ -97,7 +97,7 @@ function issueMatchLabel(issue: Issue): string {
                 v-for="(issue, index) in visibleIssues"
                 :key="issueId(issue)"
                 :data-issue-id="issueId(issue)"
-                class="group flex gap-1 rounded px-1 py-0.5 text-sm transition-colors hover:bg-zinc-100 focus-within:ring-2 focus-within:ring-[var(--accent-main)]/45 dark:hover:bg-zinc-800"
+                class="group flex gap-1 rounded px-1 py-0.5 text-sm transition-colors hover:bg-[var(--bg-hover)] focus-within:ring-2 focus-within:ring-[var(--accent-main)]/45"
                 :class="isIssueActive(issue) ? 'bg-[var(--accent-bg)] outline outline-1 outline-[var(--accent-main)]/45 dark:bg-[var(--accent-bg)]' : ''"
             >
                 <button
@@ -139,17 +139,28 @@ function issueMatchLabel(issue: Issue): string {
 </template>
 
 <style scoped>
-.group:focus-within .issue-card-apply-button {
-    opacity: 1;
+.issue-card {
+    position: relative;
+    border-radius: 3px;
+    box-shadow: 3px 3px 0 color-mix(in srgb, var(--manga-ink) 6%, transparent);
 }
 
-.issue-card-apply-button:focus-visible {
-    opacity: 1;
+.issue-card::before {
+    position: absolute;
+    top: -1px;
+    left: 0.75rem;
+    width: 2.5rem;
+    height: 3px;
+    background: var(--accent-main);
+    content: "";
 }
 
-@media (hover: none), (pointer: coarse) {
-    .issue-card-apply-button {
-        opacity: 1;
-    }
+.issue-card:nth-child(3n + 2)::before {
+    background: var(--accent-pop);
 }
+
+.issue-card:nth-child(3n)::before {
+    background: var(--accent-signal);
+}
+
 </style>

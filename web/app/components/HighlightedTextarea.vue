@@ -10,7 +10,7 @@ const props = defineProps<{
     ranges: HighlightRange[];
     commentRanges?: Array<{start: number; end: number; active?: boolean; resolved?: boolean; index?: number}>;
     replacementRanges?: Array<{start: number; end: number; label: string; isDelete?: boolean; active?: boolean}>;
-    diffRanges?: Array<{start: number; end: number; deleted: string; inserted: string; source: "static" | "llm"; title: string; active?: boolean}>;
+    diffRanges?: Array<{start: number; end: number; deleted: string; deletedCount: number; inserted: string; source: "static" | "llm"; title: string; active?: boolean}>;
     /** 列表点命中时传入要定位的绝对偏移；变化即滚动+闪烁该处。null=不定位。 */
     locateOffset?: number | null;
 }>();
@@ -65,6 +65,7 @@ type Segment = {
     hasDiffInsertion: boolean;
     hasActiveDiff: boolean;
     diffDeleted: string | null;
+    diffDeletedBadge: string | null;
     diffTitle: string | null;
     start: number;
 };
@@ -78,8 +79,8 @@ const segments = computed<Segment[]>(() => {
     const diffRanges = props.diffRanges ?? [];
     if (ranges.length === 0 && commentRanges.length === 0 && replacementRanges.length === 0 && diffRanges.length === 0) {
         return [
-            {text: value, level: null, hasComment: false, hasActiveComment: false, hasResolvedComment: false, commentIndex: null, hasReplacement: false, hasActiveReplacement: false, hasReplacementDelete: false, replacementLabel: null, hasDiffInsertion: false, hasActiveDiff: false, diffDeleted: null, diffTitle: null, start: 0},
-            {text: "\n", level: null, hasComment: false, hasActiveComment: false, hasResolvedComment: false, commentIndex: null, hasReplacement: false, hasActiveReplacement: false, hasReplacementDelete: false, replacementLabel: null, hasDiffInsertion: false, hasActiveDiff: false, diffDeleted: null, diffTitle: null, start: value.length},
+            {text: value, level: null, hasComment: false, hasActiveComment: false, hasResolvedComment: false, commentIndex: null, hasReplacement: false, hasActiveReplacement: false, hasReplacementDelete: false, replacementLabel: null, hasDiffInsertion: false, hasActiveDiff: false, diffDeleted: null, diffDeletedBadge: null, diffTitle: null, start: 0},
+            {text: "\n", level: null, hasComment: false, hasActiveComment: false, hasResolvedComment: false, commentIndex: null, hasReplacement: false, hasActiveReplacement: false, hasReplacementDelete: false, replacementLabel: null, hasDiffInsertion: false, hasActiveDiff: false, diffDeleted: null, diffDeletedBadge: null, diffTitle: null, start: value.length},
         ];
     }
     const out: Segment[] = [];
@@ -119,13 +120,14 @@ const segments = computed<Segment[]>(() => {
             hasDiffInsertion: Boolean(diff?.inserted),
             hasActiveDiff: activeDiff,
             diffDeleted: diffMarker?.deleted ?? null,
+            diffDeletedBadge: diffMarker?.deleted ? `-${diffMarker.deletedCount}` : null,
             diffTitle: diffMarker?.title ?? diff?.title ?? null,
             start,
         });
     }
     // 末尾补一个换行，保证背板尾行高度与 textarea 一致。
     const endDiffMarker = diffRanges.find((range) => value.length === Math.max(0, Math.min(value.length, range.start)) && range.deleted);
-    out.push({text: "\n", level: null, hasComment: false, hasActiveComment: false, hasResolvedComment: false, commentIndex: null, hasReplacement: false, hasActiveReplacement: false, hasReplacementDelete: false, replacementLabel: null, hasDiffInsertion: false, hasActiveDiff: endDiffMarker?.active === true, diffDeleted: endDiffMarker?.deleted ?? null, diffTitle: endDiffMarker?.title ?? null, start: value.length});
+    out.push({text: "\n", level: null, hasComment: false, hasActiveComment: false, hasResolvedComment: false, commentIndex: null, hasReplacement: false, hasActiveReplacement: false, hasReplacementDelete: false, replacementLabel: null, hasDiffInsertion: false, hasActiveDiff: endDiffMarker?.active === true, diffDeleted: endDiffMarker?.deleted ?? null, diffDeletedBadge: endDiffMarker?.deleted ? `-${endDiffMarker.deletedCount}` : null, diffTitle: endDiffMarker?.title ?? null, start: value.length});
     return out;
 });
 
@@ -347,6 +349,7 @@ const boxClass = "border-0 p-3 font-mono text-sm leading-relaxed whitespace-pre-
             :data-comment-index="seg.commentIndex ?? undefined"
             :data-replacement-label="seg.replacementLabel ?? undefined"
             :data-diff-deleted="seg.diffDeleted ?? undefined"
+            :data-diff-deleted-badge="seg.diffDeletedBadge ?? undefined"
             :title="seg.diffTitle ?? undefined"
             :class="[
                 seg.level ? `rounded ${MARK_CLASS[seg.level]}` : '',
@@ -468,26 +471,26 @@ const boxClass = "border-0 p-3 font-mono text-sm leading-relaxed whitespace-pre-
     position: relative;
 }
 
-.llmlint-source-diff-marker[data-diff-deleted]::before {
-    content: attr(data-diff-deleted);
+.llmlint-source-diff-marker[data-diff-deleted-badge]::before {
+    content: attr(data-diff-deleted-badge);
     position: absolute;
     left: 0;
-    top: 0;
+    top: -0.78em;
     z-index: 3;
-    display: inline-block;
-    max-width: 18rem;
-    overflow: hidden;
-    background: transparent;
-    color: #dc2626;
-    font-size: inherit;
+    display: inline-flex;
+    min-width: 1rem;
+    height: 1rem;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid color-mix(in srgb, #dc2626 72%, var(--bg-panel));
+    border-radius: 999px;
+    background: #dc2626;
+    color: #fff;
+    font-size: 0.625rem;
     font-weight: 700;
-    line-height: inherit;
-    padding: 0;
-    text-decoration-line: line-through;
-    text-decoration-thickness: 2px;
-    text-decoration-skip-ink: none;
-    text-overflow: ellipsis;
-    transform: none;
+    line-height: 1;
+    padding: 0 0.2rem;
+    box-shadow: 0 1px 2px rgb(0 0 0 / 28%);
     white-space: nowrap;
 }
 </style>

@@ -1,7 +1,7 @@
 // metrics.ts 数学守门（bun test）。只测度量层，不碰引擎/语料 IO：直接喂合成 SampleScan。
 // 关键守门点：docScore 必须走「去重 span」而非「原始命中求和」——故意让两者不相等来证明口径。
 import {test, expect} from "bun:test";
-import {computeMetrics} from "./metrics";
+import {computeMetrics, countPairedGroups} from "./metrics";
 import type {RuleMeta} from "./scan";
 import type {Sample, SampleScan} from "./types";
 
@@ -85,5 +85,40 @@ test("pairRef 逐章 1:1 配对计数", () => {
     const rule = computeMetrics(paired, meta, 1).rules.find((r) => r.id === "r")!;
     expect(rule.pairsTotal).toBe(2);     // 逐章两对（非题组级一对）
     expect(rule.pairsAiGreater).toBe(1); // 仅 A 章 AI>人类
+});
+
+test("holdout 只切有效 reference/render 配对题组", () => {
+    const pair = (plotId: string): SampleScan[] => [
+        mkScan({...mkSample("reference", plotId, undefined), file: "reference.md"}, {r1: 0}, 0, 0),
+        mkScan({...mkSample("render", plotId, "m"), file: "render.md", pairRef: "reference.md"}, {r1: 2}, 2, 2),
+    ];
+    const paired = ["a", "b", "c", "d"].flatMap(pair);
+    const referenceOnly = ["y", "z"].map((plotId) => (
+        mkScan({...mkSample("reference", plotId, undefined), file: "reference.md"}, {r1: 100}, 100, 100)
+    ));
+    const result = computeMetrics([...paired, ...referenceOnly], ruleMetas, 1, 0.25);
+
+    expect(result.holdout?.trainGroups).toBe(3);
+    expect(result.holdout?.testGroups).toBe(1);
+    expect(result.holdout?.trainAuc).toBe(1);
+    expect(result.holdout?.testAuc).toBe(1);
+    // reference-only 题组不进入 train 拟合，否则这里会混入 200 次人类命中。
+    expect(result.rules.find((rule) => rule.id === "r1")?.humanHits).toBe(0);
+});
+
+test("无效 pairRef 和 reference-only 题组不能解锁 holdout", () => {
+    const paired = ["a", "b", "c"].flatMap((plotId): SampleScan[] => [
+        mkScan({...mkSample("reference", plotId, undefined), file: "reference.md"}, {r1: 0}, 0, 0),
+        mkScan({...mkSample("render", plotId, "m"), file: "render.md", pairRef: "reference.md"}, {r1: 1}, 1, 1),
+    ]);
+    const dangling = [
+        mkScan({...mkSample("reference", "d", undefined), file: "reference.md"}, {r1: 0}, 0, 0),
+        mkScan({...mkSample("render", "d", "m"), file: "render.md", pairRef: "missing.md"}, {r1: 1}, 1, 1),
+        mkScan({...mkSample("reference", "e", undefined), file: "reference.md"}, {r1: 0}, 0, 0),
+    ];
+    const all = [...paired, ...dangling];
+
+    expect(countPairedGroups(all)).toBe(3);
+    expect(computeMetrics(all, ruleMetas, 1, 0.25).holdout).toBeNull();
 });
 
