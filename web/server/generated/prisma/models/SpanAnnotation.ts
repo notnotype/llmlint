@@ -40,9 +40,8 @@ export type SpanAnnotationSumAggregateOutputType = {
 
 export type SpanAnnotationMinAggregateOutputType = {
   id: string | null
-  textId: string | null
+  revisionId: string | null
   userId: number | null
-  target: $Enums.AnnotationTarget | null
   start: number | null
   end: number | null
   note: string | null
@@ -51,9 +50,8 @@ export type SpanAnnotationMinAggregateOutputType = {
 
 export type SpanAnnotationMaxAggregateOutputType = {
   id: string | null
-  textId: string | null
+  revisionId: string | null
   userId: number | null
-  target: $Enums.AnnotationTarget | null
   start: number | null
   end: number | null
   note: string | null
@@ -62,9 +60,8 @@ export type SpanAnnotationMaxAggregateOutputType = {
 
 export type SpanAnnotationCountAggregateOutputType = {
   id: number
-  textId: number
+  revisionId: number
   userId: number
-  target: number
   start: number
   end: number
   note: number
@@ -87,9 +84,8 @@ export type SpanAnnotationSumAggregateInputType = {
 
 export type SpanAnnotationMinAggregateInputType = {
   id?: true
-  textId?: true
+  revisionId?: true
   userId?: true
-  target?: true
   start?: true
   end?: true
   note?: true
@@ -98,9 +94,8 @@ export type SpanAnnotationMinAggregateInputType = {
 
 export type SpanAnnotationMaxAggregateInputType = {
   id?: true
-  textId?: true
+  revisionId?: true
   userId?: true
-  target?: true
   start?: true
   end?: true
   note?: true
@@ -109,9 +104,8 @@ export type SpanAnnotationMaxAggregateInputType = {
 
 export type SpanAnnotationCountAggregateInputType = {
   id?: true
-  textId?: true
+  revisionId?: true
   userId?: true
-  target?: true
   start?: true
   end?: true
   note?: true
@@ -207,9 +201,8 @@ export type SpanAnnotationGroupByArgs<ExtArgs extends runtime.Types.Extensions.I
 
 export type SpanAnnotationGroupByOutputType = {
   id: string
-  textId: string
+  revisionId: string
   userId: number
-  target: $Enums.AnnotationTarget
   start: number
   end: number
   note: string
@@ -241,27 +234,25 @@ export type SpanAnnotationWhereInput = {
   OR?: Prisma.SpanAnnotationWhereInput[]
   NOT?: Prisma.SpanAnnotationWhereInput | Prisma.SpanAnnotationWhereInput[]
   id?: Prisma.StringFilter<"SpanAnnotation"> | string
-  textId?: Prisma.StringFilter<"SpanAnnotation"> | string
+  revisionId?: Prisma.StringFilter<"SpanAnnotation"> | string
   userId?: Prisma.IntFilter<"SpanAnnotation"> | number
-  target?: Prisma.EnumAnnotationTargetFilter<"SpanAnnotation"> | $Enums.AnnotationTarget
   start?: Prisma.IntFilter<"SpanAnnotation"> | number
   end?: Prisma.IntFilter<"SpanAnnotation"> | number
   note?: Prisma.StringFilter<"SpanAnnotation"> | string
   createdAt?: Prisma.DateTimeFilter<"SpanAnnotation"> | Date | string
-  text?: Prisma.XOR<Prisma.TextScalarRelationFilter, Prisma.TextWhereInput>
+  revision?: Prisma.XOR<Prisma.RevisionScalarRelationFilter, Prisma.RevisionWhereInput>
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
 }
 
 export type SpanAnnotationOrderByWithRelationInput = {
   id?: Prisma.SortOrder
-  textId?: Prisma.SortOrder
+  revisionId?: Prisma.SortOrder
   userId?: Prisma.SortOrder
-  target?: Prisma.SortOrder
   start?: Prisma.SortOrder
   end?: Prisma.SortOrder
   note?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
-  text?: Prisma.TextOrderByWithRelationInput
+  revision?: Prisma.RevisionOrderByWithRelationInput
   user?: Prisma.UserOrderByWithRelationInput
 }
 
@@ -270,22 +261,20 @@ export type SpanAnnotationWhereUniqueInput = Prisma.AtLeast<{
   AND?: Prisma.SpanAnnotationWhereInput | Prisma.SpanAnnotationWhereInput[]
   OR?: Prisma.SpanAnnotationWhereInput[]
   NOT?: Prisma.SpanAnnotationWhereInput | Prisma.SpanAnnotationWhereInput[]
-  textId?: Prisma.StringFilter<"SpanAnnotation"> | string
+  revisionId?: Prisma.StringFilter<"SpanAnnotation"> | string
   userId?: Prisma.IntFilter<"SpanAnnotation"> | number
-  target?: Prisma.EnumAnnotationTargetFilter<"SpanAnnotation"> | $Enums.AnnotationTarget
   start?: Prisma.IntFilter<"SpanAnnotation"> | number
   end?: Prisma.IntFilter<"SpanAnnotation"> | number
   note?: Prisma.StringFilter<"SpanAnnotation"> | string
   createdAt?: Prisma.DateTimeFilter<"SpanAnnotation"> | Date | string
-  text?: Prisma.XOR<Prisma.TextScalarRelationFilter, Prisma.TextWhereInput>
+  revision?: Prisma.XOR<Prisma.RevisionScalarRelationFilter, Prisma.RevisionWhereInput>
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
 }, "id">
 
 export type SpanAnnotationOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
-  textId?: Prisma.SortOrder
+  revisionId?: Prisma.SortOrder
   userId?: Prisma.SortOrder
-  target?: Prisma.SortOrder
   start?: Prisma.SortOrder
   end?: Prisma.SortOrder
   note?: Prisma.SortOrder
@@ -302,9 +291,8 @@ export type SpanAnnotationScalarWhereWithAggregatesInput = {
   OR?: Prisma.SpanAnnotationScalarWhereWithAggregatesInput[]
   NOT?: Prisma.SpanAnnotationScalarWhereWithAggregatesInput | Prisma.SpanAnnotationScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"SpanAnnotation"> | string
-  textId?: Prisma.StringWithAggregatesFilter<"SpanAnnotation"> | string
+  revisionId?: Prisma.StringWithAggregatesFilter<"SpanAnnotation"> | string
   userId?: Prisma.IntWithAggregatesFilter<"SpanAnnotation"> | number
-  target?: Prisma.EnumAnnotationTargetWithAggregatesFilter<"SpanAnnotation"> | $Enums.AnnotationTarget
   start?: Prisma.IntWithAggregatesFilter<"SpanAnnotation"> | number
   end?: Prisma.IntWithAggregatesFilter<"SpanAnnotation"> | number
   note?: Prisma.StringWithAggregatesFilter<"SpanAnnotation"> | string
@@ -313,20 +301,18 @@ export type SpanAnnotationScalarWhereWithAggregatesInput = {
 
 export type SpanAnnotationCreateInput = {
   id?: string
-  target?: $Enums.AnnotationTarget
   start: number
   end: number
   note: string
   createdAt?: Date | string
-  text: Prisma.TextCreateNestedOneWithoutAnnotationsInput
+  revision: Prisma.RevisionCreateNestedOneWithoutAnnotationsInput
   user: Prisma.UserCreateNestedOneWithoutAnnotationsInput
 }
 
 export type SpanAnnotationUncheckedCreateInput = {
   id?: string
-  textId: string
+  revisionId: string
   userId: number
-  target?: $Enums.AnnotationTarget
   start: number
   end: number
   note: string
@@ -335,20 +321,18 @@ export type SpanAnnotationUncheckedCreateInput = {
 
 export type SpanAnnotationUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  target?: Prisma.EnumAnnotationTargetFieldUpdateOperationsInput | $Enums.AnnotationTarget
   start?: Prisma.IntFieldUpdateOperationsInput | number
   end?: Prisma.IntFieldUpdateOperationsInput | number
   note?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  text?: Prisma.TextUpdateOneRequiredWithoutAnnotationsNestedInput
+  revision?: Prisma.RevisionUpdateOneRequiredWithoutAnnotationsNestedInput
   user?: Prisma.UserUpdateOneRequiredWithoutAnnotationsNestedInput
 }
 
 export type SpanAnnotationUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  textId?: Prisma.StringFieldUpdateOperationsInput | string
+  revisionId?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.IntFieldUpdateOperationsInput | number
-  target?: Prisma.EnumAnnotationTargetFieldUpdateOperationsInput | $Enums.AnnotationTarget
   start?: Prisma.IntFieldUpdateOperationsInput | number
   end?: Prisma.IntFieldUpdateOperationsInput | number
   note?: Prisma.StringFieldUpdateOperationsInput | string
@@ -357,9 +341,8 @@ export type SpanAnnotationUncheckedUpdateInput = {
 
 export type SpanAnnotationCreateManyInput = {
   id?: string
-  textId: string
+  revisionId: string
   userId: number
-  target?: $Enums.AnnotationTarget
   start: number
   end: number
   note: string
@@ -368,7 +351,6 @@ export type SpanAnnotationCreateManyInput = {
 
 export type SpanAnnotationUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  target?: Prisma.EnumAnnotationTargetFieldUpdateOperationsInput | $Enums.AnnotationTarget
   start?: Prisma.IntFieldUpdateOperationsInput | number
   end?: Prisma.IntFieldUpdateOperationsInput | number
   note?: Prisma.StringFieldUpdateOperationsInput | string
@@ -377,9 +359,8 @@ export type SpanAnnotationUpdateManyMutationInput = {
 
 export type SpanAnnotationUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  textId?: Prisma.StringFieldUpdateOperationsInput | string
+  revisionId?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.IntFieldUpdateOperationsInput | number
-  target?: Prisma.EnumAnnotationTargetFieldUpdateOperationsInput | $Enums.AnnotationTarget
   start?: Prisma.IntFieldUpdateOperationsInput | number
   end?: Prisma.IntFieldUpdateOperationsInput | number
   note?: Prisma.StringFieldUpdateOperationsInput | string
@@ -398,9 +379,8 @@ export type SpanAnnotationOrderByRelationAggregateInput = {
 
 export type SpanAnnotationCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
-  textId?: Prisma.SortOrder
+  revisionId?: Prisma.SortOrder
   userId?: Prisma.SortOrder
-  target?: Prisma.SortOrder
   start?: Prisma.SortOrder
   end?: Prisma.SortOrder
   note?: Prisma.SortOrder
@@ -415,9 +395,8 @@ export type SpanAnnotationAvgOrderByAggregateInput = {
 
 export type SpanAnnotationMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
-  textId?: Prisma.SortOrder
+  revisionId?: Prisma.SortOrder
   userId?: Prisma.SortOrder
-  target?: Prisma.SortOrder
   start?: Prisma.SortOrder
   end?: Prisma.SortOrder
   note?: Prisma.SortOrder
@@ -426,9 +405,8 @@ export type SpanAnnotationMaxOrderByAggregateInput = {
 
 export type SpanAnnotationMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
-  textId?: Prisma.SortOrder
+  revisionId?: Prisma.SortOrder
   userId?: Prisma.SortOrder
-  target?: Prisma.SortOrder
   start?: Prisma.SortOrder
   end?: Prisma.SortOrder
   note?: Prisma.SortOrder
@@ -483,66 +461,60 @@ export type SpanAnnotationUncheckedUpdateManyWithoutUserNestedInput = {
   deleteMany?: Prisma.SpanAnnotationScalarWhereInput | Prisma.SpanAnnotationScalarWhereInput[]
 }
 
-export type SpanAnnotationCreateNestedManyWithoutTextInput = {
-  create?: Prisma.XOR<Prisma.SpanAnnotationCreateWithoutTextInput, Prisma.SpanAnnotationUncheckedCreateWithoutTextInput> | Prisma.SpanAnnotationCreateWithoutTextInput[] | Prisma.SpanAnnotationUncheckedCreateWithoutTextInput[]
-  connectOrCreate?: Prisma.SpanAnnotationCreateOrConnectWithoutTextInput | Prisma.SpanAnnotationCreateOrConnectWithoutTextInput[]
-  createMany?: Prisma.SpanAnnotationCreateManyTextInputEnvelope
+export type SpanAnnotationCreateNestedManyWithoutRevisionInput = {
+  create?: Prisma.XOR<Prisma.SpanAnnotationCreateWithoutRevisionInput, Prisma.SpanAnnotationUncheckedCreateWithoutRevisionInput> | Prisma.SpanAnnotationCreateWithoutRevisionInput[] | Prisma.SpanAnnotationUncheckedCreateWithoutRevisionInput[]
+  connectOrCreate?: Prisma.SpanAnnotationCreateOrConnectWithoutRevisionInput | Prisma.SpanAnnotationCreateOrConnectWithoutRevisionInput[]
+  createMany?: Prisma.SpanAnnotationCreateManyRevisionInputEnvelope
   connect?: Prisma.SpanAnnotationWhereUniqueInput | Prisma.SpanAnnotationWhereUniqueInput[]
 }
 
-export type SpanAnnotationUncheckedCreateNestedManyWithoutTextInput = {
-  create?: Prisma.XOR<Prisma.SpanAnnotationCreateWithoutTextInput, Prisma.SpanAnnotationUncheckedCreateWithoutTextInput> | Prisma.SpanAnnotationCreateWithoutTextInput[] | Prisma.SpanAnnotationUncheckedCreateWithoutTextInput[]
-  connectOrCreate?: Prisma.SpanAnnotationCreateOrConnectWithoutTextInput | Prisma.SpanAnnotationCreateOrConnectWithoutTextInput[]
-  createMany?: Prisma.SpanAnnotationCreateManyTextInputEnvelope
+export type SpanAnnotationUncheckedCreateNestedManyWithoutRevisionInput = {
+  create?: Prisma.XOR<Prisma.SpanAnnotationCreateWithoutRevisionInput, Prisma.SpanAnnotationUncheckedCreateWithoutRevisionInput> | Prisma.SpanAnnotationCreateWithoutRevisionInput[] | Prisma.SpanAnnotationUncheckedCreateWithoutRevisionInput[]
+  connectOrCreate?: Prisma.SpanAnnotationCreateOrConnectWithoutRevisionInput | Prisma.SpanAnnotationCreateOrConnectWithoutRevisionInput[]
+  createMany?: Prisma.SpanAnnotationCreateManyRevisionInputEnvelope
   connect?: Prisma.SpanAnnotationWhereUniqueInput | Prisma.SpanAnnotationWhereUniqueInput[]
 }
 
-export type SpanAnnotationUpdateManyWithoutTextNestedInput = {
-  create?: Prisma.XOR<Prisma.SpanAnnotationCreateWithoutTextInput, Prisma.SpanAnnotationUncheckedCreateWithoutTextInput> | Prisma.SpanAnnotationCreateWithoutTextInput[] | Prisma.SpanAnnotationUncheckedCreateWithoutTextInput[]
-  connectOrCreate?: Prisma.SpanAnnotationCreateOrConnectWithoutTextInput | Prisma.SpanAnnotationCreateOrConnectWithoutTextInput[]
-  upsert?: Prisma.SpanAnnotationUpsertWithWhereUniqueWithoutTextInput | Prisma.SpanAnnotationUpsertWithWhereUniqueWithoutTextInput[]
-  createMany?: Prisma.SpanAnnotationCreateManyTextInputEnvelope
+export type SpanAnnotationUpdateManyWithoutRevisionNestedInput = {
+  create?: Prisma.XOR<Prisma.SpanAnnotationCreateWithoutRevisionInput, Prisma.SpanAnnotationUncheckedCreateWithoutRevisionInput> | Prisma.SpanAnnotationCreateWithoutRevisionInput[] | Prisma.SpanAnnotationUncheckedCreateWithoutRevisionInput[]
+  connectOrCreate?: Prisma.SpanAnnotationCreateOrConnectWithoutRevisionInput | Prisma.SpanAnnotationCreateOrConnectWithoutRevisionInput[]
+  upsert?: Prisma.SpanAnnotationUpsertWithWhereUniqueWithoutRevisionInput | Prisma.SpanAnnotationUpsertWithWhereUniqueWithoutRevisionInput[]
+  createMany?: Prisma.SpanAnnotationCreateManyRevisionInputEnvelope
   set?: Prisma.SpanAnnotationWhereUniqueInput | Prisma.SpanAnnotationWhereUniqueInput[]
   disconnect?: Prisma.SpanAnnotationWhereUniqueInput | Prisma.SpanAnnotationWhereUniqueInput[]
   delete?: Prisma.SpanAnnotationWhereUniqueInput | Prisma.SpanAnnotationWhereUniqueInput[]
   connect?: Prisma.SpanAnnotationWhereUniqueInput | Prisma.SpanAnnotationWhereUniqueInput[]
-  update?: Prisma.SpanAnnotationUpdateWithWhereUniqueWithoutTextInput | Prisma.SpanAnnotationUpdateWithWhereUniqueWithoutTextInput[]
-  updateMany?: Prisma.SpanAnnotationUpdateManyWithWhereWithoutTextInput | Prisma.SpanAnnotationUpdateManyWithWhereWithoutTextInput[]
+  update?: Prisma.SpanAnnotationUpdateWithWhereUniqueWithoutRevisionInput | Prisma.SpanAnnotationUpdateWithWhereUniqueWithoutRevisionInput[]
+  updateMany?: Prisma.SpanAnnotationUpdateManyWithWhereWithoutRevisionInput | Prisma.SpanAnnotationUpdateManyWithWhereWithoutRevisionInput[]
   deleteMany?: Prisma.SpanAnnotationScalarWhereInput | Prisma.SpanAnnotationScalarWhereInput[]
 }
 
-export type SpanAnnotationUncheckedUpdateManyWithoutTextNestedInput = {
-  create?: Prisma.XOR<Prisma.SpanAnnotationCreateWithoutTextInput, Prisma.SpanAnnotationUncheckedCreateWithoutTextInput> | Prisma.SpanAnnotationCreateWithoutTextInput[] | Prisma.SpanAnnotationUncheckedCreateWithoutTextInput[]
-  connectOrCreate?: Prisma.SpanAnnotationCreateOrConnectWithoutTextInput | Prisma.SpanAnnotationCreateOrConnectWithoutTextInput[]
-  upsert?: Prisma.SpanAnnotationUpsertWithWhereUniqueWithoutTextInput | Prisma.SpanAnnotationUpsertWithWhereUniqueWithoutTextInput[]
-  createMany?: Prisma.SpanAnnotationCreateManyTextInputEnvelope
+export type SpanAnnotationUncheckedUpdateManyWithoutRevisionNestedInput = {
+  create?: Prisma.XOR<Prisma.SpanAnnotationCreateWithoutRevisionInput, Prisma.SpanAnnotationUncheckedCreateWithoutRevisionInput> | Prisma.SpanAnnotationCreateWithoutRevisionInput[] | Prisma.SpanAnnotationUncheckedCreateWithoutRevisionInput[]
+  connectOrCreate?: Prisma.SpanAnnotationCreateOrConnectWithoutRevisionInput | Prisma.SpanAnnotationCreateOrConnectWithoutRevisionInput[]
+  upsert?: Prisma.SpanAnnotationUpsertWithWhereUniqueWithoutRevisionInput | Prisma.SpanAnnotationUpsertWithWhereUniqueWithoutRevisionInput[]
+  createMany?: Prisma.SpanAnnotationCreateManyRevisionInputEnvelope
   set?: Prisma.SpanAnnotationWhereUniqueInput | Prisma.SpanAnnotationWhereUniqueInput[]
   disconnect?: Prisma.SpanAnnotationWhereUniqueInput | Prisma.SpanAnnotationWhereUniqueInput[]
   delete?: Prisma.SpanAnnotationWhereUniqueInput | Prisma.SpanAnnotationWhereUniqueInput[]
   connect?: Prisma.SpanAnnotationWhereUniqueInput | Prisma.SpanAnnotationWhereUniqueInput[]
-  update?: Prisma.SpanAnnotationUpdateWithWhereUniqueWithoutTextInput | Prisma.SpanAnnotationUpdateWithWhereUniqueWithoutTextInput[]
-  updateMany?: Prisma.SpanAnnotationUpdateManyWithWhereWithoutTextInput | Prisma.SpanAnnotationUpdateManyWithWhereWithoutTextInput[]
+  update?: Prisma.SpanAnnotationUpdateWithWhereUniqueWithoutRevisionInput | Prisma.SpanAnnotationUpdateWithWhereUniqueWithoutRevisionInput[]
+  updateMany?: Prisma.SpanAnnotationUpdateManyWithWhereWithoutRevisionInput | Prisma.SpanAnnotationUpdateManyWithWhereWithoutRevisionInput[]
   deleteMany?: Prisma.SpanAnnotationScalarWhereInput | Prisma.SpanAnnotationScalarWhereInput[]
-}
-
-export type EnumAnnotationTargetFieldUpdateOperationsInput = {
-  set?: $Enums.AnnotationTarget
 }
 
 export type SpanAnnotationCreateWithoutUserInput = {
   id?: string
-  target?: $Enums.AnnotationTarget
   start: number
   end: number
   note: string
   createdAt?: Date | string
-  text: Prisma.TextCreateNestedOneWithoutAnnotationsInput
+  revision: Prisma.RevisionCreateNestedOneWithoutAnnotationsInput
 }
 
 export type SpanAnnotationUncheckedCreateWithoutUserInput = {
   id?: string
-  textId: string
-  target?: $Enums.AnnotationTarget
+  revisionId: string
   start: number
   end: number
   note: string
@@ -579,18 +551,16 @@ export type SpanAnnotationScalarWhereInput = {
   OR?: Prisma.SpanAnnotationScalarWhereInput[]
   NOT?: Prisma.SpanAnnotationScalarWhereInput | Prisma.SpanAnnotationScalarWhereInput[]
   id?: Prisma.StringFilter<"SpanAnnotation"> | string
-  textId?: Prisma.StringFilter<"SpanAnnotation"> | string
+  revisionId?: Prisma.StringFilter<"SpanAnnotation"> | string
   userId?: Prisma.IntFilter<"SpanAnnotation"> | number
-  target?: Prisma.EnumAnnotationTargetFilter<"SpanAnnotation"> | $Enums.AnnotationTarget
   start?: Prisma.IntFilter<"SpanAnnotation"> | number
   end?: Prisma.IntFilter<"SpanAnnotation"> | number
   note?: Prisma.StringFilter<"SpanAnnotation"> | string
   createdAt?: Prisma.DateTimeFilter<"SpanAnnotation"> | Date | string
 }
 
-export type SpanAnnotationCreateWithoutTextInput = {
+export type SpanAnnotationCreateWithoutRevisionInput = {
   id?: string
-  target?: $Enums.AnnotationTarget
   start: number
   end: number
   note: string
@@ -598,45 +568,43 @@ export type SpanAnnotationCreateWithoutTextInput = {
   user: Prisma.UserCreateNestedOneWithoutAnnotationsInput
 }
 
-export type SpanAnnotationUncheckedCreateWithoutTextInput = {
+export type SpanAnnotationUncheckedCreateWithoutRevisionInput = {
   id?: string
   userId: number
-  target?: $Enums.AnnotationTarget
   start: number
   end: number
   note: string
   createdAt?: Date | string
 }
 
-export type SpanAnnotationCreateOrConnectWithoutTextInput = {
+export type SpanAnnotationCreateOrConnectWithoutRevisionInput = {
   where: Prisma.SpanAnnotationWhereUniqueInput
-  create: Prisma.XOR<Prisma.SpanAnnotationCreateWithoutTextInput, Prisma.SpanAnnotationUncheckedCreateWithoutTextInput>
+  create: Prisma.XOR<Prisma.SpanAnnotationCreateWithoutRevisionInput, Prisma.SpanAnnotationUncheckedCreateWithoutRevisionInput>
 }
 
-export type SpanAnnotationCreateManyTextInputEnvelope = {
-  data: Prisma.SpanAnnotationCreateManyTextInput | Prisma.SpanAnnotationCreateManyTextInput[]
+export type SpanAnnotationCreateManyRevisionInputEnvelope = {
+  data: Prisma.SpanAnnotationCreateManyRevisionInput | Prisma.SpanAnnotationCreateManyRevisionInput[]
 }
 
-export type SpanAnnotationUpsertWithWhereUniqueWithoutTextInput = {
+export type SpanAnnotationUpsertWithWhereUniqueWithoutRevisionInput = {
   where: Prisma.SpanAnnotationWhereUniqueInput
-  update: Prisma.XOR<Prisma.SpanAnnotationUpdateWithoutTextInput, Prisma.SpanAnnotationUncheckedUpdateWithoutTextInput>
-  create: Prisma.XOR<Prisma.SpanAnnotationCreateWithoutTextInput, Prisma.SpanAnnotationUncheckedCreateWithoutTextInput>
+  update: Prisma.XOR<Prisma.SpanAnnotationUpdateWithoutRevisionInput, Prisma.SpanAnnotationUncheckedUpdateWithoutRevisionInput>
+  create: Prisma.XOR<Prisma.SpanAnnotationCreateWithoutRevisionInput, Prisma.SpanAnnotationUncheckedCreateWithoutRevisionInput>
 }
 
-export type SpanAnnotationUpdateWithWhereUniqueWithoutTextInput = {
+export type SpanAnnotationUpdateWithWhereUniqueWithoutRevisionInput = {
   where: Prisma.SpanAnnotationWhereUniqueInput
-  data: Prisma.XOR<Prisma.SpanAnnotationUpdateWithoutTextInput, Prisma.SpanAnnotationUncheckedUpdateWithoutTextInput>
+  data: Prisma.XOR<Prisma.SpanAnnotationUpdateWithoutRevisionInput, Prisma.SpanAnnotationUncheckedUpdateWithoutRevisionInput>
 }
 
-export type SpanAnnotationUpdateManyWithWhereWithoutTextInput = {
+export type SpanAnnotationUpdateManyWithWhereWithoutRevisionInput = {
   where: Prisma.SpanAnnotationScalarWhereInput
-  data: Prisma.XOR<Prisma.SpanAnnotationUpdateManyMutationInput, Prisma.SpanAnnotationUncheckedUpdateManyWithoutTextInput>
+  data: Prisma.XOR<Prisma.SpanAnnotationUpdateManyMutationInput, Prisma.SpanAnnotationUncheckedUpdateManyWithoutRevisionInput>
 }
 
 export type SpanAnnotationCreateManyUserInput = {
   id?: string
-  textId: string
-  target?: $Enums.AnnotationTarget
+  revisionId: string
   start: number
   end: number
   note: string
@@ -645,18 +613,16 @@ export type SpanAnnotationCreateManyUserInput = {
 
 export type SpanAnnotationUpdateWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  target?: Prisma.EnumAnnotationTargetFieldUpdateOperationsInput | $Enums.AnnotationTarget
   start?: Prisma.IntFieldUpdateOperationsInput | number
   end?: Prisma.IntFieldUpdateOperationsInput | number
   note?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  text?: Prisma.TextUpdateOneRequiredWithoutAnnotationsNestedInput
+  revision?: Prisma.RevisionUpdateOneRequiredWithoutAnnotationsNestedInput
 }
 
 export type SpanAnnotationUncheckedUpdateWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  textId?: Prisma.StringFieldUpdateOperationsInput | string
-  target?: Prisma.EnumAnnotationTargetFieldUpdateOperationsInput | $Enums.AnnotationTarget
+  revisionId?: Prisma.StringFieldUpdateOperationsInput | string
   start?: Prisma.IntFieldUpdateOperationsInput | number
   end?: Prisma.IntFieldUpdateOperationsInput | number
   note?: Prisma.StringFieldUpdateOperationsInput | string
@@ -665,27 +631,24 @@ export type SpanAnnotationUncheckedUpdateWithoutUserInput = {
 
 export type SpanAnnotationUncheckedUpdateManyWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  textId?: Prisma.StringFieldUpdateOperationsInput | string
-  target?: Prisma.EnumAnnotationTargetFieldUpdateOperationsInput | $Enums.AnnotationTarget
+  revisionId?: Prisma.StringFieldUpdateOperationsInput | string
   start?: Prisma.IntFieldUpdateOperationsInput | number
   end?: Prisma.IntFieldUpdateOperationsInput | number
   note?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
-export type SpanAnnotationCreateManyTextInput = {
+export type SpanAnnotationCreateManyRevisionInput = {
   id?: string
   userId: number
-  target?: $Enums.AnnotationTarget
   start: number
   end: number
   note: string
   createdAt?: Date | string
 }
 
-export type SpanAnnotationUpdateWithoutTextInput = {
+export type SpanAnnotationUpdateWithoutRevisionInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  target?: Prisma.EnumAnnotationTargetFieldUpdateOperationsInput | $Enums.AnnotationTarget
   start?: Prisma.IntFieldUpdateOperationsInput | number
   end?: Prisma.IntFieldUpdateOperationsInput | number
   note?: Prisma.StringFieldUpdateOperationsInput | string
@@ -693,20 +656,18 @@ export type SpanAnnotationUpdateWithoutTextInput = {
   user?: Prisma.UserUpdateOneRequiredWithoutAnnotationsNestedInput
 }
 
-export type SpanAnnotationUncheckedUpdateWithoutTextInput = {
+export type SpanAnnotationUncheckedUpdateWithoutRevisionInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.IntFieldUpdateOperationsInput | number
-  target?: Prisma.EnumAnnotationTargetFieldUpdateOperationsInput | $Enums.AnnotationTarget
   start?: Prisma.IntFieldUpdateOperationsInput | number
   end?: Prisma.IntFieldUpdateOperationsInput | number
   note?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
-export type SpanAnnotationUncheckedUpdateManyWithoutTextInput = {
+export type SpanAnnotationUncheckedUpdateManyWithoutRevisionInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.IntFieldUpdateOperationsInput | number
-  target?: Prisma.EnumAnnotationTargetFieldUpdateOperationsInput | $Enums.AnnotationTarget
   start?: Prisma.IntFieldUpdateOperationsInput | number
   end?: Prisma.IntFieldUpdateOperationsInput | number
   note?: Prisma.StringFieldUpdateOperationsInput | string
@@ -717,79 +678,74 @@ export type SpanAnnotationUncheckedUpdateManyWithoutTextInput = {
 
 export type SpanAnnotationSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
-  textId?: boolean
+  revisionId?: boolean
   userId?: boolean
-  target?: boolean
   start?: boolean
   end?: boolean
   note?: boolean
   createdAt?: boolean
-  text?: boolean | Prisma.TextDefaultArgs<ExtArgs>
+  revision?: boolean | Prisma.RevisionDefaultArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["spanAnnotation"]>
 
 export type SpanAnnotationSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
-  textId?: boolean
+  revisionId?: boolean
   userId?: boolean
-  target?: boolean
   start?: boolean
   end?: boolean
   note?: boolean
   createdAt?: boolean
-  text?: boolean | Prisma.TextDefaultArgs<ExtArgs>
+  revision?: boolean | Prisma.RevisionDefaultArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["spanAnnotation"]>
 
 export type SpanAnnotationSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
-  textId?: boolean
+  revisionId?: boolean
   userId?: boolean
-  target?: boolean
   start?: boolean
   end?: boolean
   note?: boolean
   createdAt?: boolean
-  text?: boolean | Prisma.TextDefaultArgs<ExtArgs>
+  revision?: boolean | Prisma.RevisionDefaultArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["spanAnnotation"]>
 
 export type SpanAnnotationSelectScalar = {
   id?: boolean
-  textId?: boolean
+  revisionId?: boolean
   userId?: boolean
-  target?: boolean
   start?: boolean
   end?: boolean
   note?: boolean
   createdAt?: boolean
 }
 
-export type SpanAnnotationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "textId" | "userId" | "target" | "start" | "end" | "note" | "createdAt", ExtArgs["result"]["spanAnnotation"]>
+export type SpanAnnotationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "revisionId" | "userId" | "start" | "end" | "note" | "createdAt", ExtArgs["result"]["spanAnnotation"]>
 export type SpanAnnotationInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  text?: boolean | Prisma.TextDefaultArgs<ExtArgs>
+  revision?: boolean | Prisma.RevisionDefaultArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }
 export type SpanAnnotationIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  text?: boolean | Prisma.TextDefaultArgs<ExtArgs>
+  revision?: boolean | Prisma.RevisionDefaultArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }
 export type SpanAnnotationIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  text?: boolean | Prisma.TextDefaultArgs<ExtArgs>
+  revision?: boolean | Prisma.RevisionDefaultArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }
 
 export type $SpanAnnotationPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "SpanAnnotation"
   objects: {
-    text: Prisma.$TextPayload<ExtArgs>
+    revision: Prisma.$RevisionPayload<ExtArgs>
     user: Prisma.$UserPayload<ExtArgs>
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
-    textId: string
+    revisionId: string
     userId: number
-    target: $Enums.AnnotationTarget
     start: number
     end: number
     note: string
@@ -1188,7 +1144,7 @@ readonly fields: SpanAnnotationFieldRefs;
  */
 export interface Prisma__SpanAnnotationClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
-  text<T extends Prisma.TextDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.TextDefaultArgs<ExtArgs>>): Prisma.Prisma__TextClient<runtime.Types.Result.GetResult<Prisma.$TextPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  revision<T extends Prisma.RevisionDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.RevisionDefaultArgs<ExtArgs>>): Prisma.Prisma__RevisionClient<runtime.Types.Result.GetResult<Prisma.$RevisionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   user<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -1220,9 +1176,8 @@ export interface Prisma__SpanAnnotationClient<T, Null = never, ExtArgs extends r
  */
 export interface SpanAnnotationFieldRefs {
   readonly id: Prisma.FieldRef<"SpanAnnotation", 'String'>
-  readonly textId: Prisma.FieldRef<"SpanAnnotation", 'String'>
+  readonly revisionId: Prisma.FieldRef<"SpanAnnotation", 'String'>
   readonly userId: Prisma.FieldRef<"SpanAnnotation", 'Int'>
-  readonly target: Prisma.FieldRef<"SpanAnnotation", 'AnnotationTarget'>
   readonly start: Prisma.FieldRef<"SpanAnnotation", 'Int'>
   readonly end: Prisma.FieldRef<"SpanAnnotation", 'Int'>
   readonly note: Prisma.FieldRef<"SpanAnnotation", 'String'>

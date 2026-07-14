@@ -30,21 +30,24 @@ export type DocJudgmentAvgAggregateOutputType = {
   userId: number | null
   aiFlavor: number | null
   wantReadOn: number | null
+  improvementScore: number | null
 }
 
 export type DocJudgmentSumAggregateOutputType = {
   userId: number | null
   aiFlavor: number | null
   wantReadOn: number | null
+  improvementScore: number | null
 }
 
 export type DocJudgmentMinAggregateOutputType = {
   id: string | null
-  textId: string | null
+  revisionId: string | null
   userId: number | null
   aiFlavor: number | null
   wantReadOn: number | null
-  phase: $Enums.JudgmentPhase | null
+  improvementScore: number | null
+  comment: string | null
   blind: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -52,11 +55,12 @@ export type DocJudgmentMinAggregateOutputType = {
 
 export type DocJudgmentMaxAggregateOutputType = {
   id: string | null
-  textId: string | null
+  revisionId: string | null
   userId: number | null
   aiFlavor: number | null
   wantReadOn: number | null
-  phase: $Enums.JudgmentPhase | null
+  improvementScore: number | null
+  comment: string | null
   blind: boolean | null
   createdAt: Date | null
   updatedAt: Date | null
@@ -64,11 +68,12 @@ export type DocJudgmentMaxAggregateOutputType = {
 
 export type DocJudgmentCountAggregateOutputType = {
   id: number
-  textId: number
+  revisionId: number
   userId: number
   aiFlavor: number
   wantReadOn: number
-  phase: number
+  improvementScore: number
+  comment: number
   blind: number
   createdAt: number
   updatedAt: number
@@ -80,21 +85,24 @@ export type DocJudgmentAvgAggregateInputType = {
   userId?: true
   aiFlavor?: true
   wantReadOn?: true
+  improvementScore?: true
 }
 
 export type DocJudgmentSumAggregateInputType = {
   userId?: true
   aiFlavor?: true
   wantReadOn?: true
+  improvementScore?: true
 }
 
 export type DocJudgmentMinAggregateInputType = {
   id?: true
-  textId?: true
+  revisionId?: true
   userId?: true
   aiFlavor?: true
   wantReadOn?: true
-  phase?: true
+  improvementScore?: true
+  comment?: true
   blind?: true
   createdAt?: true
   updatedAt?: true
@@ -102,11 +110,12 @@ export type DocJudgmentMinAggregateInputType = {
 
 export type DocJudgmentMaxAggregateInputType = {
   id?: true
-  textId?: true
+  revisionId?: true
   userId?: true
   aiFlavor?: true
   wantReadOn?: true
-  phase?: true
+  improvementScore?: true
+  comment?: true
   blind?: true
   createdAt?: true
   updatedAt?: true
@@ -114,11 +123,12 @@ export type DocJudgmentMaxAggregateInputType = {
 
 export type DocJudgmentCountAggregateInputType = {
   id?: true
-  textId?: true
+  revisionId?: true
   userId?: true
   aiFlavor?: true
   wantReadOn?: true
-  phase?: true
+  improvementScore?: true
+  comment?: true
   blind?: true
   createdAt?: true
   updatedAt?: true
@@ -213,11 +223,12 @@ export type DocJudgmentGroupByArgs<ExtArgs extends runtime.Types.Extensions.Inte
 
 export type DocJudgmentGroupByOutputType = {
   id: string
-  textId: string
+  revisionId: string
   userId: number
-  aiFlavor: number
-  wantReadOn: number
-  phase: $Enums.JudgmentPhase
+  aiFlavor: number | null
+  wantReadOn: number | null
+  improvementScore: number | null
+  comment: string | null
   blind: boolean
   createdAt: Date
   updatedAt: Date
@@ -248,57 +259,61 @@ export type DocJudgmentWhereInput = {
   OR?: Prisma.DocJudgmentWhereInput[]
   NOT?: Prisma.DocJudgmentWhereInput | Prisma.DocJudgmentWhereInput[]
   id?: Prisma.StringFilter<"DocJudgment"> | string
-  textId?: Prisma.StringFilter<"DocJudgment"> | string
+  revisionId?: Prisma.StringFilter<"DocJudgment"> | string
   userId?: Prisma.IntFilter<"DocJudgment"> | number
-  aiFlavor?: Prisma.IntFilter<"DocJudgment"> | number
-  wantReadOn?: Prisma.IntFilter<"DocJudgment"> | number
-  phase?: Prisma.EnumJudgmentPhaseFilter<"DocJudgment"> | $Enums.JudgmentPhase
+  aiFlavor?: Prisma.IntNullableFilter<"DocJudgment"> | number | null
+  wantReadOn?: Prisma.IntNullableFilter<"DocJudgment"> | number | null
+  improvementScore?: Prisma.IntNullableFilter<"DocJudgment"> | number | null
+  comment?: Prisma.StringNullableFilter<"DocJudgment"> | string | null
   blind?: Prisma.BoolFilter<"DocJudgment"> | boolean
   createdAt?: Prisma.DateTimeFilter<"DocJudgment"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"DocJudgment"> | Date | string
-  text?: Prisma.XOR<Prisma.TextScalarRelationFilter, Prisma.TextWhereInput>
+  revision?: Prisma.XOR<Prisma.RevisionScalarRelationFilter, Prisma.RevisionWhereInput>
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
 }
 
 export type DocJudgmentOrderByWithRelationInput = {
   id?: Prisma.SortOrder
-  textId?: Prisma.SortOrder
+  revisionId?: Prisma.SortOrder
   userId?: Prisma.SortOrder
-  aiFlavor?: Prisma.SortOrder
-  wantReadOn?: Prisma.SortOrder
-  phase?: Prisma.SortOrder
+  aiFlavor?: Prisma.SortOrderInput | Prisma.SortOrder
+  wantReadOn?: Prisma.SortOrderInput | Prisma.SortOrder
+  improvementScore?: Prisma.SortOrderInput | Prisma.SortOrder
+  comment?: Prisma.SortOrderInput | Prisma.SortOrder
   blind?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
-  text?: Prisma.TextOrderByWithRelationInput
+  revision?: Prisma.RevisionOrderByWithRelationInput
   user?: Prisma.UserOrderByWithRelationInput
 }
 
 export type DocJudgmentWhereUniqueInput = Prisma.AtLeast<{
   id?: string
-  userId_textId_phase?: Prisma.DocJudgmentUserIdTextIdPhaseCompoundUniqueInput
+  userId_revisionId?: Prisma.DocJudgmentUserIdRevisionIdCompoundUniqueInput
   AND?: Prisma.DocJudgmentWhereInput | Prisma.DocJudgmentWhereInput[]
   OR?: Prisma.DocJudgmentWhereInput[]
   NOT?: Prisma.DocJudgmentWhereInput | Prisma.DocJudgmentWhereInput[]
-  textId?: Prisma.StringFilter<"DocJudgment"> | string
+  revisionId?: Prisma.StringFilter<"DocJudgment"> | string
   userId?: Prisma.IntFilter<"DocJudgment"> | number
-  aiFlavor?: Prisma.IntFilter<"DocJudgment"> | number
-  wantReadOn?: Prisma.IntFilter<"DocJudgment"> | number
-  phase?: Prisma.EnumJudgmentPhaseFilter<"DocJudgment"> | $Enums.JudgmentPhase
+  aiFlavor?: Prisma.IntNullableFilter<"DocJudgment"> | number | null
+  wantReadOn?: Prisma.IntNullableFilter<"DocJudgment"> | number | null
+  improvementScore?: Prisma.IntNullableFilter<"DocJudgment"> | number | null
+  comment?: Prisma.StringNullableFilter<"DocJudgment"> | string | null
   blind?: Prisma.BoolFilter<"DocJudgment"> | boolean
   createdAt?: Prisma.DateTimeFilter<"DocJudgment"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"DocJudgment"> | Date | string
-  text?: Prisma.XOR<Prisma.TextScalarRelationFilter, Prisma.TextWhereInput>
+  revision?: Prisma.XOR<Prisma.RevisionScalarRelationFilter, Prisma.RevisionWhereInput>
   user?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
-}, "id" | "userId_textId_phase">
+}, "id" | "userId_revisionId">
 
 export type DocJudgmentOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
-  textId?: Prisma.SortOrder
+  revisionId?: Prisma.SortOrder
   userId?: Prisma.SortOrder
-  aiFlavor?: Prisma.SortOrder
-  wantReadOn?: Prisma.SortOrder
-  phase?: Prisma.SortOrder
+  aiFlavor?: Prisma.SortOrderInput | Prisma.SortOrder
+  wantReadOn?: Prisma.SortOrderInput | Prisma.SortOrder
+  improvementScore?: Prisma.SortOrderInput | Prisma.SortOrder
+  comment?: Prisma.SortOrderInput | Prisma.SortOrder
   blind?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -314,11 +329,12 @@ export type DocJudgmentScalarWhereWithAggregatesInput = {
   OR?: Prisma.DocJudgmentScalarWhereWithAggregatesInput[]
   NOT?: Prisma.DocJudgmentScalarWhereWithAggregatesInput | Prisma.DocJudgmentScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"DocJudgment"> | string
-  textId?: Prisma.StringWithAggregatesFilter<"DocJudgment"> | string
+  revisionId?: Prisma.StringWithAggregatesFilter<"DocJudgment"> | string
   userId?: Prisma.IntWithAggregatesFilter<"DocJudgment"> | number
-  aiFlavor?: Prisma.IntWithAggregatesFilter<"DocJudgment"> | number
-  wantReadOn?: Prisma.IntWithAggregatesFilter<"DocJudgment"> | number
-  phase?: Prisma.EnumJudgmentPhaseWithAggregatesFilter<"DocJudgment"> | $Enums.JudgmentPhase
+  aiFlavor?: Prisma.IntNullableWithAggregatesFilter<"DocJudgment"> | number | null
+  wantReadOn?: Prisma.IntNullableWithAggregatesFilter<"DocJudgment"> | number | null
+  improvementScore?: Prisma.IntNullableWithAggregatesFilter<"DocJudgment"> | number | null
+  comment?: Prisma.StringNullableWithAggregatesFilter<"DocJudgment"> | string | null
   blind?: Prisma.BoolWithAggregatesFilter<"DocJudgment"> | boolean
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"DocJudgment"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"DocJudgment"> | Date | string
@@ -326,23 +342,25 @@ export type DocJudgmentScalarWhereWithAggregatesInput = {
 
 export type DocJudgmentCreateInput = {
   id?: string
-  aiFlavor: number
-  wantReadOn: number
-  phase?: $Enums.JudgmentPhase
+  aiFlavor?: number | null
+  wantReadOn?: number | null
+  improvementScore?: number | null
+  comment?: string | null
   blind?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
-  text: Prisma.TextCreateNestedOneWithoutJudgmentsInput
+  revision: Prisma.RevisionCreateNestedOneWithoutJudgmentsInput
   user: Prisma.UserCreateNestedOneWithoutJudgmentsInput
 }
 
 export type DocJudgmentUncheckedCreateInput = {
   id?: string
-  textId: string
+  revisionId: string
   userId: number
-  aiFlavor: number
-  wantReadOn: number
-  phase?: $Enums.JudgmentPhase
+  aiFlavor?: number | null
+  wantReadOn?: number | null
+  improvementScore?: number | null
+  comment?: string | null
   blind?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -350,23 +368,25 @@ export type DocJudgmentUncheckedCreateInput = {
 
 export type DocJudgmentUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  aiFlavor?: Prisma.IntFieldUpdateOperationsInput | number
-  wantReadOn?: Prisma.IntFieldUpdateOperationsInput | number
-  phase?: Prisma.EnumJudgmentPhaseFieldUpdateOperationsInput | $Enums.JudgmentPhase
+  aiFlavor?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  wantReadOn?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  improvementScore?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  comment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   blind?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  text?: Prisma.TextUpdateOneRequiredWithoutJudgmentsNestedInput
+  revision?: Prisma.RevisionUpdateOneRequiredWithoutJudgmentsNestedInput
   user?: Prisma.UserUpdateOneRequiredWithoutJudgmentsNestedInput
 }
 
 export type DocJudgmentUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  textId?: Prisma.StringFieldUpdateOperationsInput | string
+  revisionId?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.IntFieldUpdateOperationsInput | number
-  aiFlavor?: Prisma.IntFieldUpdateOperationsInput | number
-  wantReadOn?: Prisma.IntFieldUpdateOperationsInput | number
-  phase?: Prisma.EnumJudgmentPhaseFieldUpdateOperationsInput | $Enums.JudgmentPhase
+  aiFlavor?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  wantReadOn?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  improvementScore?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  comment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   blind?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -374,11 +394,12 @@ export type DocJudgmentUncheckedUpdateInput = {
 
 export type DocJudgmentCreateManyInput = {
   id?: string
-  textId: string
+  revisionId: string
   userId: number
-  aiFlavor: number
-  wantReadOn: number
-  phase?: $Enums.JudgmentPhase
+  aiFlavor?: number | null
+  wantReadOn?: number | null
+  improvementScore?: number | null
+  comment?: string | null
   blind?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -386,9 +407,10 @@ export type DocJudgmentCreateManyInput = {
 
 export type DocJudgmentUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  aiFlavor?: Prisma.IntFieldUpdateOperationsInput | number
-  wantReadOn?: Prisma.IntFieldUpdateOperationsInput | number
-  phase?: Prisma.EnumJudgmentPhaseFieldUpdateOperationsInput | $Enums.JudgmentPhase
+  aiFlavor?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  wantReadOn?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  improvementScore?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  comment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   blind?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -396,11 +418,12 @@ export type DocJudgmentUpdateManyMutationInput = {
 
 export type DocJudgmentUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  textId?: Prisma.StringFieldUpdateOperationsInput | string
+  revisionId?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.IntFieldUpdateOperationsInput | number
-  aiFlavor?: Prisma.IntFieldUpdateOperationsInput | number
-  wantReadOn?: Prisma.IntFieldUpdateOperationsInput | number
-  phase?: Prisma.EnumJudgmentPhaseFieldUpdateOperationsInput | $Enums.JudgmentPhase
+  aiFlavor?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  wantReadOn?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  improvementScore?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  comment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   blind?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -416,19 +439,19 @@ export type DocJudgmentOrderByRelationAggregateInput = {
   _count?: Prisma.SortOrder
 }
 
-export type DocJudgmentUserIdTextIdPhaseCompoundUniqueInput = {
+export type DocJudgmentUserIdRevisionIdCompoundUniqueInput = {
   userId: number
-  textId: string
-  phase: $Enums.JudgmentPhase
+  revisionId: string
 }
 
 export type DocJudgmentCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
-  textId?: Prisma.SortOrder
+  revisionId?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   aiFlavor?: Prisma.SortOrder
   wantReadOn?: Prisma.SortOrder
-  phase?: Prisma.SortOrder
+  improvementScore?: Prisma.SortOrder
+  comment?: Prisma.SortOrder
   blind?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -438,15 +461,17 @@ export type DocJudgmentAvgOrderByAggregateInput = {
   userId?: Prisma.SortOrder
   aiFlavor?: Prisma.SortOrder
   wantReadOn?: Prisma.SortOrder
+  improvementScore?: Prisma.SortOrder
 }
 
 export type DocJudgmentMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
-  textId?: Prisma.SortOrder
+  revisionId?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   aiFlavor?: Prisma.SortOrder
   wantReadOn?: Prisma.SortOrder
-  phase?: Prisma.SortOrder
+  improvementScore?: Prisma.SortOrder
+  comment?: Prisma.SortOrder
   blind?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -454,11 +479,12 @@ export type DocJudgmentMaxOrderByAggregateInput = {
 
 export type DocJudgmentMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
-  textId?: Prisma.SortOrder
+  revisionId?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   aiFlavor?: Prisma.SortOrder
   wantReadOn?: Prisma.SortOrder
-  phase?: Prisma.SortOrder
+  improvementScore?: Prisma.SortOrder
+  comment?: Prisma.SortOrder
   blind?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
@@ -468,6 +494,7 @@ export type DocJudgmentSumOrderByAggregateInput = {
   userId?: Prisma.SortOrder
   aiFlavor?: Prisma.SortOrder
   wantReadOn?: Prisma.SortOrder
+  improvementScore?: Prisma.SortOrder
 }
 
 export type DocJudgmentCreateNestedManyWithoutUserInput = {
@@ -512,69 +539,75 @@ export type DocJudgmentUncheckedUpdateManyWithoutUserNestedInput = {
   deleteMany?: Prisma.DocJudgmentScalarWhereInput | Prisma.DocJudgmentScalarWhereInput[]
 }
 
-export type DocJudgmentCreateNestedManyWithoutTextInput = {
-  create?: Prisma.XOR<Prisma.DocJudgmentCreateWithoutTextInput, Prisma.DocJudgmentUncheckedCreateWithoutTextInput> | Prisma.DocJudgmentCreateWithoutTextInput[] | Prisma.DocJudgmentUncheckedCreateWithoutTextInput[]
-  connectOrCreate?: Prisma.DocJudgmentCreateOrConnectWithoutTextInput | Prisma.DocJudgmentCreateOrConnectWithoutTextInput[]
-  createMany?: Prisma.DocJudgmentCreateManyTextInputEnvelope
+export type DocJudgmentCreateNestedManyWithoutRevisionInput = {
+  create?: Prisma.XOR<Prisma.DocJudgmentCreateWithoutRevisionInput, Prisma.DocJudgmentUncheckedCreateWithoutRevisionInput> | Prisma.DocJudgmentCreateWithoutRevisionInput[] | Prisma.DocJudgmentUncheckedCreateWithoutRevisionInput[]
+  connectOrCreate?: Prisma.DocJudgmentCreateOrConnectWithoutRevisionInput | Prisma.DocJudgmentCreateOrConnectWithoutRevisionInput[]
+  createMany?: Prisma.DocJudgmentCreateManyRevisionInputEnvelope
   connect?: Prisma.DocJudgmentWhereUniqueInput | Prisma.DocJudgmentWhereUniqueInput[]
 }
 
-export type DocJudgmentUncheckedCreateNestedManyWithoutTextInput = {
-  create?: Prisma.XOR<Prisma.DocJudgmentCreateWithoutTextInput, Prisma.DocJudgmentUncheckedCreateWithoutTextInput> | Prisma.DocJudgmentCreateWithoutTextInput[] | Prisma.DocJudgmentUncheckedCreateWithoutTextInput[]
-  connectOrCreate?: Prisma.DocJudgmentCreateOrConnectWithoutTextInput | Prisma.DocJudgmentCreateOrConnectWithoutTextInput[]
-  createMany?: Prisma.DocJudgmentCreateManyTextInputEnvelope
+export type DocJudgmentUncheckedCreateNestedManyWithoutRevisionInput = {
+  create?: Prisma.XOR<Prisma.DocJudgmentCreateWithoutRevisionInput, Prisma.DocJudgmentUncheckedCreateWithoutRevisionInput> | Prisma.DocJudgmentCreateWithoutRevisionInput[] | Prisma.DocJudgmentUncheckedCreateWithoutRevisionInput[]
+  connectOrCreate?: Prisma.DocJudgmentCreateOrConnectWithoutRevisionInput | Prisma.DocJudgmentCreateOrConnectWithoutRevisionInput[]
+  createMany?: Prisma.DocJudgmentCreateManyRevisionInputEnvelope
   connect?: Prisma.DocJudgmentWhereUniqueInput | Prisma.DocJudgmentWhereUniqueInput[]
 }
 
-export type DocJudgmentUpdateManyWithoutTextNestedInput = {
-  create?: Prisma.XOR<Prisma.DocJudgmentCreateWithoutTextInput, Prisma.DocJudgmentUncheckedCreateWithoutTextInput> | Prisma.DocJudgmentCreateWithoutTextInput[] | Prisma.DocJudgmentUncheckedCreateWithoutTextInput[]
-  connectOrCreate?: Prisma.DocJudgmentCreateOrConnectWithoutTextInput | Prisma.DocJudgmentCreateOrConnectWithoutTextInput[]
-  upsert?: Prisma.DocJudgmentUpsertWithWhereUniqueWithoutTextInput | Prisma.DocJudgmentUpsertWithWhereUniqueWithoutTextInput[]
-  createMany?: Prisma.DocJudgmentCreateManyTextInputEnvelope
+export type DocJudgmentUpdateManyWithoutRevisionNestedInput = {
+  create?: Prisma.XOR<Prisma.DocJudgmentCreateWithoutRevisionInput, Prisma.DocJudgmentUncheckedCreateWithoutRevisionInput> | Prisma.DocJudgmentCreateWithoutRevisionInput[] | Prisma.DocJudgmentUncheckedCreateWithoutRevisionInput[]
+  connectOrCreate?: Prisma.DocJudgmentCreateOrConnectWithoutRevisionInput | Prisma.DocJudgmentCreateOrConnectWithoutRevisionInput[]
+  upsert?: Prisma.DocJudgmentUpsertWithWhereUniqueWithoutRevisionInput | Prisma.DocJudgmentUpsertWithWhereUniqueWithoutRevisionInput[]
+  createMany?: Prisma.DocJudgmentCreateManyRevisionInputEnvelope
   set?: Prisma.DocJudgmentWhereUniqueInput | Prisma.DocJudgmentWhereUniqueInput[]
   disconnect?: Prisma.DocJudgmentWhereUniqueInput | Prisma.DocJudgmentWhereUniqueInput[]
   delete?: Prisma.DocJudgmentWhereUniqueInput | Prisma.DocJudgmentWhereUniqueInput[]
   connect?: Prisma.DocJudgmentWhereUniqueInput | Prisma.DocJudgmentWhereUniqueInput[]
-  update?: Prisma.DocJudgmentUpdateWithWhereUniqueWithoutTextInput | Prisma.DocJudgmentUpdateWithWhereUniqueWithoutTextInput[]
-  updateMany?: Prisma.DocJudgmentUpdateManyWithWhereWithoutTextInput | Prisma.DocJudgmentUpdateManyWithWhereWithoutTextInput[]
+  update?: Prisma.DocJudgmentUpdateWithWhereUniqueWithoutRevisionInput | Prisma.DocJudgmentUpdateWithWhereUniqueWithoutRevisionInput[]
+  updateMany?: Prisma.DocJudgmentUpdateManyWithWhereWithoutRevisionInput | Prisma.DocJudgmentUpdateManyWithWhereWithoutRevisionInput[]
   deleteMany?: Prisma.DocJudgmentScalarWhereInput | Prisma.DocJudgmentScalarWhereInput[]
 }
 
-export type DocJudgmentUncheckedUpdateManyWithoutTextNestedInput = {
-  create?: Prisma.XOR<Prisma.DocJudgmentCreateWithoutTextInput, Prisma.DocJudgmentUncheckedCreateWithoutTextInput> | Prisma.DocJudgmentCreateWithoutTextInput[] | Prisma.DocJudgmentUncheckedCreateWithoutTextInput[]
-  connectOrCreate?: Prisma.DocJudgmentCreateOrConnectWithoutTextInput | Prisma.DocJudgmentCreateOrConnectWithoutTextInput[]
-  upsert?: Prisma.DocJudgmentUpsertWithWhereUniqueWithoutTextInput | Prisma.DocJudgmentUpsertWithWhereUniqueWithoutTextInput[]
-  createMany?: Prisma.DocJudgmentCreateManyTextInputEnvelope
+export type DocJudgmentUncheckedUpdateManyWithoutRevisionNestedInput = {
+  create?: Prisma.XOR<Prisma.DocJudgmentCreateWithoutRevisionInput, Prisma.DocJudgmentUncheckedCreateWithoutRevisionInput> | Prisma.DocJudgmentCreateWithoutRevisionInput[] | Prisma.DocJudgmentUncheckedCreateWithoutRevisionInput[]
+  connectOrCreate?: Prisma.DocJudgmentCreateOrConnectWithoutRevisionInput | Prisma.DocJudgmentCreateOrConnectWithoutRevisionInput[]
+  upsert?: Prisma.DocJudgmentUpsertWithWhereUniqueWithoutRevisionInput | Prisma.DocJudgmentUpsertWithWhereUniqueWithoutRevisionInput[]
+  createMany?: Prisma.DocJudgmentCreateManyRevisionInputEnvelope
   set?: Prisma.DocJudgmentWhereUniqueInput | Prisma.DocJudgmentWhereUniqueInput[]
   disconnect?: Prisma.DocJudgmentWhereUniqueInput | Prisma.DocJudgmentWhereUniqueInput[]
   delete?: Prisma.DocJudgmentWhereUniqueInput | Prisma.DocJudgmentWhereUniqueInput[]
   connect?: Prisma.DocJudgmentWhereUniqueInput | Prisma.DocJudgmentWhereUniqueInput[]
-  update?: Prisma.DocJudgmentUpdateWithWhereUniqueWithoutTextInput | Prisma.DocJudgmentUpdateWithWhereUniqueWithoutTextInput[]
-  updateMany?: Prisma.DocJudgmentUpdateManyWithWhereWithoutTextInput | Prisma.DocJudgmentUpdateManyWithWhereWithoutTextInput[]
+  update?: Prisma.DocJudgmentUpdateWithWhereUniqueWithoutRevisionInput | Prisma.DocJudgmentUpdateWithWhereUniqueWithoutRevisionInput[]
+  updateMany?: Prisma.DocJudgmentUpdateManyWithWhereWithoutRevisionInput | Prisma.DocJudgmentUpdateManyWithWhereWithoutRevisionInput[]
   deleteMany?: Prisma.DocJudgmentScalarWhereInput | Prisma.DocJudgmentScalarWhereInput[]
 }
 
-export type EnumJudgmentPhaseFieldUpdateOperationsInput = {
-  set?: $Enums.JudgmentPhase
+export type NullableIntFieldUpdateOperationsInput = {
+  set?: number | null
+  increment?: number
+  decrement?: number
+  multiply?: number
+  divide?: number
 }
 
 export type DocJudgmentCreateWithoutUserInput = {
   id?: string
-  aiFlavor: number
-  wantReadOn: number
-  phase?: $Enums.JudgmentPhase
+  aiFlavor?: number | null
+  wantReadOn?: number | null
+  improvementScore?: number | null
+  comment?: string | null
   blind?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
-  text: Prisma.TextCreateNestedOneWithoutJudgmentsInput
+  revision: Prisma.RevisionCreateNestedOneWithoutJudgmentsInput
 }
 
 export type DocJudgmentUncheckedCreateWithoutUserInput = {
   id?: string
-  textId: string
-  aiFlavor: number
-  wantReadOn: number
-  phase?: $Enums.JudgmentPhase
+  revisionId: string
+  aiFlavor?: number | null
+  wantReadOn?: number | null
+  improvementScore?: number | null
+  comment?: string | null
   blind?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -610,69 +643,73 @@ export type DocJudgmentScalarWhereInput = {
   OR?: Prisma.DocJudgmentScalarWhereInput[]
   NOT?: Prisma.DocJudgmentScalarWhereInput | Prisma.DocJudgmentScalarWhereInput[]
   id?: Prisma.StringFilter<"DocJudgment"> | string
-  textId?: Prisma.StringFilter<"DocJudgment"> | string
+  revisionId?: Prisma.StringFilter<"DocJudgment"> | string
   userId?: Prisma.IntFilter<"DocJudgment"> | number
-  aiFlavor?: Prisma.IntFilter<"DocJudgment"> | number
-  wantReadOn?: Prisma.IntFilter<"DocJudgment"> | number
-  phase?: Prisma.EnumJudgmentPhaseFilter<"DocJudgment"> | $Enums.JudgmentPhase
+  aiFlavor?: Prisma.IntNullableFilter<"DocJudgment"> | number | null
+  wantReadOn?: Prisma.IntNullableFilter<"DocJudgment"> | number | null
+  improvementScore?: Prisma.IntNullableFilter<"DocJudgment"> | number | null
+  comment?: Prisma.StringNullableFilter<"DocJudgment"> | string | null
   blind?: Prisma.BoolFilter<"DocJudgment"> | boolean
   createdAt?: Prisma.DateTimeFilter<"DocJudgment"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"DocJudgment"> | Date | string
 }
 
-export type DocJudgmentCreateWithoutTextInput = {
+export type DocJudgmentCreateWithoutRevisionInput = {
   id?: string
-  aiFlavor: number
-  wantReadOn: number
-  phase?: $Enums.JudgmentPhase
+  aiFlavor?: number | null
+  wantReadOn?: number | null
+  improvementScore?: number | null
+  comment?: string | null
   blind?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   user: Prisma.UserCreateNestedOneWithoutJudgmentsInput
 }
 
-export type DocJudgmentUncheckedCreateWithoutTextInput = {
+export type DocJudgmentUncheckedCreateWithoutRevisionInput = {
   id?: string
   userId: number
-  aiFlavor: number
-  wantReadOn: number
-  phase?: $Enums.JudgmentPhase
+  aiFlavor?: number | null
+  wantReadOn?: number | null
+  improvementScore?: number | null
+  comment?: string | null
   blind?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
 }
 
-export type DocJudgmentCreateOrConnectWithoutTextInput = {
+export type DocJudgmentCreateOrConnectWithoutRevisionInput = {
   where: Prisma.DocJudgmentWhereUniqueInput
-  create: Prisma.XOR<Prisma.DocJudgmentCreateWithoutTextInput, Prisma.DocJudgmentUncheckedCreateWithoutTextInput>
+  create: Prisma.XOR<Prisma.DocJudgmentCreateWithoutRevisionInput, Prisma.DocJudgmentUncheckedCreateWithoutRevisionInput>
 }
 
-export type DocJudgmentCreateManyTextInputEnvelope = {
-  data: Prisma.DocJudgmentCreateManyTextInput | Prisma.DocJudgmentCreateManyTextInput[]
+export type DocJudgmentCreateManyRevisionInputEnvelope = {
+  data: Prisma.DocJudgmentCreateManyRevisionInput | Prisma.DocJudgmentCreateManyRevisionInput[]
 }
 
-export type DocJudgmentUpsertWithWhereUniqueWithoutTextInput = {
+export type DocJudgmentUpsertWithWhereUniqueWithoutRevisionInput = {
   where: Prisma.DocJudgmentWhereUniqueInput
-  update: Prisma.XOR<Prisma.DocJudgmentUpdateWithoutTextInput, Prisma.DocJudgmentUncheckedUpdateWithoutTextInput>
-  create: Prisma.XOR<Prisma.DocJudgmentCreateWithoutTextInput, Prisma.DocJudgmentUncheckedCreateWithoutTextInput>
+  update: Prisma.XOR<Prisma.DocJudgmentUpdateWithoutRevisionInput, Prisma.DocJudgmentUncheckedUpdateWithoutRevisionInput>
+  create: Prisma.XOR<Prisma.DocJudgmentCreateWithoutRevisionInput, Prisma.DocJudgmentUncheckedCreateWithoutRevisionInput>
 }
 
-export type DocJudgmentUpdateWithWhereUniqueWithoutTextInput = {
+export type DocJudgmentUpdateWithWhereUniqueWithoutRevisionInput = {
   where: Prisma.DocJudgmentWhereUniqueInput
-  data: Prisma.XOR<Prisma.DocJudgmentUpdateWithoutTextInput, Prisma.DocJudgmentUncheckedUpdateWithoutTextInput>
+  data: Prisma.XOR<Prisma.DocJudgmentUpdateWithoutRevisionInput, Prisma.DocJudgmentUncheckedUpdateWithoutRevisionInput>
 }
 
-export type DocJudgmentUpdateManyWithWhereWithoutTextInput = {
+export type DocJudgmentUpdateManyWithWhereWithoutRevisionInput = {
   where: Prisma.DocJudgmentScalarWhereInput
-  data: Prisma.XOR<Prisma.DocJudgmentUpdateManyMutationInput, Prisma.DocJudgmentUncheckedUpdateManyWithoutTextInput>
+  data: Prisma.XOR<Prisma.DocJudgmentUpdateManyMutationInput, Prisma.DocJudgmentUncheckedUpdateManyWithoutRevisionInput>
 }
 
 export type DocJudgmentCreateManyUserInput = {
   id?: string
-  textId: string
-  aiFlavor: number
-  wantReadOn: number
-  phase?: $Enums.JudgmentPhase
+  revisionId: string
+  aiFlavor?: number | null
+  wantReadOn?: number | null
+  improvementScore?: number | null
+  comment?: string | null
   blind?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
@@ -680,21 +717,23 @@ export type DocJudgmentCreateManyUserInput = {
 
 export type DocJudgmentUpdateWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  aiFlavor?: Prisma.IntFieldUpdateOperationsInput | number
-  wantReadOn?: Prisma.IntFieldUpdateOperationsInput | number
-  phase?: Prisma.EnumJudgmentPhaseFieldUpdateOperationsInput | $Enums.JudgmentPhase
+  aiFlavor?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  wantReadOn?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  improvementScore?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  comment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   blind?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
-  text?: Prisma.TextUpdateOneRequiredWithoutJudgmentsNestedInput
+  revision?: Prisma.RevisionUpdateOneRequiredWithoutJudgmentsNestedInput
 }
 
 export type DocJudgmentUncheckedUpdateWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  textId?: Prisma.StringFieldUpdateOperationsInput | string
-  aiFlavor?: Prisma.IntFieldUpdateOperationsInput | number
-  wantReadOn?: Prisma.IntFieldUpdateOperationsInput | number
-  phase?: Prisma.EnumJudgmentPhaseFieldUpdateOperationsInput | $Enums.JudgmentPhase
+  revisionId?: Prisma.StringFieldUpdateOperationsInput | string
+  aiFlavor?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  wantReadOn?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  improvementScore?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  comment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   blind?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -702,54 +741,59 @@ export type DocJudgmentUncheckedUpdateWithoutUserInput = {
 
 export type DocJudgmentUncheckedUpdateManyWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  textId?: Prisma.StringFieldUpdateOperationsInput | string
-  aiFlavor?: Prisma.IntFieldUpdateOperationsInput | number
-  wantReadOn?: Prisma.IntFieldUpdateOperationsInput | number
-  phase?: Prisma.EnumJudgmentPhaseFieldUpdateOperationsInput | $Enums.JudgmentPhase
+  revisionId?: Prisma.StringFieldUpdateOperationsInput | string
+  aiFlavor?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  wantReadOn?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  improvementScore?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  comment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   blind?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
-export type DocJudgmentCreateManyTextInput = {
+export type DocJudgmentCreateManyRevisionInput = {
   id?: string
   userId: number
-  aiFlavor: number
-  wantReadOn: number
-  phase?: $Enums.JudgmentPhase
+  aiFlavor?: number | null
+  wantReadOn?: number | null
+  improvementScore?: number | null
+  comment?: string | null
   blind?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
 }
 
-export type DocJudgmentUpdateWithoutTextInput = {
+export type DocJudgmentUpdateWithoutRevisionInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
-  aiFlavor?: Prisma.IntFieldUpdateOperationsInput | number
-  wantReadOn?: Prisma.IntFieldUpdateOperationsInput | number
-  phase?: Prisma.EnumJudgmentPhaseFieldUpdateOperationsInput | $Enums.JudgmentPhase
+  aiFlavor?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  wantReadOn?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  improvementScore?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  comment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   blind?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   user?: Prisma.UserUpdateOneRequiredWithoutJudgmentsNestedInput
 }
 
-export type DocJudgmentUncheckedUpdateWithoutTextInput = {
+export type DocJudgmentUncheckedUpdateWithoutRevisionInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.IntFieldUpdateOperationsInput | number
-  aiFlavor?: Prisma.IntFieldUpdateOperationsInput | number
-  wantReadOn?: Prisma.IntFieldUpdateOperationsInput | number
-  phase?: Prisma.EnumJudgmentPhaseFieldUpdateOperationsInput | $Enums.JudgmentPhase
+  aiFlavor?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  wantReadOn?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  improvementScore?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  comment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   blind?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
-export type DocJudgmentUncheckedUpdateManyWithoutTextInput = {
+export type DocJudgmentUncheckedUpdateManyWithoutRevisionInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.IntFieldUpdateOperationsInput | number
-  aiFlavor?: Prisma.IntFieldUpdateOperationsInput | number
-  wantReadOn?: Prisma.IntFieldUpdateOperationsInput | number
-  phase?: Prisma.EnumJudgmentPhaseFieldUpdateOperationsInput | $Enums.JudgmentPhase
+  aiFlavor?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  wantReadOn?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  improvementScore?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  comment?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   blind?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -759,85 +803,90 @@ export type DocJudgmentUncheckedUpdateManyWithoutTextInput = {
 
 export type DocJudgmentSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
-  textId?: boolean
+  revisionId?: boolean
   userId?: boolean
   aiFlavor?: boolean
   wantReadOn?: boolean
-  phase?: boolean
+  improvementScore?: boolean
+  comment?: boolean
   blind?: boolean
   createdAt?: boolean
   updatedAt?: boolean
-  text?: boolean | Prisma.TextDefaultArgs<ExtArgs>
+  revision?: boolean | Prisma.RevisionDefaultArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["docJudgment"]>
 
 export type DocJudgmentSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
-  textId?: boolean
+  revisionId?: boolean
   userId?: boolean
   aiFlavor?: boolean
   wantReadOn?: boolean
-  phase?: boolean
+  improvementScore?: boolean
+  comment?: boolean
   blind?: boolean
   createdAt?: boolean
   updatedAt?: boolean
-  text?: boolean | Prisma.TextDefaultArgs<ExtArgs>
+  revision?: boolean | Prisma.RevisionDefaultArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["docJudgment"]>
 
 export type DocJudgmentSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
-  textId?: boolean
+  revisionId?: boolean
   userId?: boolean
   aiFlavor?: boolean
   wantReadOn?: boolean
-  phase?: boolean
+  improvementScore?: boolean
+  comment?: boolean
   blind?: boolean
   createdAt?: boolean
   updatedAt?: boolean
-  text?: boolean | Prisma.TextDefaultArgs<ExtArgs>
+  revision?: boolean | Prisma.RevisionDefaultArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["docJudgment"]>
 
 export type DocJudgmentSelectScalar = {
   id?: boolean
-  textId?: boolean
+  revisionId?: boolean
   userId?: boolean
   aiFlavor?: boolean
   wantReadOn?: boolean
-  phase?: boolean
+  improvementScore?: boolean
+  comment?: boolean
   blind?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type DocJudgmentOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "textId" | "userId" | "aiFlavor" | "wantReadOn" | "phase" | "blind" | "createdAt" | "updatedAt", ExtArgs["result"]["docJudgment"]>
+export type DocJudgmentOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "revisionId" | "userId" | "aiFlavor" | "wantReadOn" | "improvementScore" | "comment" | "blind" | "createdAt" | "updatedAt", ExtArgs["result"]["docJudgment"]>
 export type DocJudgmentInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  text?: boolean | Prisma.TextDefaultArgs<ExtArgs>
+  revision?: boolean | Prisma.RevisionDefaultArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }
 export type DocJudgmentIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  text?: boolean | Prisma.TextDefaultArgs<ExtArgs>
+  revision?: boolean | Prisma.RevisionDefaultArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }
 export type DocJudgmentIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
-  text?: boolean | Prisma.TextDefaultArgs<ExtArgs>
+  revision?: boolean | Prisma.RevisionDefaultArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
 }
 
 export type $DocJudgmentPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "DocJudgment"
   objects: {
-    text: Prisma.$TextPayload<ExtArgs>
+    revision: Prisma.$RevisionPayload<ExtArgs>
     user: Prisma.$UserPayload<ExtArgs>
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
-    textId: string
+    revisionId: string
     userId: number
-    aiFlavor: number
-    wantReadOn: number
-    phase: $Enums.JudgmentPhase
+    aiFlavor: number | null
+    wantReadOn: number | null
+    improvementScore: number | null
+    comment: string | null
     blind: boolean
     createdAt: Date
     updatedAt: Date
@@ -1235,7 +1284,7 @@ readonly fields: DocJudgmentFieldRefs;
  */
 export interface Prisma__DocJudgmentClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
-  text<T extends Prisma.TextDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.TextDefaultArgs<ExtArgs>>): Prisma.Prisma__TextClient<runtime.Types.Result.GetResult<Prisma.$TextPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  revision<T extends Prisma.RevisionDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.RevisionDefaultArgs<ExtArgs>>): Prisma.Prisma__RevisionClient<runtime.Types.Result.GetResult<Prisma.$RevisionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   user<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -1267,11 +1316,12 @@ export interface Prisma__DocJudgmentClient<T, Null = never, ExtArgs extends runt
  */
 export interface DocJudgmentFieldRefs {
   readonly id: Prisma.FieldRef<"DocJudgment", 'String'>
-  readonly textId: Prisma.FieldRef<"DocJudgment", 'String'>
+  readonly revisionId: Prisma.FieldRef<"DocJudgment", 'String'>
   readonly userId: Prisma.FieldRef<"DocJudgment", 'Int'>
   readonly aiFlavor: Prisma.FieldRef<"DocJudgment", 'Int'>
   readonly wantReadOn: Prisma.FieldRef<"DocJudgment", 'Int'>
-  readonly phase: Prisma.FieldRef<"DocJudgment", 'JudgmentPhase'>
+  readonly improvementScore: Prisma.FieldRef<"DocJudgment", 'Int'>
+  readonly comment: Prisma.FieldRef<"DocJudgment", 'String'>
   readonly blind: Prisma.FieldRef<"DocJudgment", 'Boolean'>
   readonly createdAt: Prisma.FieldRef<"DocJudgment", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"DocJudgment", 'DateTime'>

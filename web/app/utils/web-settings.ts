@@ -14,8 +14,18 @@ export type LlmlintWebSettings = {
     namespaces: string[];
     scanAll: boolean;
     highlight: boolean;
+    /** 只读版本视图的检测器热力图层开关（Task 15 P1-C；报告缩略条不受它控制）。 */
+    heatmap: boolean;
+    /** 编辑器（preview 模式）内的检测器热力底色开关（Task 16 R6）：块坐标经 piece-table 投影跟随草稿编辑；与只读视图的 heatmap 键独立。默认关。 */
+    editorHeatmap: boolean;
+    /** 校对批注行内建议层开关（Task 15 P2-E 7b）：可自动修复命中在预览正文行内显示删除线 + 建议文本，点击即应用；默认开。 */
+    proofreadMarks: boolean;
+    /** 编辑器「修改痕迹」diff 层开关（Task 16 R5）：显示草稿 vs head 的本轮未提交改动；AI 改写审阅横幅打开时由宿主强制显示不受此键约束。默认关。 */
+    draftDiff: boolean;
     reviewEditorMode: ReviewEditorMode;
     workbenchReportWidth: number;
+    /** 检测工作台右栏宽度 px（Task 19 D 分栏可拖拽；与 playground 的 workbenchReportWidth 独立记忆）。 */
+    contributeReportWidth: number;
     reviewCommentPanelWidth: number;
     namespaceOverrides: Record<string, WebRuleOverride>;
     ruleOverrides: Record<string, WebRuleOverride>;
@@ -35,8 +45,14 @@ export const defaultWebSettings: LlmlintWebSettings = {
     namespaces: [],
     scanAll: false,
     highlight: true,
-    reviewEditorMode: "source",
+    heatmap: true,
+    editorHeatmap: false,
+    proofreadMarks: true,
+    draftDiff: false,
+    // Task 16 走查改默认：inline 规则菜单/校对批注/热力/diff 全是预览模式能力，source 起步会全部不可见。
+    reviewEditorMode: "preview",
     workbenchReportWidth: 560,
+    contributeReportWidth: 560,
     reviewCommentPanelWidth: 320,
     namespaceOverrides: {},
     ruleOverrides: {},
@@ -92,8 +108,13 @@ export function normalizeWebSettings(value: unknown): LlmlintWebSettings {
         namespaces: Array.isArray(value.namespaces) ? value.namespaces.filter((item): item is string => typeof item === "string") : [],
         scanAll: typeof value.scanAll === "boolean" ? value.scanAll : defaultWebSettings.scanAll,
         highlight: typeof value.highlight === "boolean" ? value.highlight : defaultWebSettings.highlight,
-        reviewEditorMode: value.reviewEditorMode === "preview" ? "preview" : defaultWebSettings.reviewEditorMode,
+        heatmap: typeof value.heatmap === "boolean" ? value.heatmap : defaultWebSettings.heatmap,
+        editorHeatmap: typeof value.editorHeatmap === "boolean" ? value.editorHeatmap : defaultWebSettings.editorHeatmap,
+        proofreadMarks: typeof value.proofreadMarks === "boolean" ? value.proofreadMarks : defaultWebSettings.proofreadMarks,
+        draftDiff: typeof value.draftDiff === "boolean" ? value.draftDiff : defaultWebSettings.draftDiff,
+        reviewEditorMode: value.reviewEditorMode === "preview" || value.reviewEditorMode === "source" ? value.reviewEditorMode : defaultWebSettings.reviewEditorMode,
         workbenchReportWidth: normalizePanelWidth(value.workbenchReportWidth, defaultWebSettings.workbenchReportWidth, 360, 960),
+        contributeReportWidth: normalizePanelWidth(value.contributeReportWidth, defaultWebSettings.contributeReportWidth, 360, 960),
         reviewCommentPanelWidth: normalizePanelWidth(value.reviewCommentPanelWidth, defaultWebSettings.reviewCommentPanelWidth, 260, 560),
         namespaceOverrides: normalizeOverrideRecord(value.namespaceOverrides),
         ruleOverrides: normalizeOverrideRecord(value.ruleOverrides),

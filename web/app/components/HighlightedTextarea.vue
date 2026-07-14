@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import {computed, nextTick, ref, watch, onMounted, onBeforeUnmount} from "vue";
 import type {HighlightRange, RuleLevel} from "../types";
+import {heatColor} from "../utils/contribute-workspace";
 import {useLlmlintI18n} from "../composables/useLlmlintI18n";
 
 // 行内高亮编辑器（Grammarly 式）：一个文字透明、只显示命中底色的「背板」，
@@ -8,14 +9,17 @@ import {useLlmlintI18n} from "../composables/useLlmlintI18n";
 const text = defineModel<string>({required: true});
 const props = defineProps<{
     ranges: HighlightRange[];
-    commentRanges?: Array<{start: number; end: number; active?: boolean; resolved?: boolean; index?: number}>;
-    replacementRanges?: Array<{start: number; end: number; label: string; isDelete?: boolean; active?: boolean}>;
+    commentRanges?: Array<{start: number; end: number; active?: boolean; resolved?: boolean; stale?: boolean; index?: number}>;
+    /** 当前 active 命中的定位轮廓区间；建议（未应用替换）不在正文预画，null=无 active 命中。 */
+    activeIssueRange?: {start: number; end: number} | null;
     diffRanges?: Array<{start: number; end: number; deleted: string; inserted: string; source: "static" | "llm"; title: string; active?: boolean}>;
     /** 列表点命中时传入要定位的绝对偏移；变化即滚动+闪烁该处。null=不定位。 */
     locateOffset?: number | null;
+    /** Task 17 A2 热力层（draft 坐标）：非空时背板铺 P(AI) 梯度底色，命中高亮转下划线（W1 约定）。null/空 = 关。 */
+    heat?: Array<{from: number; to: number; pAi: number}> | null;
 }>();
 const emit = defineEmits<{
-    (e: "caret-click", offset: number): void;
+    (e: "caret-click", offset: number, meta?: {origin: "pointer" | "keyboard"; collapsed: boolean}): void;
     (e: "selection-change", selection: {start: number; end: number; text: string; anchor: {left: number; top: number; height: number; containerWidth: number; containerHeight: number; absoluteTop: number}} | null): void;
     (e: "source-format-command", payload: {command: "list-indent" | "list-outdent"; selection: {start: number; end: number; text: string; anchor: {left: number; top: number; height: number; containerWidth: number; containerHeight: number; absoluteTop: number}}; caretOffset: number}): void;
 }>();
@@ -57,36 +61,45 @@ type Segment = {
     hasComment: boolean;
     hasActiveComment: boolean;
     hasResolvedComment: boolean;
+    hasStaleComment: boolean;
     commentIndex: number | null;
-    hasReplacement: boolean;
-    hasActiveReplacement: boolean;
-    hasReplacementDelete: boolean;
-    replacementLabel: string | null;
+    hasActiveIssue: boolean;
     hasDiffInsertion: boolean;
     hasActiveDiff: boolean;
     diffDeleted: string | null;
     diffTitle: string | null;
+    /** 覆盖该段的热力块 P(AI)；null=无热力（Task 17 A2）。 */
+    heatPai: number | null;
     start: number;
 };
+
+// 热力层开关（Task 17 A2）：宿主传非空 heat 即开——命中级别底色转下划线，底色让给热力梯度。
+const heatOn = computed(() => (props.heat?.length ?? 0) > 0);
 
 // 按合并后的高亮区间，把整段文本切成 [普通 | 高亮] 段，并记录每段起始偏移（供定位）。
 const segments = computed<Segment[]>(() => {
     const value = text.value;
     const ranges = props.ranges;
     const commentRanges = props.commentRanges ?? [];
-    const replacementRanges = props.replacementRanges ?? [];
+    const activeIssue = props.activeIssueRange ?? null;
     const diffRanges = props.diffRanges ?? [];
-    if (ranges.length === 0 && commentRanges.length === 0 && replacementRanges.length === 0 && diffRanges.length === 0) {
+    const heatRanges = props.heat ?? [];
+    if (ranges.length === 0 && commentRanges.length === 0 && !activeIssue && diffRanges.length === 0 && heatRanges.length === 0) {
         return [
-            {text: value, level: null, hasComment: false, hasActiveComment: false, hasResolvedComment: false, commentIndex: null, hasReplacement: false, hasActiveReplacement: false, hasReplacementDelete: false, replacementLabel: null, hasDiffInsertion: false, hasActiveDiff: false, diffDeleted: null, diffTitle: null, start: 0},
-            {text: "\n", level: null, hasComment: false, hasActiveComment: false, hasResolvedComment: false, commentIndex: null, hasReplacement: false, hasActiveReplacement: false, hasReplacementDelete: false, replacementLabel: null, hasDiffInsertion: false, hasActiveDiff: false, diffDeleted: null, diffTitle: null, start: value.length},
+            {text: value, level: null, hasComment: false, hasActiveComment: false, hasResolvedComment: false, hasStaleComment: false, commentIndex: null, hasActiveIssue: false, hasDiffInsertion: false, hasActiveDiff: false, diffDeleted: null, diffTitle: null, heatPai: null, start: 0},
+            {text: "\n", level: null, hasComment: false, hasActiveComment: false, hasResolvedComment: false, hasStaleComment: false, commentIndex: null, hasActiveIssue: false, hasDiffInsertion: false, hasActiveDiff: false, diffDeleted: null, diffTitle: null, heatPai: null, start: value.length},
         ];
     }
     const out: Segment[] = [];
     const boundaries = new Set<number>([0, value.length]);
-    for (const range of [...ranges, ...commentRanges, ...replacementRanges, ...diffRanges]) {
+    for (const range of [...ranges, ...commentRanges, ...(activeIssue ? [activeIssue] : []), ...diffRanges]) {
         boundaries.add(Math.max(0, Math.min(value.length, range.start)));
         boundaries.add(Math.max(0, Math.min(value.length, range.end)));
+    }
+    // 热力块边界（from/to 命名，与其余 range 的 start/end 分开收口）。
+    for (const chunk of heatRanges) {
+        boundaries.add(Math.max(0, Math.min(value.length, chunk.from)));
+        boundaries.add(Math.max(0, Math.min(value.length, chunk.to)));
     }
     const points = [...boundaries].sort((a, b) => a - b);
     for (let index = 0; index < points.length - 1; index++) {
@@ -99,33 +112,33 @@ const segments = computed<Segment[]>(() => {
         const hasComment = commentRanges.some((range) => start < range.end && end > range.start);
         const hasActiveComment = commentRanges.some((range) => range.active && start < range.end && end > range.start);
         const hasResolvedComment = commentRanges.some((range) => range.resolved && start < range.end && end > range.start);
+        const hasStaleComment = commentRanges.some((range) => range.stale && start < range.end && end > range.start);
         const commentStart = commentRanges.find((range) => range.index && start === Math.max(0, Math.min(value.length, range.start)));
-        const replacement = replacementRanges.find((range) => start < range.end && end > range.start);
-        const replacementStart = replacementRanges.find((range) => start === Math.max(0, Math.min(value.length, range.start)));
+        const hasActiveIssue = Boolean(activeIssue && start < activeIssue.end && end > activeIssue.start);
         const diff = diffRanges.find((range) => start < range.end && end > range.start);
         const diffMarker = diffRanges.find((range) => start === Math.max(0, Math.min(value.length, range.start)) && range.deleted);
         const activeDiff = diffRanges.some((range) => range.active && (start < range.end && end > range.start || start === Math.max(0, Math.min(value.length, range.start))));
+        const heatChunk = heatRanges.find((chunk) => start < chunk.to && end > chunk.from);
         out.push({
             text: value.slice(start, end),
             level,
             hasComment,
             hasActiveComment,
             hasResolvedComment,
+            hasStaleComment,
             commentIndex: commentStart?.index ?? null,
-            hasReplacement: Boolean(replacement),
-            hasActiveReplacement: replacement?.active === true,
-            hasReplacementDelete: replacement?.isDelete === true,
-            replacementLabel: replacementStart?.label ?? null,
+            hasActiveIssue,
             hasDiffInsertion: Boolean(diff?.inserted),
             hasActiveDiff: activeDiff,
             diffDeleted: diffMarker?.deleted ?? null,
             diffTitle: diffMarker?.title ?? diff?.title ?? null,
+            heatPai: heatChunk?.pAi ?? null,
             start,
         });
     }
     // 末尾补一个换行，保证背板尾行高度与 textarea 一致。
     const endDiffMarker = diffRanges.find((range) => value.length === Math.max(0, Math.min(value.length, range.start)) && range.deleted);
-    out.push({text: "\n", level: null, hasComment: false, hasActiveComment: false, hasResolvedComment: false, commentIndex: null, hasReplacement: false, hasActiveReplacement: false, hasReplacementDelete: false, replacementLabel: null, hasDiffInsertion: false, hasActiveDiff: endDiffMarker?.active === true, diffDeleted: endDiffMarker?.deleted ?? null, diffTitle: endDiffMarker?.title ?? null, start: value.length});
+    out.push({text: "\n", level: null, hasComment: false, hasActiveComment: false, hasResolvedComment: false, hasStaleComment: false, commentIndex: null, hasActiveIssue: false, hasDiffInsertion: false, hasActiveDiff: endDiffMarker?.active === true, diffDeleted: endDiffMarker?.deleted ?? null, diffTitle: endDiffMarker?.title ?? null, heatPai: null, start: value.length});
     return out;
 });
 
@@ -133,6 +146,13 @@ const MARK_CLASS: Record<RuleLevel, string> = {
     high: "bg-red-400/45",
     medium: "bg-amber-400/45",
     low: "bg-zinc-400/45",
+};
+
+// 热力开时命中段转下划线（Task 17 A2，对齐 W1「底色 vs 下划线」约定）：底色让给热力梯度。
+const HEAT_MARK_CLASS: Record<RuleLevel, string> = {
+    high: "llmlint-source-heat-hit llmlint-source-heat-hit--high",
+    medium: "llmlint-source-heat-hit llmlint-source-heat-hit--medium",
+    low: "llmlint-source-heat-hit llmlint-source-heat-hit--low",
 };
 
 // 当前闪烁的段下标（列表定位时短暂高亮）。
@@ -149,10 +169,11 @@ function syncScroll(event: Event) {
 }
 
 // textarea 光标落点 → 上抛偏移，供正文→列表定位。
-function emitCaret() {
+// origin 区分指针点击 / 键盘移动（Task 17 A2：只有指针点击且光标折叠才允许宿主开 inline 规则菜单）。
+function emitCaret(origin: "pointer" | "keyboard"): void {
     const el = textareaEl.value;
     if (el) {
-        emit("caret-click", el.selectionStart);
+        emit("caret-click", el.selectionStart, {origin, collapsed: el.selectionStart === el.selectionEnd});
         emitSelection();
     }
 }
@@ -295,9 +316,26 @@ function revealOffset(offset: number): void {
     collapseSelection(nextOffset);
 }
 
+/**
+ * 某偏移处光标的视口矩形（Task 17 A2）：inline 规则菜单在源码模式没有可锚的 DOM 节点，
+ * 用镜像法算出光标坐标 + textarea 视口位置合成 floating-ui 虚拟锚点用的 DOMRect。
+ * textarea 未挂载或偏移越界收敛后仍算不出时返回 null（宿主放弃开菜单）。
+ */
+function caretViewportRect(offset: number): DOMRect | null {
+    const el = textareaEl.value;
+    if (!el) {
+        return null;
+    }
+    const clamped = Math.max(0, Math.min(text.value.length, offset));
+    const anchor = textareaSelectionAnchor(el, clamped);
+    const host = el.getBoundingClientRect();
+    return new DOMRect(host.left + anchor.left, host.top + anchor.top, 1, anchor.height);
+}
+
 defineExpose({
     collapseSelection,
     revealOffset,
+    caretViewportRect,
 });
 
 // 列表点命中 → 找覆盖该偏移的段，滚动到视口中部并闪烁；同步 textarea 滚动。
@@ -345,18 +383,17 @@ const boxClass = "border-0 p-3 font-mono text-sm leading-relaxed whitespace-pre-
             :key="index"
             :data-seg="index"
             :data-comment-index="seg.commentIndex ?? undefined"
-            :data-replacement-label="seg.replacementLabel ?? undefined"
             :data-diff-deleted="seg.diffDeleted ?? undefined"
             :title="seg.diffTitle ?? undefined"
+            :style="seg.heatPai !== null ? {backgroundColor: heatColor(seg.heatPai)} : undefined"
             :class="[
-                seg.level ? `rounded ${MARK_CLASS[seg.level]}` : '',
-                seg.hasReplacement ? 'llmlint-source-replacement-mark rounded' : '',
-                seg.hasActiveReplacement ? 'llmlint-source-replacement-mark--active' : '',
-                seg.hasReplacementDelete ? 'llmlint-source-replacement-mark--delete' : '',
+                seg.level ? `rounded ${heatOn ? HEAT_MARK_CLASS[seg.level] : MARK_CLASS[seg.level]}` : '',
+                seg.hasActiveIssue ? 'llmlint-source-active-issue rounded' : '',
                 seg.hasDiffInsertion ? 'llmlint-source-diff-inserted rounded' : '',
                 seg.diffDeleted ? 'llmlint-source-diff-marker' : '',
                 seg.hasActiveDiff ? 'llmlint-source-diff-active' : '',
                 seg.hasComment ? 'llmlint-source-comment-mark rounded border-b-2 border-[var(--accent-main)] bg-[var(--accent-bg)]' : '',
+                seg.hasStaleComment ? 'llmlint-source-comment-mark--stale' : '',
                 seg.hasResolvedComment ? 'border-dashed opacity-65' : '',
                 seg.hasActiveComment ? 'outline outline-2 outline-[var(--accent-main)]/60' : '',
                 flashIndex === index ? 'rounded bg-amber-400/80 outline outline-2 outline-amber-500' : '',
@@ -371,8 +408,8 @@ const boxClass = "border-0 p-3 font-mono text-sm leading-relaxed whitespace-pre-
             :placeholder="t('text.placeholder')"
             spellcheck="false"
             @scroll="syncScroll"
-            @click="emitCaret"
-            @keyup="emitCaret"
+            @click="emitCaret('pointer')"
+            @keyup="emitCaret('keyboard')"
             @keydown="handleKeydown"
             @keydown.esc.prevent="clearSelectionByEscape"
             @select="emitSelection"
@@ -382,6 +419,27 @@ const boxClass = "border-0 p-3 font-mono text-sm leading-relaxed whitespace-pre-
 </template>
 
 <style scoped>
+/* 热力开时的命中下划线（Task 17 A2）：背板文字透明但 text-decoration 单独着色可见，
+   与 preview 热力模式（.is-heat）的「底色 vs 下划线」口径一致。 */
+.llmlint-source-heat-hit {
+    text-decoration-line: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 2px;
+    text-decoration-skip-ink: none;
+}
+
+.llmlint-source-heat-hit--high {
+    text-decoration-color: rgb(239, 68, 68);
+}
+
+.llmlint-source-heat-hit--medium {
+    text-decoration-color: rgb(245, 158, 11);
+}
+
+.llmlint-source-heat-hit--low {
+    text-decoration-color: rgb(161, 161, 170);
+}
+
 .llmlint-source-comment-mark {
     position: relative;
 }
@@ -411,47 +469,16 @@ const boxClass = "border-0 p-3 font-mono text-sm leading-relaxed whitespace-pre-
     color: #fff;
 }
 
-.llmlint-source-replacement-mark {
-    position: relative;
-    box-shadow: inset 0 -2px 0 color-mix(in srgb, #10b981 72%, transparent);
+/* active 命中定位轮廓：只标注「当前命中在这里」，不在正文预画任何未应用的替换。 */
+.llmlint-source-active-issue {
+    outline: 2px solid color-mix(in srgb, var(--accent-main) 62%, transparent);
+    outline-offset: 1px;
 }
 
-.llmlint-source-replacement-mark--active {
-    outline: 2px solid color-mix(in srgb, #10b981 58%, transparent);
-}
-
-.llmlint-source-replacement-mark--delete {
-    border-radius: 0;
-    background: transparent !important;
-    box-shadow: none;
-    color: #dc2626 !important;
-    text-decoration-line: line-through;
-    text-decoration-color: #dc2626;
-    text-decoration-thickness: 2px;
-    text-decoration-skip-ink: none;
-}
-
-.llmlint-source-replacement-mark[data-replacement-label]::after {
-    content: "-> " attr(data-replacement-label);
-    position: absolute;
-    left: 100%;
-    top: -0.78em;
-    z-index: 2;
-    display: inline-flex;
-    max-width: 12rem;
-    align-items: center;
-    border-radius: 4px;
-    background: color-mix(in srgb, #10b981 16%, var(--bg-panel));
-    color: rgb(5, 150, 105);
-    font-size: 0.72rem;
-    font-weight: 700;
-    line-height: 1.25;
-    padding: 0.05rem 0.25rem;
-    white-space: nowrap;
-}
-
-.llmlint-source-replacement-mark--delete[data-replacement-label]::after {
-    content: none;
+/* stale 批注：锚定的原句已被改写，点状橙色下划线区分（双类名压过 utility 边框色）。 */
+.llmlint-source-comment-mark.llmlint-source-comment-mark--stale {
+    border-bottom-style: dotted;
+    border-bottom-color: #f97316;
 }
 
 .llmlint-source-diff-inserted {

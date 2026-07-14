@@ -36,3 +36,7 @@ bun run sync:neuro-book
 ```
 
 It mirrors `skill/` into the sibling NeuroBook repository at `assets/workspace/.nbook/agent/skills/llmlint/`.
+
+## License
+
+This development repository and the installable `skill/` package are licensed under the [GNU Affero General Public License v3.0 only](./LICENSE), identified by the SPDX expression `AGPL-3.0-only`. Copyright © 2026 notnotype.

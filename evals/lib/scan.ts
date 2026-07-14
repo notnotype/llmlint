@@ -3,7 +3,8 @@
 import {loadRules} from "../../skill/src/rules";
 import {scanText} from "../../skill/src/scanner";
 import type {Issue, NormalizedLlmlintConfig, RegexRuleRecord} from "../../skill/src/types";
-import type {Sample, SampleScan} from "./types";
+import {computeOverlapStat, type OverlapHit} from "./overlap";
+import type {OverlapStat, Sample, SampleScan} from "./types";
 
 // 评测固定用默认 ruleset 全量，不读项目 llmlint.config.ts（避免环境差异）。
 const DEFAULT_EVAL_CONFIG: NormalizedLlmlintConfig = {
@@ -21,21 +22,40 @@ export type ScanAllResult = {
     scans: SampleScan[];
     ruleMetas: Map<string, RuleMeta>;
     activeRegexRules: number;
+    overlap: OverlapStat;
 };
+
+/** 评测口径的规则加载（builtin/default 全量，不读项目 llmlint.config.ts）。scanAll 与 repair 管线共用，保证同口径。 */
+export async function loadEvalRules(): Promise<{regexRules: RegexRuleRecord[]; ruleMetas: Map<string, RuleMeta>}> {
+    const loaded = await loadRules(DEFAULT_EVAL_CONFIG);
+    const ruleMetas = new Map<string, RuleMeta>();
+    for (const rule of loaded.regexRules) {
+        ruleMetas.set(rule.id, {id: rule.id, namespace: rule.namespace, review: rule.review, level: rule.level});
+    }
+    return {regexRules: loaded.regexRules, ruleMetas};
+}
 
 /** 加载规则一次，扫描全部样本。 */
 export async function scanAll(samples: Sample[]): Promise<ScanAllResult> {
-    const loaded = await loadRules(DEFAULT_EVAL_CONFIG);
-    const regexRules: RegexRuleRecord[] = loaded.regexRules;
-    const ruleMetas = new Map<string, RuleMeta>();
-    for (const rule of regexRules) {
-        ruleMetas.set(rule.id, {id: rule.id, namespace: rule.namespace, review: rule.review, level: rule.level});
+    const {regexRules, ruleMetas} = await loadEvalRules();
+    const scans: SampleScan[] = [];
+    const overlapDocuments: OverlapHit[][] = [];
+    for (const sample of samples) {
+        const result = scanSample(sample, regexRules, ruleMetas);
+        scans.push(result.scan);
+        if (sample.role === "reference" || sample.role === "render") {
+            overlapDocuments.push(result.overlapHits);
+        }
     }
-    const scans = samples.map((sample) => scanSample(sample, regexRules, ruleMetas));
-    return {scans, ruleMetas, activeRegexRules: regexRules.length};
+    return {
+        scans,
+        ruleMetas,
+        activeRegexRules: regexRules.length,
+        overlap: computeOverlapStat(overlapDocuments),
+    };
 }
 
-function scanSample(sample: Sample, regexRules: RegexRuleRecord[], ruleMetas: Map<string, RuleMeta>): SampleScan {
+function scanSample(sample: Sample, regexRules: RegexRuleRecord[], ruleMetas: Map<string, RuleMeta>): {scan: SampleScan; overlapHits: OverlapHit[]} {
     const issues = scanText(sample.text, regexRules, {});
     const rawHitsByRule = new Map<string, number>();
     let agentRawHits = 0;
@@ -46,10 +66,16 @@ function scanSample(sample: Sample, regexRules: RegexRuleRecord[], ruleMetas: Ma
         }
     }
     return {
-        sample,
-        rawHitsByRule,
-        dedupSpanCount: countDedupSpans(sample.text, issues),
-        agentRawHits,
+        scan: {
+            sample,
+            rawHitsByRule,
+            dedupSpanCount: countDedupSpans(sample.text, issues),
+            agentRawHits,
+        },
+        overlapHits: issues.map((issue) => ({
+            ruleId: issue.rule.id,
+            spanKey: `${issue.line}:${issue.column}:${issue.endLine}:${issue.endColumn}:${issue.match}`,
+        })),
     };
 }
 

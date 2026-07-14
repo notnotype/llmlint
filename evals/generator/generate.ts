@@ -27,15 +27,18 @@ function resolveRepoPath(path: string): string {
     return isAbsolute(path) ? path : join(REPO_ROOT, path);
 }
 
-/** modelKey → HTTP 或 CLI 通道（providerId 命中 cliProviders 走 CLI）。 */
-function resolveAnyModel(config: RawConfig, modelKey: string, cliProviders: Record<string, CliProviderConfig>): AnyModel {
+/** modelKey → HTTP 或 CLI 通道（providerId 命中 cliProviders 走 CLI）。proxy 注入 CLI 子进程；providerTimeouts 覆盖 HTTP 墙钟。 */
+function resolveAnyModel(config: RawConfig, modelKey: string, cliProviders: Record<string, CliProviderConfig>, proxy?: string, providerTimeouts?: Record<string, number>): AnyModel {
     const slash = modelKey.indexOf("/");
     const providerId = slash > 0 ? modelKey.slice(0, slash) : "";
     const cli = cliProviders[providerId];
     if (cli) {
-        return resolveCliModel(providerId, modelKey.slice(slash + 1), cli);
+        return resolveCliModel(providerId, modelKey.slice(slash + 1), cli, proxy);
     }
-    return resolveModel(config, modelKey);
+    const resolved = resolveModel(config, modelKey);
+    // per-provider 超时覆盖（如 doubao 推理模型长章需要更长墙钟）。
+    const override = providerTimeouts?.[providerId];
+    return override ? {...resolved, timeoutMs: override} : resolved;
 }
 
 type Options = {
@@ -56,6 +59,13 @@ async function run(opts: Options): Promise<void> {
     const evalConfig = loadEvalConfig(opts.evalConfig);
     const config = loadConfig(resolveRepoPath(opts.config || evalConfig.modelsConfig));
     const cliProviders = evalConfig.cliProviders ?? {};
+    // proxy：设进程 env → Bun fetch（pi-ai HTTP 调用）+ spawn 子进程（CLI）都走代理（所有 provider 支持 http proxy）。
+    if (evalConfig.proxy) {
+        process.env.HTTP_PROXY = evalConfig.proxy;
+        process.env.HTTPS_PROXY = evalConfig.proxy;
+        process.env.http_proxy = evalConfig.proxy;
+        process.env.https_proxy = evalConfig.proxy;
+    }
 
     // 可靠性配置：重试参数 + per-provider 限流，注入 model-client。
     configureModelClient({
@@ -72,8 +82,8 @@ async function run(opts: Options): Promise<void> {
     }
 
     const modelKeys = opts.models ? opts.models.split(",").map((k) => k.trim()).filter(Boolean) : evalConfig.renderModels;
-    const models = modelKeys.map((key) => resolveAnyModel(config, key, cliProviders));
-    const extractor = resolveAnyModel(config, opts.extractor || evalConfig.extractor, cliProviders);
+    const models = modelKeys.map((key) => resolveAnyModel(config, key, cliProviders, evalConfig.proxy, evalConfig.providerTimeouts));
+    const extractor = resolveAnyModel(config, opts.extractor || evalConfig.extractor, cliProviders, evalConfig.proxy, evalConfig.providerTimeouts);
     const promptVersions = {
         brief: opts.promptBrief || evalConfig.prompts.brief || DEFAULT_PROMPT_VERSIONS.brief,
         render: opts.promptRender || evalConfig.prompts.render || DEFAULT_PROMPT_VERSIONS.render,
@@ -163,6 +173,12 @@ async function run(opts: Options): Promise<void> {
                 }
                 if (visibleLength(text) === 0) {
                     console.log(`  ⚠ ${group.genre}/${group.plot} ${ref.file} ← ${model.modelKey}：空输出，跳过`);
+                    continue;
+                }
+                // 拒答/截断守门：render 远短于目标（<20% 且 <400 字）多半是安全拒答或补全截断（如 gemini 偶发
+                // "我必须绕过该话题…"）。这类"伪 render"若入库会污染 lift/检测器，宁跳勿留。
+                if (visibleLength(text) < Math.min(400, targetChars * 0.2)) {
+                    console.log(`  ⚠ ${group.genre}/${group.plot} ${ref.file} ← ${model.modelKey}：疑似拒答/截断（${visibleLength(text)} 字 ≪ ref ${targetChars}），跳过`);
                     continue;
                 }
                 writeFileSync(renderPath, `${text}\n`, "utf-8");

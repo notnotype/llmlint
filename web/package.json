@@ -12,9 +12,11 @@
         "build": "bun scripts/build-registry.ts && bun scripts/build-report.ts && nuxt build",
         "generate": "bun scripts/build-registry.ts && bun scripts/build-report.ts && nuxt generate",
         "preview": "nuxt preview",
-        "typecheck": "bun scripts/build-registry.ts && vue-tsc --noEmit"
+        "typecheck": "bun scripts/build-registry.ts && vue-tsc --noEmit",
+        "typecheck:server": "vue-tsc --noEmit -p .nuxt/tsconfig.server.json"
     },
     "dependencies": {
+        "@floating-ui/dom": "^1.7.6",
         "@libsql/client": "^0.17.4",
         "@libsql/isomorphic-ws": "^0.1.5",
         "@prisma/adapter-libsql": "^7.8.0",
@@ -26,16 +28,18 @@
         "@tiptap/starter-kit": "3.23.1",
         "@tiptap/vue-3": "3.23.1",
         "@vueuse/core": "^14.3.0",
+        "diff-match-patch": "^1.0.5",
         "nuxt-auth-utils": "^0.5.29",
         "zod": "^4.4.3"
     },
     "devDependencies": {
         "@iconify-json/lucide": "^1.2.68",
         "@nuxtjs/color-mode": "^3.5.2",
-        "prisma": "^7.8.0",
+        "@types/diff-match-patch": "^1.0.36",
         "@unocss/nuxt": "^66.6.2",
         "nuxt": "^4.3.1",
         "playwright-core": "^1.49",
+        "prisma": "^7.8.0",
         "typescript": "^5.9.3",
         "unocss": "^66.6.2",
         "vue": "^3.5.24",

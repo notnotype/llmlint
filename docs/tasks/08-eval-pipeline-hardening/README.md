@@ -95,3 +95,145 @@
 - mobi→epub 转换质量参差 → clean 阶段人工抽查；calibre 处理中文书名路径注意 spawn 编码。
 - `codex exec` 在本机是否可用未验证（M2 先 `--check` 单模型 smoke）。
 - doubao render 长度不稳（同模型偶发大幅欠长）已知，byModel 分层会显形，不修。
+
+## Implementation Log
+
+### M1 数据摄入 + catalog 建模（2026-07-03 完成）
+- neuro-book `.gitignore` 补 `datasets/aigc-detection/books/` + `converted/`（I11，已 check-ignore 验证）。
+- `evals/acquire/calibre.ts`：`ebook-convert` 幂等包装（数组参数 spawn，中文路径安全）；实测转天龙八部/甄嬛传两本 mobi→epub 成功。
+- `evals/acquire/catalog.ts`：catalog 状态层（`manifest.tsv` 为书目真相源，按 `dataset_relative_path` 引用，不复制字段）+ 中文题材→genreKey 映射表。
+- `evals/acquire/candidates.ts`：候选清单工具（章题/字数/切段数/开头预览），供人工选章。
+- clean.ts 补两处：`^Google 谷歌` 站点水印行过滤；`segmentChapter` 空行切不开时回退按单换行分段（calibre epub 无空行段落，否则整章成不可切巨段）。
+- **入语料 3 新题组**（用户选定，风格/POV/年代拉满差异）：`wuxia/tianlong-babu`（金庸/1963/6单元）、`gongdou/zhenhuan-zhuan`（流潋紫/2007/5单元，章短~1.4k）、`wuxianliu/wuxian-kongbu`（zhttty/2007/5单元）。catalog.json 记 curation 状态。
+
+### M2 generator 硬化（2026-07-03 完成）
+- **配置双文件**：`eval.config.example.json`（进 git，无密钥）+ `eval.config.json`（gitignore，注入真 key）；`eval-config.ts` loader（json>example>内置默认）。相对 `modelsConfig`/`datasetsRoot` 按 llmlint 仓根解析（I10，跨仓读 NeuroBook config）。
+- **prompts.ts 版本化注册表**（I8）：brief-v2 / render-v1 迁入，未知版本直接抛；meta.json 每题组写 `promptVersion {brief,render}`；`corpus.ts` 消费侧发现跨题组 render 版本混用→告警。
+- **CLI transport**（`cli-transport.ts`）：spawn（Win 下 `cmd /c`）、prompt 走 stdin、system+user 合并契约 `system\n\n---\n\nuser`、claude `--output-format json` 拿真实 usage；接入同一 classifyOutcome/callWithRetry/gate。**⚠ 未端到端验证**：测试环境 anyrouter 的 `claude -p` 网络挂起（90s 无输出）、`codex exec` 反复 "Reconnecting… 1/5"——上游不可达，非 transport 代码问题（deepseek HTTP smoke 1s 正常）。已把 CLI timeout 降到 120s 快退、默认 render 面板不含 CLI 模型（需要时 `--models` 显式加）。
+- **限流**（`rate-limit.ts`）：per-provider 并发信号量 + minIntervalMs；`model-client` 两通道汇合于 `callModelDetailed`（经 gate + 统一重试）。
+- **重试配置化**：`retry {maxAttempts, backoffBaseMs}` 从代码常量提进 eval.config，注入 model-client。
+- **token 预算**（`budget.ts`）：`--estimate` 干跑分模型汇总（brief 已抽则实读、否则按目标字 0.5 估）；真跑实报 usage（CLI text 通道无 usage 标"估算"）；自校准（预估 vs 实报 output 修正 charsPerToken 写回 `report/budget-calibration.json`）。
+- **commander 化**：generate.ts / score.ts 换 commander（flag 语义兼容）。
+- **验证**：tsc 0 error；`bun test` model-client(10)+hardening(5) 全过；`--estimate` 全默认 5 模型面板跑通（跨仓 config 解析 ✓、断点续跑感知 ✓ deepseek 16 vs gemini 26、预算 ✓ ≈332k token）；`--check` deepseek HTTP smoke ✓。
+
+### M3 外部检测器（2026-07-03 完成）
+- **HF API 实测确认**（写进资源清单）：gradio 5.7.1，`POST /gradio_api/call/predict_zh {data:[text]}` → event_id → SSE `["标签","prob"]`；静默截断证实（>窗口尾部不可见）；域偏移（真人类章节被判偏 AI）。
+- `detector/chunk.ts`：句界对齐分块（~450 字，不切断句子，尾块<150 并前，span 回指原文）；4 个纯逻辑测试过（句界/偏移/并块/无标点兜底）。
+- `detector/hf-client.ts`：`DetectorClient` 接口（可换）+ `HfDetector`；P(AI) 归一化（标签=人类→1−prob）；文档级聚合**长度加权 mean（主）+ max/p75（副）**；限速 + 冷启动退避重试。
+- `detector/detect.ts`：commander CLI；**sidecar 缓存** `report/detector-scores.json`（key = 内容 sha256 + detector + version + chunkChars，内容变才失效）；外部对照摘要（reference vs render P(AI) 中位 + AUC + byModel）写进缓存。
+- **report 对照节**：`rocAuc` 从 metrics.ts 导出复用（与 llmlint AUC 同口径，保证公平对照）；`Report.externalDetector` 新字段；score.ts 读 detector-scores.json 的 summary 原样搬进 report.json（detect.ts 产出、score.ts 消费，单一真相源）；⚠ detector 分数是对照仪表，**不改 docScore/lift 任何计算**。
+- **验证**：tsc 0；chunk 测试 4/4 过；**真实 HF 端点跑通**——8 reference 样本 P(AI) 中位 **0.335**（chunked mean 比单发全文的 0.537 更像人，印证分块避开了截断伪影）；**sidecar 缓存生效**（重跑 8 命中/0 新打分）；detect→score→report.json 的 `externalDetector` 字段贯通（含 name/version/chunkChars/中位/AUC/byModel）。
+
+### M4 小验证轮（2026-07-03 完成）
+全链路真跑 `estimate → generate（断点续跑）→ score --holdout → detect → report`。
+
+**规模（实际 vs 计划）**：5 题组（旧 lotm/villain-loli + 新 wuxia/tianlong-babu、gongdou/zhenhuan-zhuan、wuxianliu/wuxian-kongbu）× 3 模型 / **65 render**。计划是"2–3 新题组 × 4–6 模型"；**出入**：① doubao 在两个新组反复撞 240s 超时，降级为 deepseek+mimo 2 模型跑完（gongdou 仍是 3 模型全的），so 新组模型覆盖不均；② 未上 gemini/glm（控 wall-clock，验证工具链够用）。
+
+**结果**：
+- **llmlint 检测器 AUC 0.681**（docScore 中位 人类 19.48 / AI 25.15，误杀 8.94）——**较旧 2 组的 0.833 下降**。根因不是回归而是**判别力 genre-dependent**：新增古典武侠（天龙八部 1963，文白夹杂）+ 宫斗 + 无限流后，规则集对网文体裁强、对古典/文学体裁弱被稀释出来——**这正是 task profile 论点的实证**（换语料=换 profile，判别力随之变）。
+- **holdout 首次解锁**（5 组 ≥4）：train 3 组 AUC 0.616 / **test 2 组 AUC 0.778**（test>train，未过拟合，小样本波动）。
+- **强判别 6 条**（跨 genre 存活的耐久 tell）：`repeated-de-pairs` effLift 5.05、`few-degree` 4.33、`subject-measure-word` 3.86、`baguwen.vague-amount-noun` 3.41（逐章 15/16）、`vague-transition-phrase` 3.14、`absolute-claim-modifier` 3.14。
+- **外部检测器对照（环②/④/漏网三挂载点的地基验证）**：HF 检测器 **AUC 0.941 ≫ llmlint 0.681**（同口径 rocAuc、同语料）；reference P(AI) 中位 0.285 / render 0.907。**证实"外部检测器是强 oracle 地基、不是对手"**——llmlint 差异化在可解释而非检测准确率；0.941↔0.681 的 gap = 检测器抓到但规则漏掉的样本 = **新规则矿**。
+- **模型榜 ⚠ 混面板 caveat**：doubao docScore 16.02 / 外部 P(AI) 0.747 双榜"最像人"，**但 doubao 只 render 了 gongdou（宫斗短章）**，是体裁混淆不是模型更强；deepseek（25.60 / 0.945）、mimo（29.19 / 0.923）覆盖全 5 组可比。
+- **预算自校准生效**：charsPerToken 1.5 → 1.275（真跑 est vs actual 修正，写回 budget-calibration.json）。
+- **断点续跑真实演练**：中途停/换面板重启，已完成 brief/render 全部跳过，只补缺格。
+
+**遗留**：doubao 新组补齐（3 模型均衡）、gemini/glm 上量、CLI transport 端到端（换可达 provider）留给后续正式轮。
+
+## 验收对照（计划 5 条；⚠ 两条已由补充轮关闭，2026-07-08 回写）
+1. `bun test` 89/89 过（含 model-client/hardening/chunk/metrics）✅
+2. report.json：新题组进 lift ✅、detector 对照节有数（AUC 0.941）✅、≥1 CLI 模型 render ✅（M4 当轮上游不可达曾降级 ⚠ → 补充轮 1/5 关闭：codex/gpt-5.5 与 claude-opus-4-8[1M]、claude-fable-5[1M] 均经 proxy 端到端产出 render 入面板）
+3. 断点续跑实测 ✅
+4. 密钥合规：eval.config.json 已 gitignore、example 无 key ✅
+5. CLI 模型输入等价性 ✅（M4 当轮因上游不可达未比对 ⚠ → 补充轮 1 关闭：codex 经 stdin/合并契约对同 brief 产出干净 88 字 render，JSONL 解析无 banner 污染、usage 真实回报 in12.7k/out388）
+
+## 补充轮：proxy + CLI 端到端 + provider 可用性排查（2026-07-03）
+
+**根因：所有 provider 访问要走 http proxy（`127.0.0.1:7890`）。** 上一轮"CLI 挂起/Reconnecting"全是**没走代理**导致——anyrouter TLS 握手在 schannel 阶段就断（curl exit 35 / http 000）。deepseek/HF 恰好直连能通才造成"只有 CLI 坏"的假象。
+
+**改动**：`eval.config` 加 `proxy` 字段 → generate.ts/detect.ts 启动时设 `HTTP(S)_PROXY` 进程 env（**Bun fetch（pi-ai HTTP）+ spawn 子进程（CLI）都走代理**）+ `resolveCliModel` 也把 proxy 注入 CLI 子进程 env。codex 输出改用 `--json` JSONL，新增 `parseCodexJson`（取末条 `item.completed` 且 `item.type=agent_message` 的 text + turn.completed 的 usage），output 类型扩为 `text|claude-json|codex-json`。
+
+**CLI transport 端到端验证 ✅（终于）**：codex/gpt-5.5 经 proxy 对一段科幻 brief 产出干净 88 字 render（JSONL 解析无 banner 污染、真实 usage in12.7k/out388、预算自校准 0.958、落盘）。这是 CLI transport 首次真正端到端跑通。
+
+**provider 可用性排查（用户要的"哪些确实不能用"）**：
+
+| provider / 模型 | transport | 结论 | 证据 |
+|---|---|---|---|
+| **anyrouter-codex / gpt-5.5** | CLI(codex) | ✅ **可用**（经 proxy） | 端到端产出 render，8s/次 |
+| **anyrouter-claude / claude-\*** | CLI(claude) | ❌ **后端 503**（暂不可用） | 经 proxy 连通但恒 `503 Service Unavailable`（含 opus-4-8/fable-5/sonnet；不带 1m-context header 时是 400"请启用 1m 上下文"，带了 header 转 503） |
+| **elysiver-glm / glm-5.2** | HTTP | ❌ **无权限**（不可用） | 16/16 终态 `403 无权访问 glm-5.2-shared 分组` |
+| **doubao / seed-2-1-pro** | HTTP | ⚠ **flaky** | 短章可出、长章反复 `240s 超时`（gongdou/light-novel 全出，wuxia 6 中仅 1，wuxianliu 0） |
+| **elysiver-gemini / gemini-3.1-pro** | HTTP | ✅ 可用但**篇幅失控** | 16/16 出，但 36–7361 字乱飘（常大幅超 ref） |
+| deepseek-v4-flash / mimo-v2.5-pro | HTTP | ✅ 稳定 | 全 5 组齐 |
+| bailian / qwen3.6-plus | HTTP | ❌ 缺 key | config.json 该 provider 无 apiKey |
+
+**补齐后最终面板（82 render / 4 可用模型）**：deepseek+mimo 全 5 组齐；gemini 3 组（gongdou/light-novel/wuxia）；doubao 部分；glm 0（死）。AUC **0.664**、**强判别升到 9**、holdout test 0.778、外部检测器 **AUC 0.944**（ref P(AI) 0.285 / render 0.923）。模型榜 docScore：doubao 16.51 < gemini 21.79 < deepseek 25.60 < mimo 29.19；外部检测器 P(AI)：doubao 0.716 < mimo 0.923 < gemini 0.939 < deepseek 0.945——**两个独立检测器都判 doubao 最不像 AI**（但都受 doubao 只 render 短章混淆，deepseek/mimo 最可比）。
+
+**遗留**：claude 系待 anyrouter 后端恢复再验；doubao 长章超时是模型行为（byModel 显形，不修）；glm-5.2 需账户开通 shared 分组权限；gemini 篇幅失控可加长度约束档。
+
+## 补充轮 2：claude/doubao 问题攻克（2026-07-03，调研 anyrouter 项目 + doubao/gemini）
+
+参考 `CodeProjects/anyrouter/anyrouter.js`（多账号管理器，30 个 Tomato 账号 + keepalive/preempt）后，**claude 与 doubao 都攻克**：
+
+- **claude ✅ 端到端跑通**（此前"503"是误判）。两个真因：① 之前那个 key（sk-AL2BT5）是**额度耗尽的账号** → 换 `anyrouter.js apikey` 取有额度账号 key（默认 Tomato90 有 $150 额度）后不再 503。② anyrouter 用**模型名 `[1M]` 后缀**启用 1M 上下文——裸 `claude-sonnet-4-5` 报 400"请启用1m上下文"，`claude-opus-4-8[1M]` 直接成功。线索来自 shell env 里现成的 `ANTHROPIC_DEFAULT_OPUS_MODEL=claude-opus-4-8[1M]`。anyrouter.js 调 claude 的方式与我完全一致（`claude -p --model` + 同 env），差别只在 key 和模型名。**`claude-opus-4-8[1M]` 经 pipeline 产出干净 render**（in3.7k/out371）；sonnet[1M] 偏慢易超时（claude timeout 提到 300s）。
+- **doubao ✅ 换模型解决**。`doubao-seed-2-1-pro` 是**推理模型**，长章（brief 长）时思考烧满 240s 墙钟 → 超时。换**写作模型 `doubao-seed-character-251128`**：同一条 tianlong 长章（4064 字 ref）**13.7 秒**产出 2948 字正规武侠正文（vs 2-1-pro 的 240s×3 全超时）。默认面板已改用 character。
+- **gemini：非损坏，但两个毛病**。① 篇幅偏长（1791–2619 字连贯散文，无 markdown/作者注，只是话多）；② **偶发安全拒答被当 render 写入**——`zhenhuan-zhuan/render-0005` 是 36 字 "我必须绕过该话题…"。**已加拒答/截断守门**（render < min(400, 目标×0.2) 字判伪 render 跳过），并删除该污染样本 + 从 meta 摘除。
+- **bailian（llm_api.txt 的 qwen3.7-plus/qwen3.6-plus/kimi-k2.6/MiniMax-M2.5）：config.json 里 bailian `apiKey` 为空**，且无其它 provider 供这些模型 → **需要一个百炼(dashscope)key 才能用**（待用户提供）。
+
+**更新后 provider 结论**：✅ deepseek / mimo / **doubao-seed-character-251128** / gemini(话多+加了拒答守门) / codex-gpt5.5(CLI) / **claude-opus-4-8[1M](CLI，需有额度账号key)**；❌ glm-5.2(403无权限)、bailian(缺key)、doubao-seed-2-1-pro(推理超时,已弃)。默认 render 面板 = deepseek+mimo+doubao-character+gemini（4 稳定），CLI/claude 需要时 `--models` 显式加。
+
+## 补充轮 3：超时可配 + bailian 禁用 + brief 溯源（2026-07-03）
+
+- **doubao 超时加大（用户要求）**：`model-client.ts` 原有 240s **硬上限** `capMs=min(provider.timeoutMs,240s)` 会截断任何更长的 provider 超时。改：① `HARD_TIMEOUT_CAP_MS` 240s→**600s**（给推理模型长章足够时间；⚠ 副作用=真挂起的兜底也变 600s）；② eval.config 加 **`providerTimeouts`**（providerId→ms）经 `resolveAnyModel` 覆盖 HTTP 模型墙钟。配 `{"doubao": 600000}` → doubao 有效超时 600s（实测 resolve 生效）。这样只 doubao 放宽、其它模型仍走各自 provider 默认。
+- **bailian 禁用不测（用户要求）**：renderModels 已不含 bailian；example 加 `$note_bailian` 说明"config.json 里 bailian apiKey 为空，需补百炼(dashscope) key 才能用"。
+- **brief 溯源（用户问）**：brief 生成模型 = `extractor` = **`xiaomi-token-plan-cn/mimo-v2.5-pro`**（可换）；prompt = `generator/prompts.ts` 的 **`brief-v2`**（"剧情拆解助手"，只记剧情内容、严禁文体，守 I1；输出 题材视角/人物/节拍/信息控制/情绪走向，maxTokens 4000）。
+- 配置最终态：`renderModels = deepseek + mimo + doubao-seed-character-251128 + gemini`，`extractor = mimo`，`proxy = 127.0.0.1:7890`，`providerTimeouts.doubao = 600s`，`cliProviders` claude(opus-4-8[1M]/300s) + codex(gpt-5.5)。测试 105/105、tsc 0、无密钥泄漏。
+
+## 补充轮 4：干净均衡面板重评（2026-07-03，禁 doubao + 扩样本）
+
+用户要求"扩大样本 + doubao 也禁用"。删除全部 doubao render（14 条，文件+meta），面板改为 **deepseek + mimo + gemini 三模型**，补齐到每组每模型齐全（gemini 补 wuxianliu/lotm）。**首次得到均衡面板**：deepseek 26 / mimo 26 / gemini 25（一条 gemini 对无限恐怖恐怖章的安全拒答被拒答守门 28 字挡下）/ 77 render。
+
+**去掉 doubao 混淆后判别信号显著变强**（同语料同规则）：
+| 指标 | 混面板(82,含doubao) | **均衡(77,无doubao)** |
+|---|---|---|
+| llmlint AUC | 0.664 | **0.727** ↑ |
+| 强判别规则 | 9 | **15** ↑ |
+| holdout test AUC | 0.778 | **0.807** ↑ |
+| 外部检测器 AUC | 0.944 | **0.968** ↑ |
+
+- 强判别 top：`repeated-de-pairs` 5.37 / `rough-manner-modifier` 4.75 / `few-degree` 4.54 / `vague-transition-phrase` 4.33 / `baguwen.vague-amount-noun` 3.87(15/16)。
+- **模型榜现在可比**（均衡面板）：docScore gemini 22.26 < deepseek 25.60 < mimo 29.19；外部 P(AI) mimo 0.923 < deepseek 0.945 < gemini 0.969。
+- **有意思的分歧**：gemini 在 llmlint 上最"像人"（docScore 最低 22.26，话多但规则密度低），在神经检测器上却最"像 AI"（P(AI) 0.969 最高）——**它的啰嗦干净散文躲过了表层规则、却被神经检测器抓住**，正是"漏网新规则矿"的活案例（环③新规则来源）。
+- doubao 之前"双检测器最像人"确认是**混淆假象**（只 render 短章）——移除后该伪结论消失。
+
+## 补充轮 5：加 anyrouter CLI 模型（2026-07-03，用户要求试 gpt-5.5/claude 系）
+
+把 anyrouter 5 个模型逐个 smoke（经 proxy + 有额度账号 key）：**gpt-5.5 ✅、claude-opus-4-8[1M] ✅、claude-fable-5[1M] ✅**；**claude-opus-4-6 已下线、claude-opus-4-7 两次 180s 超时无输出**（anyrouter claude 延迟受账号队列/挤占主导，见 anyrouter.js keepalive/preempt）。把 3 个可用的加进面板生成——**全量 26×3 太慢**（claude 队列，~2.5hr），跑到 gongdou 全 + light-novel 部分即停（各模型 n=7–8，宫斗+轻小说 2 体裁；孤儿 render 已补进 meta）。
+
+**最重要发现——两检测器交叉对照暴露 claude 的隐身能力**（每模型 llmlint docScore vs 外部神经检测器 P(AI)）：
+
+| 模型 | llmlint docScore（越低越像人） | 外部 P(AI)（越低越像人） | n |
+|---|---|---|---|
+| gemini-3.1-pro | 22.26 | 0.969 | 25 |
+| deepseek-v4-flash | 25.60 | 0.945 | 26 |
+| gpt-5.5 | 25.72 | 0.941 | 8 |
+| **claude-fable-5[1M]** | **27.16** | **0.071** | 7 |
+| **claude-opus-4-8[1M]** | **28.52** | **0.130** | 8 |
+| mimo-v2.5-pro | 29.19 | 0.923 | 26 |
+
+- 除 claude 外**所有模型两检测器一致**（高 docScore ↔ 高 P(AI)，都被判 AI）。
+- **claude 系是唯一反例**：外部神经检测器判它**近乎人类**（P(AI) 0.07–0.13，读作 87–93% 人类），是所有模型里最难被神经检测的中文 AI 文本；**但 llmlint 的可解释规则仍抓住它**（docScore 27–28 ≫ 人类 19.48）。
+- **这是 llmlint 价值主张的最强证据**：当黑盒神经检测器在最强模型（claude）上失效时，规则 linter 仍能顶出 AI 味、且能指出**是哪条规则**。对照 gemini（llmlint 漏、神经抓）恰好互补——**两个检测器各有盲区，规则库 + 神经检测器联用才完整**（呼应四环体系"检测器是地基不是对手 + 漏网探测器"）。
+- ⚠ caveat：CLI 模型 n=7–8（仅 宫斗+轻小说 2 体裁），非 5 体裁全覆盖；claude"读作人类"是 15 样本 2 体裁的强信号，值得深挖但非终论。外部整体 AUC 因 claude 拉低到 0.870（不是回归，是 claude 难检测把 AI 分布拉向人类侧）。
+- 可用 provider 追加：gpt-5.5(codex)、claude-opus-4-8[1M]、claude-fable-5[1M]（均 CLI，需 proxy+有额度账号 key）；claude-opus-4-6(下线)/4-7(超时) 不可用。
+
+## 后续演进与交接（2026-07-07/08，跨任务链接）
+
+本任务 Goal（M1→M4）已于 2026-07-03 全部完成，无未竟里程碑。用户 2026-07-07 指令转向「web + llm render helper 两条通路」，以下是**建立在本管线之上**的后续演进，实现细节归各自 walkthrough，此处记录对本管线的增量与配置漂移：
+
+- **线 A repair 一轮循环（[Task 14](../14-line-a-repair-loop/README.md)）**：直接复用本任务 M2 的全部硬化设施（eval.config 双文件、限流/重试/token 预算、断点续跑、拒答守门口径）与 M3 的检测器 sidecar 缓存；generator 新增 `repair.ts` + `repair-v1` prompt（I8 版本化注册表扩展）；**meta 契约新增 `repairOf` 字段**（METHODOLOGY §6 已同步）；`report.repair` 配对统计（不触 lift/AUC，零漂移验证）。首批 5 对：docScore 中位 25.32→19.58（−20%）而神经检测器仅 −0.7pp——**表层规则一轮修复撼不动神经检测器**，与补充轮 5 的盲区互补结论同向。
+- **eval.config 配置漂移（用户拍板，Task 13 D-E）**：`classifier.model` 与 `repair.model` 由 deepseek 改为 **`xiaomi-token-plan-cn/mimo-v2.5-pro`**（LLM 通道统一先用 mimo）；renderModels/extractor/proxy/cliProviders 不变。
+- **M3 检测器口径进 web（[Task 13](../13-web-five-step-flow/README.md) W3）**：`detector/chunk.ts` 句界分块纯函数经 alias 复用进 nitro 服务端，gradio 协议/P(AI) 换算/长度加权聚合同算法落 `MachineDetect`（含热力图 chunksJson）；nitro=node 侧代理用 `node-fetch-native/proxy` dispatcher（Bun env 注入方案不适用于 undici，本任务补充轮 1 的 proxy 结论在 node 侧的等价物）。
+- **report 判别产物进产品（Task 13 D-D）**：`report.json` 的 per-rule verdict 构建期烘进 web `registry.json`（160 条，strong 7），驱动「强判别静态替换」过滤——**发现 strong∩auto 当前为空集**（7 条 strong 全 candidate），产品级一键清理近不可见属数据现状。
+
+仍属未来工作（归 METHODOLOGY §7 路线图，不归本任务）：M3-C brief/extractor 元评测、M4-of-方法论 的 realism 难度档与 critic、doubao/gemini/claude 面板均衡上量。

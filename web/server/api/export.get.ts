@@ -1,80 +1,104 @@
 import {requireAdmin} from "../utils/auth";
+import {liftAdmissible} from "../utils/gates";
+import type {MachineDetectDto, MachineScanHitDto} from "../utils/scan";
 import {prisma} from "../database/prisma";
 
-type ExportHitDto = {
-    ruleId: string;
-    span: {start: number; end: number};
-    level: string;
-    review: string;
-};
-
-type ExportMachineRecordDto = {
-    id: string;
-    textId: string;
-    engineVersion: string;
-    hits: ExportHitDto[];
-    scannedAt: string;
-};
-
 /**
- * 管理员导出检测数据，按 engineVersion 分组供 Task 03 后处理。
+ * 管理员导出检测数据：文档信封 + 完整修订谱系，机器断言按拆分后的表 dump
+ * （每版 machineScans / machineDetects 数组，Task 12/13），外加按 engineVersion 的扫描索引
+ * 供 Task 03 后处理（规则会变，跨版本命中不可直接比）。
+ * phase(pre/post) 与 target(original/edit) 由 revision.ordinal 派生，保持对下游的旧语义。
+ * 每个 revision 附 liftAdmissible 准入标记（W5 闸门，utils/gates.ts），下游 lift/检测器训练按它过滤。
  */
-export default defineEventHandler(async (event): Promise<{engineVersions: Record<string, {texts: unknown[]; judgments: unknown[]; annotations: unknown[]; machineRecords: ExportMachineRecordDto[]}>}> => {
+export default defineEventHandler(async (event) => {
     await requireAdmin(event);
     const texts = await prisma.text.findMany({
         include: {
-            judgments: true,
-            annotations: true,
-            machineRecord: true,
+            revisions: {
+                orderBy: {ordinal: "asc"},
+                include: {machineScans: true, machineDetects: true, judgments: true, annotations: true},
+            },
         },
         orderBy: {createdAt: "asc"},
     });
 
-    const engineVersions: Record<string, {texts: unknown[]; judgments: unknown[]; annotations: unknown[]; machineRecords: ExportMachineRecordDto[]}> = {};
-    for (const text of texts) {
-        const version = text.machineRecord?.engineVersion ?? "unscanned";
-        engineVersions[version] ??= {texts: [], judgments: [], annotations: [], machineRecords: []};
-        engineVersions[version].texts.push({
-            id: text.id,
-            body: {text: text.body, charCount: text.charCount},
-            classification: {genre: text.genre, pov: text.pov, textType: text.textType},
-            origin: {
-                kind: text.originKind === "user_upload" ? "user-upload" : "seeded-gold",
-                declaredProvenance: text.declaredProvenance,
-                trueProvenance: text.goldProvenance,
-            },
-            ownership: {uploaderId: String(text.uploaderId), visibility: text.visibility, consent: text.consent},
-            createdAt: text.createdAt.toISOString(),
-        });
-        engineVersions[version].judgments.push(...text.judgments.map((judgment) => ({
-            id: judgment.id,
-            textId: judgment.textId,
-            userId: String(judgment.userId),
-            scores: {aiFlavor: judgment.aiFlavor, wantReadOn: judgment.wantReadOn},
-            phase: judgment.phase === "pre_edit" ? "pre-edit" : "post-edit",
-            blind: judgment.blind,
-            createdAt: judgment.createdAt.toISOString(),
-        })));
-        engineVersions[version].annotations.push(...text.annotations.map((annotation) => ({
-            id: annotation.id,
-            textId: annotation.textId,
-            userId: String(annotation.userId),
-            target: annotation.target,
-            span: {start: annotation.start, end: annotation.end},
-            note: annotation.note,
-            createdAt: annotation.createdAt.toISOString(),
-        })));
-        if (text.machineRecord) {
-            const parsedHits = JSON.parse(text.machineRecord.hitsJson) as ExportHitDto[];
-            engineVersions[version].machineRecords.push({
-                id: text.machineRecord.id,
-                textId: text.machineRecord.textId,
-                engineVersion: text.machineRecord.engineVersion,
-                hits: parsedHits,
-                scannedAt: text.machineRecord.scannedAt.toISOString(),
-            });
-        }
-    }
+    const byEngineVersion: Record<string, Array<{textId: string; revisionId: string}>> = {};
+    const exportedTexts = texts.map((text) => ({
+        id: text.id,
+        classification: {
+            genre: text.genre,
+            genreSource: text.genreSource,
+            pov: text.pov,
+            povSource: text.povSource,
+            textType: text.textType,
+            textTypeSource: text.textTypeSource,
+        },
+        origin: {
+            kind: text.originKind,
+            declaredProvenance: text.declaredProvenance,
+            sourceNote: text.sourceNote,
+            modelKey: text.modelKey,
+            genParamsJson: text.genParamsJson,
+        },
+        ownership: {uploaderId: String(text.uploaderId), visibility: text.visibility, consent: text.consent},
+        createdAt: text.createdAt.toISOString(),
+        revisions: text.revisions.map((revision) => {
+            for (const scan of revision.machineScans) {
+                const bucket = (byEngineVersion[scan.engineVersion] ??= []);
+                bucket.push({textId: text.id, revisionId: revision.id});
+            }
+            return {
+                id: revision.id,
+                ordinal: revision.ordinal,
+                parentId: revision.parentId,
+                transitionKind: revision.transitionKind,
+                // lift 闸门标记（D1/I5 + revision 维度）：curated/generated 的 rev0 = true，其余 false。
+                liftAdmissible: liftAdmissible({originKind: text.originKind, ordinal: revision.ordinal}),
+                body: {text: revision.body, charCount: revision.charCount},
+                provenanceJson: revision.provenanceJson,
+                revealedAt: revision.revealedAt?.toISOString() ?? null,
+                createdAt: revision.createdAt.toISOString(),
+                machineScans: revision.machineScans.map((scan) => ({
+                    id: scan.id,
+                    engineVersion: scan.engineVersion,
+                    hits: JSON.parse(scan.hitsJson) as MachineScanHitDto[],
+                    docScore: scan.docScore,
+                    scannedAt: scan.scannedAt.toISOString(),
+                })),
+                machineDetects: revision.machineDetects.map((detect) => ({
+                    id: detect.id,
+                    detectorName: detect.detectorName,
+                    detectorVersion: detect.detectorVersion,
+                    chunkChars: detect.chunkChars,
+                    docPAi: detect.docPAi,
+                    maxPAi: detect.maxPAi,
+                    chunks: JSON.parse(detect.chunksJson) as MachineDetectDto["chunks"],
+                    checkedAt: detect.checkedAt.toISOString(),
+                })),
+                judgments: revision.judgments.map((judgment) => ({
+                    id: judgment.id,
+                    userId: String(judgment.userId),
+                    scores: {
+                        aiFlavor: judgment.aiFlavor,
+                        wantReadOn: judgment.wantReadOn,
+                        improvementScore: judgment.improvementScore,
+                    },
+                    comment: judgment.comment,
+                    phase: revision.ordinal === 0 ? "pre-edit" : "post-edit",
+                    blind: judgment.blind,
+                    createdAt: judgment.createdAt.toISOString(),
+                })),
+                annotations: revision.annotations.map((annotation) => ({
+                    id: annotation.id,
+                    userId: String(annotation.userId),
+                    target: revision.ordinal === 0 ? "original" : "edit",
+                    span: {start: annotation.start, end: annotation.end},
+                    note: annotation.note,
+                    createdAt: annotation.createdAt.toISOString(),
+                })),
+            };
+        }),
+    }));
 
-    return {engineVersions};
+    return {texts: exportedTexts, byEngineVersion};
 });

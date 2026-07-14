@@ -1,7 +1,7 @@
 // metrics.ts 数学守门（bun test）。只测度量层，不碰引擎/语料 IO：直接喂合成 SampleScan。
 // 关键守门点：docScore 必须走「去重 span」而非「原始命中求和」——故意让两者不相等来证明口径。
 import {test, expect} from "bun:test";
-import {computeMetrics} from "./metrics";
+import {computeMetrics, computeRepairStat} from "./metrics";
 import type {RuleMeta} from "./scan";
 import type {Sample, SampleScan} from "./types";
 
@@ -85,5 +85,62 @@ test("pairRef 逐章 1:1 配对计数", () => {
     const rule = computeMetrics(paired, meta, 1).rules.find((r) => r.id === "r")!;
     expect(rule.pairsTotal).toBe(2);     // 逐章两对（非题组级一对）
     expect(rule.pairsAiGreater).toBe(1); // 仅 A 章 AI>人类
+});
+
+// ── repair 配对统计（I5：单独统计，不进 lift/AUC）──
+
+/** 合成 repair 场景：render-a（span 10）修出 repair-a（6，改善）、render-b（4）修出 repair-b（8，恶化）、repair-x 孤儿。 */
+function repairScans(): SampleScan[] {
+    const ren = (file: string, span: number): SampleScan => mkScan({...mkSample("render", "g1", "m-render"), file}, {}, span, 0);
+    const rep = (file: string, repairOf: string, span: number): SampleScan => mkScan({...mkSample("repair", "g1", "m-fixer"), file, repairOf}, {}, span, 0);
+    return [
+        mkScan(mkSample("reference", "g1", undefined), {}, 1, 0),
+        ren("render-a.md", 10),
+        ren("render-b.md", 4),
+        rep("repair-a.md", "render-a.md", 6),
+        rep("repair-b.md", "render-b.md", 8),
+        rep("repair-x.md", "render-gone.md", 2), // 源 render 不存在 → 孤儿
+    ];
+}
+
+test("computeRepairStat：docScore before/after 逐对配对 + 孤儿计数", () => {
+    const stat = computeRepairStat(repairScans())!;
+    expect(stat.total).toBe(2);
+    expect(stat.orphans).toBe(1);
+    expect(stat.docScoreMedianBefore).toBe(7);  // median(10, 4)
+    expect(stat.docScoreMedianAfter).toBe(7);   // median(6, 8)
+    expect(stat.docScoreMedianDelta).toBe(0);   // median(-4, +4)
+    expect(stat.docScoreImproved).toBe(1);      // 仅 a 对改善
+    expect(stat.pairs.find((p) => p.repairFile === "repair-a.md")!.renderModel).toBe("m-render");
+    expect(stat.pairs.find((p) => p.repairFile === "repair-a.md")!.repairModel).toBe("m-fixer");
+    expect(stat.externalCovered).toBe(0);       // 未给外部查表 → 缺省
+    expect(stat.externalMedianBefore).toBeNull();
+});
+
+test("computeRepairStat：外部检测器只统计两侧都覆盖的对；无 repair 样本返回 null", () => {
+    // 仅 a 对两侧都有分；b 对缺 after 分 → 不进外部口径。key = `${genre}/${plotId}/${file}`（genre 恒 "t"）。
+    const ext = new Map([
+        ["t/g1/render-a.md", 0.9],
+        ["t/g1/repair-a.md", 0.4],
+        ["t/g1/render-b.md", 0.8],
+    ]);
+    const stat = computeRepairStat(repairScans(), ext)!;
+    expect(stat.externalCovered).toBe(1);
+    expect(stat.externalMedianBefore).toBe(0.9);
+    expect(stat.externalMedianAfter).toBe(0.4);
+    expect(stat.externalMedianDelta).toBeCloseTo(-0.5, 10);
+    expect(stat.externalImproved).toBe(1);
+    // docScore 口径不受外部覆盖影响（两对照报）。
+    expect(stat.total).toBe(2);
+    // 无 repair 样本 → null（report.repair = null）。
+    expect(computeRepairStat(repairScans().filter((s) => s.sample.role !== "repair"))).toBeNull();
+});
+
+test("repair 样本不进主判别统计（I5）：detector/counts 口径", () => {
+    const metrics = computeMetrics(repairScans(), new Map(), 1);
+    expect(metrics.detector.aiCount).toBe(2);      // 只有 render 算 AI 类
+    expect(metrics.detector.humanCount).toBe(1);
+    expect(metrics.counts.repair).toBe(3);         // counts 如实报 repair 数
+    expect(metrics.modelRanking.map((r) => r.model)).toEqual(["m-render"]); // 修复模型不进模型榜
 });
 

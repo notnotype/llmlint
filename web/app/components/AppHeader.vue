@@ -18,6 +18,8 @@ const route = useRoute();
 const router = useRouter();
 const auth = useAuthState();
 const currentUser = auth.user;
+const authEnabled = auth.authEnabled;
+const authLoaded = auth.loaded;
 const notification = useNotification();
 const {resolvedTheme, setTheme} = useLlmlintTheme();
 const {t} = useLlmlintI18n();
@@ -26,7 +28,7 @@ const showSettings = ref(false);
 const userMenuItems = computed<DropdownItem[]>(() => {
     if (currentUser.value) {
         return [
-            {label: t("header.contribute"), value: "contribute", iconClass: "i-lucide-database-zap", active: route.path === "/contribute"},
+            {label: t("header.contribute"), value: "contribute", iconClass: "i-lucide-scan-text", active: route.path === "/contribute"},
             {label: t("header.logout"), value: "logout", iconClass: "i-lucide-log-out"},
         ];
     }
@@ -103,12 +105,13 @@ onMounted(async () => {
                 <span class="hidden text-sm text-[var(--text-muted)] sm:inline">{{ t("header.subtitle") }}</span>
             </div>
             <div class="hidden h-4 w-px bg-[var(--border-color)] sm:block"></div>
-            <!-- 主导航 -->
+            <!-- 主导航（W9-C 入口统一：playground 检测链接已删，/contribute 即唯一「检测」入口） -->
             <nav class="flex min-w-0 items-center gap-1 text-sm">
-                <NuxtLink to="/" class="rounded px-2 py-1 hover:bg-[var(--bg-hover)]" :class="route.path === '/' ? 'font-semibold text-[var(--text-main)]' : 'text-[var(--text-muted)]'">{{ t("header.check") }}</NuxtLink>
-                <NuxtLink to="/report" class="rounded px-2 py-1 hover:bg-[var(--bg-hover)]" :class="route.path === '/report' ? 'font-semibold text-[var(--text-main)]' : 'text-[var(--text-muted)]'">{{ t("header.report") }}</NuxtLink>
-                <NuxtLink to="/dataset" class="rounded px-2 py-1 hover:bg-[var(--bg-hover)]" :class="route.path === '/dataset' ? 'font-semibold text-[var(--text-main)]' : 'text-[var(--text-muted)]'">{{ t("header.dataset") }}</NuxtLink>
                 <NuxtLink to="/contribute" class="rounded px-2 py-1 hover:bg-[var(--bg-hover)]" :class="route.path === '/contribute' ? 'font-semibold text-[var(--text-main)]' : 'text-[var(--text-muted)]'">{{ t("header.contribute") }}</NuxtLink>
+                <NuxtLink to="/report" class="rounded px-2 py-1 hover:bg-[var(--bg-hover)]" :class="route.path === '/report' ? 'font-semibold text-[var(--text-main)]' : 'text-[var(--text-muted)]'">{{ t("header.report") }}</NuxtLink>
+                <!-- 规则库入口（Task 15 P1-D /rules 规则页） -->
+                <NuxtLink to="/rules" class="rounded px-2 py-1 hover:bg-[var(--bg-hover)]" :class="route.path === '/rules' ? 'font-semibold text-[var(--text-main)]' : 'text-[var(--text-muted)]'">{{ t("header.rules") }}</NuxtLink>
+                <NuxtLink to="/dataset" class="rounded px-2 py-1 hover:bg-[var(--bg-hover)]" :class="route.path === '/dataset' ? 'font-semibold text-[var(--text-main)]' : 'text-[var(--text-muted)]'">{{ t("header.dataset") }}</NuxtLink>
             </nav>
         </div>
         <div class="flex shrink-0 items-center gap-1 text-sm text-[var(--text-muted)]">
@@ -126,7 +129,7 @@ onMounted(async () => {
             <button type="button" class="inline-flex h-8 w-8 items-center justify-center rounded-md text-[var(--text-muted)] transition hover:bg-[var(--bg-hover)] hover:text-[var(--text-main)]" :title="t('header.settings')" @click="showSettings = true">
                 <span class="i-lucide-settings h-4 w-4" />
             </button>
-            <Dropdown :items="userMenuItems" root-class="relative flex items-center" menu-class="right-0 top-full mt-2 w-44" @select="handleUserMenuSelect">
+            <Dropdown v-if="authLoaded && authEnabled" :items="userMenuItems" root-class="relative flex items-center" menu-class="right-0 top-full mt-2 w-44" @select="handleUserMenuSelect">
                 <button type="button" class="flex h-8 w-8 items-center justify-center rounded-md text-[var(--text-muted)] transition hover:bg-[var(--bg-hover)] hover:text-[var(--text-main)]" :title="userButtonTitle">
                     <span v-if="currentUser" class="flex h-6 w-6 items-center justify-center rounded-full border border-[var(--border-color)] bg-[var(--bg-input)] text-[10px] font-semibold text-[var(--accent-text)]">{{ userInitial }}</span>
                     <span v-else class="flex h-6 w-6 items-center justify-center rounded-full border border-[var(--border-color)] bg-[var(--bg-input)]">

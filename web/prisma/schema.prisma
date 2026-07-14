@@ -36,24 +36,28 @@ enum Visibility {
   public
 }
 
+// 文本来源三变体（Task 12/13）：真值来源由 originKind 直接派生（curated⇒human、generated⇒modelKey），
+// 不再有独立 goldProvenance 字段，防出现与 originKind 矛盾的状态。
 enum OriginKind {
-  user_upload
-  seeded_gold
+  uploaded // 用户上传：declaredProvenance 自述不可信
+  curated // 人工策展人类正文（ground-truth: human）
+  generated // 管线自产 AI 正文（ground-truth: modelKey）
 }
 
-enum TrueProvenance {
-  human
-  ai
+// 分类字段的来源（D-B 三值三源）：值空则源空；只补空不覆盖，优先级 curator > user > llm。
+enum ClassificationSource {
+  curator
+  user
+  llm
 }
 
-enum JudgmentPhase {
-  pre_edit
-  post_edit
-}
-
-enum AnnotationTarget {
-  original
-  edit
+// 修订边类型：一个 revision 是怎么从 parent 变来的。
+// upload=原文(rev0)；其余三种对应改文循环的三条来路。
+enum TransitionKind {
+  upload
+  static_fix
+  llm_fix
+  user_fix
 }
 
 model User {
@@ -71,78 +75,225 @@ model User {
   texts          Text[]
   judgments      DocJudgment[]
   annotations    SpanAnnotation[]
+  agentSessions  AgentSession[]
 
   @@index([role, status])
   @@index([updatedAt])
 }
 
+// 文档信封：一次上传的一篇。正文本身不在这里，而在 Revision(ordinal 0)。
+// Text 只承载所有权 / 分类 / 来源 / 合规，这些跨版本不变的元数据。
 model Text {
-  id                 String           @id @default(cuid(2))
-  body               String
-  charCount          Int
+  id                 String                @id @default(cuid(2))
   genre              String?
   pov                String?
   textType           String?
-  originKind         OriginKind       @default(user_upload)
-  declaredProvenance Provenance?
-  goldProvenance     TrueProvenance?
+  genreSource        ClassificationSource? // 三值三源：值空则源空
+  povSource          ClassificationSource?
+  textTypeSource     ClassificationSource?
+  originKind         OriginKind            @default(uploaded)
+  declaredProvenance Provenance? // 仅 uploaded；上传默认 unknown
+  sourceNote         String? // uploaded=可选作品名；curated=书名/章节来处（导入时必填语义）
+  modelKey           String? // 仅 generated，如 "deepseek/deepseek-v4-flash"
+  genParamsJson      String? // 仅 generated：{briefVersion, renderPromptVersion, sourceRef?}
   uploaderId         Int
-  visibility         Visibility       @default(private)
+  visibility         Visibility            @default(private)
   consent            Boolean
-  createdAt          DateTime         @default(now())
-  uploader           User             @relation(fields: [uploaderId], references: [id], onDelete: Cascade)
-  judgments          DocJudgment[]
-  annotations        SpanAnnotation[]
-  machineRecord      MachineRecord?
+  createdAt          DateTime              @default(now())
+  uploader           User                  @relation(fields: [uploaderId], references: [id], onDelete: Cascade)
+  revisions          Revision[]
 
   @@index([uploaderId, createdAt])
   @@index([originKind])
 }
 
-model DocJudgment {
-  id             String        @id @default(cuid(2))
+// 修订：文档的一个不可变版本快照。rev0=原文；每轮修复 commit 一个新 rev。
+// parentId 是软指针(不建 FK)记血缘，避免 SQLite 自引用外键的删除/环问题。
+// ordinal 在文档内单调自增(即使分叉也不复用)，做稳定排序与 @@unique 键。
+model Revision {
+  id             String           @id @default(cuid(2))
   textId         String
-  userId         Int
-  aiFlavor       Int
-  wantReadOn     Int
-  phase          JudgmentPhase @default(pre_edit)
-  blind          Boolean       @default(true)
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @default(now()) @updatedAt
-  text           Text          @relation(fields: [textId], references: [id], onDelete: Cascade)
-  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ordinal        Int
+  parentId       String? // rev0 为 null；软指针，无 FK
+  body           String
+  charCount      Int
+  transitionKind TransitionKind   @default(upload)
+  provenanceJson String? // 可选：本次改动 hunk(规则/LLM 来源)，喂 per-rule 精度
+  revealedAt     DateTime? // D-A：机器结果首次向本人揭示的时刻；服务器写、幂等。null=未揭示（判定 blind 的唯一依据）
+  createdAt      DateTime         @default(now())
+  text           Text             @relation(fields: [textId], references: [id], onDelete: Cascade)
+  judgments      DocJudgment[]
+  annotations    SpanAnnotation[]
+  machineScans      MachineScan[]
+  machineDetects    MachineDetect[]
+  machineLlmReviews MachineLlmReview[]
+  agentSessions     AgentSession[]
+  machineDetectRuns MachineDetectRun[]
 
-  @@unique([userId, textId, phase])
+  @@unique([textId, ordinal])
   @@index([textId])
 }
 
-model SpanAnnotation {
-  id        String           @id @default(cuid(2))
-  textId    String
-  userId    Int
-  target    AnnotationTarget @default(original)
-  start     Int
-  end       Int
-  note      String
-  createdAt DateTime         @default(now())
-  text      Text             @relation(fields: [textId], references: [id], onDelete: Cascade)
-  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+// 文档级判定：每 (用户 × revision) 一条，整行覆盖语义（重打未提供的字段置空）。
+// blind 由服务器按「写入时该 revision 的 revealedAt 是否仍为 null」判定（D-A），客户端不可设。
+model DocJudgment {
+  id               String   @id @default(cuid(2))
+  revisionId       String
+  userId           Int
+  aiFlavor         Int? // 0–5：像不像 AI（0 人 / 5 AI）；四轴全可选，DTO 层保证至少一项非空
+  wantReadOn       Int? // 0–5：想不想追更
+  improvementScore Int? // 0–5：这轮改得好不好；仅 parentId 非空的 revision 合法（服务器校验，rev0 提交即 400）
+  comment          String? // doc 级自然语言反馈，原样存（D3）
+  blind            Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @default(now()) @updatedAt
+  revision         Revision @relation(fields: [revisionId], references: [id], onDelete: Cascade)
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@index([textId, target])
+  @@unique([userId, revisionId])
+  @@index([revisionId])
+}
+
+// span 级标注：挂在具体 revision 上。"评原文"还是"评某次改动"由 revision.ordinal 派生，不再需要 target enum。
+model SpanAnnotation {
+  id         String   @id @default(cuid(2))
+  revisionId String
+  userId     Int
+  start      Int
+  end        Int
+  note       String
+  createdAt  DateTime @default(now())
+  revision   Revision @relation(fields: [revisionId], references: [id], onDelete: Cascade)
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([revisionId])
   @@index([userId, createdAt])
 }
 
-model MachineRecord {
+// llmlint 引擎扫描（机器断言之一；仅服务器写，D-C）。上传/建修订时同步计算，先算后藏（D2 由 revealedAt 闸）。
+// hitsJson=[{ruleId, span:{start,end}, level, review}]（span 为 UTF-16 半开区间，与 SpanAnnotation 同坐标系）。
+model MachineScan {
   id            String   @id @default(cuid(2))
-  textId        String   @unique
+  revisionId    String
   engineVersion String
   hitsJson      String
-  editContent   String?
-  llmAiFlavor   Int?
-  llmNote       String?
+  docScore      Float // 去重 span/千字，服务器按 evals/lib/scan.ts 口径算（字数=去空白码点）
   scannedAt     DateTime @default(now())
-  createdAt     DateTime @default(now())
-  text          Text     @relation(fields: [textId], references: [id], onDelete: Cascade)
+  revision      Revision @relation(fields: [revisionId], references: [id], onDelete: Cascade)
 
+  @@unique([revisionId, engineVersion]) // 引擎升版可 re-scan，历史保留
   @@index([engineVersion])
+}
+
+// 外部 AIGC 检测器（机器断言之二；含热力图槽位；仅服务器写；W3 接通道，本表现阶段无人写入）。
+model MachineDetect {
+  id              String   @id @default(cuid(2))
+  revisionId      String
+  detectorName    String // 如 "hf:yuchuantian-aigc-text-detector:predict_zh"
+  detectorVersion String
+  chunkChars      Int // 分块口径（跨口径不可比）
+  docPAi          Float // 长度加权 mean P(AI)
+  maxPAi          Float?
+  chunksJson      String // [{span:{start,end}, pAi}] 热力图（UI 消费后置，数据先收）
+  checkedAt       DateTime @default(now())
+  revision        Revision @relation(fields: [revisionId], references: [id], onDelete: Cascade)
+
+  @@unique([revisionId, detectorName, detectorVersion, chunkChars])
+}
+
+// LLM 规则检测（机器断言之三；Task 17 工单 C；仅服务器写）。8 条 registry.llmRules（detector.type="llm"）
+// 一次调用带全部规则出结构化命中——概率型（MachineDetect）与规则命中型不同构，独立成表（非法状态不可表示）。
+// hitsJson = {hits:[{ruleId, quote, reason, span|null}], meta:{truncated, judgedVisibleChars}}：
+// quote=LLM 摘录的命中原文片段；span=服务端回定位的 UTF-16 半开区间（定位失败置 null 保留 quote）；
+// meta.truncated=正文超长时按可见字前缀截断送检（span 仍映射原文坐标，截断只影响覆盖范围）。
+model MachineLlmReview {
+  id            String          @id @default(cuid(2))
+  revisionId    String
+  sessionId     String
+  invocationId  String          @unique
+  model         String
+  promptVersion String
+  score         Int
+  confidence    Float
+  hitsJson      String
+  reportJson    String
+  judgedAt      DateTime        @default(now())
+  revision      Revision        @relation(fields: [revisionId], references: [id], onDelete: Cascade)
+  session       AgentSession    @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  invocation    AgentInvocation @relation(fields: [invocationId], references: [id], onDelete: Cascade)
+
+  @@index([revisionId, judgedAt])
+  @@index([sessionId])
+}
+
+// NeuroAgentHarness 黑盒合同的最小持久化 session。实现留在 llmlint，本表只保存可搬运的领域事实。
+model AgentSession {
+  id               String             @id @default(cuid(2))
+  revisionId       String
+  userId           Int
+  profileKey       String
+  status           String             @default("idle")
+  activeLeafId     String?
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @default(now()) @updatedAt
+  revision         Revision           @relation(fields: [revisionId], references: [id], onDelete: Cascade)
+  user             User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  entries          AgentSessionEntry[]
+  invocations      AgentInvocation[]
+  machineLlmReview MachineLlmReview[]
+
+  @@unique([revisionId, profileKey])
+  @@index([userId, updatedAt])
+}
+
+// append-only session tree entry；parentId 是软指针，activeLeafId 由 AgentSession 显式持有。
+model AgentSessionEntry {
+  id           String   @id @default(cuid(2))
+  sessionId    String
+  invocationId String?
+  parentId     String?
+  kind         String
+  payloadJson  String
+  createdAt    DateTime @default(now())
+  session      AgentSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId, createdAt])
+  @@index([invocationId])
+}
+
+// 每次 prompt/continue/retry 都是独立 invocation；terminal invocation 不复活。
+model AgentInvocation {
+  id             String             @id @default(cuid(2))
+  sessionId      String
+  mode           String
+  phase          String
+  status         String             @default("running")
+  inputJson      String
+  resultJson     String?
+  error          String?
+  turns          Int                @default(0)
+  createdAt      DateTime           @default(now())
+  finishedAt     DateTime?
+  session        AgentSession       @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  machineReviews MachineLlmReview[]
+
+  @@index([sessionId, createdAt])
+  @@index([status])
+}
+
+// 外部检测器运行事实；结果仍写 MachineDetect，run 只负责生命周期、取消与重试。
+model MachineDetectRun {
+  id         String   @id @default(cuid(2))
+  revisionId String
+  status     String   @default("queued")
+  attempt    Int
+  error      String?
+  createdAt  DateTime @default(now())
+  startedAt  DateTime?
+  finishedAt DateTime?
+  revision   Revision @relation(fields: [revisionId], references: [id], onDelete: Cascade)
+
+  @@unique([revisionId, attempt])
+  @@index([revisionId, createdAt])
+  @@index([status])
 }

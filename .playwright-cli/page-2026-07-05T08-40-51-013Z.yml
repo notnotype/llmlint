@@ -1,0 +1,57 @@
+- generic [ref=e1]:
+  - generic [ref=e4]:
+    - banner [ref=e5]:
+      - generic [ref=e6]:
+        - link "llmlint" [ref=e7] [cursor=pointer]:
+          - /url: /
+        - generic [ref=e9]:
+          - generic [ref=e10]: llmlint
+          - generic [ref=e11]: 中文 AI 味检测
+        - navigation [ref=e13]:
+          - link "检测" [ref=e14] [cursor=pointer]:
+            - /url: /
+          - link "评测报告" [ref=e15] [cursor=pointer]:
+            - /url: /report
+          - link "数据集" [ref=e16] [cursor=pointer]:
+            - /url: /dataset
+          - link "贡献数据" [ref=e17] [cursor=pointer]:
+            - /url: /contribute
+      - generic [ref=e18]:
+        - link "GitHub" [ref=e19] [cursor=pointer]:
+          - /url: https://github.com/notnotype/llmlint
+          - generic [ref=e21]: GitHub
+        - button "关于 / 使用说明" [ref=e22] [cursor=pointer]
+        - button "切换明暗" [ref=e24] [cursor=pointer]
+        - button "设置" [ref=e26] [cursor=pointer]
+        - button "账号" [ref=e30] [cursor=pointer]
+    - main [ref=e33]:
+      - generic [ref=e36]:
+        - generic [ref=e37]:
+          - generic [ref=e38]:
+            - paragraph [ref=e39]: llmlint
+            - heading "中文稿件 AI 味检测" [level=1] [ref=e40]
+            - paragraph [ref=e41]: 本地扫描中文正文里的模板化表达、机械修辞和可疑规则命中；命中是候选，最终判断仍回到上下文。
+          - generic [ref=e42]:
+            - generic [ref=e43]: 浏览器本地运行
+            - generic [ref=e44]: 支持 Markdown 遮罩
+        - generic [ref=e45]:
+          - textbox "粘贴正文，或拖入 .txt / .md 文件" [ref=e46]: "值得注意的是，这不是一次普通的尝试——而是一场深刻的变革。 他站在窗前，目光如刀，心跳如鼓，思绪如潮。夜色如墨，浸染着这座沉默的城市。我们要做的，不是修修补补，而是从底层重构；不是被动响应，而是主动赋能，打通闭环，找到真正的抓手。 综上所述，唯有拥抱变化，才能在这个前所未有的时代立于不败之地。 这真的有用吗？？？句末还藏着一个零宽字符，点「清理机械问题」能去掉。 ```js // 代码块里的“其实”不该被检测（遮罩会跳过） const note = \"其实这里是代码\"; ```"
+          - generic [ref=e47]:
+            - generic [ref=e48]: 247 字
+            - button "开始检测" [ref=e50] [cursor=pointer]:
+              - generic [ref=e52]: 开始检测
+            - generic [ref=e53]:
+              - button "选择文件" [ref=e54] [cursor=pointer]:
+                - generic [ref=e56]: 选择文件
+              - button "示例" [active] [ref=e57] [cursor=pointer]:
+                - generic [ref=e59]: 示例
+  - generic:
+    - img
+  - generic [ref=e60]:
+    - button "Toggle Nuxt DevTools" [ref=e61] [cursor=pointer]:
+      - img [ref=e62]
+    - generic "Page load time" [ref=e65]:
+      - generic [ref=e66]: "46"
+      - generic [ref=e67]: ms
+    - button "Toggle Component Inspector" [ref=e69] [cursor=pointer]:
+      - img [ref=e70]

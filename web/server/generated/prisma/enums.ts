@@ -54,32 +54,28 @@ export type Visibility = (typeof Visibility)[keyof typeof Visibility]
 
 
 export const OriginKind = {
-  user_upload: 'user_upload',
-  seeded_gold: 'seeded_gold'
+  uploaded: 'uploaded',
+  curated: 'curated',
+  generated: 'generated'
 } as const
 
 export type OriginKind = (typeof OriginKind)[keyof typeof OriginKind]
 
 
-export const TrueProvenance = {
-  human: 'human',
-  ai: 'ai'
+export const ClassificationSource = {
+  curator: 'curator',
+  user: 'user',
+  llm: 'llm'
 } as const
 
-export type TrueProvenance = (typeof TrueProvenance)[keyof typeof TrueProvenance]
+export type ClassificationSource = (typeof ClassificationSource)[keyof typeof ClassificationSource]
 
 
-export const JudgmentPhase = {
-  pre_edit: 'pre_edit',
-  post_edit: 'post_edit'
+export const TransitionKind = {
+  upload: 'upload',
+  static_fix: 'static_fix',
+  llm_fix: 'llm_fix',
+  user_fix: 'user_fix'
 } as const
 
-export type JudgmentPhase = (typeof JudgmentPhase)[keyof typeof JudgmentPhase]
-
-
-export const AnnotationTarget = {
-  original: 'original',
-  edit: 'edit'
-} as const
-
-export type AnnotationTarget = (typeof AnnotationTarget)[keyof typeof AnnotationTarget]
+export type TransitionKind = (typeof TransitionKind)[keyof typeof TransitionKind]

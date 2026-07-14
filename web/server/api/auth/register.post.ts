@@ -1,5 +1,5 @@
 import type {AuthSessionDto} from "../../utils/auth";
-import {setAuthSession, toAuthUser} from "../../utils/auth";
+import {requireAuthEnabled, setAuthSession, toAuthUser} from "../../utils/auth";
 import {RegisterRequestDtoSchema, validateBody} from "../../utils/dto";
 import {hashUserPassword} from "../../utils/password";
 import {prisma} from "../../database/prisma";
@@ -8,6 +8,7 @@ import {prisma} from "../../database/prisma";
  * 自助注册普通用户，并立即写入 session。
  */
 export default defineEventHandler(async (event): Promise<AuthSessionDto> => {
+    requireAuthEnabled(event);
     const body = await validateBody(event, RegisterRequestDtoSchema);
     const existing = await prisma.user.findUnique({
         where: {username: body.username},

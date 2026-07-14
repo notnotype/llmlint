@@ -1,9 +1,13 @@
 // 报告数据模型组装：Metrics → Report（唯一产物，写成 report.json）。
 // 表现层（表格/图/排序筛选）由 web/ 的 Vue 页消费 report.json 渲染，不在评测侧做。
 import type {Metrics} from "./metrics";
-import type {Report} from "./types";
+import type {Report, ExternalDetectorSummary, OverlapStat, RepairStat} from "./types";
 
-export function buildReport(corpusRoot: string, metrics: Metrics, activeRegexRules: number, minSupport: number, warnings: string[]): Report {
+/**
+ * externalDetector 由 detect.ts 产出、score.ts 传入；无则 null（未跑外部检测器）。
+ * repair 由 score.ts 用 computeRepairStat 组装传入；无 repair 样本则 null（I5：单独统计，不进 lift/AUC）。
+ */
+export function buildReport(corpusRoot: string, metrics: Metrics, activeRegexRules: number, minSupport: number, warnings: string[], overlap: OverlapStat, externalDetector: ExternalDetectorSummary | null = null, repair: RepairStat | null = null): Report {
     const hasAi = metrics.counts.render > 0;
     return {
         corpusRoot,
@@ -16,7 +20,10 @@ export function buildReport(corpusRoot: string, metrics: Metrics, activeRegexRul
         counts: metrics.counts,
         detector: metrics.detector,
         holdout: metrics.holdout,
+        overlap,
         modelRanking: metrics.modelRanking,
         rules: metrics.rules,
+        externalDetector,
+        repair,
     };
 }

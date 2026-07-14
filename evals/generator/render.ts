@@ -2,26 +2,11 @@
 // prompt 本体迁到 generator/prompts.ts（版本化注册表，守 I8）；本文件只做调用编排。
 import {callModelDetailed, type AnyModel, type CallResult} from "./model-client";
 import {renderPrompt, DEFAULT_PROMPT_VERSIONS} from "./prompts";
+import {GENRES, taxonomyLabel} from "../lib/taxonomy";
 
-const GENRE_LABELS: Record<string, string> = {
-    xuanhuan: "玄幻",
-    "light-novel": "轻小说",
-    xianxia: "仙侠修真",
-    dushi: "都市",
-    guyan: "古代言情",
-    xianyan: "现代言情",
-    kehuan: "科幻",
-    xuanyi: "悬疑",
-    lishi: "历史",
-    literary: "严肃文学",
-    // task08 新题组
-    wuxia: "武侠",
-    gongdou: "宫斗",
-    wuxianliu: "无限流",
-};
-
+/** 题材 key → 中文标签（值集单一真相源 = lib/taxonomy.ts；未知 key 原样返回）。 */
 export function genreLabel(slug: string): string {
-    return GENRE_LABELS[slug] ?? slug;
+    return taxonomyLabel(GENRES, slug);
 }
 
 /** 剧情纲 → 一章 AI 正文（带 usage）。promptVersion 缺省用当前默认 render 版本。 */

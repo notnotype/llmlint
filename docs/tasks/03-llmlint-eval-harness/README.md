@@ -253,7 +253,15 @@ flowchart TB
 - [x] **M2(首条真实 lift)**:brief 抽取 + eval-writer(pi-ai completeSimple,mimo+deepseek-v4-flash)→ render → 真实 lift/AUC/模型榜。见 round-02。
 - [x] **Round-03(口径修复 + 审查 + 搬迁)**:docScore→去重 span、误杀率上线、死字段复活、`metrics.ts` 单测、render 空输出防护;语料全量重建并搬到 `evals/`。见 [round-03](./walkthroughs/2026-07-01-round-03-metrics-kdiff-fix.md)。
 - [x] **M3(判别仪器可信化,round-04)**:prevalence 双口径修 problem 2、逐章 pairRef 配对修 problem 3、byGenre 分层、holdout(`--holdout`)、模型发现、brief v2 详化;三模型跑出 AUC 0.833 + 稀疏 AI-only 规则经 prevLift 浮现。见 [round-04](./walkthroughs/2026-07-01-round-04-m3-scale.md)。
-- [ ] **M3-B(扩量校准)**:题材/题组扩到 ≥4 启用 holdout + 让 byGenre 纳入 prevalence;诊断/修 doubao-2-1-pro 空输出(换模型或重试补齐);校准 prevalence β;文风预设档(测 styling 能否盖 tell)。**稳后把规则体检表正式交 [Task 02](../02-llmlint-rule-registry/README.md)**(候选强判别:baguwen.dialogue-colon、subject-measure-word、repeated-de-pairs、dash、量词——注意多条落在 human 桶 Agent 看不见)。
+- [x] **M3-B（本轮范围）**：5 题组启用默认 40% holdout，正式 test AUC 0.807；report 新增 overlap，creative profile 验证重复率降到 11.1%。文风预设档、β 校准和 byGenre prevalence 深化仍属后续研究。
 - [ ] 之后:critic 审批员给全池(人类/原始 AI/修复 AI)按参考打分。
 - [ ] 之后:第 ② 层产品成绩单、第 ③ 层显形回归集(以 4-tell DeepSeek 章为 #1)。
-- [ ] 落地后同步 `PROJECT-STATUS.md` 与本 README。
+- [x] 第二轮规则精简已同步 `PROJECT-STATUS.md` 与本 README。
+
+## 2026-07-11 Round-07：默认 holdout 与 overlap
+
+`score.ts` 默认 holdout 从 0 改为 0.4，题组不足 4 个时继续自动关闭并写 warning。`Report` 新增 `overlap`：rawHits、uniqueSpans、duplicateRate，以及高频同 span 规则对（双方 rule id、共同次数、占双方各自命中的比例）。reference/render 参与统计，repair 排除，避免修复产物改变规则库重复率口径。
+
+正式报告重建结果：5 题组 / 26 reference / 100 render / 5 repair；headline AUC 0.743，train 0.680 / test 0.807；原始 overlap 16,962 / 11,388 / 32.9%。将 report verdict 与稳定抑制表组成 `creative-writing@1` 后，独立 profile 扫描为全量 AUC 0.964、train 0.973、test 0.990；test 人类 Agent 1.12/千字、AI Agent 5.40/千字、倍率 4.81、重复率 11.1%。
+
+与原计划的出入：正式 raw report 的重复率不会因 profile 选择而下降，因为它必须继续扫描规则超集；“低于 15%”的验收应作用于 profile 消费面，不能篡改原始评测数据。这个区分现由代码与文档同时固定。

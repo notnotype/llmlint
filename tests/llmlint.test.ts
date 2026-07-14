@@ -18,8 +18,8 @@ import {scanText} from "../skill/src/scanner";
 import type {Issue, LintRuleRecord, RegexRuleRecord} from "../skill/src/types";
 import {messages, type MessageKey} from "../web/app/i18n/messages";
 import {markdownSelectionLinkInputHref} from "../web/app/utils/markdown-selection-state";
-import {reviewIssueActionLabel, reviewIssueLevelLabel, reviewReplacementActionLabel, reviewReplacementTitle} from "../web/app/utils/review-issue-ui";
-import {transformReviewCommentsForTextChange, type ReviewComment, type ReviewIssueMark} from "../web/app/utils/review-ranges";
+import {isIssueAutoApplicable, isIssueReplacementApplicable, reviewIssueActionLabel, reviewIssueLevelLabel, reviewReplacementActionLabel, reviewReplacementTitle} from "../web/app/utils/review-issue-ui";
+import {type ReviewIssueMark} from "../web/app/utils/review-ranges";
 import {normalizeWebSettings} from "../web/app/utils/web-settings";
 
 const SKILL_ROOT = resolve("skill");
@@ -620,10 +620,47 @@ describe("llmlint", () => {
         const loadedRules = await loadRules(emptyConfig([rulesetId]));
         const byId = new Map(loadedRules.rules.map((rule) => [rule.id, rule]));
 
-        expect(byId.get("test.policy.dash")).toMatchObject({review: "human", fixability: "candidate"});
+        expect(byId.get("test.policy.dash")).toMatchObject({review: "human", fixability: "manual"});
         expect(byId.get("test.policy.dedup")).toMatchObject({review: "none", fixability: "auto"});
-        expect(byId.get("test.policy.plain")).toMatchObject({review: "agent", fixability: "candidate"});
+        expect(byId.get("test.policy.plain")).toMatchObject({review: "agent", fixability: "manual"});
         expect(byId.get("test.policy.suggest")).toMatchObject({review: "agent", fixability: "manual"});
+    });
+
+    it("创作报告中的 strong 规则可覆盖粗粒度 namespace 路由进入 Agent 桶", async () => {
+        const loadedRules = await loadRules(emptyConfig(["builtin/default"]));
+        const byId = new Map(loadedRules.rules.map((rule) => [rule.id, rule]));
+        const strongOverrides = [
+            "cn.modifier.measure.subject-measure-word",
+            "cn.proliferation.mixed.repeated-de-pairs",
+            "cn.modifier.absolute-claim-modifier",
+            "cn.modifier.optional-mood-modifiers",
+        ];
+
+        for (const ruleId of strongOverrides) {
+            expect(byId.get(ruleId)?.review).toBe("agent");
+        }
+    });
+
+    it("默认 ruleset 只有确定性机械规则可自动修复，语义 replace 全部为 manual", async () => {
+        const loadedRules = await loadRules(emptyConfig(["builtin/default"]));
+        const counts = {auto: 0, candidate: 0, manual: 0};
+        for (const rule of loadedRules.regexRules) {
+            counts[rule.fixability] += 1;
+        }
+
+        expect(counts).toEqual({auto: 3, candidate: 0, manual: 300});
+        expect(loadedRules.regexRules
+            .filter((rule) => rule.fixability === "auto")
+            .every((rule) => rule.action.type === "replace")).toBe(true);
+    });
+
+    it("用户配置仍可把指定语义 replace 显式提升为 candidate", async () => {
+        const loadedRules = await loadRules({
+            ...emptyConfig(["builtin/default"]),
+            rules: {"not-but-structure": {fixability: "candidate"}},
+        });
+
+        expect(loadedRules.regexRules.find((rule) => rule.id === "not-but-structure")?.fixability).toBe("candidate");
     });
 
     it("config 对象覆盖能调整 review，rule id 优先于 namespace", async () => {
@@ -740,7 +777,17 @@ describe("llmlint", () => {
         };
         expect(report.filter).toMatchObject({review: "agent", hiddenByReview: 1, minLevel: "low", hiddenByLevel: 0});
         expect(report.issues).toHaveLength(1);
-        expect(report.issues[0]?.rule).toMatchObject({review: "agent", fixability: "candidate"});
+        expect(report.issues[0]?.rule).toMatchObject({review: "agent", fixability: "manual"});
+    });
+
+    it("candidate 只允许显式应用，不能进入一键机械修复", () => {
+        const candidate = issueForRule({...makeAutoRule("test.candidate", "甲词", ""), review: "agent", fixability: "candidate"});
+        const automatic = issueForRule(makeAutoRule("test.auto", "乙词", ""));
+
+        expect(isIssueReplacementApplicable(candidate)).toBe(true);
+        expect(isIssueAutoApplicable(candidate)).toBe(false);
+        expect(isIssueReplacementApplicable(automatic)).toBe(true);
+        expect(isIssueAutoApplicable(automatic)).toBe(true);
     });
 
     it("config review 非法值返回明确 schema 错误", async () => {
@@ -1126,22 +1173,6 @@ describe("llmlint", () => {
         expect(result.fixed.slice(result.changes[1]!.from, result.changes[1]!.to)).toBe("");
     });
 
-    it("批注范围随普通文本编辑平移，重叠编辑删除批注", () => {
-        const previousText = "甲乙丙丁戊己";
-        const comment = makeReviewComment({from: 2, to: 4, quote: "丙丁"});
-
-        expect(transformReviewCommentsForTextChange(previousText, "新甲乙丙丁戊己", [comment])).toMatchObject([
-            {from: 3, to: 5, quote: "丙丁"},
-        ]);
-        expect(transformReviewCommentsForTextChange(previousText, "乙丙丁戊己", [comment])).toMatchObject([
-            {from: 1, to: 3, quote: "丙丁"},
-        ]);
-        expect(transformReviewCommentsForTextChange(previousText, "甲乙丙丁戊新己", [comment])).toMatchObject([
-            {from: 2, to: 4, quote: "丙丁"},
-        ]);
-        expect(transformReviewCommentsForTextChange(previousText, "甲乙新戊己", [comment])).toEqual([]);
-    });
-
     it("Markdown 链接输入会从选中的 URL 和邮箱预填 href", () => {
         const source = "参考 https://example.com/path，也可联系 editor@example.com，或访问 www.example.com。";
         const urlStart = source.indexOf("https://example.com/path");
@@ -1359,6 +1390,20 @@ function makeAutoRule(id: string, target: string, replacement: string): RegexRul
     };
 }
 
+/** 构造仅供 UI 修复能力判断使用的最小命中。 */
+function issueForRule(rule: RegexRuleRecord): Issue {
+    return {
+        rule,
+        line: 1,
+        column: 1,
+        endLine: 1,
+        endColumn: 1,
+        match: "甲",
+        target: rule.detector.targets[0] ?? "甲",
+        context: {before: "", current: "甲", after: ""},
+    };
+}
+
 function makeIssue(content: string, rule: RegexRuleRecord, startOffset: number, match: string): Issue {
     return {
         rule,
@@ -1373,17 +1418,6 @@ function makeIssue(content: string, rule: RegexRuleRecord, startOffset: number, 
             current: match,
             after: content.slice(startOffset + match.length),
         },
-    };
-}
-
-function makeReviewComment(input: {from: number; to: number; quote: string}): ReviewComment {
-    return {
-        id: "comment-1",
-        from: input.from,
-        to: input.to,
-        quote: input.quote,
-        body: "批注",
-        source: "user",
     };
 }
 

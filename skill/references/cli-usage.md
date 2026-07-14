@@ -96,6 +96,8 @@ bun .nbook/agent/skills/llmlint/bin/llmlint.ts fix chapter.md --format json
 - `review`（agent / human / none）：审查受众，决定默认进入哪个审查出口。`check` 默认只展示 `review: agent` 的命中，把破折号、比喻、泛词形副词等更偏作者偏好的命中归到 `human`，把连续符号去重等机械命中归到 `none`。
 - `fixability`（auto / candidate / manual）：机械修复能力，决定能否被 `fix` 命令自动改写。`fix` 只应用 `auto` 桶（零宽字符、连续符号去重）；`check` 永远不改写。
 
+默认规则集的实际分布约为 `auto=3 / candidate=0 / 其余 manual`。`action.type: "replace"` 与 `action.replacement` 只说明规则带有替换模板，不代表模板可直接执行；应用权限由规则经过 ruleset、namespace、rule 配置覆盖后得到的最终 `fixability` 决定。用户可显式把指定 regex replace 规则提升为 `candidate`，供逐条人工确认。
+
 默认输出先按 high / medium / low 分段，再按规则分组。每条命中显示位置范围和命中文本，不重复打印完整原文行：
 
 ```text

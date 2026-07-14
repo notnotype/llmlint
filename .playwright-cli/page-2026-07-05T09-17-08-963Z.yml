@@ -1,0 +1,68 @@
+- generic [ref=f1e1]:
+  - generic [ref=f1e69]:
+    - banner [ref=f1e70]:
+      - generic [ref=f1e71]:
+        - link "llmlint" [ref=f1e72] [cursor=pointer]:
+          - /url: /
+        - generic [ref=f1e74]:
+          - generic [ref=f1e75]: llmlint
+          - generic [ref=f1e76]: 中文 AI 味检测
+        - navigation [ref=f1e78]:
+          - link "检测" [ref=f1e79] [cursor=pointer]:
+            - /url: /
+          - link "评测报告" [ref=f1e80] [cursor=pointer]:
+            - /url: /report
+          - link "数据集" [ref=f1e81] [cursor=pointer]:
+            - /url: /dataset
+          - link "贡献数据" [ref=f1e82] [cursor=pointer]:
+            - /url: /contribute
+      - generic [ref=f1e83]:
+        - link "GitHub" [ref=f1e84] [cursor=pointer]:
+          - /url: https://github.com/notnotype/llmlint
+          - generic [ref=f1e86]: GitHub
+        - button "关于 / 使用说明" [ref=f1e87] [cursor=pointer]
+        - button "切换明暗" [ref=f1e89] [cursor=pointer]
+        - button "设置" [ref=f1e91] [cursor=pointer]
+        - button "T" [ref=f1e95] [cursor=pointer]:
+          - generic [ref=f1e96]: T
+    - main [ref=f1e97]:
+      - generic [ref=f1e98]:
+        - generic [ref=f1e99]:
+          - generic [ref=f1e100]:
+            - heading "贡献检测数据" [level=1] [ref=f1e101]
+            - generic [ref=f1e102]: 62 字符
+          - textbox "粘贴小说正文..." [ref=f1e103]: 值得注意的是，这不仅仅是一次普通的尝试，而是一场深刻的变革。综上所述，我们唯有拥抱变化，才能立于不败之地。这真的有用吗？？？
+        - generic [ref=f1e104]:
+          - generic [ref=f1e105]:
+            - generic [ref=f1e106]: 自述来源
+            - generic [ref=f1e110] [cursor=pointer]: 不确定
+          - generic [ref=f1e112]:
+            - generic [ref=f1e113]: 可见性
+            - generic [ref=f1e117] [cursor=pointer]: 仅用于研究导出
+        - generic [ref=f1e119]:
+          - generic [ref=f1e120]:
+            - generic [ref=f1e121]: AI 味：3
+            - slider "AI 味：3 0 像人 5 像 AI" [ref=f1e122]: "3"
+            - generic [ref=f1e123]:
+              - generic [ref=f1e124]: 0 像人
+              - generic [ref=f1e125]: 5 像 AI
+          - generic [ref=f1e126]:
+            - generic [ref=f1e127]: 想继续读：3
+            - slider "想继续读：3 0 马上关 5 想追更" [ref=f1e128]: "3"
+            - generic [ref=f1e129]:
+              - generic [ref=f1e130]: 0 马上关
+              - generic [ref=f1e131]: 5 想追更
+          - button "我确认有权提交这段正文，并同意按研究数据保留" [active] [ref=f1e132] [cursor=pointer]:
+            - generic [ref=f1e133]: 我确认有权提交这段正文，并同意按研究数据保留
+        - button "提交盲评" [ref=f1e137] [cursor=pointer]:
+          - generic [ref=f1e139]: 提交盲评
+  - generic:
+    - img
+  - generic [ref=f1e55]:
+    - button "Toggle Nuxt DevTools" [ref=f1e56] [cursor=pointer]:
+      - img [ref=f1e57]
+    - generic "Page load time" [ref=f1e60]:
+      - generic [ref=f1e61]: "438"
+      - generic [ref=f1e62]: ms
+    - button "Toggle Component Inspector" [ref=f1e64] [cursor=pointer]:
+      - img [ref=f1e65]

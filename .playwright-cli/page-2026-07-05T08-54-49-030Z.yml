@@ -1,0 +1,99 @@
+- generic [ref=f1e1]:
+  - generic [ref=f1e4]:
+    - banner [ref=f1e5]:
+      - generic [ref=f1e6]:
+        - link "llmlint" [ref=f1e7] [cursor=pointer]:
+          - /url: /
+        - generic [ref=f1e9]:
+          - generic [ref=f1e10]: llmlint
+          - generic [ref=f1e11]: 中文 AI 味检测
+        - navigation [ref=f1e13]:
+          - link "检测" [ref=f1e14] [cursor=pointer]:
+            - /url: /
+          - link "评测报告" [ref=f1e15] [cursor=pointer]:
+            - /url: /report
+          - link "数据集" [ref=f1e16] [cursor=pointer]:
+            - /url: /dataset
+          - link "贡献数据" [ref=f1e17] [cursor=pointer]:
+            - /url: /contribute
+      - generic [ref=f1e18]:
+        - link "GitHub" [ref=f1e19] [cursor=pointer]:
+          - /url: https://github.com/notnotype/llmlint
+          - generic [ref=f1e21]: GitHub
+        - button "关于 / 使用说明" [ref=f1e22] [cursor=pointer]
+        - button "切换明暗" [ref=f1e24] [cursor=pointer]
+        - button "设置" [ref=f1e26] [cursor=pointer]
+        - button "账号" [ref=f1e30] [cursor=pointer]
+    - main [ref=f1e33]:
+      - generic [ref=f1e34]:
+        - generic [ref=f1e36]:
+          - generic [ref=f1e37]:
+            - generic [ref=f1e38]:
+              - paragraph [ref=f1e39]: llmlint
+              - heading "中文稿件 AI 味检测" [level=1] [ref=f1e40]
+              - paragraph [ref=f1e41]: 本地扫描中文正文里的模板化表达、机械修辞和可疑规则命中；命中是候选，最终判断仍回到上下文。
+            - generic [ref=f1e42]:
+              - generic [ref=f1e43]: 浏览器本地运行
+              - generic [ref=f1e44]: 支持 Markdown 遮罩
+          - generic [ref=f1e45]:
+            - textbox "粘贴正文，或拖入 .txt / .md 文件" [ref=f1e46]: "值得注意的是，这不是一次普通的尝试——而是一场深刻的变革。 他站在窗前，目光如刀，心跳如鼓，思绪如潮。夜色如墨，浸染着这座沉默的城市。我们要做的，不是修修补补，而是从底层重构；不是被动响应，而是主动赋能，打通闭环，找到真正的抓手。 综上所述，唯有拥抱变化，才能在这个前所未有的时代立于不败之地。 这真的有用吗？？？句末还藏着一个零宽字符，点「清理机械问题」能去掉。 ```js // 代码块里的“其实”不该被检测（遮罩会跳过） const note = \"其实这里是代码\"; ```"
+            - generic [ref=f1e47]:
+              - generic [ref=f1e48]: 247 字
+              - button "开始检测" [ref=f1e50] [cursor=pointer]:
+                - generic [ref=f1e52]: 开始检测
+              - generic [ref=f1e53]:
+                - button "选择文件" [ref=f1e54] [cursor=pointer]:
+                  - generic [ref=f1e56]: 选择文件
+                - button "示例" [active] [ref=f1e57] [cursor=pointer]:
+                  - generic [ref=f1e59]: 示例
+        - generic [ref=f1e61]:
+          - generic [ref=f1e62]:
+            - generic [ref=f1e63]:
+              - heading "最近检测历史" [level=3] [ref=f1e64]:
+                - generic [ref=f1e66]: 最近检测历史
+              - generic [ref=f1e67]:
+                - button "清空历史" [ref=f1e68] [cursor=pointer]
+                - button "收起历史" [ref=f1e70] [cursor=pointer]
+            - generic [ref=f1e72]:
+              - generic [ref=f1e73] [cursor=pointer]:
+                - paragraph [ref=f1e74]: 值得注意的是，这不是一次普通的尝试——而是一场深刻的变革。
+                - generic [ref=f1e75]:
+                  - generic [ref=f1e76]: 247 字
+                  - generic [ref=f1e77]: ·
+                  - generic [ref=f1e78]: 26 处 AI 味
+                  - generic [ref=f1e79]: ·
+                  - generic [ref=f1e80]: 13分钟前
+              - button "删除" [ref=f1e81] [cursor=pointer]
+              - generic [ref=f1e82]:
+                - generic [ref=f1e83]:
+                  - generic [ref=f1e84]: "AI 味:"
+                  - generic [ref=f1e85]:
+                    - button [ref=f1e86] [cursor=pointer]
+                    - button [ref=f1e88] [cursor=pointer]
+                    - button [ref=f1e90] [cursor=pointer]
+                    - button [ref=f1e92] [cursor=pointer]
+                    - button [ref=f1e94] [cursor=pointer]
+                - generic [ref=f1e96]:
+                  - generic [ref=f1e97]: "想读度:"
+                  - generic [ref=f1e98]:
+                    - button [ref=f1e99] [cursor=pointer]
+                    - button [ref=f1e101] [cursor=pointer]
+                    - button [ref=f1e103] [cursor=pointer]
+                    - button [ref=f1e105] [cursor=pointer]
+                    - button [ref=f1e107] [cursor=pointer]
+          - generic "展开历史记录":
+            - generic:
+              - generic: 最
+              - generic: 近
+              - generic: 检
+              - generic: 测
+  - generic:
+    - img
+  - generic [ref=f1e109]:
+    - button "Toggle Nuxt DevTools" [ref=f1e110] [cursor=pointer]:
+      - img [ref=f1e111]
+    - generic "Page load time" [ref=f1e114]:
+      - generic [ref=f1e115]: "9"
+      - generic [ref=f1e116]: ms
+    - button "Toggle Component Inspector" [ref=f1e118] [cursor=pointer]:
+      - img [ref=f1e119]

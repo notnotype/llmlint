@@ -1,0 +1,67 @@
+- generic [active] [ref=f7e1]:
+  - generic [ref=f7e4]:
+    - banner [ref=f7e5]:
+      - generic [ref=f7e6]:
+        - link "llmlint" [ref=f7e7] [cursor=pointer]:
+          - /url: /
+        - generic [ref=f7e9]:
+          - generic [ref=f7e10]: llmlint
+          - generic [ref=f7e11]: 中文 AI 味检测
+        - navigation [ref=f7e13]:
+          - link "检测" [ref=f7e14] [cursor=pointer]:
+            - /url: /
+          - link "评测报告" [ref=f7e15] [cursor=pointer]:
+            - /url: /report
+          - link "数据集" [ref=f7e16] [cursor=pointer]:
+            - /url: /dataset
+          - link "贡献数据" [ref=f7e17] [cursor=pointer]:
+            - /url: /contribute
+      - generic [ref=f7e18]:
+        - link "GitHub" [ref=f7e19] [cursor=pointer]:
+          - /url: https://github.com/notnotype/llmlint
+          - generic [ref=f7e21]: GitHub
+        - button "关于 / 使用说明" [ref=f7e22] [cursor=pointer]
+        - button "切换明暗" [ref=f7e24] [cursor=pointer]
+        - button "设置" [ref=f7e26] [cursor=pointer]
+        - button "T" [ref=f7e30] [cursor=pointer]:
+          - generic [ref=f7e31]: T
+    - navigation [ref=f7e89]:
+      - generic [ref=f7e90]:
+        - generic [ref=f7e91]: "1"
+        - text: 盲评 · 揭示
+      - generic [ref=f7e92]: →
+      - generic [ref=f7e93]:
+        - generic [ref=f7e94]: "2"
+        - text: 改文
+      - generic [ref=f7e95]: →
+      - generic [ref=f7e96]:
+        - generic [ref=f7e97]: "3"
+        - text: 验收
+    - main [ref=f7e369]:
+      - generic [ref=f7e370]:
+        - heading "改后验收" [level=1] [ref=f7e371]
+        - generic [ref=f7e372]:
+          - generic [ref=f7e373]:
+            - generic [ref=f7e374]: llmlint 命中
+            - generic [ref=f7e375]: 原文 5 → 改后 4 ↓ 降低
+          - generic [ref=f7e376]: 外部 AIGC 检测器概率对比：待接入（D5 的检测器腿）
+        - generic [ref=f7e377]:
+          - generic [ref=f7e378]: 对改后版本再打一次分（非盲）
+          - generic [ref=f7e379]:
+            - generic [ref=f7e380]: AI 味 3（盲评时 3）
+            - slider "AI 味 3（盲评时 3）" [ref=f7e381]: "3"
+          - generic [ref=f7e382]:
+            - generic [ref=f7e383]: 想追更 3（盲评时 3）
+            - slider "想追更 3（盲评时 3）" [ref=f7e384]: "3"
+          - button "提交复评" [ref=f7e385] [cursor=pointer]: 提交复评
+        - button "继续改文" [ref=f7e388] [cursor=pointer]
+  - generic:
+    - img
+  - generic [ref=f7e75]:
+    - button "Toggle Nuxt DevTools" [ref=f7e76] [cursor=pointer]:
+      - img [ref=f7e77]
+    - generic "Page load time" [ref=f7e80]:
+      - generic [ref=f7e81]: "10"
+      - generic [ref=f7e82]: ms
+    - button "Toggle Component Inspector" [ref=f7e84] [cursor=pointer]:
+      - img [ref=f7e85]

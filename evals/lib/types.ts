@@ -12,7 +12,8 @@ export type Sample = {
     difficulty?: string;
     split?: "train" | "test";
     referenceSource?: string;
-    pairRef?: string; // render 指向的本章 reference 文件名（逐章 1:1 配对键）；reference/repair 无
+    pairRef?: string; // render 指向的本章 reference 文件名（逐章 1:1 配对键）；repair 沿用源 render 的值；reference 无
+    repairOf?: string; // repair 指向的源 render 文件名（before/after 配对键，report.repair 消费）；其它 role 无
     file: string;
     absPath: string;
     text: string;
@@ -77,6 +78,52 @@ export type HoldoutStat = {
     testAuc: number | null;  // test 侧 docScore ROC-AUC（泛化：接近 train 说明分离稳、非过拟某几组）
 };
 
+export type OverlapPair = {
+    leftRuleId: string;
+    rightRuleId: string;
+    sameSpanHits: number;
+    leftOverlapRate: number;
+    rightOverlapRate: number;
+};
+
+/** 规则同 span 重叠统计；用于发现重复 detector，不改变 docScore 的既有去重口径。 */
+export type OverlapStat = {
+    rawHits: number;
+    uniqueSpans: number;
+    duplicateRate: number;
+    pairs: OverlapPair[];
+};
+
+/** repair 一对 before/after：源 render（repairOf 指回）vs 修复本。 */
+export type RepairPair = {
+    genre: string;
+    plotId: string;
+    repairFile: string;
+    renderFile: string;         // = repairOf（源 render 文件名）
+    renderModel?: string;       // 源 render 的生成模型
+    repairModel?: string;       // 修复模型（repair 样本的 model 字段）
+    docScoreBefore: number;     // 源 render docScore（去重 span/千字）
+    docScoreAfter: number;      // 修复本 docScore
+    externalPAiBefore?: number; // 外部检测器 P(AI)；仅 detector sidecar 覆盖该文本时才有（HF 免费实例可缺省）
+    externalPAiAfter?: number;
+};
+
+/** repair 报告节（I5：repair 单独统计，绝不进 lift/AUC/docScore 主统计）。全部为逐对配对口径。 */
+export type RepairStat = {
+    pairs: RepairPair[];
+    total: number;                       // 配对成功的对数
+    orphans: number;                     // repairOf 缺失 / 找不到源 render 的 repair 样本数
+    docScoreMedianBefore: number | null; // 配对集合上的中位；total=0 时 null
+    docScoreMedianAfter: number | null;
+    docScoreMedianDelta: number | null;  // 逐对 (after−before) 的中位；负 = 修复降低了规则负担
+    docScoreImproved: number;            // docScore after < before 的对数
+    externalCovered: number;             // 外部检测器同时覆盖 before/after 的对数（0 = 未跑/全缺省）
+    externalMedianBefore: number | null; // 以下仅在 covered 子集上统计
+    externalMedianAfter: number | null;
+    externalMedianDelta: number | null;
+    externalImproved: number;            // P(AI) after < before 的对数
+};
+
 export type Report = {
     corpusRoot: string;
     generatedNote: string;
@@ -86,8 +133,23 @@ export type Report = {
     counts: {groups: number; reference: number; render: number; repair: number};
     detector: DetectorStat;
     holdout: HoldoutStat | null; // null=未启用（题组不足或未传 --holdout）
+    overlap: OverlapStat;
     modelRanking: ModelRank[];
     rules: RuleStat[];
+    externalDetector: ExternalDetectorSummary | null; // null=未跑 detect.ts；对照仪表，不进 lift
+    repair: RepairStat | null; // null=语料无 repair 样本；I5 单独统计，不进 lift/AUC
+};
+
+/** 外部 AIGC 检测器对照摘要（detect.ts 产出，score.ts 原样搬进 report）。P(AI) 越大越像 AI。 */
+export type ExternalDetectorSummary = {
+    name: string;
+    version: string;
+    chunkChars: number;
+    referenceMedianPAi: number | null;
+    renderMedianPAi: number | null;
+    auc: number | null;                                  // P(render P(AI) > reference P(AI))，与 detector.auc 同口径 rocAuc
+    coverage: {reference: number; render: number};       // 打分覆盖样本数
+    byModel: Array<{model: string; medianPAi: number; n: number}>;
 };
 
 /**

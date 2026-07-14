@@ -36,3 +36,7 @@ bun run sync:neuro-book
 ```
 
 它会把 `skill/` 镜像到 sibling NeuroBook 仓库的 `assets/workspace/.nbook/agent/skills/llmlint/`。
+
+## 许可证
+
+本开发仓与可安装的 `skill/` package 均采用 [GNU Affero General Public License v3.0（仅此版本）](./LICENSE)，SPDX 标识为 `AGPL-3.0-only`。Copyright © 2026 notnotype。

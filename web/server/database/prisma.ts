@@ -5,11 +5,11 @@ import {Prisma, PrismaClient} from "../generated/prisma/client";
 export type {PrismaClient};
 export {Prisma};
 export type {
-    AnnotationTarget,
+    ClassificationSource,
     IdentityRole,
-    JudgmentPhase,
+    OriginKind,
     Provenance,
-    TrueProvenance,
+    TransitionKind,
     User,
     UserRole,
     UserStatus,

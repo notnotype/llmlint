@@ -2,19 +2,59 @@
 import {computed, ref} from "vue";
 import type {Issue, RegexRuleRecord, RuleGroup} from "../types";
 import {issueId} from "../utils/review-ranges";
+import {isIssueReplacementApplicable} from "../utils/review-issue-ui";
+import {verdictBadge} from "../utils/verdict-badge";
+import {CATEGORY_BADGE, ruleCategory} from "../utils/rule-category";
 import {useLlmlintI18n} from "../composables/useLlmlintI18n";
 
-// 单条规则的命中卡片
-const props = defineProps<{group: RuleGroup; activeRuleId?: string | null; activeIssueId?: string | null}>();
+// 单条规则的命中卡片。Task 15 P1-C（7a）：batchApply 模式追加规则级批量入口——
+// 「应用全部」按钮（该规则全部可自动替换命中一次并入）+ 多选 checkbox（宿主底部批量应用所选规则）。
+// Task 16 W2：头部类型徽标（R3，命中规则恒为 regex → 只会出现「有替换/仅检测」两类）、
+// verdict 分级主体色（R4，verdict prop 未传=报告缺失降级不显示）、「隐藏此规则」按钮（R1，只 emit 由宿主消化）。
+const props = withDefaults(defineProps<{
+    group: RuleGroup;
+    activeRuleId?: string | null;
+    activeIssueId?: string | null;
+    /** 7a 批量应用入口开关（只在 head 编辑视图的命中 tab 传真；只读/playground 场景关闭）。 */
+    batchApply?: boolean;
+    /** 该规则是否在宿主的多选集合中（batchApply 模式下 checkbox 状态）。 */
+    selected?: boolean;
+    /**
+     * R4：该规则的评测 verdict。三态语义——
+     * undefined（不传）= 宿主无评测报告，降级：不显示 verdict 徽标、不加左边框主体色；
+     * null = 有报告但该规则未入报告 → 显示「未测」徽标；
+     * 字符串 = strong/weak/noise/anti/insufficient → 对应徽标 + 左边框主体色。
+     */
+    verdict?: string | null;
+}>(), {
+    activeIssueId: null,
+    batchApply: false,
+    selected: false,
+});
 const emit = defineEmits<{
     (e: "open-rule", rule: RegexRuleRecord): void;
     (e: "locate-issue", issue: Issue): void;
     (e: "apply-issue", issue: Issue): void;
+    /** 7a：应用该规则的全部可自动替换命中（宿主转 TextPanel 批量并入，坐标从后往前）。 */
+    (e: "apply-group", issues: Issue[]): void;
+    /** 7a：勾选/取消该规则参与底部「应用所选规则」批量。 */
+    (e: "toggle-select", ruleId: string, checked: boolean): void;
+    /** R1：请求隐藏该规则（写 ruleOverrides[id].enabled=false 由宿主消化；本组件只上抛）。 */
+    (e: "hide-rule", ruleId: string): void;
 }>();
 const {t} = useLlmlintI18n();
 
+// R3：规则分类徽标（命中卡片的 rule 恒为 RegexRuleRecord → 只会是 replace/suggest）。
+const categoryBadge = computed(() => CATEGORY_BADGE[ruleCategory(props.group.rule)]);
+// R4：verdict 徽标（undefined = 不显示；null = 未测）。
+const verdictInfo = computed(() => props.verdict === undefined ? null : verdictBadge(props.verdict));
+// R4：卡片容器左边框主体色（verdict 未传时空串 = 保持现状外观）。
+const verdictBorderCls = computed(() => verdictInfo.value === null ? "" : `border-l-4 ${verdictInfo.value.borderCls}`);
+
 const LIMIT = 8;
 const expanded = ref(false);
+// 该规则下可自动替换的命中（7a 批量的应用集合；与单条「应用」按钮同一口径）。
+const applicableIssues = computed(() => props.group.issues.filter(isIssueReplacementApplicable));
 const visibleIssues = computed(() => {
     if (expanded.value) {
         return props.group.issues;
@@ -30,7 +70,7 @@ const hasMore = computed(() => props.group.issues.length > LIMIT);
 const isActive = computed(() => props.activeRuleId === props.group.rule.id);
 
 function canApply(issue: Issue): boolean {
-    return (issue.rule.fixability === "auto" || issue.rule.fixability === "candidate") && issue.rule.action.type === "replace";
+    return isIssueReplacementApplicable(issue);
 }
 
 function fixableBadgeLabel(issue: Issue): string {
@@ -70,18 +110,35 @@ function issueMatchLabel(issue: Issue): string {
 </script>
 
 <template>
+    <!-- 卡片容器：R4 verdict 主体色左边框（verdict 未传时不加，保持现状外观） -->
     <div
         :data-rule-id="group.rule.id"
         class="rounded-lg border bg-white p-3 transition-colors dark:bg-zinc-900"
-        :class="isActive ? 'border-amber-400 ring-2 ring-amber-400/60 dark:border-amber-500' : 'border-zinc-200 dark:border-zinc-800'"
+        :class="[isActive ? 'border-amber-400 ring-2 ring-amber-400/60 dark:border-amber-500' : 'border-zinc-200 dark:border-zinc-800', verdictBorderCls]"
     >
         <!-- 头部 -->
         <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
+            <!-- 7a 多选：勾选该规则参与底部「应用所选规则」批量（仅有可自动替换命中的规则出现） -->
+            <input v-if="batchApply && applicableIssues.length > 0" type="checkbox" class="h-3.5 w-3.5 accent-[var(--accent-main)]" :checked="selected" :title="t('issue.batchSelectTitle')" @change="emit('toggle-select', group.rule.id, ($event.target as HTMLInputElement).checked)">
             <span class="font-medium">{{ group.rule.title }}</span>
             <span class="font-mono text-xs text-zinc-400">{{ group.rule.id }}</span>
             <span class="font-mono text-xs text-zinc-500">[{{ group.rule.namespace }}]</span>
+            <!-- R3 类型徽标（有替换 / 仅检测） -->
+            <span class="rounded px-1.5 py-0.5 text-[11px]" :class="categoryBadge.cls">{{ t(categoryBadge.labelKey) }}</span>
+            <!-- R4 verdict 徽标（verdict prop 未传时整个不渲染 = 报告缺失降级） -->
+            <span v-if="verdictInfo" class="rounded-full px-2 py-0.5 text-[11px] font-semibold" :class="verdictInfo.cls">{{ t(verdictInfo.labelKey) }}</span>
             <DimensionBadges :rule="group.rule" />
             <span class="ml-auto rounded bg-zinc-100 px-1.5 py-0.5 text-xs text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300">{{ t("issue.count", {count: group.issues.length}) }}</span>
+            <!-- 7a：应用该规则全部（≥2 处可自动替换才出现，单处沿用行内按钮） -->
+            <button
+                v-if="batchApply && applicableIssues.length >= 2"
+                type="button"
+                class="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-xs font-medium text-emerald-700 hover:bg-emerald-500/10 dark:text-emerald-300"
+                :title="t('issue.applyGroupTitle')"
+                @click="emit('apply-group', applicableIssues)"
+            >
+                <span class="i-lucide-check-check h-3.5 w-3.5" /> {{ t("issue.applyGroup", {count: applicableIssues.length}) }}
+            </button>
             <button
                 class="inline-flex items-center gap-1 text-xs text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200"
                 :aria-label="t('issue.openRuleTitle', {title: group.rule.title})"
@@ -89,6 +146,16 @@ function issueMatchLabel(issue: Issue): string {
                 @click="emit('open-rule', group.rule)"
             >
                 <span class="i-lucide-info" /> {{ t("issue.openRule") }}
+            </button>
+            <!-- R1 隐藏此规则（图标钮，只 emit 由宿主写 ruleOverrides；规则页可恢复） -->
+            <button
+                type="button"
+                class="inline-flex items-center rounded p-0.5 text-zinc-400 transition hover:bg-zinc-100 hover:text-zinc-700 dark:hover:bg-zinc-800 dark:hover:text-zinc-200"
+                :aria-label="t('issue.hideRuleTitle')"
+                :title="t('issue.hideRuleTitle')"
+                @click="emit('hide-rule', group.rule.id)"
+            >
+                <span class="i-lucide-eye-off h-3.5 w-3.5" />
             </button>
         </div>
         <!-- 命中列表（点击定位到正文） -->

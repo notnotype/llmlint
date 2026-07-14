@@ -1,7 +1,9 @@
 // 度量：per-rule lift（rate + prevalence 双口径，分层）+ 四桶 + 检测器 ROC-AUC + 模型排名 + holdout。
-// reference=人类类，render=AI 类，repair 暂不进判别（M4 单独看）。
-import type {DetectorStat, HoldoutStat, ModelRank, RuleStat, SampleScan, StratRate} from "./types";
+// reference=人类类，render=AI 类，repair 不进判别——只在 computeRepairStat 里做 before/after 配对（I5）。
+// lift/AUC 的准入一律显式过 gates.liftAdmissibleRole（D1/I5 闸门），不再用 role 比较隐式排除 repair。
+import type {DetectorStat, HoldoutStat, ModelRank, RepairPair, RepairStat, RuleStat, SampleScan, StratRate} from "./types";
 import type {RuleMeta} from "./scan";
+import {liftAdmissibleRole} from "./gates";
 
 const ALPHA = 0.5;  // rate lift 平滑：rate 单位 /1000 字，0.5 兼顾防除零与抑制小样本爆炸
 const BETA = 0.1;   // prevalence lift 平滑：口径是 0..1 的文档占比，用小 β
@@ -20,12 +22,14 @@ export type Metrics = {
  *   holdout 里另报 train/test 两侧 AUC 供泛化校验；题组数 < HOLDOUT_MIN_GROUPS 自动关闭。
  */
 export function computeMetrics(scans: SampleScan[], ruleMetas: Map<string, RuleMeta>, minSupport: number, holdoutRatio = 0): Metrics {
-    const human = scans.filter((scan) => scan.sample.role === "reference");
-    const ai = scans.filter((scan) => scan.sample.role === "render");
+    // lift 闸门（D1/I5）：先过显式谓词把 repair 挡在判别外，再按 role 分人类/AI 两类。
+    const admissible = scans.filter((scan) => liftAdmissibleRole(scan.sample.role));
+    const human = admissible.filter((scan) => scan.sample.role === "reference");
+    const ai = admissible.filter((scan) => scan.sample.role === "render");
 
-    // holdout：确定性切题组。启用后规则统计只在 train 上拟合（verdict 才能拿 test 校验，不循环论证）。
+    // holdout：确定性切题组（切分在全量 scans 上做，题组集合与闸门无关）。启用后规则统计只在 train 上拟合（verdict 才能拿 test 校验，不循环论证）。
     const split = holdoutRatio > 0 ? splitHoldout(scans, holdoutRatio) : null;
-    const ruleScans = split ? split.trainScans : scans;
+    const ruleScans = (split ? split.trainScans : scans).filter((scan) => liftAdmissibleRole(scan.sample.role));
     const ruleHuman = ruleScans.filter((scan) => scan.sample.role === "reference");
     const ruleAi = ruleScans.filter((scan) => scan.sample.role === "render");
 
@@ -211,10 +215,14 @@ function splitHoldout(scans: SampleScan[], ratio: number): HoldoutSplit | null {
 }
 
 function holdoutStat(split: HoldoutSplit, ratio: number): HoldoutStat {
-    const auc = (subset: SampleScan[]): number | null => rocAuc(
-        subset.filter((scan) => scan.sample.role === "render").map(docScore),
-        subset.filter((scan) => scan.sample.role === "reference").map(docScore),
-    );
+    // holdout 两侧 AUC 同样过 lift 闸门（repair 不进），再按 role 分 AI/人类两类。
+    const auc = (subset: SampleScan[]): number | null => {
+        const admissible = subset.filter((scan) => liftAdmissibleRole(scan.sample.role));
+        return rocAuc(
+            admissible.filter((scan) => scan.sample.role === "render").map(docScore),
+            admissible.filter((scan) => scan.sample.role === "reference").map(docScore),
+        );
+    };
     return {
         ratio,
         trainGroups: split.trainGroups.length,
@@ -232,8 +240,73 @@ function modelRanking(ai: SampleScan[]): ModelRank[] {
     return ranks.sort((left, right) => left.medianScore - right.medianScore);
 }
 
+/**
+ * repair before/after 配对统计（I5：repair 单独统计，绝不进 lift/AUC/docScore 主统计——本函数是 repair 唯一的消费口）。
+ * 按 (题组, repairOf) 找回源 render，逐对报 docScore 与外部检测器 P(AI) 的 before/after。
+ * @param externalPAi 外部检测器 P(AI) 查表（key = `${genre}/${plotId}/${file}`），score.ts 从 detector sidecar 组装；
+ *   缺省或某侧缺分时该对的 external 字段留空（HF 免费实例允许缺省，不阻塞 docScore 口径）。
+ * @returns 语料无 repair 样本时 null（report.repair = null）。
+ */
+export function computeRepairStat(scans: SampleScan[], externalPAi?: Map<string, number>): RepairStat | null {
+    const repairs = scans.filter((scan) => scan.sample.role === "repair");
+    if (repairs.length === 0) {
+        return null;
+    }
+    const renderByFile = new Map<string, SampleScan>();
+    for (const scan of scans) {
+        if (scan.sample.role === "render") {
+            renderByFile.set(`${plotKey(scan)}/${scan.sample.file}`, scan);
+        }
+    }
+
+    const pairs: RepairPair[] = [];
+    let orphans = 0;
+    for (const repair of repairs) {
+        const source = repair.sample.repairOf ? renderByFile.get(`${plotKey(repair)}/${repair.sample.repairOf}`) : undefined;
+        if (!source) {
+            orphans += 1;
+            continue;
+        }
+        pairs.push({
+            genre: repair.sample.genre,
+            plotId: repair.sample.plotId,
+            repairFile: repair.sample.file,
+            renderFile: source.sample.file,
+            renderModel: source.sample.model,
+            repairModel: repair.sample.model,
+            docScoreBefore: docScore(source),
+            docScoreAfter: docScore(repair),
+            externalPAiBefore: externalPAi?.get(`${plotKey(repair)}/${source.sample.file}`),
+            externalPAiAfter: externalPAi?.get(`${plotKey(repair)}/${repair.sample.file}`),
+        });
+    }
+
+    // 外部检测器口径只在「两侧都覆盖」的子集上统计，避免 before/after 集合不对称造成伪差。
+    const covered = pairs.filter((pair) => pair.externalPAiBefore !== undefined && pair.externalPAiAfter !== undefined);
+    return {
+        pairs,
+        total: pairs.length,
+        orphans,
+        docScoreMedianBefore: medianOrNull(pairs.map((pair) => pair.docScoreBefore)),
+        docScoreMedianAfter: medianOrNull(pairs.map((pair) => pair.docScoreAfter)),
+        docScoreMedianDelta: medianOrNull(pairs.map((pair) => pair.docScoreAfter - pair.docScoreBefore)),
+        docScoreImproved: pairs.filter((pair) => pair.docScoreAfter < pair.docScoreBefore).length,
+        externalCovered: covered.length,
+        externalMedianBefore: medianOrNull(covered.map((pair) => pair.externalPAiBefore!)),
+        externalMedianAfter: medianOrNull(covered.map((pair) => pair.externalPAiAfter!)),
+        externalMedianDelta: medianOrNull(covered.map((pair) => pair.externalPAiAfter! - pair.externalPAiBefore!)),
+        externalImproved: covered.filter((pair) => pair.externalPAiAfter! < pair.externalPAiBefore!).length,
+    };
+}
+
+/** 中位数；空集返回 null（区别于"中位为 0"）。 */
+function medianOrNull(values: number[]): number | null {
+    return values.length === 0 ? null : median(values);
+}
+
 /** ROC-AUC = P(score_AI > score_human)，平均秩处理并列。空类返回 null。 */
-function rocAuc(positive: number[], negative: number[]): number | null {
+/** ROC-AUC = P(随机正样本分 > 随机负样本分)，Mann-Whitney U 口径（带并列修正）。检测器对照复用它，保证与 llmlint AUC 同口径。 */
+export function rocAuc(positive: number[], negative: number[]): number | null {
     if (positive.length === 0 || negative.length === 0) {
         return null;
     }

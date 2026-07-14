@@ -118,6 +118,8 @@ export default {
 
 规则有三个独立维度：`level`（严重度）、`review`（审查受众：agent/human/none）、`fixability`（修复能力：auto/candidate/manual）。`check` 默认只展示 `review: agent` 的命中——破折号、比喻、泛词形副词等更偏作者偏好的命名空间默认归到 `human`，连续符号去重等机械命名空间归到 `none`。用 `--review human` / `--review all` 查看其它桶。
 
+默认规则集只给 3 条确定性机械规则 `fixability:auto`，不默认启用 `candidate`，所有语义规则均为 `manual`。规则的 `action.replace` 只携带可供参考的替换模板，不等于 Agent 可以直接应用；只有最终 `fixability` 授权对应动作。用户配置可把明确选中的 regex replace 规则提升为 `candidate`，但仍必须逐条确认，不能混入批量机械修复。
+
 规则覆盖值（namespace 和 rules 通用）。两种写法会归一成同一个 patch：字符串是语法糖，对象是显式 patch。
 - 字符串简写：
   - `off`：禁用规则（= `{enabled: false}`）

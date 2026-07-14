@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import {computed} from "vue";
-import type {RegexRuleRecord} from "../types";
+import type {ActiveRuleRecord} from "../types";
 import {useLlmlintI18n} from "../composables/useLlmlintI18n";
 
 // 规则三维度徽章：级别 / 受众(review) / 修复(fixability)
-const props = defineProps<{rule: RegexRuleRecord}>();
+// Task 16 R3：prop 从 RegexRuleRecord 放宽为 ActiveRuleRecord（regex/llm 通吃，本组件只读三维字段与 action.type）。
+const props = defineProps<{rule: ActiveRuleRecord}>();
 const {t} = useLlmlintI18n();
 
 const LEVEL_CLASS: Record<string, string> = {

@@ -4,7 +4,7 @@
     "private": true,
     "type": "module",
     "description": "Development workspace for llmlint. The installable Agent Skill package lives in ./skill.",
-    "license": "PolyForm-Noncommercial-1.0.0",
+    "license": "AGPL-3.0-only",
     "repository": {
         "type": "git",
         "url": "git@github.com:notnotype/llmlint.git"
