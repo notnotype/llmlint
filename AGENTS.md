@@ -20,11 +20,11 @@
 ## llmlint 专属
 
 - **真相源是 `skill/`**：这是可安装、可发布的 Agent Skill / CLI runtime 包（`skill/package.json` name=`llmlint`）。仓库根是开发工作区，承载 `tests/`、`evals/` 和开发用 `package.json`（name=`llmlint-dev`）。
-- CLI 稳定入口是 `bun skill/bin/llmlint.ts …`。运行时支持 **Bun 原生**或 **Node + tsx**（`npx tsx skill/bin/llmlint.ts …`）；**裸 `node` 跑不了**——源码用无扩展名 TS 相对导入，Node 内置 type stripping 不解析，必须走 tsx 或 Bun。
+- CLI 稳定入口是 `bun skill/bin/llmlint.ts …`。运行时支持 **Bun 原生**或 **Node >=22.19 + tsx**（`npx tsx skill/bin/llmlint.ts …`）；**裸 `node` 跑不了**——源码用无扩展名 TS 相对导入，Node 内置 type stripping 不解析，必须走 tsx 或 Bun。
 - 依赖由根 `package.json` / `bun.lock` 和 `skill/package.json` / `skill/bun.lock` 声明；本地开发或外部手动安装时按所在目录运行 `bun install` 生成 `node_modules`。`node_modules/` 不入库、不发布、不随 NeuroBook snapshot 同步。
 - `evals/`（含 `corpus/`）是开发仓的一等资产，**整体进 git**。当前仓库私有，受版权/ToS 限制的采集语料（种子网文全本）暂随仓保存可接受；**转公开前必须先移除或 gitignore `evals/corpus/`，只留 fixture**。法律风险归用户。
 - 发布目标是 `github.com/notnotype/llmlint`。neuro-book 通过它自己的 sync 脚本从本仓 `skill/` 反向镜像 snapshot，那套同步逻辑由 neuro-book 侧维护，不在本仓职责内。
-- `web/` 是纯客户端检测网页（Nuxt 4 SPA，`ssr:false`）：构建期跑 `scripts/build-registry.ts` 把规则预烘成 `app/data/registry.json`（gitignore），浏览器 import 它 + 调引擎纯函数 `scanText`/`computeMaskedRanges` 本地检测。改引擎 `skill/src` 后规则会变，`web` 的构建脚本会自动重新预烘。只检测、不修复、无后端。命令：仓库根 `bun run web:dev` / `web:generate` / `web:typecheck`。
+- `web/` 是 **Nuxt 4 检测/采集站**（`ssr:false` 客户端渲染 + Nitro server/api）：规则检测仍在浏览器本地运行，构建期由 `scripts/build-registry.ts` 预烘 `app/data/registry.json`；服务端提供认证、Prisma 7 + libSQL(SQLite) 持久化、判定标签采集和 Agent 分析/改写。首次启动需在 `web/` 配置 `.env`，执行 `bun run db:init && bun run db:generate`；命令见 `web/README.md`。
 
 ## 文档索引
 
