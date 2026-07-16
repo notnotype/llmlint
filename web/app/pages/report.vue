@@ -29,20 +29,31 @@ async function loadSample() {
 <template>
     <div class="flex min-h-screen flex-col bg-[var(--bg-main)] text-[var(--text-main)]">
         <AppHeader />
-        <main class="mx-auto w-full max-w-7xl flex-1 p-4">
-            <!-- 未加载：拖放区 -->
-            <div v-if="!report" class="py-16">
+        <!-- 未加载：上传工具 + 报告结构预览，避免空态悬在整屏中央。 -->
+        <main v-if="!report" class="mx-auto grid w-full max-w-7xl flex-1 items-center gap-8 px-4 py-7 sm:px-6 lg:grid-cols-[minmax(0,1fr)_minmax(24rem,0.9fr)] lg:px-8 lg:py-10">
+            <section class="min-w-0">
+                <div class="mb-5 border-l-4 border-[var(--accent-pop)] pl-4">
+                    <div class="font-mono text-[10px] font-black text-[var(--accent-text)]">REPORT / R-01</div>
+                    <h1 class="mt-2 text-2xl font-black text-[var(--text-main)]">{{ t("header.report") }}</h1>
+                </div>
                 <ReportDrop :error="error" @file="loadFile" />
-                <div class="mt-4 text-center">
+                <div class="mt-4 flex justify-center">
                     <button
                         :disabled="loadingSample"
-                        class="rounded border border-[var(--border-color)] px-3 py-1.5 text-sm hover:bg-[var(--bg-hover)] disabled:opacity-50"
+                        class="inline-flex h-9 items-center gap-2 border border-[var(--border-color)] bg-[var(--bg-panel)] px-4 text-sm font-semibold text-[var(--text-secondary)] hover:border-[var(--accent-main)] hover:bg-[var(--bg-hover)] disabled:opacity-50"
                         @click="loadSample"
-                    >{{ loadingSample ? t("report.loading") : t("report.loadSample") }}</button>
+                    >
+                        <span class="i-lucide-file-text h-4 w-4" />
+                        <span>{{ loadingSample ? t("report.loading") : t("report.loadSample") }}</span>
+                    </button>
                 </div>
-            </div>
-            <!-- 已加载：报告各区块 -->
-            <div v-else class="space-y-4">
+            </section>
+            <WorkspacePreview kind="report" />
+        </main>
+
+        <!-- 已加载：报告各区块 -->
+        <main v-else class="mx-auto w-full max-w-7xl flex-1 p-4">
+            <div class="space-y-4">
                 <!-- 概览行 -->
                 <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-[var(--text-muted)]">
                     <span>题组 <b class="text-[var(--text-main)]">{{ report.counts.groups }}</b></span>

@@ -5,9 +5,9 @@
 import {mkdirSync, writeFileSync, existsSync, readFileSync} from "node:fs";
 import {join, resolve} from "node:path";
 import {Command} from "commander";
-import {loadCorpus} from "./lib/corpus";
+import {assertRenderPromptVersion, loadCorpus} from "./lib/corpus";
 import {scanAll} from "./lib/scan";
-import {computeMetrics, computeRepairStat, HOLDOUT_MIN_GROUPS} from "./lib/metrics";
+import {computeMetrics, computeRepairStat, countPairedGroups, HOLDOUT_MIN_GROUPS} from "./lib/metrics";
 import {buildReport} from "./lib/report";
 import {detectorCacheKey, type DetectorScoresFile} from "./detector/scores";
 import type {Sample} from "./lib/types";
@@ -22,16 +22,15 @@ async function main(args: {corpus: string; out: string; minSupport: number; hold
     if (samples.length === 0) {
         fail(`语料为空（无可用样本）：${corpusRoot}`);
     }
-
-    // holdout 题组不足自动关闭（<4 组无统计意义），把降级如实写进报告警告。
-    const groupCount = new Set(samples.map((sample) => `${sample.genre}/${sample.plotId}`)).size;
-    let holdoutRatio = args.holdout;
-    if (holdoutRatio > 0 && groupCount < HOLDOUT_MIN_GROUPS) {
-        warnings.push(`holdout 已关闭：题组仅 ${groupCount} 个（<${HOLDOUT_MIN_GROUPS}），切分无统计意义。`);
-        holdoutRatio = 0;
-    }
+    const renderPromptVersion = assertRenderPromptVersion(samples);
 
     const {scans, ruleMetas, activeRegexRules, overlap} = await scanAll(samples);
+    const pairedGroupCount = countPairedGroups(scans);
+    let holdoutRatio = args.holdout;
+    if (args.holdout > 0 && pairedGroupCount < HOLDOUT_MIN_GROUPS) {
+        warnings.push(`holdout 已关闭：有效 reference/render 配对题组仅 ${pairedGroupCount} 个（<${HOLDOUT_MIN_GROUPS}），切分无统计意义。`);
+        holdoutRatio = 0;
+    }
     const metrics = computeMetrics(scans, ruleMetas, args.minSupport, holdoutRatio);
     const outDir = resolve(args.out);
     // 外部检测器对照：若 detect.ts 已跑（detector-scores.json 有 summary），原样搬进 report（对照仪表，不进 lift）。
@@ -39,7 +38,7 @@ async function main(args: {corpus: string; out: string; minSupport: number; hold
     const externalDetector = detectorScores?.summary ?? null;
     // repair before/after 配对（I5 单独统计）：外部 P(AI) 从 sidecar 按当前正文重算 key 查表（内容已变 = 视为未打分）。
     const repair = computeRepairStat(scans, detectorScores ? externalPAiByFile(samples, detectorScores) : undefined);
-    const report = buildReport(corpusRoot, metrics, activeRegexRules, args.minSupport, warnings, overlap, externalDetector, repair);
+    const report = buildReport(corpusRoot, metrics, activeRegexRules, args.minSupport, warnings, renderPromptVersion, overlap, externalDetector, repair);
 
     mkdirSync(outDir, {recursive: true});
     // 唯一产物：report.json（数据契约）。表现层交给 web/ 的报告页（拖入 json 渲染）。
@@ -126,4 +125,8 @@ program
     .action((opts: {corpus: string; out: string; minSupport: string; holdout: string}) =>
         main({corpus: opts.corpus, out: opts.out, minSupport: Number.parseInt(opts.minSupport, 10), holdout: Number.parseFloat(opts.holdout)}));
 
-await program.parseAsync(process.argv);
+try {
+    await program.parseAsync(process.argv);
+} catch (error) {
+    fail(error instanceof Error ? error.message : String(error));
+}

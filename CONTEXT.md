@@ -140,8 +140,8 @@ llmlint 是针对 **LLM 生成中文文本**的 linter：CLI 用正则确定性�
 - **I4 两个计数口径并存**：**per-rule lift 用原始命中**（`rawHitsByRule`）；**docScore/检测器/排名用去重 span**（`dedupSpanCount`）。不可混用。
 - **I5 角色即标签**：`reference` = 人类类，`render` = AI 类，`repair` 单独统计、不进判别。
 - **I6 人类基线纯度 = 检测器天花板**：reference 强 **pre-2023 偏置**；混入 AI 辅助文本会污染"人类"类，让检测器变差是假象。
-- **I7 holdout 防过拟合**：改规则的 agent 会盯 lift 调规则 → 最终泛化分只在没调过的 test 集算；题组 `< HOLDOUT_MIN_GROUPS(4)` 自动关闭并写警告。
-- **I8 prompt 是版本化资产**：改 `brief`/`render` prompt **必须升版本号**——它改变每一个 lift 数字，跨版本数据不可直接比。
+- **I7 holdout 防过拟合**：改规则的 agent 会盯 lift 调规则 → 最终泛化分只在没调过的 test 集算；只有至少存在一组可解析 `pairRef` 的 reference/render 题组才有资格进入 holdout，合格题组 `< HOLDOUT_MIN_GROUPS(4)` 自动关闭并写警告。
+- **I8 prompt 是版本化资产**：改 `brief`/`render` prompt **必须升版本号**——它改变每一个 lift 数字。每个 render sample 必须记录自己的 `promptVersion`；缺版本或同一报告内混用多个 render prompt 版本时，消费侧必须拒绝生成报告，不能降级为警告。
 - **I9 消费侧不 spawn CLI**：`scan.ts` 直接 `import skill/src/rules + skill/src/scanner`，避免环境差异、拿结构化命中。
 - **I10 CLI 路径 cwd 无关**：默认 corpus/out 用 `import.meta.dir` 相对，不用 `process.cwd()`（曾因外部进程清 `.agent` 丢语料）。
 - **I11 语料合规边界**：`evals/` 进 git，但 `evals/corpus/`（受版权语料）**转公开前必须移除或 gitignore**，只留 fixture；法律风险归用户。

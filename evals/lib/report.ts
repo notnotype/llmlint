@@ -7,13 +7,14 @@ import type {Report, ExternalDetectorSummary, OverlapStat, RepairStat} from "./t
  * externalDetector 由 detect.ts 产出、score.ts 传入；无则 null（未跑外部检测器）。
  * repair 由 score.ts 用 computeRepairStat 组装传入；无 repair 样本则 null（I5：单独统计，不进 lift/AUC）。
  */
-export function buildReport(corpusRoot: string, metrics: Metrics, activeRegexRules: number, minSupport: number, warnings: string[], overlap: OverlapStat, externalDetector: ExternalDetectorSummary | null = null, repair: RepairStat | null = null): Report {
+export function buildReport(corpusRoot: string, metrics: Metrics, activeRegexRules: number, minSupport: number, warnings: string[], renderPromptVersion: string | null, overlap: OverlapStat, externalDetector: ExternalDetectorSummary | null = null, repair: RepairStat | null = null): Report {
     const hasAi = metrics.counts.render > 0;
     return {
         corpusRoot,
         generatedNote: hasAi
             ? "lift = AI率/人类率（rate 口径，原始命中/千字，α 平滑）；prevLift = 命中文档占比之比（β 平滑）；裁决取两者较强桶；docScore = 去重 span/千字。"
             : "M1：仅人类 reference、无 AI render，lift/AUC 待 render；本表为人类侧命中率（= 误杀基线）。",
+        renderPromptVersion,
         minSupport,
         activeRegexRules,
         warnings,

@@ -184,7 +184,7 @@ flowchart TB
 | `humanMedianScore` / `aiMedianScore` | 两侧 docScore 中位 | 分离度直观量 | `detectorStat` |
 | `modelRanking` | 各模型 docScore 中位（越低越像人） | 选 writer 模型 / "最像人类"榜 | `modelRanking` |
 | `humanAgentFalseRate` | 人类侧 `review:agent` 桶命中率中位 | **误杀率**（检测器天花板） | `agentFireRate` |
-| `holdout`（可选） | train/test 两侧 AUC | 泛化校验（防过拟合，I7） | `splitHoldout` |
+| `holdout`（可选） | train/test 两侧 AUC | 泛化校验（防过拟合，I7）；只切至少存在一组有效 `pairRef` 的 reference/render 题组 | `splitHoldout` |
 | `overlap` | rawHits / uniqueSpans / duplicateRate + 高频同 span 规则对 | 发现重复规则家族，防止规则数量虚增与候选重复 | `lib/overlap.ts` |
 | `externalDetector`（可选） | 外部 AIGC 检测器在同语料的 AUC + ref/render P(AI) 中位 + byModel | **外部效度对照 + 上限参照 + 漏网新规则矿**（对照仪表，**不进 lift/docScore**） | `detector/detect.ts` → `report.externalDetector` |
 
@@ -210,8 +210,7 @@ meta.json: { genre, plotId, author?,
   samples: [
   { file, role:"reference"|"render"|"repair",
     model?, modelVersion?, styleKey?, difficulty?,
-    split?:"train"|"test", referenceSource?, pairRef?, repairOf?, charCount?, title?, sourceFile?, pubYear?,
-    promptVersion?: {repair} }              // 样本级 promptVersion 仅 role:repair 用（修复 prompt 版本，I8）
+    promptVersion?, split?:"train"|"test", referenceSource?, pairRef?, repairOf?, charCount?, title?, sourceFile?, pubYear? }
 ]}
 ```
 
@@ -221,6 +220,9 @@ meta.json: { genre, plotId, author?,
 - `charCount` 消费侧自算（去空白码点），meta 里的仅供参考。
 - render 的 `pairRef` 必填才进逐章配对；缺 `pairRef` 的 render 不计入配对。
 - **统一模型映射**（[Task 12](../docs/tasks/12-unified-data-model/README.md)）：`role:reference` ≙ `origin=curated`、`role:render` ≙ `origin=generated`（modelKey=meta.model、genParams=promptVersion+pairRef）、`role:repair` ≙ 后继 Revision（llm_fix）；`detector-scores.json` ≙ MachineDetect 断言；meta `classification`（source=llm）≙ LLM 分类断言（inferred，只补空；生效 genre 仍以 curator 目录名为准）。corpus 文件格式不变，映射使两侧数据可合并分析。
+- render 的 `promptVersion` 是样本级必填字段，也是 I8 的审计真相源；题组级 `promptVersion` 只能记录 brief 等生成上下文，不能替代逐 render 标记。
+- 生成报告前必须验证全部 render sample 的 `promptVersion`：任何缺失或多个版本并存都直接失败，不产出混合报告。
+- holdout 的题组数、train/test 切分、规则拟合集和两侧 AUC 都只使用至少存在一组 `render.pairRef → reference.file` 有效映射的题组；reference-only、render 无 `pairRef` 或悬空 `pairRef` 的题组不计入 holdout 门槛。
 
 ## 7. 三层评测路线图
 
@@ -276,3 +278,5 @@ meta.json: { genre, plotId, author?,
 - `overlap` 以同一文档、同一 UTF-16 span 聚合重复命中。`duplicateRate = 1 - uniqueSpans / rawHits`；规则对同时报告同 span 次数与该次数占双方各自命中的比例。
 
 第二轮正式报告仍保留全量规则扫描基线：5 题组 / 26 reference / 100 render / 5 repair，headline AUC 0.743，holdout train 0.680 / test 0.807；原始 overlap 为 16,962 raw hits / 11,388 unique spans / 32.9%。应用 `creative-writing@1` 后的独立验收为：全量 AUC 0.964，holdout train 0.973 / test 0.990，test 人类 Agent 误杀 1.12/千字，AI Agent 命中 5.40/千字（4.81 倍），test duplicate rate 11.1%。这些 profile 指标用于验证选择器，不回写成全局规则生死结论。
+
+2026-07-14 扩量过程中曾观测到未补齐 render 的中间 AUC `0.530`；该口径不满足样本级 prompt 版本和有效配对守门，不是可发布基线，也不能据此得出规则质量结论。

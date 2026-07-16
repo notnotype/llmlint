@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
 // 生成侧编排：遍历题组每个 reference → 逐章各抽 brief → 各模型各 render(1:1 配对) → 写盘 + merge meta。
-// commander CLI；HTTP + CLI 两种 transport；prompt 版本化（写进 meta.promptVersion，守 I8）；token 预算预估/实报/自校准。
+// commander CLI；HTTP + CLI 两种 transport；render prompt 版本写进每个 sample（守 I8）；token 预算预估/实报/自校准。
 import {existsSync, readdirSync, readFileSync, rmSync, writeFileSync} from "node:fs";
 import {isAbsolute, join} from "node:path";
 import {Command} from "commander";
@@ -14,8 +14,8 @@ import {renderDetailed} from "./render";
 import {DEFAULT_PROMPT_VERSIONS} from "./prompts";
 import {BudgetTracker, estimateRenderTokens, loadCalibration, calibrate} from "./budget";
 
-type SampleMeta = {file: string; role: string; model?: string; difficulty?: string; pairRef?: string; charCount?: number; [key: string]: unknown};
-type GroupMeta = {genre?: string; plotId?: string; promptVersion?: {brief: string; render: string}; samples?: SampleMeta[]; [key: string]: unknown};
+type SampleMeta = {file: string; role: string; model?: string; difficulty?: string; promptVersion?: string; pairRef?: string; charCount?: number; [key: string]: unknown};
+type GroupMeta = {genre?: string; plotId?: string; promptVersion?: {brief?: string; render?: string}; samples?: SampleMeta[]; [key: string]: unknown};
 type Group = {dir: string; genre: string; plot: string};
 
 const DEFAULT_CORPUS = join(import.meta.dir, "..", "corpus");
@@ -111,6 +111,30 @@ async function run(opts: Options): Promise<void> {
         return;
     }
 
+    // 断点续跑前全局预检，避免跑到一半才发现旧文件版本未知，产生新的昂贵半成品。
+    for (const group of groups) {
+        const meta = readMeta(group.dir);
+        const references = (meta.samples ?? []).filter((sample) => sample.role === "reference");
+        const samplesByFile = new Map((meta.samples ?? []).map((sample) => [sample.file, sample]));
+        for (let position = 0; position < references.length; position += 1) {
+            const ref = references[position]!;
+            const idx = refIndex(ref.file, position);
+            for (const model of models) {
+                const file = `render-${idx}-${modelSlug(model.modelKey)}.md`;
+                if (!existsSync(join(group.dir, file))) {
+                    continue;
+                }
+                const existing = samplesByFile.get(file);
+                if (typeof existing?.promptVersion !== "string" || existing.promptVersion.trim().length === 0) {
+                    throw new Error(`${group.genre}/${group.plot}/${file} 已存在但缺样本级 promptVersion；不能把旧 render 冒充 ${promptVersions.render} 续跑，请确认版本后补录或删除文件重生成。`);
+                }
+                if (existing.promptVersion !== promptVersions.render) {
+                    throw new Error(`${group.genre}/${group.plot}/${file} 使用 ${existing.promptVersion}，本轮请求 ${promptVersions.render}；跨版本不能复用同一 render。`);
+                }
+            }
+        }
+    }
+
     console.log(`题组 ${groups.length}｜抽取器 ${extractor.modelKey}｜render 模型 ${models.map((m) => m.modelKey).join(", ")}｜prompt ${promptVersions.brief}/${promptVersions.render}｜逐章 1:1 配对`);
     const budget = new BudgetTracker();
     const cal = loadCalibration();
@@ -156,7 +180,8 @@ async function run(opts: Options): Promise<void> {
                 const file = `render-${idx}-${modelSlug(model.modelKey)}.md`;
                 const renderPath = join(group.dir, file);
                 if (existsSync(renderPath)) {
-                    newRenders.push({file, role: "render", model: model.modelKey, difficulty: "raw", pairRef: ref.file, charCount: visibleLength(readFileSync(renderPath, "utf-8"))});
+                    const existing = (meta.samples ?? []).find((sample) => sample.file === file)!;
+                    newRenders.push({...existing, file, role: "render", model: model.modelKey, difficulty: existing.difficulty ?? "raw", promptVersion: existing.promptVersion, pairRef: ref.file, charCount: visibleLength(readFileSync(renderPath, "utf-8"))});
                     continue;
                 }
                 let text: string;
@@ -182,12 +207,12 @@ async function run(opts: Options): Promise<void> {
                     continue;
                 }
                 writeFileSync(renderPath, `${text}\n`, "utf-8");
-                newRenders.push({file, role: "render", model: model.modelKey, difficulty: "raw", pairRef: ref.file, charCount: visibleLength(text)});
+                newRenders.push({file, role: "render", model: model.modelKey, difficulty: "raw", promptVersion: promptVersions.render, pairRef: ref.file, charCount: visibleLength(text)});
                 console.log(`  ${group.genre}/${group.plot} ${ref.file} ← ${model.modelKey}：${visibleLength(text)} 字（ref ${targetChars}）`);
             }
         }
 
-        // merge meta：替换本轮模型 render，保留 reference / 其它 role / 非本轮模型 render；记 promptVersion（I8）。
+        // merge meta：每个 render 自带版本；题组级版本只保留 brief/本轮生成上下文，不作为报告校验来源。
         const renderModelKeys = new Set(models.map((model) => model.modelKey));
         const kept = (meta.samples ?? []).filter((sample) => !(sample.role === "render" && renderModelKeys.has(String(sample.model))));
         writeMeta(group.dir, {...meta, promptVersion: promptVersions, samples: [...kept, ...newRenders]});

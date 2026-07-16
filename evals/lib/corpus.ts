@@ -11,13 +11,14 @@ type RawSampleMeta = {
     modelVersion?: string;
     styleKey?: string;
     difficulty?: string;
+    promptVersion?: string;
     split?: string;
     referenceSource?: string;
     pairRef?: string;
     repairOf?: string;
 };
 
-type RawGroupMeta = {genre?: string; plotId?: string; promptVersion?: {brief?: string; render?: string}; samples?: RawSampleMeta[]};
+type RawGroupMeta = {genre?: string; plotId?: string; samples?: RawSampleMeta[]};
 
 export type LoadCorpusResult = {samples: Sample[]; warnings: string[]};
 
@@ -30,8 +31,6 @@ export function loadCorpus(corpusRoot: string): LoadCorpusResult {
     }
     const samples: Sample[] = [];
     const warnings: string[] = [];
-    // 收集各题组的 render prompt 版本：混版本 = lift 数字不可比（I8），必须显式告警。
-    const renderPromptVersions = new Set<string>();
 
     for (const genre of listDirs(corpusRoot)) {
         for (const plotId of listDirs(join(corpusRoot, genre))) {
@@ -48,9 +47,6 @@ export function loadCorpus(corpusRoot: string): LoadCorpusResult {
                 warnings.push(`跳过 ${genre}/${plotId}：meta.json 非法 JSON（${error instanceof Error ? error.message : String(error)}）`);
                 continue;
             }
-            if (meta.promptVersion?.render && (meta.samples ?? []).some((s) => s.role === "render")) {
-                renderPromptVersions.add(meta.promptVersion.render);
-            }
             for (const raw of meta.samples ?? []) {
                 const sample = toSample(raw, genre, plotId, groupDir, warnings);
                 if (sample) {
@@ -59,11 +55,29 @@ export function loadCorpus(corpusRoot: string): LoadCorpusResult {
             }
         }
     }
-    // I8：跨题组 render prompt 版本不一致 → lift 混了不同 prompt 生成的 AI 样本，警告。
-    if (renderPromptVersions.size > 1) {
-        warnings.push(`⚠ render prompt 版本混用：${[...renderPromptVersions].join(", ")}——跨版本 lift 不可直接比（I8）。`);
-    }
     return {samples, warnings};
+}
+
+/**
+ * 报告可比性守门：每个 render 必须携带同一个样本级 promptVersion。
+ * 缺失或混用都直接抛错，禁止把不可比样本降级为普通 warning（I8）。
+ */
+export function assertRenderPromptVersion(samples: Sample[]): string | null {
+    const renders = samples.filter((sample) => sample.role === "render");
+    if (renders.length === 0) {
+        return null;
+    }
+    const missing = renders.filter((sample) => typeof sample.promptVersion !== "string" || sample.promptVersion.trim().length === 0);
+    if (missing.length > 0) {
+        const examples = missing.slice(0, 5).map((sample) => `${sample.genre}/${sample.plotId}/${sample.file}`).join(", ");
+        const remaining = missing.length > 5 ? `；另有 ${missing.length - 5} 个` : "";
+        throw new Error(`render 样本缺 promptVersion，拒绝生成报告（I8，共 ${missing.length} 个）：${examples}${remaining}`);
+    }
+    const versions = new Set(renders.map((sample) => sample.promptVersion!.trim()));
+    if (versions.size > 1) {
+        throw new Error(`render prompt 版本混用，拒绝生成报告（I8）：${[...versions].sort().join(", ")}`);
+    }
+    return versions.values().next().value ?? null;
 }
 
 function toSample(raw: RawSampleMeta, genre: string, plotId: string, groupDir: string, warnings: string[]): Sample | null {
@@ -90,6 +104,7 @@ function toSample(raw: RawSampleMeta, genre: string, plotId: string, groupDir: s
         modelVersion: raw.modelVersion,
         styleKey: raw.styleKey,
         difficulty: raw.difficulty,
+        promptVersion: raw.promptVersion,
         split: raw.split === "train" || raw.split === "test" ? raw.split : undefined,
         referenceSource: raw.referenceSource,
         pairRef: raw.pairRef,

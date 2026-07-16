@@ -3,7 +3,7 @@
   "plotId": "g2",
   "samples": [
     {"file": "reference.md", "role": "reference", "referenceSource": "hand-picked"},
-    {"file": "render-a.md", "role": "render", "model": "model-a", "difficulty": "stuffed"},
-    {"file": "render-b.md", "role": "render", "model": "model-b", "difficulty": "stuffed"}
+    {"file": "render-a.md", "role": "render", "model": "model-a", "difficulty": "stuffed", "promptVersion": "fixture-render-v1", "pairRef": "reference.md"},
+    {"file": "render-b.md", "role": "render", "model": "model-b", "difficulty": "stuffed", "promptVersion": "fixture-render-v1", "pairRef": "reference.md"}
   ]
 }

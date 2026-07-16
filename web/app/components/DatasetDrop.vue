@@ -26,16 +26,16 @@ function onPick(event: Event) {
 
 <template>
     <!-- 数据集拖放区（本地专用） -->
-    <div class="mx-auto max-w-2xl">
+    <div class="w-full">
         <div
-            class="cursor-pointer rounded-xl border-2 border-dashed p-10 text-center transition-colors"
+            class="dropzone cursor-pointer border-2 border-dashed bg-[var(--bg-panel)] px-6 py-12 text-center transition-colors"
             :class="dragOver ? 'border-[var(--accent-main)] bg-[var(--bg-hover)]' : 'border-[var(--border-color)] hover:border-[var(--text-muted)]'"
             @dragover.prevent="dragOver = true"
             @dragleave.prevent="dragOver = false"
             @drop.prevent="onDrop"
             @click="input?.click()"
         >
-            <div class="text-4xl text-[var(--text-muted)]">⬆</div>
+            <span class="i-lucide-upload mx-auto block h-9 w-9 text-[var(--accent-main)]" />
             <p class="mt-3 text-[var(--text-main)]">拖入 <code class="rounded bg-[var(--bg-subtle)] px-1">dataset.json</code>，或点击选择</p>
             <p class="mt-1 text-xs text-[var(--text-muted)]">由 <code>bun evals/dataset.ts</code> 生成 · 纯浏览器渲染、不上传</p>
             <p class="mt-1 text-xs text-amber-600 dark:text-amber-400">⚠ 含版权正文，仅本地查看，勿分发</p>
@@ -44,3 +44,10 @@ function onPick(event: Event) {
         <p v-if="error" class="mt-3 text-center text-sm text-red-600 dark:text-red-400">解析失败：{{ error }}</p>
     </div>
 </template>
+
+<style scoped>
+.dropzone {
+    border-radius: 3px;
+    clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 0 100%);
+}
+</style>

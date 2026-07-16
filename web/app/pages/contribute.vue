@@ -954,7 +954,7 @@ function handleReportResizeKeydown(event: KeyboardEvent): void {
 
 <template>
     <div class="flex h-screen flex-col bg-[var(--bg-main)] text-[var(--text-main)]">
-        <AppHeader :registry="registry" />
+        <AppHeader />
         <!-- 顶栏单行（Task 19 C 压缩）：阶段指示 + 版本条 + 引导条（内联，默认折叠成罗盘按钮） -->
         <div class="flex flex-wrap items-center gap-x-6 gap-y-1.5 border-b border-[var(--border-color)] px-4 py-2">
             <FlowStepper :current="step" />

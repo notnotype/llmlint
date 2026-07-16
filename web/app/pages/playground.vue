@@ -334,10 +334,17 @@ watch(() => filteredIssues.value, (newIssues) => {
 
 <template>
     <div class="flex h-screen flex-col bg-[var(--bg-main)] text-[var(--text-main)]">
-        <AppHeader :registry="registry" />
+        <AppHeader />
         <main class="min-h-0 flex-1 overflow-hidden">
             <Transition name="home-state" mode="out-in">
-                <HomeInputPanel v-if="!isWorkbench" key="home" v-model="text" @submit="startCheck" />
+                <HomeInputPanel
+                    v-if="!isWorkbench"
+                    key="home"
+                    v-model="text"
+                    :active-regex-rules="registry.regexRules.length"
+                    :llm-rules="registry.llmRules.length"
+                    @submit="startCheck"
+                />
                 <div
                     v-else
                     key="workbench"

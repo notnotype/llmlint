@@ -267,6 +267,13 @@ web/
 - 浏览器自动化：允许后尝试 Playwright 控制本机 Chrome/Edge，但两者都卡在浏览器进程启动阶段；因此本轮未获得截图级验证，改用真实 dev server HTTP/API 路径验证。
 - **端到端 API 闭环复核（2026-07-01，带 cookie jar 的 curl 跑真 Nitro server）**：`register`→`me`(authEnabled/user)→未登录 `/contribute` 302→`POST /texts`（服务器算 `charCount`、`origin` 恒 user-upload）→`POST /judgments`（落 `phase=pre-edit,blind=true`）→`POST /scans`（`MachineRecord.engineVersion=2.0.0`）→`POST /annotations`（`note` 原样）→提管理员后 `GET /export` 返回**按 engineVersion 分组**（`unscanned` / `2.0.0`）；非 admin `/export` 403。全部不变量（DTO 拆分 / 盲评 / engineVersion / NL 原样 / id 策略 / gate）运行时确认。空 `textId` 被 zod 正确拒 400（负路径也验证）。
 
+### 2026-07-14 认证页场景化改造
+
+- 登录与注册页改为共用 `AuthWorkspace`：左侧是真实稿件高亮、命中/批注/状态摘要和审稿印章，右侧保留原认证表单，减少原先表单外的大面积空白。
+- 认证 API、字段、校验、redirect 和 session 行为不变；共用组件只负责页面外壳，登录/注册表单仍由各自页面维护。
+- 计划出入：本轮只优化认证入口的视觉语境，没有扩展账号能力、注册策略或后端状态。
+- 验证：1280x720 深色与浅色注册页均完整显示；390x844 下稿件与表单纵向排列，页面可滚动，`scrollWidth=375` 与可视文档宽度一致，无横向溢出。登录页同一外壳已在桌面和移动视口复核。
+
 ## 开放项 / 默认
 
 - `target` 保留（"指出哪里改错了"要用）；v1 没上"优化"前恒 `original`。

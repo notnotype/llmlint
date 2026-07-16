@@ -10,6 +10,7 @@ export type Sample = {
     modelVersion?: string;
     styleKey?: string;
     difficulty?: string;
+    promptVersion?: string; // render 生成所用 prompt 版本；生成报告时 render 必填且全报告唯一（I8）
     split?: "train" | "test";
     referenceSource?: string;
     pairRef?: string; // render 指向的本章 reference 文件名（逐章 1:1 配对键）；repair 沿用源 render 的值；reference 无
@@ -127,6 +128,7 @@ export type RepairStat = {
 export type Report = {
     corpusRoot: string;
     generatedNote: string;
+    renderPromptVersion: string | null; // null 仅表示报告没有 render；有 render 时由 score 强校验为唯一版本
     minSupport: number;
     activeRegexRules: number;
     warnings: string[];
@@ -163,6 +165,7 @@ export type DatasetSample = {
     role: SampleRole;
     model?: string;
     pairRef?: string;       // render 指回本章 reference 文件名（配对键）
+    promptVersion?: string; // render 生成所用 prompt 版本
     difficulty?: string;
     referenceSource?: string;
     charCount: number;

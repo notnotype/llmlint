@@ -25,20 +25,27 @@ function onPick(event: Event) {
 
 <template>
     <!-- 报告拖放区 -->
-    <div class="mx-auto max-w-2xl">
+    <div class="w-full">
         <div
-            class="cursor-pointer rounded-xl border-2 border-dashed p-10 text-center transition-colors"
-            :class="dragOver ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/30' : 'border-zinc-300 hover:border-zinc-400 dark:border-zinc-700'"
+            class="dropzone cursor-pointer border-2 border-dashed bg-[var(--bg-panel)] px-6 py-12 text-center transition-colors"
+            :class="dragOver ? 'border-[var(--accent-main)] bg-[var(--accent-bg)]' : 'border-[var(--border-strong)] hover:border-[var(--accent-main)]'"
             @dragover.prevent="dragOver = true"
             @dragleave.prevent="dragOver = false"
             @drop.prevent="onDrop"
             @click="input?.click()"
         >
-            <div class="text-4xl text-zinc-400">⬆</div>
-            <p class="mt-3 text-zinc-700 dark:text-zinc-200">拖入 <code class="rounded bg-zinc-100 px-1 dark:bg-zinc-800">report.json</code>，或点击选择</p>
-            <p class="mt-1 text-xs text-zinc-500">由 <code>bun evals/score.ts</code> 生成，纯浏览器渲染、不上传</p>
+            <span class="i-lucide-upload mx-auto block h-9 w-9 text-[var(--accent-main)]" />
+            <p class="mt-4 text-[var(--text-main)]">拖入 <code class="bg-[var(--bg-subtle)] px-1">report.json</code>，或点击选择</p>
+            <p class="mt-1 text-xs text-[var(--text-muted)]">由 <code>bun evals/score.ts</code> 生成，纯浏览器渲染、不上传</p>
             <input ref="input" type="file" accept="application/json,.json" class="hidden" @change="onPick" >
         </div>
         <p v-if="error" class="mt-3 text-center text-sm text-red-600 dark:text-red-400">解析失败：{{ error }}</p>
     </div>
 </template>
+
+<style scoped>
+.dropzone {
+    border-radius: 3px;
+    clip-path: polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 0 100%);
+}
+</style>

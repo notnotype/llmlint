@@ -47,3 +47,5 @@ bun test evals/lib/metrics.test.ts
 ```
 
 `role:reference` = 人类类，`role:render` = AI 类，`repair` 单独统计。字段全集与语义见 [METHODOLOGY.md §6](METHODOLOGY.md#6-数据--meta-契约consumer--generator-唯一接口)。
+
+每个 render sample 必须带 `promptVersion`，且一张报告中的版本必须唯一；缺失或混用时 `score.ts` 会直接失败。`--holdout` 只统计至少存在一条有效 `pairRef → reference.file` 映射的题组，reference-only 题组不计入 4 组门槛。

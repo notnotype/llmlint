@@ -8,6 +8,6 @@ definePageMeta({
 </script>
 
 <template>
-    <!-- 路由级 redirect 先于渲染生效，本组件实际不会出现在页面上，占位模板仅满足 SFC 结构 -->
+    <!-- 路由级 redirect 先于渲染生效，本组件实际不会出现在页面上，占位模板仅满足 SFC 结构。 -->
     <div />
 </template>
