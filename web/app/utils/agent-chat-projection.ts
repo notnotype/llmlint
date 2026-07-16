@@ -60,7 +60,29 @@ export function applyAgentEvent(previous: AgentChatMessage[], envelope: AgentSes
 
 function entryMessage(entry: AgentTimelineEntry): AgentChatMessage[] {
     if (entry.kind === "user") return [{id: entry.id, type: "user", content: entry.payload.text ?? "", status: "done", invocationId: entry.invocationId ?? undefined}];
-    if (entry.kind === "assistant") return [{id: entry.id, type: "assistant", content: entry.payload.text ?? "", status: "done", invocationId: entry.invocationId ?? undefined}];
+    if (entry.kind === "assistant") return [{
+        id: entry.id,
+        type: "assistant",
+        content: entry.payload.text ?? "",
+        thinking: entry.payload.thinking,
+        status: "done",
+        invocationId: entry.invocationId ?? undefined,
+        tools: entry.payload.tools?.map((tool) => ({id: tool.id, name: tool.name, args: JSON.stringify(tool.args, null, 2), status: tool.status, result: tool.result})),
+    }];
+    if (entry.kind === "tool_result" && entry.payload.toolCallId && entry.payload.toolName) return [{
+        id: entry.id,
+        type: "assistant",
+        content: "",
+        status: "done",
+        invocationId: entry.invocationId ?? undefined,
+        tools: [{
+            id: entry.payload.toolCallId,
+            name: entry.payload.toolName,
+            args: JSON.stringify(entry.payload.toolArgs ?? {}, null, 2),
+            status: entry.payload.isError ? "error" : "success",
+            result: entry.payload.text,
+        }],
+    }];
     if (entry.kind === "edit") return [{id: entry.id, type: "edit", content: "", status: "done", invocationId: entry.invocationId ?? undefined, edit: {oldText: entry.payload.oldText ?? "", newText: entry.payload.newText ?? "", reason: entry.payload.reason ?? null}}];
     if (entry.kind === "report" && entry.payload.report) return [{id: entry.id, type: "report", content: entry.payload.report.conclusion, status: "done", invocationId: entry.invocationId ?? undefined}];
     if (entry.kind === "error") return [{id: entry.id, type: "system", content: entry.payload.message ?? "Agent 运行失败", status: "done", invocationId: entry.invocationId ?? undefined}];

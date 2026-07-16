@@ -1,6 +1,6 @@
 import {z} from "zod";
 import {requireCurrentUser} from "../../../../utils/auth";
-import {agentHarness} from "../../../../agent/local-harness";
+import {agentHarness} from "../../../../agent";
 import {validateBody} from "../../../../utils/dto";
 import {requireOwnedRevealedAgentSession} from "../../../../utils/ownership";
 

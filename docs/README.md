@@ -5,6 +5,7 @@
 ## 目录分工
 
 - `docs/tasks/`：重大任务的持续 walkthrough；active task 使用 `{order}-{slug}`，已归档任务放入 `docs/tasks/archived/`。
+- `docs/adr/`：已经拍板且会约束实现或部署的架构决策。
 - `docs/research/`：第三方库、外部资料和方案调研。
 - `docs/drafts/`：未定稿草案。
 - `docs/archived/`：过期但仍有参考价值的文档。

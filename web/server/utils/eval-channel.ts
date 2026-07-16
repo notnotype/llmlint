@@ -7,6 +7,7 @@
 // （构建期按仓根解析，运行期可用 NUXT_EVAL_CONFIG_PATH 覆盖）。
 // 密钥纪律：key 只在 modelsConfig 指向的 NeuroBook config.json，绝不进本仓任何入 git 文件、不打进日志。
 import {readFileSync} from "node:fs";
+import {fileURLToPath} from "node:url";
 import {dirname, isAbsolute, join} from "node:path";
 import {loadConfig, resolveModel, type ResolvedModel} from "evals-generator/config";
 import {configureModelClient} from "evals-generator/model-client";
@@ -23,7 +24,9 @@ export type EvalConfigLoad =
  * 本函数只在通道初始化时被调用一次，重复读的代价可忽略。
  */
 export function readEvalConfig(): EvalConfigLoad {
-    const configPath = useRuntimeConfig().evalConfigPath;
+    const configPath = typeof useRuntimeConfig === "function"
+        ? useRuntimeConfig().evalConfigPath
+        : process.env.NUXT_EVAL_CONFIG_PATH ?? join(dirname(fileURLToPath(import.meta.url)), "../../../evals/eval.config.json");
     try {
         return {ok: true, config: JSON.parse(readFileSync(configPath, "utf-8")) as Partial<EvalConfig>, configPath};
     } catch (error) {

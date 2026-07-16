@@ -36,8 +36,8 @@ function resolveDatabaseUrl(): string {
 /**
  * 创建 libSQL 适配器 PrismaClient。
  */
-function createPrismaClient(): PrismaClient {
-    const adapter = new PrismaLibSql({url: resolveDatabaseUrl()});
+export function createPrismaClient(url = resolveDatabaseUrl()): PrismaClient {
+    const adapter = new PrismaLibSql({url});
     return new PrismaClient({adapter});
 }
 

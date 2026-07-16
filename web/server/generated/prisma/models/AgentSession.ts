@@ -28,10 +28,12 @@ export type AggregateAgentSession = {
 
 export type AgentSessionAvgAggregateOutputType = {
   userId: number | null
+  version: number | null
 }
 
 export type AgentSessionSumAggregateOutputType = {
   userId: number | null
+  version: number | null
 }
 
 export type AgentSessionMinAggregateOutputType = {
@@ -39,6 +41,9 @@ export type AgentSessionMinAggregateOutputType = {
   revisionId: string | null
   userId: number | null
   profileKey: string | null
+  initialJson: string | null
+  hostContextJson: string | null
+  version: number | null
   status: string | null
   activeLeafId: string | null
   createdAt: Date | null
@@ -50,6 +55,9 @@ export type AgentSessionMaxAggregateOutputType = {
   revisionId: string | null
   userId: number | null
   profileKey: string | null
+  initialJson: string | null
+  hostContextJson: string | null
+  version: number | null
   status: string | null
   activeLeafId: string | null
   createdAt: Date | null
@@ -61,6 +69,9 @@ export type AgentSessionCountAggregateOutputType = {
   revisionId: number
   userId: number
   profileKey: number
+  initialJson: number
+  hostContextJson: number
+  version: number
   status: number
   activeLeafId: number
   createdAt: number
@@ -71,10 +82,12 @@ export type AgentSessionCountAggregateOutputType = {
 
 export type AgentSessionAvgAggregateInputType = {
   userId?: true
+  version?: true
 }
 
 export type AgentSessionSumAggregateInputType = {
   userId?: true
+  version?: true
 }
 
 export type AgentSessionMinAggregateInputType = {
@@ -82,6 +95,9 @@ export type AgentSessionMinAggregateInputType = {
   revisionId?: true
   userId?: true
   profileKey?: true
+  initialJson?: true
+  hostContextJson?: true
+  version?: true
   status?: true
   activeLeafId?: true
   createdAt?: true
@@ -93,6 +109,9 @@ export type AgentSessionMaxAggregateInputType = {
   revisionId?: true
   userId?: true
   profileKey?: true
+  initialJson?: true
+  hostContextJson?: true
+  version?: true
   status?: true
   activeLeafId?: true
   createdAt?: true
@@ -104,6 +123,9 @@ export type AgentSessionCountAggregateInputType = {
   revisionId?: true
   userId?: true
   profileKey?: true
+  initialJson?: true
+  hostContextJson?: true
+  version?: true
   status?: true
   activeLeafId?: true
   createdAt?: true
@@ -202,6 +224,9 @@ export type AgentSessionGroupByOutputType = {
   revisionId: string
   userId: number
   profileKey: string
+  initialJson: string
+  hostContextJson: string
+  version: number
   status: string
   activeLeafId: string | null
   createdAt: Date
@@ -236,6 +261,9 @@ export type AgentSessionWhereInput = {
   revisionId?: Prisma.StringFilter<"AgentSession"> | string
   userId?: Prisma.IntFilter<"AgentSession"> | number
   profileKey?: Prisma.StringFilter<"AgentSession"> | string
+  initialJson?: Prisma.StringFilter<"AgentSession"> | string
+  hostContextJson?: Prisma.StringFilter<"AgentSession"> | string
+  version?: Prisma.IntFilter<"AgentSession"> | number
   status?: Prisma.StringFilter<"AgentSession"> | string
   activeLeafId?: Prisma.StringNullableFilter<"AgentSession"> | string | null
   createdAt?: Prisma.DateTimeFilter<"AgentSession"> | Date | string
@@ -252,6 +280,9 @@ export type AgentSessionOrderByWithRelationInput = {
   revisionId?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   profileKey?: Prisma.SortOrder
+  initialJson?: Prisma.SortOrder
+  hostContextJson?: Prisma.SortOrder
+  version?: Prisma.SortOrder
   status?: Prisma.SortOrder
   activeLeafId?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -272,6 +303,9 @@ export type AgentSessionWhereUniqueInput = Prisma.AtLeast<{
   revisionId?: Prisma.StringFilter<"AgentSession"> | string
   userId?: Prisma.IntFilter<"AgentSession"> | number
   profileKey?: Prisma.StringFilter<"AgentSession"> | string
+  initialJson?: Prisma.StringFilter<"AgentSession"> | string
+  hostContextJson?: Prisma.StringFilter<"AgentSession"> | string
+  version?: Prisma.IntFilter<"AgentSession"> | number
   status?: Prisma.StringFilter<"AgentSession"> | string
   activeLeafId?: Prisma.StringNullableFilter<"AgentSession"> | string | null
   createdAt?: Prisma.DateTimeFilter<"AgentSession"> | Date | string
@@ -288,6 +322,9 @@ export type AgentSessionOrderByWithAggregationInput = {
   revisionId?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   profileKey?: Prisma.SortOrder
+  initialJson?: Prisma.SortOrder
+  hostContextJson?: Prisma.SortOrder
+  version?: Prisma.SortOrder
   status?: Prisma.SortOrder
   activeLeafId?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -307,6 +344,9 @@ export type AgentSessionScalarWhereWithAggregatesInput = {
   revisionId?: Prisma.StringWithAggregatesFilter<"AgentSession"> | string
   userId?: Prisma.IntWithAggregatesFilter<"AgentSession"> | number
   profileKey?: Prisma.StringWithAggregatesFilter<"AgentSession"> | string
+  initialJson?: Prisma.StringWithAggregatesFilter<"AgentSession"> | string
+  hostContextJson?: Prisma.StringWithAggregatesFilter<"AgentSession"> | string
+  version?: Prisma.IntWithAggregatesFilter<"AgentSession"> | number
   status?: Prisma.StringWithAggregatesFilter<"AgentSession"> | string
   activeLeafId?: Prisma.StringNullableWithAggregatesFilter<"AgentSession"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"AgentSession"> | Date | string
@@ -316,6 +356,9 @@ export type AgentSessionScalarWhereWithAggregatesInput = {
 export type AgentSessionCreateInput = {
   id?: string
   profileKey: string
+  initialJson?: string
+  hostContextJson?: string
+  version?: number
   status?: string
   activeLeafId?: string | null
   createdAt?: Date | string
@@ -332,6 +375,9 @@ export type AgentSessionUncheckedCreateInput = {
   revisionId: string
   userId: number
   profileKey: string
+  initialJson?: string
+  hostContextJson?: string
+  version?: number
   status?: string
   activeLeafId?: string | null
   createdAt?: Date | string
@@ -344,6 +390,9 @@ export type AgentSessionUncheckedCreateInput = {
 export type AgentSessionUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   profileKey?: Prisma.StringFieldUpdateOperationsInput | string
+  initialJson?: Prisma.StringFieldUpdateOperationsInput | string
+  hostContextJson?: Prisma.StringFieldUpdateOperationsInput | string
+  version?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.StringFieldUpdateOperationsInput | string
   activeLeafId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -360,6 +409,9 @@ export type AgentSessionUncheckedUpdateInput = {
   revisionId?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.IntFieldUpdateOperationsInput | number
   profileKey?: Prisma.StringFieldUpdateOperationsInput | string
+  initialJson?: Prisma.StringFieldUpdateOperationsInput | string
+  hostContextJson?: Prisma.StringFieldUpdateOperationsInput | string
+  version?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.StringFieldUpdateOperationsInput | string
   activeLeafId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -374,6 +426,9 @@ export type AgentSessionCreateManyInput = {
   revisionId: string
   userId: number
   profileKey: string
+  initialJson?: string
+  hostContextJson?: string
+  version?: number
   status?: string
   activeLeafId?: string | null
   createdAt?: Date | string
@@ -383,6 +438,9 @@ export type AgentSessionCreateManyInput = {
 export type AgentSessionUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   profileKey?: Prisma.StringFieldUpdateOperationsInput | string
+  initialJson?: Prisma.StringFieldUpdateOperationsInput | string
+  hostContextJson?: Prisma.StringFieldUpdateOperationsInput | string
+  version?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.StringFieldUpdateOperationsInput | string
   activeLeafId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -394,6 +452,9 @@ export type AgentSessionUncheckedUpdateManyInput = {
   revisionId?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.IntFieldUpdateOperationsInput | number
   profileKey?: Prisma.StringFieldUpdateOperationsInput | string
+  initialJson?: Prisma.StringFieldUpdateOperationsInput | string
+  hostContextJson?: Prisma.StringFieldUpdateOperationsInput | string
+  version?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.StringFieldUpdateOperationsInput | string
   activeLeafId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -425,6 +486,9 @@ export type AgentSessionCountOrderByAggregateInput = {
   revisionId?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   profileKey?: Prisma.SortOrder
+  initialJson?: Prisma.SortOrder
+  hostContextJson?: Prisma.SortOrder
+  version?: Prisma.SortOrder
   status?: Prisma.SortOrder
   activeLeafId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -433,6 +497,7 @@ export type AgentSessionCountOrderByAggregateInput = {
 
 export type AgentSessionAvgOrderByAggregateInput = {
   userId?: Prisma.SortOrder
+  version?: Prisma.SortOrder
 }
 
 export type AgentSessionMaxOrderByAggregateInput = {
@@ -440,6 +505,9 @@ export type AgentSessionMaxOrderByAggregateInput = {
   revisionId?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   profileKey?: Prisma.SortOrder
+  initialJson?: Prisma.SortOrder
+  hostContextJson?: Prisma.SortOrder
+  version?: Prisma.SortOrder
   status?: Prisma.SortOrder
   activeLeafId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -451,6 +519,9 @@ export type AgentSessionMinOrderByAggregateInput = {
   revisionId?: Prisma.SortOrder
   userId?: Prisma.SortOrder
   profileKey?: Prisma.SortOrder
+  initialJson?: Prisma.SortOrder
+  hostContextJson?: Prisma.SortOrder
+  version?: Prisma.SortOrder
   status?: Prisma.SortOrder
   activeLeafId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -459,6 +530,7 @@ export type AgentSessionMinOrderByAggregateInput = {
 
 export type AgentSessionSumOrderByAggregateInput = {
   userId?: Prisma.SortOrder
+  version?: Prisma.SortOrder
 }
 
 export type AgentSessionCreateNestedManyWithoutUserInput = {
@@ -590,6 +662,9 @@ export type AgentSessionUpdateOneRequiredWithoutInvocationsNestedInput = {
 export type AgentSessionCreateWithoutUserInput = {
   id?: string
   profileKey: string
+  initialJson?: string
+  hostContextJson?: string
+  version?: number
   status?: string
   activeLeafId?: string | null
   createdAt?: Date | string
@@ -604,6 +679,9 @@ export type AgentSessionUncheckedCreateWithoutUserInput = {
   id?: string
   revisionId: string
   profileKey: string
+  initialJson?: string
+  hostContextJson?: string
+  version?: number
   status?: string
   activeLeafId?: string | null
   createdAt?: Date | string
@@ -646,6 +724,9 @@ export type AgentSessionScalarWhereInput = {
   revisionId?: Prisma.StringFilter<"AgentSession"> | string
   userId?: Prisma.IntFilter<"AgentSession"> | number
   profileKey?: Prisma.StringFilter<"AgentSession"> | string
+  initialJson?: Prisma.StringFilter<"AgentSession"> | string
+  hostContextJson?: Prisma.StringFilter<"AgentSession"> | string
+  version?: Prisma.IntFilter<"AgentSession"> | number
   status?: Prisma.StringFilter<"AgentSession"> | string
   activeLeafId?: Prisma.StringNullableFilter<"AgentSession"> | string | null
   createdAt?: Prisma.DateTimeFilter<"AgentSession"> | Date | string
@@ -655,6 +736,9 @@ export type AgentSessionScalarWhereInput = {
 export type AgentSessionCreateWithoutRevisionInput = {
   id?: string
   profileKey: string
+  initialJson?: string
+  hostContextJson?: string
+  version?: number
   status?: string
   activeLeafId?: string | null
   createdAt?: Date | string
@@ -669,6 +753,9 @@ export type AgentSessionUncheckedCreateWithoutRevisionInput = {
   id?: string
   userId: number
   profileKey: string
+  initialJson?: string
+  hostContextJson?: string
+  version?: number
   status?: string
   activeLeafId?: string | null
   createdAt?: Date | string
@@ -706,6 +793,9 @@ export type AgentSessionUpdateManyWithWhereWithoutRevisionInput = {
 export type AgentSessionCreateWithoutMachineLlmReviewInput = {
   id?: string
   profileKey: string
+  initialJson?: string
+  hostContextJson?: string
+  version?: number
   status?: string
   activeLeafId?: string | null
   createdAt?: Date | string
@@ -721,6 +811,9 @@ export type AgentSessionUncheckedCreateWithoutMachineLlmReviewInput = {
   revisionId: string
   userId: number
   profileKey: string
+  initialJson?: string
+  hostContextJson?: string
+  version?: number
   status?: string
   activeLeafId?: string | null
   createdAt?: Date | string
@@ -748,6 +841,9 @@ export type AgentSessionUpdateToOneWithWhereWithoutMachineLlmReviewInput = {
 export type AgentSessionUpdateWithoutMachineLlmReviewInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   profileKey?: Prisma.StringFieldUpdateOperationsInput | string
+  initialJson?: Prisma.StringFieldUpdateOperationsInput | string
+  hostContextJson?: Prisma.StringFieldUpdateOperationsInput | string
+  version?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.StringFieldUpdateOperationsInput | string
   activeLeafId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -763,6 +859,9 @@ export type AgentSessionUncheckedUpdateWithoutMachineLlmReviewInput = {
   revisionId?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.IntFieldUpdateOperationsInput | number
   profileKey?: Prisma.StringFieldUpdateOperationsInput | string
+  initialJson?: Prisma.StringFieldUpdateOperationsInput | string
+  hostContextJson?: Prisma.StringFieldUpdateOperationsInput | string
+  version?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.StringFieldUpdateOperationsInput | string
   activeLeafId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -774,6 +873,9 @@ export type AgentSessionUncheckedUpdateWithoutMachineLlmReviewInput = {
 export type AgentSessionCreateWithoutEntriesInput = {
   id?: string
   profileKey: string
+  initialJson?: string
+  hostContextJson?: string
+  version?: number
   status?: string
   activeLeafId?: string | null
   createdAt?: Date | string
@@ -789,6 +891,9 @@ export type AgentSessionUncheckedCreateWithoutEntriesInput = {
   revisionId: string
   userId: number
   profileKey: string
+  initialJson?: string
+  hostContextJson?: string
+  version?: number
   status?: string
   activeLeafId?: string | null
   createdAt?: Date | string
@@ -816,6 +921,9 @@ export type AgentSessionUpdateToOneWithWhereWithoutEntriesInput = {
 export type AgentSessionUpdateWithoutEntriesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   profileKey?: Prisma.StringFieldUpdateOperationsInput | string
+  initialJson?: Prisma.StringFieldUpdateOperationsInput | string
+  hostContextJson?: Prisma.StringFieldUpdateOperationsInput | string
+  version?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.StringFieldUpdateOperationsInput | string
   activeLeafId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -831,6 +939,9 @@ export type AgentSessionUncheckedUpdateWithoutEntriesInput = {
   revisionId?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.IntFieldUpdateOperationsInput | number
   profileKey?: Prisma.StringFieldUpdateOperationsInput | string
+  initialJson?: Prisma.StringFieldUpdateOperationsInput | string
+  hostContextJson?: Prisma.StringFieldUpdateOperationsInput | string
+  version?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.StringFieldUpdateOperationsInput | string
   activeLeafId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -842,6 +953,9 @@ export type AgentSessionUncheckedUpdateWithoutEntriesInput = {
 export type AgentSessionCreateWithoutInvocationsInput = {
   id?: string
   profileKey: string
+  initialJson?: string
+  hostContextJson?: string
+  version?: number
   status?: string
   activeLeafId?: string | null
   createdAt?: Date | string
@@ -857,6 +971,9 @@ export type AgentSessionUncheckedCreateWithoutInvocationsInput = {
   revisionId: string
   userId: number
   profileKey: string
+  initialJson?: string
+  hostContextJson?: string
+  version?: number
   status?: string
   activeLeafId?: string | null
   createdAt?: Date | string
@@ -884,6 +1001,9 @@ export type AgentSessionUpdateToOneWithWhereWithoutInvocationsInput = {
 export type AgentSessionUpdateWithoutInvocationsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   profileKey?: Prisma.StringFieldUpdateOperationsInput | string
+  initialJson?: Prisma.StringFieldUpdateOperationsInput | string
+  hostContextJson?: Prisma.StringFieldUpdateOperationsInput | string
+  version?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.StringFieldUpdateOperationsInput | string
   activeLeafId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -899,6 +1019,9 @@ export type AgentSessionUncheckedUpdateWithoutInvocationsInput = {
   revisionId?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.IntFieldUpdateOperationsInput | number
   profileKey?: Prisma.StringFieldUpdateOperationsInput | string
+  initialJson?: Prisma.StringFieldUpdateOperationsInput | string
+  hostContextJson?: Prisma.StringFieldUpdateOperationsInput | string
+  version?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.StringFieldUpdateOperationsInput | string
   activeLeafId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -911,6 +1034,9 @@ export type AgentSessionCreateManyUserInput = {
   id?: string
   revisionId: string
   profileKey: string
+  initialJson?: string
+  hostContextJson?: string
+  version?: number
   status?: string
   activeLeafId?: string | null
   createdAt?: Date | string
@@ -920,6 +1046,9 @@ export type AgentSessionCreateManyUserInput = {
 export type AgentSessionUpdateWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   profileKey?: Prisma.StringFieldUpdateOperationsInput | string
+  initialJson?: Prisma.StringFieldUpdateOperationsInput | string
+  hostContextJson?: Prisma.StringFieldUpdateOperationsInput | string
+  version?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.StringFieldUpdateOperationsInput | string
   activeLeafId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -934,6 +1063,9 @@ export type AgentSessionUncheckedUpdateWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   revisionId?: Prisma.StringFieldUpdateOperationsInput | string
   profileKey?: Prisma.StringFieldUpdateOperationsInput | string
+  initialJson?: Prisma.StringFieldUpdateOperationsInput | string
+  hostContextJson?: Prisma.StringFieldUpdateOperationsInput | string
+  version?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.StringFieldUpdateOperationsInput | string
   activeLeafId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -947,6 +1079,9 @@ export type AgentSessionUncheckedUpdateManyWithoutUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   revisionId?: Prisma.StringFieldUpdateOperationsInput | string
   profileKey?: Prisma.StringFieldUpdateOperationsInput | string
+  initialJson?: Prisma.StringFieldUpdateOperationsInput | string
+  hostContextJson?: Prisma.StringFieldUpdateOperationsInput | string
+  version?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.StringFieldUpdateOperationsInput | string
   activeLeafId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -957,6 +1092,9 @@ export type AgentSessionCreateManyRevisionInput = {
   id?: string
   userId: number
   profileKey: string
+  initialJson?: string
+  hostContextJson?: string
+  version?: number
   status?: string
   activeLeafId?: string | null
   createdAt?: Date | string
@@ -966,6 +1104,9 @@ export type AgentSessionCreateManyRevisionInput = {
 export type AgentSessionUpdateWithoutRevisionInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   profileKey?: Prisma.StringFieldUpdateOperationsInput | string
+  initialJson?: Prisma.StringFieldUpdateOperationsInput | string
+  hostContextJson?: Prisma.StringFieldUpdateOperationsInput | string
+  version?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.StringFieldUpdateOperationsInput | string
   activeLeafId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -980,6 +1121,9 @@ export type AgentSessionUncheckedUpdateWithoutRevisionInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.IntFieldUpdateOperationsInput | number
   profileKey?: Prisma.StringFieldUpdateOperationsInput | string
+  initialJson?: Prisma.StringFieldUpdateOperationsInput | string
+  hostContextJson?: Prisma.StringFieldUpdateOperationsInput | string
+  version?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.StringFieldUpdateOperationsInput | string
   activeLeafId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -993,6 +1137,9 @@ export type AgentSessionUncheckedUpdateManyWithoutRevisionInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   userId?: Prisma.IntFieldUpdateOperationsInput | number
   profileKey?: Prisma.StringFieldUpdateOperationsInput | string
+  initialJson?: Prisma.StringFieldUpdateOperationsInput | string
+  hostContextJson?: Prisma.StringFieldUpdateOperationsInput | string
+  version?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.StringFieldUpdateOperationsInput | string
   activeLeafId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -1053,6 +1200,9 @@ export type AgentSessionSelect<ExtArgs extends runtime.Types.Extensions.Internal
   revisionId?: boolean
   userId?: boolean
   profileKey?: boolean
+  initialJson?: boolean
+  hostContextJson?: boolean
+  version?: boolean
   status?: boolean
   activeLeafId?: boolean
   createdAt?: boolean
@@ -1070,6 +1220,9 @@ export type AgentSessionSelectCreateManyAndReturn<ExtArgs extends runtime.Types.
   revisionId?: boolean
   userId?: boolean
   profileKey?: boolean
+  initialJson?: boolean
+  hostContextJson?: boolean
+  version?: boolean
   status?: boolean
   activeLeafId?: boolean
   createdAt?: boolean
@@ -1083,6 +1236,9 @@ export type AgentSessionSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.
   revisionId?: boolean
   userId?: boolean
   profileKey?: boolean
+  initialJson?: boolean
+  hostContextJson?: boolean
+  version?: boolean
   status?: boolean
   activeLeafId?: boolean
   createdAt?: boolean
@@ -1096,13 +1252,16 @@ export type AgentSessionSelectScalar = {
   revisionId?: boolean
   userId?: boolean
   profileKey?: boolean
+  initialJson?: boolean
+  hostContextJson?: boolean
+  version?: boolean
   status?: boolean
   activeLeafId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type AgentSessionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "revisionId" | "userId" | "profileKey" | "status" | "activeLeafId" | "createdAt" | "updatedAt", ExtArgs["result"]["agentSession"]>
+export type AgentSessionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "revisionId" | "userId" | "profileKey" | "initialJson" | "hostContextJson" | "version" | "status" | "activeLeafId" | "createdAt" | "updatedAt", ExtArgs["result"]["agentSession"]>
 export type AgentSessionInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   revision?: boolean | Prisma.RevisionDefaultArgs<ExtArgs>
   user?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -1134,6 +1293,9 @@ export type $AgentSessionPayload<ExtArgs extends runtime.Types.Extensions.Intern
     revisionId: string
     userId: number
     profileKey: string
+    initialJson: string
+    hostContextJson: string
+    version: number
     status: string
     activeLeafId: string | null
     createdAt: Date
@@ -1570,6 +1732,9 @@ export interface AgentSessionFieldRefs {
   readonly revisionId: Prisma.FieldRef<"AgentSession", 'String'>
   readonly userId: Prisma.FieldRef<"AgentSession", 'Int'>
   readonly profileKey: Prisma.FieldRef<"AgentSession", 'String'>
+  readonly initialJson: Prisma.FieldRef<"AgentSession", 'String'>
+  readonly hostContextJson: Prisma.FieldRef<"AgentSession", 'String'>
+  readonly version: Prisma.FieldRef<"AgentSession", 'Int'>
   readonly status: Prisma.FieldRef<"AgentSession", 'String'>
   readonly activeLeafId: Prisma.FieldRef<"AgentSession", 'String'>
   readonly createdAt: Prisma.FieldRef<"AgentSession", 'DateTime'>

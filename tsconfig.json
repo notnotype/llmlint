@@ -6,7 +6,12 @@
         "baseUrl": ".",
         "paths": {
             "llmlint/*": ["skill/src/*"],
-            "evals/*": ["evals/lib/*"]
+            "evals/*": ["evals/lib/*"],
+            "evals-generator/*": ["evals/generator/*"],
+            "evals-classifier/*": ["evals/classifier/*"],
+            "evals-detector/*": ["evals/detector/*"],
+            "#shared": ["web/shared"],
+            "#shared/*": ["web/shared/*"]
         },
         "strict": true,
         "allowImportingTsExtensions": true,

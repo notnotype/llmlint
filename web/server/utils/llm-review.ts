@@ -1,5 +1,5 @@
 import type {LlmAnalysisReport, LlmRuleHit} from "#shared/agent-harness";
-import {agentHarness} from "../agent/local-harness";
+import {agentHarness} from "../agent";
 import {prisma} from "../database/prisma";
 
 export type MachineLlmReviewHitDto = LlmRuleHit;

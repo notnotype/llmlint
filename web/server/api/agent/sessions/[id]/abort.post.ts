@@ -1,5 +1,5 @@
 import {requireCurrentUser} from "../../../../utils/auth";
-import {agentHarness} from "../../../../agent/local-harness";
+import {agentHarness} from "../../../../agent";
 import {requireOwnedRevealedAgentSession} from "../../../../utils/ownership";
 
 /** 真正取消当前 invocation，AbortSignal 会传播到 provider。 */

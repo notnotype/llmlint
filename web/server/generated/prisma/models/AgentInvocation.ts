@@ -37,13 +37,19 @@ export type AgentInvocationSumAggregateOutputType = {
 export type AgentInvocationMinAggregateOutputType = {
   id: string | null
   sessionId: string | null
+  profileKey: string | null
   mode: string | null
   phase: string | null
   status: string | null
   inputJson: string | null
+  callerJson: string | null
+  retryOf: string | null
   resultJson: string | null
   error: string | null
+  errorJson: string | null
+  pendingApprovalsJson: string | null
   turns: number | null
+  terminationReason: string | null
   createdAt: Date | null
   finishedAt: Date | null
 }
@@ -51,13 +57,19 @@ export type AgentInvocationMinAggregateOutputType = {
 export type AgentInvocationMaxAggregateOutputType = {
   id: string | null
   sessionId: string | null
+  profileKey: string | null
   mode: string | null
   phase: string | null
   status: string | null
   inputJson: string | null
+  callerJson: string | null
+  retryOf: string | null
   resultJson: string | null
   error: string | null
+  errorJson: string | null
+  pendingApprovalsJson: string | null
   turns: number | null
+  terminationReason: string | null
   createdAt: Date | null
   finishedAt: Date | null
 }
@@ -65,13 +77,19 @@ export type AgentInvocationMaxAggregateOutputType = {
 export type AgentInvocationCountAggregateOutputType = {
   id: number
   sessionId: number
+  profileKey: number
   mode: number
   phase: number
   status: number
   inputJson: number
+  callerJson: number
+  retryOf: number
   resultJson: number
   error: number
+  errorJson: number
+  pendingApprovalsJson: number
   turns: number
+  terminationReason: number
   createdAt: number
   finishedAt: number
   _all: number
@@ -89,13 +107,19 @@ export type AgentInvocationSumAggregateInputType = {
 export type AgentInvocationMinAggregateInputType = {
   id?: true
   sessionId?: true
+  profileKey?: true
   mode?: true
   phase?: true
   status?: true
   inputJson?: true
+  callerJson?: true
+  retryOf?: true
   resultJson?: true
   error?: true
+  errorJson?: true
+  pendingApprovalsJson?: true
   turns?: true
+  terminationReason?: true
   createdAt?: true
   finishedAt?: true
 }
@@ -103,13 +127,19 @@ export type AgentInvocationMinAggregateInputType = {
 export type AgentInvocationMaxAggregateInputType = {
   id?: true
   sessionId?: true
+  profileKey?: true
   mode?: true
   phase?: true
   status?: true
   inputJson?: true
+  callerJson?: true
+  retryOf?: true
   resultJson?: true
   error?: true
+  errorJson?: true
+  pendingApprovalsJson?: true
   turns?: true
+  terminationReason?: true
   createdAt?: true
   finishedAt?: true
 }
@@ -117,13 +147,19 @@ export type AgentInvocationMaxAggregateInputType = {
 export type AgentInvocationCountAggregateInputType = {
   id?: true
   sessionId?: true
+  profileKey?: true
   mode?: true
   phase?: true
   status?: true
   inputJson?: true
+  callerJson?: true
+  retryOf?: true
   resultJson?: true
   error?: true
+  errorJson?: true
+  pendingApprovalsJson?: true
   turns?: true
+  terminationReason?: true
   createdAt?: true
   finishedAt?: true
   _all?: true
@@ -218,13 +254,19 @@ export type AgentInvocationGroupByArgs<ExtArgs extends runtime.Types.Extensions.
 export type AgentInvocationGroupByOutputType = {
   id: string
   sessionId: string
+  profileKey: string
   mode: string
   phase: string
   status: string
   inputJson: string
+  callerJson: string
+  retryOf: string | null
   resultJson: string | null
   error: string | null
+  errorJson: string | null
+  pendingApprovalsJson: string | null
   turns: number
+  terminationReason: string | null
   createdAt: Date
   finishedAt: Date | null
   _count: AgentInvocationCountAggregateOutputType | null
@@ -255,13 +297,19 @@ export type AgentInvocationWhereInput = {
   NOT?: Prisma.AgentInvocationWhereInput | Prisma.AgentInvocationWhereInput[]
   id?: Prisma.StringFilter<"AgentInvocation"> | string
   sessionId?: Prisma.StringFilter<"AgentInvocation"> | string
+  profileKey?: Prisma.StringFilter<"AgentInvocation"> | string
   mode?: Prisma.StringFilter<"AgentInvocation"> | string
   phase?: Prisma.StringFilter<"AgentInvocation"> | string
   status?: Prisma.StringFilter<"AgentInvocation"> | string
   inputJson?: Prisma.StringFilter<"AgentInvocation"> | string
+  callerJson?: Prisma.StringFilter<"AgentInvocation"> | string
+  retryOf?: Prisma.StringNullableFilter<"AgentInvocation"> | string | null
   resultJson?: Prisma.StringNullableFilter<"AgentInvocation"> | string | null
   error?: Prisma.StringNullableFilter<"AgentInvocation"> | string | null
+  errorJson?: Prisma.StringNullableFilter<"AgentInvocation"> | string | null
+  pendingApprovalsJson?: Prisma.StringNullableFilter<"AgentInvocation"> | string | null
   turns?: Prisma.IntFilter<"AgentInvocation"> | number
+  terminationReason?: Prisma.StringNullableFilter<"AgentInvocation"> | string | null
   createdAt?: Prisma.DateTimeFilter<"AgentInvocation"> | Date | string
   finishedAt?: Prisma.DateTimeNullableFilter<"AgentInvocation"> | Date | string | null
   session?: Prisma.XOR<Prisma.AgentSessionScalarRelationFilter, Prisma.AgentSessionWhereInput>
@@ -271,13 +319,19 @@ export type AgentInvocationWhereInput = {
 export type AgentInvocationOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   sessionId?: Prisma.SortOrder
+  profileKey?: Prisma.SortOrder
   mode?: Prisma.SortOrder
   phase?: Prisma.SortOrder
   status?: Prisma.SortOrder
   inputJson?: Prisma.SortOrder
+  callerJson?: Prisma.SortOrder
+  retryOf?: Prisma.SortOrderInput | Prisma.SortOrder
   resultJson?: Prisma.SortOrderInput | Prisma.SortOrder
   error?: Prisma.SortOrderInput | Prisma.SortOrder
+  errorJson?: Prisma.SortOrderInput | Prisma.SortOrder
+  pendingApprovalsJson?: Prisma.SortOrderInput | Prisma.SortOrder
   turns?: Prisma.SortOrder
+  terminationReason?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   finishedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   session?: Prisma.AgentSessionOrderByWithRelationInput
@@ -290,13 +344,19 @@ export type AgentInvocationWhereUniqueInput = Prisma.AtLeast<{
   OR?: Prisma.AgentInvocationWhereInput[]
   NOT?: Prisma.AgentInvocationWhereInput | Prisma.AgentInvocationWhereInput[]
   sessionId?: Prisma.StringFilter<"AgentInvocation"> | string
+  profileKey?: Prisma.StringFilter<"AgentInvocation"> | string
   mode?: Prisma.StringFilter<"AgentInvocation"> | string
   phase?: Prisma.StringFilter<"AgentInvocation"> | string
   status?: Prisma.StringFilter<"AgentInvocation"> | string
   inputJson?: Prisma.StringFilter<"AgentInvocation"> | string
+  callerJson?: Prisma.StringFilter<"AgentInvocation"> | string
+  retryOf?: Prisma.StringNullableFilter<"AgentInvocation"> | string | null
   resultJson?: Prisma.StringNullableFilter<"AgentInvocation"> | string | null
   error?: Prisma.StringNullableFilter<"AgentInvocation"> | string | null
+  errorJson?: Prisma.StringNullableFilter<"AgentInvocation"> | string | null
+  pendingApprovalsJson?: Prisma.StringNullableFilter<"AgentInvocation"> | string | null
   turns?: Prisma.IntFilter<"AgentInvocation"> | number
+  terminationReason?: Prisma.StringNullableFilter<"AgentInvocation"> | string | null
   createdAt?: Prisma.DateTimeFilter<"AgentInvocation"> | Date | string
   finishedAt?: Prisma.DateTimeNullableFilter<"AgentInvocation"> | Date | string | null
   session?: Prisma.XOR<Prisma.AgentSessionScalarRelationFilter, Prisma.AgentSessionWhereInput>
@@ -306,13 +366,19 @@ export type AgentInvocationWhereUniqueInput = Prisma.AtLeast<{
 export type AgentInvocationOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   sessionId?: Prisma.SortOrder
+  profileKey?: Prisma.SortOrder
   mode?: Prisma.SortOrder
   phase?: Prisma.SortOrder
   status?: Prisma.SortOrder
   inputJson?: Prisma.SortOrder
+  callerJson?: Prisma.SortOrder
+  retryOf?: Prisma.SortOrderInput | Prisma.SortOrder
   resultJson?: Prisma.SortOrderInput | Prisma.SortOrder
   error?: Prisma.SortOrderInput | Prisma.SortOrder
+  errorJson?: Prisma.SortOrderInput | Prisma.SortOrder
+  pendingApprovalsJson?: Prisma.SortOrderInput | Prisma.SortOrder
   turns?: Prisma.SortOrder
+  terminationReason?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   finishedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.AgentInvocationCountOrderByAggregateInput
@@ -328,26 +394,38 @@ export type AgentInvocationScalarWhereWithAggregatesInput = {
   NOT?: Prisma.AgentInvocationScalarWhereWithAggregatesInput | Prisma.AgentInvocationScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"AgentInvocation"> | string
   sessionId?: Prisma.StringWithAggregatesFilter<"AgentInvocation"> | string
+  profileKey?: Prisma.StringWithAggregatesFilter<"AgentInvocation"> | string
   mode?: Prisma.StringWithAggregatesFilter<"AgentInvocation"> | string
   phase?: Prisma.StringWithAggregatesFilter<"AgentInvocation"> | string
   status?: Prisma.StringWithAggregatesFilter<"AgentInvocation"> | string
   inputJson?: Prisma.StringWithAggregatesFilter<"AgentInvocation"> | string
+  callerJson?: Prisma.StringWithAggregatesFilter<"AgentInvocation"> | string
+  retryOf?: Prisma.StringNullableWithAggregatesFilter<"AgentInvocation"> | string | null
   resultJson?: Prisma.StringNullableWithAggregatesFilter<"AgentInvocation"> | string | null
   error?: Prisma.StringNullableWithAggregatesFilter<"AgentInvocation"> | string | null
+  errorJson?: Prisma.StringNullableWithAggregatesFilter<"AgentInvocation"> | string | null
+  pendingApprovalsJson?: Prisma.StringNullableWithAggregatesFilter<"AgentInvocation"> | string | null
   turns?: Prisma.IntWithAggregatesFilter<"AgentInvocation"> | number
+  terminationReason?: Prisma.StringNullableWithAggregatesFilter<"AgentInvocation"> | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"AgentInvocation"> | Date | string
   finishedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"AgentInvocation"> | Date | string | null
 }
 
 export type AgentInvocationCreateInput = {
   id?: string
+  profileKey?: string
   mode: string
   phase: string
   status?: string
   inputJson: string
+  callerJson?: string
+  retryOf?: string | null
   resultJson?: string | null
   error?: string | null
+  errorJson?: string | null
+  pendingApprovalsJson?: string | null
   turns?: number
+  terminationReason?: string | null
   createdAt?: Date | string
   finishedAt?: Date | string | null
   session: Prisma.AgentSessionCreateNestedOneWithoutInvocationsInput
@@ -357,13 +435,19 @@ export type AgentInvocationCreateInput = {
 export type AgentInvocationUncheckedCreateInput = {
   id?: string
   sessionId: string
+  profileKey?: string
   mode: string
   phase: string
   status?: string
   inputJson: string
+  callerJson?: string
+  retryOf?: string | null
   resultJson?: string | null
   error?: string | null
+  errorJson?: string | null
+  pendingApprovalsJson?: string | null
   turns?: number
+  terminationReason?: string | null
   createdAt?: Date | string
   finishedAt?: Date | string | null
   machineReviews?: Prisma.MachineLlmReviewUncheckedCreateNestedManyWithoutInvocationInput
@@ -371,13 +455,19 @@ export type AgentInvocationUncheckedCreateInput = {
 
 export type AgentInvocationUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  profileKey?: Prisma.StringFieldUpdateOperationsInput | string
   mode?: Prisma.StringFieldUpdateOperationsInput | string
   phase?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   inputJson?: Prisma.StringFieldUpdateOperationsInput | string
+  callerJson?: Prisma.StringFieldUpdateOperationsInput | string
+  retryOf?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resultJson?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  errorJson?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pendingApprovalsJson?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   turns?: Prisma.IntFieldUpdateOperationsInput | number
+  terminationReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   finishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   session?: Prisma.AgentSessionUpdateOneRequiredWithoutInvocationsNestedInput
@@ -387,13 +477,19 @@ export type AgentInvocationUpdateInput = {
 export type AgentInvocationUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   sessionId?: Prisma.StringFieldUpdateOperationsInput | string
+  profileKey?: Prisma.StringFieldUpdateOperationsInput | string
   mode?: Prisma.StringFieldUpdateOperationsInput | string
   phase?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   inputJson?: Prisma.StringFieldUpdateOperationsInput | string
+  callerJson?: Prisma.StringFieldUpdateOperationsInput | string
+  retryOf?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resultJson?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  errorJson?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pendingApprovalsJson?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   turns?: Prisma.IntFieldUpdateOperationsInput | number
+  terminationReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   finishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   machineReviews?: Prisma.MachineLlmReviewUncheckedUpdateManyWithoutInvocationNestedInput
@@ -402,26 +498,38 @@ export type AgentInvocationUncheckedUpdateInput = {
 export type AgentInvocationCreateManyInput = {
   id?: string
   sessionId: string
+  profileKey?: string
   mode: string
   phase: string
   status?: string
   inputJson: string
+  callerJson?: string
+  retryOf?: string | null
   resultJson?: string | null
   error?: string | null
+  errorJson?: string | null
+  pendingApprovalsJson?: string | null
   turns?: number
+  terminationReason?: string | null
   createdAt?: Date | string
   finishedAt?: Date | string | null
 }
 
 export type AgentInvocationUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  profileKey?: Prisma.StringFieldUpdateOperationsInput | string
   mode?: Prisma.StringFieldUpdateOperationsInput | string
   phase?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   inputJson?: Prisma.StringFieldUpdateOperationsInput | string
+  callerJson?: Prisma.StringFieldUpdateOperationsInput | string
+  retryOf?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resultJson?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  errorJson?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pendingApprovalsJson?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   turns?: Prisma.IntFieldUpdateOperationsInput | number
+  terminationReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   finishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
@@ -429,13 +537,19 @@ export type AgentInvocationUpdateManyMutationInput = {
 export type AgentInvocationUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   sessionId?: Prisma.StringFieldUpdateOperationsInput | string
+  profileKey?: Prisma.StringFieldUpdateOperationsInput | string
   mode?: Prisma.StringFieldUpdateOperationsInput | string
   phase?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   inputJson?: Prisma.StringFieldUpdateOperationsInput | string
+  callerJson?: Prisma.StringFieldUpdateOperationsInput | string
+  retryOf?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resultJson?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  errorJson?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pendingApprovalsJson?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   turns?: Prisma.IntFieldUpdateOperationsInput | number
+  terminationReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   finishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
@@ -458,13 +572,19 @@ export type AgentInvocationOrderByRelationAggregateInput = {
 export type AgentInvocationCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   sessionId?: Prisma.SortOrder
+  profileKey?: Prisma.SortOrder
   mode?: Prisma.SortOrder
   phase?: Prisma.SortOrder
   status?: Prisma.SortOrder
   inputJson?: Prisma.SortOrder
+  callerJson?: Prisma.SortOrder
+  retryOf?: Prisma.SortOrder
   resultJson?: Prisma.SortOrder
   error?: Prisma.SortOrder
+  errorJson?: Prisma.SortOrder
+  pendingApprovalsJson?: Prisma.SortOrder
   turns?: Prisma.SortOrder
+  terminationReason?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   finishedAt?: Prisma.SortOrder
 }
@@ -476,13 +596,19 @@ export type AgentInvocationAvgOrderByAggregateInput = {
 export type AgentInvocationMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   sessionId?: Prisma.SortOrder
+  profileKey?: Prisma.SortOrder
   mode?: Prisma.SortOrder
   phase?: Prisma.SortOrder
   status?: Prisma.SortOrder
   inputJson?: Prisma.SortOrder
+  callerJson?: Prisma.SortOrder
+  retryOf?: Prisma.SortOrder
   resultJson?: Prisma.SortOrder
   error?: Prisma.SortOrder
+  errorJson?: Prisma.SortOrder
+  pendingApprovalsJson?: Prisma.SortOrder
   turns?: Prisma.SortOrder
+  terminationReason?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   finishedAt?: Prisma.SortOrder
 }
@@ -490,13 +616,19 @@ export type AgentInvocationMaxOrderByAggregateInput = {
 export type AgentInvocationMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   sessionId?: Prisma.SortOrder
+  profileKey?: Prisma.SortOrder
   mode?: Prisma.SortOrder
   phase?: Prisma.SortOrder
   status?: Prisma.SortOrder
   inputJson?: Prisma.SortOrder
+  callerJson?: Prisma.SortOrder
+  retryOf?: Prisma.SortOrder
   resultJson?: Prisma.SortOrder
   error?: Prisma.SortOrder
+  errorJson?: Prisma.SortOrder
+  pendingApprovalsJson?: Prisma.SortOrder
   turns?: Prisma.SortOrder
+  terminationReason?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   finishedAt?: Prisma.SortOrder
 }
@@ -563,13 +695,19 @@ export type AgentInvocationUncheckedUpdateManyWithoutSessionNestedInput = {
 
 export type AgentInvocationCreateWithoutMachineReviewsInput = {
   id?: string
+  profileKey?: string
   mode: string
   phase: string
   status?: string
   inputJson: string
+  callerJson?: string
+  retryOf?: string | null
   resultJson?: string | null
   error?: string | null
+  errorJson?: string | null
+  pendingApprovalsJson?: string | null
   turns?: number
+  terminationReason?: string | null
   createdAt?: Date | string
   finishedAt?: Date | string | null
   session: Prisma.AgentSessionCreateNestedOneWithoutInvocationsInput
@@ -578,13 +716,19 @@ export type AgentInvocationCreateWithoutMachineReviewsInput = {
 export type AgentInvocationUncheckedCreateWithoutMachineReviewsInput = {
   id?: string
   sessionId: string
+  profileKey?: string
   mode: string
   phase: string
   status?: string
   inputJson: string
+  callerJson?: string
+  retryOf?: string | null
   resultJson?: string | null
   error?: string | null
+  errorJson?: string | null
+  pendingApprovalsJson?: string | null
   turns?: number
+  terminationReason?: string | null
   createdAt?: Date | string
   finishedAt?: Date | string | null
 }
@@ -607,13 +751,19 @@ export type AgentInvocationUpdateToOneWithWhereWithoutMachineReviewsInput = {
 
 export type AgentInvocationUpdateWithoutMachineReviewsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  profileKey?: Prisma.StringFieldUpdateOperationsInput | string
   mode?: Prisma.StringFieldUpdateOperationsInput | string
   phase?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   inputJson?: Prisma.StringFieldUpdateOperationsInput | string
+  callerJson?: Prisma.StringFieldUpdateOperationsInput | string
+  retryOf?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resultJson?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  errorJson?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pendingApprovalsJson?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   turns?: Prisma.IntFieldUpdateOperationsInput | number
+  terminationReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   finishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   session?: Prisma.AgentSessionUpdateOneRequiredWithoutInvocationsNestedInput
@@ -622,26 +772,38 @@ export type AgentInvocationUpdateWithoutMachineReviewsInput = {
 export type AgentInvocationUncheckedUpdateWithoutMachineReviewsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   sessionId?: Prisma.StringFieldUpdateOperationsInput | string
+  profileKey?: Prisma.StringFieldUpdateOperationsInput | string
   mode?: Prisma.StringFieldUpdateOperationsInput | string
   phase?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   inputJson?: Prisma.StringFieldUpdateOperationsInput | string
+  callerJson?: Prisma.StringFieldUpdateOperationsInput | string
+  retryOf?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resultJson?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  errorJson?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pendingApprovalsJson?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   turns?: Prisma.IntFieldUpdateOperationsInput | number
+  terminationReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   finishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
 
 export type AgentInvocationCreateWithoutSessionInput = {
   id?: string
+  profileKey?: string
   mode: string
   phase: string
   status?: string
   inputJson: string
+  callerJson?: string
+  retryOf?: string | null
   resultJson?: string | null
   error?: string | null
+  errorJson?: string | null
+  pendingApprovalsJson?: string | null
   turns?: number
+  terminationReason?: string | null
   createdAt?: Date | string
   finishedAt?: Date | string | null
   machineReviews?: Prisma.MachineLlmReviewCreateNestedManyWithoutInvocationInput
@@ -649,13 +811,19 @@ export type AgentInvocationCreateWithoutSessionInput = {
 
 export type AgentInvocationUncheckedCreateWithoutSessionInput = {
   id?: string
+  profileKey?: string
   mode: string
   phase: string
   status?: string
   inputJson: string
+  callerJson?: string
+  retryOf?: string | null
   resultJson?: string | null
   error?: string | null
+  errorJson?: string | null
+  pendingApprovalsJson?: string | null
   turns?: number
+  terminationReason?: string | null
   createdAt?: Date | string
   finishedAt?: Date | string | null
   machineReviews?: Prisma.MachineLlmReviewUncheckedCreateNestedManyWithoutInvocationInput
@@ -692,39 +860,57 @@ export type AgentInvocationScalarWhereInput = {
   NOT?: Prisma.AgentInvocationScalarWhereInput | Prisma.AgentInvocationScalarWhereInput[]
   id?: Prisma.StringFilter<"AgentInvocation"> | string
   sessionId?: Prisma.StringFilter<"AgentInvocation"> | string
+  profileKey?: Prisma.StringFilter<"AgentInvocation"> | string
   mode?: Prisma.StringFilter<"AgentInvocation"> | string
   phase?: Prisma.StringFilter<"AgentInvocation"> | string
   status?: Prisma.StringFilter<"AgentInvocation"> | string
   inputJson?: Prisma.StringFilter<"AgentInvocation"> | string
+  callerJson?: Prisma.StringFilter<"AgentInvocation"> | string
+  retryOf?: Prisma.StringNullableFilter<"AgentInvocation"> | string | null
   resultJson?: Prisma.StringNullableFilter<"AgentInvocation"> | string | null
   error?: Prisma.StringNullableFilter<"AgentInvocation"> | string | null
+  errorJson?: Prisma.StringNullableFilter<"AgentInvocation"> | string | null
+  pendingApprovalsJson?: Prisma.StringNullableFilter<"AgentInvocation"> | string | null
   turns?: Prisma.IntFilter<"AgentInvocation"> | number
+  terminationReason?: Prisma.StringNullableFilter<"AgentInvocation"> | string | null
   createdAt?: Prisma.DateTimeFilter<"AgentInvocation"> | Date | string
   finishedAt?: Prisma.DateTimeNullableFilter<"AgentInvocation"> | Date | string | null
 }
 
 export type AgentInvocationCreateManySessionInput = {
   id?: string
+  profileKey?: string
   mode: string
   phase: string
   status?: string
   inputJson: string
+  callerJson?: string
+  retryOf?: string | null
   resultJson?: string | null
   error?: string | null
+  errorJson?: string | null
+  pendingApprovalsJson?: string | null
   turns?: number
+  terminationReason?: string | null
   createdAt?: Date | string
   finishedAt?: Date | string | null
 }
 
 export type AgentInvocationUpdateWithoutSessionInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  profileKey?: Prisma.StringFieldUpdateOperationsInput | string
   mode?: Prisma.StringFieldUpdateOperationsInput | string
   phase?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   inputJson?: Prisma.StringFieldUpdateOperationsInput | string
+  callerJson?: Prisma.StringFieldUpdateOperationsInput | string
+  retryOf?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resultJson?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  errorJson?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pendingApprovalsJson?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   turns?: Prisma.IntFieldUpdateOperationsInput | number
+  terminationReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   finishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   machineReviews?: Prisma.MachineLlmReviewUpdateManyWithoutInvocationNestedInput
@@ -732,13 +918,19 @@ export type AgentInvocationUpdateWithoutSessionInput = {
 
 export type AgentInvocationUncheckedUpdateWithoutSessionInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  profileKey?: Prisma.StringFieldUpdateOperationsInput | string
   mode?: Prisma.StringFieldUpdateOperationsInput | string
   phase?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   inputJson?: Prisma.StringFieldUpdateOperationsInput | string
+  callerJson?: Prisma.StringFieldUpdateOperationsInput | string
+  retryOf?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resultJson?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  errorJson?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pendingApprovalsJson?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   turns?: Prisma.IntFieldUpdateOperationsInput | number
+  terminationReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   finishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   machineReviews?: Prisma.MachineLlmReviewUncheckedUpdateManyWithoutInvocationNestedInput
@@ -746,13 +938,19 @@ export type AgentInvocationUncheckedUpdateWithoutSessionInput = {
 
 export type AgentInvocationUncheckedUpdateManyWithoutSessionInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  profileKey?: Prisma.StringFieldUpdateOperationsInput | string
   mode?: Prisma.StringFieldUpdateOperationsInput | string
   phase?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.StringFieldUpdateOperationsInput | string
   inputJson?: Prisma.StringFieldUpdateOperationsInput | string
+  callerJson?: Prisma.StringFieldUpdateOperationsInput | string
+  retryOf?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   resultJson?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   error?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  errorJson?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  pendingApprovalsJson?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   turns?: Prisma.IntFieldUpdateOperationsInput | number
+  terminationReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   finishedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
 }
@@ -791,13 +989,19 @@ export type AgentInvocationCountOutputTypeCountMachineReviewsArgs<ExtArgs extend
 export type AgentInvocationSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   sessionId?: boolean
+  profileKey?: boolean
   mode?: boolean
   phase?: boolean
   status?: boolean
   inputJson?: boolean
+  callerJson?: boolean
+  retryOf?: boolean
   resultJson?: boolean
   error?: boolean
+  errorJson?: boolean
+  pendingApprovalsJson?: boolean
   turns?: boolean
+  terminationReason?: boolean
   createdAt?: boolean
   finishedAt?: boolean
   session?: boolean | Prisma.AgentSessionDefaultArgs<ExtArgs>
@@ -808,13 +1012,19 @@ export type AgentInvocationSelect<ExtArgs extends runtime.Types.Extensions.Inter
 export type AgentInvocationSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   sessionId?: boolean
+  profileKey?: boolean
   mode?: boolean
   phase?: boolean
   status?: boolean
   inputJson?: boolean
+  callerJson?: boolean
+  retryOf?: boolean
   resultJson?: boolean
   error?: boolean
+  errorJson?: boolean
+  pendingApprovalsJson?: boolean
   turns?: boolean
+  terminationReason?: boolean
   createdAt?: boolean
   finishedAt?: boolean
   session?: boolean | Prisma.AgentSessionDefaultArgs<ExtArgs>
@@ -823,13 +1033,19 @@ export type AgentInvocationSelectCreateManyAndReturn<ExtArgs extends runtime.Typ
 export type AgentInvocationSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   sessionId?: boolean
+  profileKey?: boolean
   mode?: boolean
   phase?: boolean
   status?: boolean
   inputJson?: boolean
+  callerJson?: boolean
+  retryOf?: boolean
   resultJson?: boolean
   error?: boolean
+  errorJson?: boolean
+  pendingApprovalsJson?: boolean
   turns?: boolean
+  terminationReason?: boolean
   createdAt?: boolean
   finishedAt?: boolean
   session?: boolean | Prisma.AgentSessionDefaultArgs<ExtArgs>
@@ -838,18 +1054,24 @@ export type AgentInvocationSelectUpdateManyAndReturn<ExtArgs extends runtime.Typ
 export type AgentInvocationSelectScalar = {
   id?: boolean
   sessionId?: boolean
+  profileKey?: boolean
   mode?: boolean
   phase?: boolean
   status?: boolean
   inputJson?: boolean
+  callerJson?: boolean
+  retryOf?: boolean
   resultJson?: boolean
   error?: boolean
+  errorJson?: boolean
+  pendingApprovalsJson?: boolean
   turns?: boolean
+  terminationReason?: boolean
   createdAt?: boolean
   finishedAt?: boolean
 }
 
-export type AgentInvocationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "sessionId" | "mode" | "phase" | "status" | "inputJson" | "resultJson" | "error" | "turns" | "createdAt" | "finishedAt", ExtArgs["result"]["agentInvocation"]>
+export type AgentInvocationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "sessionId" | "profileKey" | "mode" | "phase" | "status" | "inputJson" | "callerJson" | "retryOf" | "resultJson" | "error" | "errorJson" | "pendingApprovalsJson" | "turns" | "terminationReason" | "createdAt" | "finishedAt", ExtArgs["result"]["agentInvocation"]>
 export type AgentInvocationInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   session?: boolean | Prisma.AgentSessionDefaultArgs<ExtArgs>
   machineReviews?: boolean | Prisma.AgentInvocation$machineReviewsArgs<ExtArgs>
@@ -871,13 +1093,19 @@ export type $AgentInvocationPayload<ExtArgs extends runtime.Types.Extensions.Int
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     sessionId: string
+    profileKey: string
     mode: string
     phase: string
     status: string
     inputJson: string
+    callerJson: string
+    retryOf: string | null
     resultJson: string | null
     error: string | null
+    errorJson: string | null
+    pendingApprovalsJson: string | null
     turns: number
+    terminationReason: string | null
     createdAt: Date
     finishedAt: Date | null
   }, ExtArgs["result"]["agentInvocation"]>
@@ -1307,13 +1535,19 @@ export interface Prisma__AgentInvocationClient<T, Null = never, ExtArgs extends 
 export interface AgentInvocationFieldRefs {
   readonly id: Prisma.FieldRef<"AgentInvocation", 'String'>
   readonly sessionId: Prisma.FieldRef<"AgentInvocation", 'String'>
+  readonly profileKey: Prisma.FieldRef<"AgentInvocation", 'String'>
   readonly mode: Prisma.FieldRef<"AgentInvocation", 'String'>
   readonly phase: Prisma.FieldRef<"AgentInvocation", 'String'>
   readonly status: Prisma.FieldRef<"AgentInvocation", 'String'>
   readonly inputJson: Prisma.FieldRef<"AgentInvocation", 'String'>
+  readonly callerJson: Prisma.FieldRef<"AgentInvocation", 'String'>
+  readonly retryOf: Prisma.FieldRef<"AgentInvocation", 'String'>
   readonly resultJson: Prisma.FieldRef<"AgentInvocation", 'String'>
   readonly error: Prisma.FieldRef<"AgentInvocation", 'String'>
+  readonly errorJson: Prisma.FieldRef<"AgentInvocation", 'String'>
+  readonly pendingApprovalsJson: Prisma.FieldRef<"AgentInvocation", 'String'>
   readonly turns: Prisma.FieldRef<"AgentInvocation", 'Int'>
+  readonly terminationReason: Prisma.FieldRef<"AgentInvocation", 'String'>
   readonly createdAt: Prisma.FieldRef<"AgentInvocation", 'DateTime'>
   readonly finishedAt: Prisma.FieldRef<"AgentInvocation", 'DateTime'>
 }

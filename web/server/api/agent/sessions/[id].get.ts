@@ -1,5 +1,5 @@
 import {requireCurrentUser} from "../../../utils/auth";
-import {agentHarness} from "../../../agent/local-harness";
+import {agentHarness} from "../../../agent";
 import {requireOwnedRevealedAgentSession} from "../../../utils/ownership";
 
 /** 恢复持久化 Agent session snapshot。 */

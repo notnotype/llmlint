@@ -151,6 +151,7 @@ llmlint 是针对 **LLM 生成中文文本**的 linter：CLI 用正则确定性�
 - **I15 Agent 事实只追加**：session entry 与 invocation 生命周期只能追加/终结，失败、取消、重启中断不得原地复活；retry 必须创建新 invocation。snapshot 是恢复真相源，SSE 只作增量投影。
 - **I16 LLM 报告证据单源**：`record_rule_hit` 是 LLM 规则命中的唯一结构化事实；最终报告 evidence 必须由服务器从已校验 hits 生成，Agent 不得重复抄写 quote/ruleId/reason。风险分同样由服务器按命中密度校准，模型只提交审查置信度、结论和建议。
 - **I17 分数统一表示风险**：web 三路分数与综合项都表示“AI 痕迹风险”，越高越可疑、颜色越偏红；不得用裸“得分/满分”暗示稿件质量。
+- **I18 Harness Core 与宿主投影分离**：provider-neutral Session/Invocation/Tool/approval/compaction/事件事实由 NeuroAgentHarness Core 负责；Pi、Prisma、SSE DTO、`MachineLlmReview` 和权限必须留在 llmlint Adapter/Workflow。新增消费者只能通过 Adapter 接入，不得把宿主业务字段倒灌进 Core。
 
 ## 4b. 检测数据（category ③）采集不变量
 

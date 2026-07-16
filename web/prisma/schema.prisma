@@ -232,6 +232,9 @@ model AgentSession {
   revisionId       String
   userId           Int
   profileKey       String
+  initialJson      String             @default("{}")
+  hostContextJson  String             @default("{}")
+  version          Int                @default(0)
   status           String             @default("idle")
   activeLeafId     String?
   createdAt        DateTime           @default(now())
@@ -265,13 +268,19 @@ model AgentSessionEntry {
 model AgentInvocation {
   id             String             @id @default(cuid(2))
   sessionId      String
+  profileKey     String             @default("llmlint.review")
   mode           String
   phase          String
   status         String             @default("running")
   inputJson      String
+  callerJson     String             @default("{\"kind\":\"user\"}")
+  retryOf        String?
   resultJson     String?
   error          String?
+  errorJson      String?
+  pendingApprovalsJson String?
   turns          Int                @default(0)
+  terminationReason String?
   createdAt      DateTime           @default(now())
   finishedAt     DateTime?
   session        AgentSession       @relation(fields: [sessionId], references: [id], onDelete: Cascade)

@@ -1,5 +1,8 @@
-export type AgentSessionStatus = "idle" | "running" | "aborting" | "interrupted";
-export type AgentInvocationStatus = "running" | "completed" | "failed" | "aborted" | "interrupted";
+import type {AssistantMessage} from "@earendil-works/pi-ai";
+import type {JsonObject} from "@notnotype/neuro-agent-harness";
+
+export type AgentSessionStatus = "idle" | "running" | "waiting" | "aborting" | "interrupted";
+export type AgentInvocationStatus = "running" | "waiting" | "completed" | "failed" | "aborted" | "interrupted";
 export type AgentInvocationPhase = "analysis" | "optimize";
 
 export type LlmRuleHit = {
@@ -19,13 +22,26 @@ export type LlmAnalysisReport = {
 
 export type AgentEdit = {oldText: string; newText: string; reason: string | null};
 
+export type AgentTimelineTool = {
+    id: string;
+    name: string;
+    args: JsonObject;
+    status: "running" | "success" | "error";
+    result?: string;
+};
+
 export type AgentTimelineEntry = {
     id: string;
     invocationId: string | null;
     kind: "user" | "assistant" | "tool_result" | "edit" | "report" | "lifecycle" | "error";
     payload: {
         text?: string;
+        thinking?: string;
+        tools?: AgentTimelineTool[];
         toolName?: string;
+        toolCallId?: string;
+        toolArgs?: JsonObject;
+        isError?: boolean;
         oldText?: string;
         newText?: string;
         reason?: string | null;
@@ -50,6 +66,8 @@ export type AgentInvocationSnapshot = {
     /** invocation 发起时的真实草稿快照；用于刷新恢复后的 stale 校验与失败重试解释。 */
     input: AgentInvokeRequest;
     result: {body: string; edits: AgentEdit[]; partial: boolean; summary?: string} | null;
+    /** completed 时记录 Core 的稳定终止原因。 */
+    terminationReason?: "tool_terminate" | "natural_stop" | "max_turns";
 };
 
 export type AgentSessionSnapshot = {
@@ -79,9 +97,9 @@ export type AgentRuntimeEvent =
     | {type: "agent_start"; phase: AgentInvocationPhase}
     | {type: "turn_start"; turn: number}
     | {type: "message_start"; turn: number; message: AssistantMessage}
-    | {type: "message_update"; turn: number; message: AssistantMessage; assistantMessageEvent: AssistantMessageEvent}
+    | {type: "message_update"; turn: number; message: AssistantMessage}
     | {type: "message_end"; turn: number; message: AssistantMessage}
-    | {type: "tool_execution_start"; turn: number; toolCallId: string; toolName: string; args: Record<string, unknown>}
+    | {type: "tool_execution_start"; turn: number; toolCallId: string; toolName: string; args: JsonObject}
     | {type: "tool_execution_end"; turn: number; toolCallId: string; toolName: string; result: string; isError: boolean}
     | {type: "turn_end"; turn: number}
     | {type: "agent_end"; status: AgentInvocationStatus};
@@ -107,4 +125,3 @@ export type AgentSessionConnected = {
     latestSeq: number;
     snapshotRequired: boolean;
 };
-import type {AssistantMessage, AssistantMessageEvent} from "@earendil-works/pi-ai";

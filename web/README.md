@@ -8,6 +8,7 @@ llmlint 的 web 站：**浏览器本地 AI 味检测** + **判定数据（catego
   - **workspace**：左=head 编辑器（规则命中高亮、机械修复、diff 审阅）或旧版只读正文；右=三维检测报告、命中列表、持久化 Agent。报告顶部并列规则引擎/外部检测/LLM Agent 三张“AI 痕迹风险”卡，越高越可疑、颜色越偏红；外部与 LLM 可真实取消、失败重试。综合风险按 30%/45%/25% 作为次级参考，缺失通道重新归一。检测 session 直接延续为 Agent 改写对话，选区以引用附件进入 composer，每个 invocation 最多 64 轮/64 次 replace。
   - **done**：总结卡。
 - 机器信号**一律服务器计算写入**（上传/建修订即扫、先算后藏）；浏览器本地扫描只作行内高亮展示层。
+- Agent Harness 通过 `AgentHarnessPort` 接入，唯一实现是公开包 `@notnotype/neuro-agent-harness@0.1.0`。llmlint 提供 Prisma SessionStore、Pi ModelRuntime、Profile、MachineLlmReviewProjector 和 SSE Adapter；Core 不认识 Prisma、Pi 或业务表。
 - 采集到的是**判定标签**，喂评测第②层与规则精度，**永不进 lift**（见根 [CONTEXT.md](../CONTEXT.md) 不变量 D1–D5）。
 - `/rules`：规则目录页——registry 全部 303 条 regex 规则 join 构建期烘焙的评测统计（verdict 徽标/effectiveLift/两侧命中率，effectiveLift 预排），verdict 筛选 + 搜索 + 行展开详情（正则/示例/lift 明细）+ 分页；评测 report 缺失时降级注明。
 
@@ -26,6 +27,8 @@ bun run dev                   # 预烘 registry/report 后起 nuxt dev
 ```
 
 > **坑：`prisma migrate/generate` 必须能读到 `DATABASE_URL`。** 缺它时 schema engine 会报一个**空的 `Schema engine error`**（不是 schema 本身有问题）。`.env` 里设好即可；CI/一次性命令可 `DATABASE_URL="file:./data.db" bunx prisma migrate dev`。
+
+历史 Agent Session 的一次性硬切使用仓库根命令 `bun run agent:migrate-neuro`。命令会验证公开 Harness 版本和模型配置、创建一致性 SQLite 备份、按 ledger 重建并重跑 analysis，全部成功后才应用删除 `harnessKind` 的 migration；中断后重复运行会从最后成功阶段继续。
 
 ## 数据模型（Task 12/13 后）
 

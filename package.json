@@ -17,11 +17,13 @@
         "web:dev": "cd web && bun run dev",
         "web:generate": "cd web && bun run generate",
         "web:typecheck": "cd web && bun run typecheck",
+        "agent:migrate-neuro": "cd web && bun scripts/migrate-neuro.ts",
         "sync:neuro-book": "bun ../neuro-book/scripts/cli/sync-llmlint-skill.ts"
     },
     "dependencies": {
         "@earendil-works/pi-ai": "^0.75.4",
         "@gradio/client": "^2.3.0",
+        "@notnotype/neuro-agent-harness": "0.1.0",
         "commander": "^14.0.2",
         "fflate": "^0.8.3",
         "picocolors": "^1.1.1",
