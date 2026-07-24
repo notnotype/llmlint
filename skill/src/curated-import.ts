@@ -484,6 +484,22 @@ function applyCuratedPatch(rule: LintRuleRecord): LintRuleRecord {
             source: {...(rule.source ?? {}), version: "rule-curation-v6"},
         };
     }
+    if (
+        rule.id === "cn.metaphor.like.bare-like-placeholder"
+        || rule.id === "cn.metaphor.like.double-like-is"
+        || rule.id === "cn.metaphor.like.double-seems-like"
+        || rule.id === "cn.metaphor.like.like-doing"
+        || rule.id === "cn.metaphor.like.like-is-doing"
+        || rule.id === "cn.metaphor.like.like-is-placeholder"
+        || rule.id === "cn.metaphor.like.unlike-but-like"
+    ) {
+        return {
+            ...rule,
+            enabled: false,
+            note: "默认关闭：素材里的 * 通配符被转换为字面量星号，当前规则只会命中带星号的占位文本；保留资产，等待重新建模比喻壳。",
+            source: {...(rule.source ?? {}), version: "rule-curation-v7"},
+        };
+    }
     if (rule.id === "cn.cliche.quote-meta-as-if" || rule.id === "cn.cliche.quote-meta-like" || rule.id === "cn.cliche.quote-meta-seems") {
         return {
             ...rule,

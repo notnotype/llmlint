@@ -4,8 +4,10 @@
     "namespace": "metaphor.like",
     "title": "像像像",
     "level": "medium",
-    "enabled": true,
+    "enabled": false,
+    "note": "默认关闭：素材里的 * 通配符被转换为字面量星号，当前规则只会命中带星号的占位文本；保留资产，等待重新建模比喻壳。",
     "source": {
+      "version": "rule-curation-v7",
       "canonicalKey": "metaphor.like\t\t(?:，|。)像\\*(?:。|，)",
       "importedFrom": "curated-cn-rule-samples"
     },
@@ -27,8 +29,10 @@
     "namespace": "metaphor.like",
     "title": "像像像",
     "level": "medium",
-    "enabled": true,
+    "enabled": false,
+    "note": "默认关闭：素材里的 * 通配符被转换为字面量星号，当前规则只会命中带星号的占位文本；保留资产，等待重新建模比喻壳。",
     "source": {
+      "version": "rule-curation-v7",
       "canonicalKey": "metaphor.like\t\t\\*像是\\*，\\*又像是\\*(?:，|。)",
       "importedFrom": "curated-cn-rule-samples"
     },
@@ -50,8 +54,10 @@
     "namespace": "metaphor.like",
     "title": "像像像",
     "level": "medium",
-    "enabled": true,
+    "enabled": false,
+    "note": "默认关闭：素材里的 * 通配符被转换为字面量星号，当前规则只会命中带星号的占位文本；保留资产，等待重新建模比喻壳。",
     "source": {
+      "version": "rule-curation-v7",
       "canonicalKey": "metaphor.like\t\t(?:，|。)好像\\*，又好像\\*(?:。|，)",
       "importedFrom": "curated-cn-rule-samples"
     },
@@ -73,8 +79,10 @@
     "namespace": "metaphor.like",
     "title": "像像像",
     "level": "medium",
-    "enabled": true,
+    "enabled": false,
+    "note": "默认关闭：素材里的 * 通配符被转换为字面量星号，当前规则只会命中带星号的占位文本；保留资产，等待重新建模比喻壳。",
     "source": {
+      "version": "rule-curation-v7",
       "canonicalKey": "metaphor.like\t\t(?:，|。)\\*像在\\*(?:。|，)",
       "importedFrom": "curated-cn-rule-samples"
     },
@@ -96,8 +104,10 @@
     "namespace": "metaphor.like",
     "title": "像像像",
     "level": "medium",
-    "enabled": true,
+    "enabled": false,
+    "note": "默认关闭：素材里的 * 通配符被转换为字面量星号，当前规则只会命中带星号的占位文本；保留资产，等待重新建模比喻壳。",
     "source": {
+      "version": "rule-curation-v7",
       "canonicalKey": "metaphor.like\t\t(?:，|。)\\*像是在\\*(?:。|，)",
       "importedFrom": "curated-cn-rule-samples"
     },
@@ -119,8 +129,10 @@
     "namespace": "metaphor.like",
     "title": "像像像",
     "level": "medium",
-    "enabled": true,
+    "enabled": false,
+    "note": "默认关闭：素材里的 * 通配符被转换为字面量星号，当前规则只会命中带星号的占位文本；保留资产，等待重新建模比喻壳。",
     "source": {
+      "version": "rule-curation-v7",
       "canonicalKey": "metaphor.like\t\t(?:，|。)\\*像是\\*(?:。|，)",
       "importedFrom": "curated-cn-rule-samples"
     },
@@ -142,8 +154,10 @@
     "namespace": "metaphor.like",
     "title": "像像像",
     "level": "medium",
-    "enabled": true,
+    "enabled": false,
+    "note": "默认关闭：素材里的 * 通配符被转换为字面量星号，当前规则只会命中带星号的占位文本；保留资产，等待重新建模比喻壳。",
     "source": {
+      "version": "rule-curation-v7",
       "canonicalKey": "metaphor.like\t\t(?:，|。)不像\\*，倒像\\*(?:。|，)",
       "importedFrom": "curated-cn-rule-samples"
     },
