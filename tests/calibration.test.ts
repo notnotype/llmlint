@@ -113,12 +113,15 @@ describe("story-deslop calibration rules", () => {
             {text: "声音不高，第一句却稳稳压住了整个大厅。", id: "story-deslop.voice-contrast"},
             {text: "没有伴奏，没有和声，没有提词器。", id: "story-deslop.negation-parade.repeated-none"},
             {text: "他没炫技，没有那种故作高深的架势。他只是唱。", id: "story-deslop.negation-parade.only-turn"},
+            {text: "没有历史包袱，没有道德枷锁，只有纯粹好奇。", id: "story-deslop.negation-parade.only-turn"},
             {text: "是真嗓子，不是修音修出来的。", id: "story-deslop.reverse-not-is"},
         ];
 
         for (const item of cases) {
             expect(storyBlockingIds(item.text, loaded), item.id).toContain(item.id);
         }
+        expect(storyBlockingIds("没有历史包袱，没有道德枷锁，只有纯粹好奇。", loaded))
+            .toEqual(["story-deslop.negation-parade.only-turn"]);
 
         const insideEnding = `${"风继续吹。".repeat(80)}\n没人知道，这才刚刚开始。`;
         expect(storyBlockingIds(insideEnding, loaded)).toContain("story-deslop.trailer-ending");

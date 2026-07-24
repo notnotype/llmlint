@@ -660,6 +660,19 @@ describe("llmlint", () => {
             .map((issue) => issue.match)).toEqual(["了几分"]);
         expect(scanText("拿到了近乎成本价的新灯，取而代之的是旧灯。", [byId.get("cn.cliche.vague-transition-phrase") as RegexRuleRecord])
             .map((issue) => issue.match)).toEqual(["取而代之的是"]);
+        expect(scanText("这是不容置疑的权威感。", [byId.get("cn.cliche.baguwen.unquestionable-claim") as RegexRuleRecord])
+            .map((issue) => issue.match)).toEqual([]);
+        expect(scanText("这是不容置疑的权威感。", [byId.get("cn.modifier.absolute-claim-modifier") as RegexRuleRecord])
+            .map((issue) => issue.match)).toEqual(["不容置疑的"]);
+        expect(scanText("这事不容置疑。", [byId.get("cn.cliche.baguwen.unquestionable-claim") as RegexRuleRecord])
+            .map((issue) => issue.match)).toEqual(["不容置疑"]);
+
+        const trailingSensoryRule = byId.get("cn.cliche.trailing-sensory-clause") as RegexRuleRecord;
+        expect(trailingSensoryRule.scope).toEqual({layer: "narrative"});
+        expect(scanText("她停在门口，带着一点倦意。", [trailingSensoryRule])
+            .map((issue) => issue.match)).toEqual(["，带着一点倦意"]);
+        expect(scanText("【成为闪耀的魔法少女，让所有人记住你的名字，带着她的那份一起活下去吧。】", [trailingSensoryRule])
+            .map((issue) => issue.match)).toEqual([]);
     });
 
     it("默认 ruleset 只有确定性机械规则可自动修复，语义 replace 全部为 manual", async () => {

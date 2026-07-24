@@ -455,6 +455,14 @@ function applyCuratedPatch(rule: LintRuleRecord): LintRuleRecord {
             source: {...(rule.source ?? {}), version: "rule-curation-v6"},
         };
     }
+    if (rule.id === "cn.cliche.baguwen.unquestionable-claim") {
+        return {
+            ...rule,
+            note: "默认收窄：带“的/地”的绝对判断修饰已由 cn.modifier.absolute-claim-modifier 覆盖；这里只保留裸“不容置疑”断言，避免同 span 重复。",
+            source: {...(rule.source ?? {}), version: "rule-curation-v10"},
+            detector: {type: "regex", targets: ["(?:与|却)?不容置疑(?![的地])"]},
+        };
+    }
     if (
         rule.id === "cn.cliche.body-reaction.mouth-corner-lift-arc"
         || rule.id === "cn.cliche.body-reaction.mouth-corner-smile-arc"
@@ -555,6 +563,14 @@ function applyCuratedPatch(rule: LintRuleRecord): LintRuleRecord {
             note: "默认收窄：裸“近乎”在当前 reference 中出现真实用法（如“近乎成本价”），Agent 默认只保留“取而代之的是”和更明确的“近乎于”。",
             source: {...(rule.source ?? {}), version: "rule-curation-v9"},
             detector: {type: "regex", targets: ["近乎于|取而代之的[,，]?是"]},
+        };
+    }
+    if (rule.id === "cn.cliche.trailing-sensory-clause") {
+        return {
+            ...rule,
+            note: "默认收窄：尾部分句只看叙述层，避免系统面板和整句对白里的“带着/声音/语气…”被当成可删叙述尾巴。",
+            source: {...(rule.source ?? {}), version: "rule-curation-v10"},
+            scope: {layer: "narrative"},
         };
     }
     if (rule.id === "cn.action-expression.mouth-corner-hook") {
