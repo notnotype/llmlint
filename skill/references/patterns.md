@@ -218,6 +218,41 @@ builtin/default 在原有规则上扩充了一批成体系的中文 regex 规则
 扫描层面：对 Markdown 文件，`check` / `fix` 默认跳过代码块 / frontmatter / 行内代码 / 链接等结构区域（用 `--scan-all` 关闭），
 所以代码、链接里的内容不会被规则误杀；`fix` 也不会改动代码块 / frontmatter 内的内容。
 
+## v3 校准规则扩充（story-deslop MIT）
+
+本轮吸收 `oh-story-claudecode/skills/story-deslop` 的校准检测器。规则 JSON 均带 `source.importedFrom: "oh-story-claudecode/story-deslop"`，并在 `note` 记录真人语料校准基线。破折号家族已由现有 `punctuation.dash` 覆盖，本轮只补差集。
+
+新增或增强的 blocking 规则：
+
+- `cliche.voice-contrast`：音量反差腔，如“声音不高，第一句却…”。只扫叙述层。
+- `contrast.binary`：内置 handler `not-is-comparison` 处理“不是A，是B”状态机；新增 `reverse-not-is` 处理“是A，不是B”反序对比。
+- `contrast.negative-listing`：两种“没有X，没有Y”与“没X，没有Y。只是Z”否定排比。
+- `ending.trailer`：章尾 600 可见字窗口内的“没人知道/才刚刚开始/即将来临”等预告式收尾，并排除“正式拉开序幕”报幕句。
+- `mechanical.stage-leak`：细纲、情节点、章首钩子等工程词泄漏；章节元信息类默认进 human 桶复核。
+
+新增 advisory / density / handler 规则：
+
+- `cliche` 套词密度、`metaphor` 比喻密度、`explanation.chain` 解释链密度、`abstraction.hollow` 抽象总结复读。
+- `rhythm.micro-action` 微动作复读、`rhythm.action-list` 动作清单、`rhythm.period-stutter` 碎句号。
+- `rhythm.overcompressed` 过度精炼、`rhythm.low-connective` 低连接密度，误杀风险较高，默认 human 桶。
+- `register.notice` 系统公告公文腔，扫 `【】` 等 dialogue 层载体。
+
+这些规则的修法遵循：删除优先，减少结构总量，不做同义词轮换；复测一轮后停止。
+
+## scope / density / ignoreTerms 规则作者说明
+
+`scope.layer` 决定规则在哪层文本运行：
+
+- `all`：全文全域，缺省值。
+- `narrative`：成对引号外叙述层。引号片段会在扫描视图中替成等长 `。`，所以 `match.index` 与原文 offset 一致，excerpt 仍取原文。
+- `dialogue`：成对引号和 `【】` 面板内文本。
+
+`narrative` 占位视图的硬语义：规则不得依赖“数句号”或“连续句号长度”。占位句号的作用是让 `[^。，]` 一类字符类自然截断跨引号假命中；需要句长、密度、短句 run 时应写 `density` 或 handler。
+
+`density` 是分布指纹，不是逐词替换器。门槛字段是 AND 语义，全部满足才报；报告中只给总命中、每千字密度和样本。density 规则恒为 `fixability: manual`。
+
+`ignoreTerms` 是项目级豁免词，适合世界观术语、绰号、章名。命中区间与豁免词出现区间重叠时，regex、density、handler 都会统一丢弃。例如 `ignoreTerms: ["仿佛山海"]` 会豁免章名里的“仿佛”，但不影响正文其它位置的“仿佛”。
+
 ## LLM Rule 语义模式
 
 这些问题依赖全文和语境判断，不能只靠关键词决定。

@@ -21,5 +21,31 @@
         "$1\\n\\n$2"
       ]
     }
+  },
+  {
+    "id": "story-deslop.long-paragraph",
+    "namespace": "paragraph.split-long",
+    "title": "单段过长",
+    "level": "low",
+    "review": "human",
+    "fixability": "manual",
+    "note": "移植自 story-deslop 的 long-paragraph advisory；叙述层单段原始字符数超过 200 时提示按镜头断段。手机阅读保守阈值，默认人工复核。",
+    "source": {
+      "canonicalKey": "LONG_PARAGRAPH_CHARS",
+      "importedFrom": "oh-story-claudecode/story-deslop"
+    },
+    "scope": {
+      "layer": "narrative"
+    },
+    "detector": {
+      "type": "regex",
+      "targets": [
+        "[^\\n]{200,}"
+      ]
+    },
+    "action": {
+      "type": "suggest",
+      "message": "按镜头、新动作、新线索或视线切换断段，不要一段到底。"
+    }
   }
 ]

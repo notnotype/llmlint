@@ -64,6 +64,18 @@ export const DEFAULT_NAMESPACE_ALIASES: Record<string, string> = {
     "自媒体腔": "jargon.social",
     "翻译腔": "translationese",
     "戏剧化碎句": "structure.fragment",
+    "音量反差腔": "cliche.voice-contrast",
+    "预告式收尾": "ending.trailer",
+    "章尾预告腔": "ending.trailer",
+    "解释链": "explanation.chain",
+    "动作清单": "rhythm.action-list",
+    "监控动作清单": "rhythm.action-list",
+    "碎句号": "rhythm.period-stutter",
+    "过度精炼": "rhythm.overcompressed",
+    "低连接密度": "rhythm.low-connective",
+    "公文腔公告": "register.notice",
+    "工程词泄漏": "mechanical.stage-leak",
+    "微动作复读": "rhythm.micro-action",
 };
 
 /** 命名空间级审查策略：curation 的主交付物，决定哪些命名空间默认不喂给 Agent。 */
@@ -121,6 +133,18 @@ export const DEFAULT_NAMESPACE_POLICY: Record<string, NamespacePolicy> = {
     // 占位符 / chatbot 泄漏走 derive=agent 默认展示（成稿里出现即明显错误）。
     "mechanical.zero-width": {review: "none", fixability: "auto"},
     "mechanical.homoglyph": {review: "human", fixability: "manual"},
+
+    // story-deslop 校准导入：blocking 规则默认交 Agent；高误杀宏观分布默认交人工。
+    "cliche.voice-contrast": {review: "agent", fixability: "manual"},
+    "ending.trailer": {review: "agent", fixability: "manual"},
+    "explanation.chain": {review: "agent", fixability: "manual"},
+    "rhythm.action-list": {review: "agent", fixability: "manual"},
+    "rhythm.period-stutter": {review: "agent", fixability: "manual"},
+    "rhythm.micro-action": {review: "agent", fixability: "manual"},
+    "rhythm.overcompressed": {review: "human", fixability: "manual"},
+    "rhythm.low-connective": {review: "human", fixability: "manual"},
+    "register.notice": {review: "agent", fixability: "manual"},
+    "mechanical.stage-leak": {review: "agent", fixability: "manual"},
 };
 
 /**

@@ -1,6 +1,6 @@
 ---
 name: llmlint
-description: Lint and polish LLM-generated Chinese text by detecting template-like wording, AI writing tells, hollow summaries, rhythm issues, and rule-driven style problems. Use when the user asks to polish text, check whether writing feels AI-like, lint LLM output, review prose naturalness, or configure llmlint rules.
+description: Lint and polish LLM-generated Chinese text by combining static rule hits, neural AIGC heatmaps, contextual review, approved repair, and local learning notes.
 when_to_use:
   - 用户请求润色文本、检查 AI 味、优化自然度或审查套路化表达
   - 用户显式提到 llmlint、文本 lint、LLM 输出规范或规则配置
@@ -12,145 +12,168 @@ metadata:
 
 # llmlint
 
-llmlint 是面向 LLM 输出的文本 lint skill。CLI 负责稳定、可复现的候选定位；Agent 负责结合语境做语义审查、评分、修复计划和用户审批式改写。
+llmlint 是面向 LLM 输出的文本 lint skill。CLI 负责稳定、可复现的候选定位与外部 AIGC 热力图；Agent 负责结合语境复核、制定修复计划、在用户审批后改写，并把疑难判断沉淀为本地学习出口。
 
-## Quick Start
+## Runtime
 
-> 依赖未安装时（首次使用或 skill 目录缺 `node_modules`，运行报缺少 `commander` / `picocolors` / `tinyglobby`），先在 skill 目录手动安装一次：`npm install`（或 `bun install` / `pnpm install`）。CLI 用 **Bun**（原生跑 TS）或 **Node + `tsx`**（`npx tsx …`）运行 —— 下文示例的 `bun` 前缀可直接替换为 `npx tsx`（裸 `node` 不行，TS 源码用了无扩展名相对导入）。
-
-检查文件中的 regex detector 候选：
+CLI 用 **Bun** 或 **Node + `tsx`** 运行。下文示例使用内嵌 skill 路径：
 
 ```bash
-bun .nbook/agent/skills/llmlint/bin/llmlint.ts check <文件路径>
+bun .nbook/agent/skills/llmlint/bin/llmlint.ts <command>
 ```
 
-`check` 可传多个文件、目录或 glob 模式（目录递归 `.md` / `.markdown` / `.txt`；模式支持 `**` 递归与 `!` 排除）。对 Markdown 文件默认跳过代码块 / frontmatter / 行内代码 / 链接等结构区域，避免误杀；`--scan-all` 关闭遮罩：
+独立安装时可改成：
 
 ```bash
-bun .nbook/agent/skills/llmlint/bin/llmlint.ts check manuscript/            # 递归整部稿件
-bun .nbook/agent/skills/llmlint/bin/llmlint.ts check 'manuscript/**/*.md'   # glob 模式（引号防 shell 展开）
-bun .nbook/agent/skills/llmlint/bin/llmlint.ts check a.md b.md --scan-all   # 多文件 + 不跳过结构区
+bun bin/llmlint.ts <command>
 ```
 
-应用确定性机械修复（仅 `fixability: auto`：零宽字符、连续符号去重），默认 dry-run 预览，`--write` 才落盘：
+首次运行若缺少依赖，在 skill 目录执行一次 `bun install`、`npm install` 或 `pnpm install`。裸 `node` 不能直接跑此 CLI。
+
+## Five-Step Loop
+
+### 1. status 初始化门
+
+每次开始正式审稿前先运行：
 
 ```bash
-bun .nbook/agent/skills/llmlint/bin/llmlint.ts fix <文件或目录>             # 预览将修复什么（退出码 1 表示有待修）
-bun .nbook/agent/skills/llmlint/bin/llmlint.ts fix <文件或目录> --write     # 写回原文件
+bun .nbook/agent/skills/llmlint/bin/llmlint.ts status --format json
 ```
 
-> `fix` 只做无需判断的机械修复（auto 桶）；删填充词、改写句式等语义修复仍由 Agent 读上下文、经你审批后写入 `.agent/polish-output.md`，不在 `fix` 范围。
+读取这些字段：
+- `initialized`：是否完成本地初始化。
+- `login`：当前固定为 `"none"`；本版本不实现登录。
+- `sharing`：用户共享档位与自动/询问策略。
+- `configPath`：项目级 `llmlint.config.ts` 路径；没有则为 `null`。
+- `detector`：神经检测器 space、代理状态、缓存目录。
 
-显示需要 Agent 主动全文审查的 LLM rules：
+如果 `initialized:false`：
+1. 向用户确认共享档位：`off` / `stats` / `fragments` / `full`。默认建议 `stats` 或按项目约束保守选择 `off`。
+2. 说明本版本没有登录，`login` 会保持 `none`。
+3. 用户同意后用用户级配置命令写入，不修改项目级 `llmlint.config.ts`：
 
 ```bash
-bun .nbook/agent/skills/llmlint/bin/llmlint.ts show-llm-rules
+bun .nbook/agent/skills/llmlint/bin/llmlint.ts config set sharing.tier stats
+bun .nbook/agent/skills/llmlint/bin/llmlint.ts config set initialized true
 ```
 
-指定配置文件：
+可查看用户级设置：
 
 ```bash
-bun .nbook/agent/skills/llmlint/bin/llmlint.ts --config llmlint.config.ts check <文件路径>
+bun .nbook/agent/skills/llmlint/bin/llmlint.ts config get
+bun .nbook/agent/skills/llmlint/bin/llmlint.ts config get detector.proxy
 ```
 
-输出 JSON：
+`config` 只管理用户级 `settings.json`，不写项目级规则配置。需要调整规则时，由 Agent 生成 `llmlint.config.ts` diff，等待用户审批。
+
+### 2. check + detect 双路检测
+
+先跑静态检查：
 
 ```bash
-bun .nbook/agent/skills/llmlint/bin/llmlint.ts --format json check <文件路径>
+bun .nbook/agent/skills/llmlint/bin/llmlint.ts check <files...> --format json
 ```
 
-长文件先看中高等级候选：
+需要看全部审查桶时加：
 
 ```bash
-bun .nbook/agent/skills/llmlint/bin/llmlint.ts check <文件路径> --min-level medium
+bun .nbook/agent/skills/llmlint/bin/llmlint.ts check <files...> --review all --format json
 ```
 
-小文件或人类阅读时显示完整命中行：
+再跑神经检测：
 
 ```bash
-bun .nbook/agent/skills/llmlint/bin/llmlint.ts check <文件路径> --show-lines
+bun .nbook/agent/skills/llmlint/bin/llmlint.ts detect <files...> --format json
 ```
 
-## Workflow
+`detect` 使用默认 HF Space `yuchuantian-aigc-text-detector.hf.space`，按句界分块并缓存正文哈希。网络失败时报告失败原因和代理设置建议；已完成文件的缓存仍可保留。代理可配置：
 
-1. 获取输入文本：用户给路径时直接使用；用户粘贴文本时写入 `.agent/polish-input.md`。
-2. 运行 `check`：读取 regex detector 命中项。命中只代表候选，不代表必须修复；默认输出按 high / medium / low 分段，并显示行列范围与命中文本。需要完整原文行时加 `--show-lines`。
-3. 运行 `show-llm-rules`：逐条阅读全文审查 llm detector 规则，并记录“未发现候选 / 建议修复 / 建议保留 / 需要确认”。
-4. 完成快速审查评分：Directness、Rhythm、Trust、Authenticity、Density 各 1-10 分，总分 50。
-5. 生成 `.agent/polish-plan.md`：统计、评分、修复详情、不确定项和建议。
-6. 用户审批后执行修复：默认写入 `.agent/polish-output.md`；只有用户明确要求时才改原文件。
-7. 输出报告：总候选数、已修复、保留原因、评分变化和输出位置。
+```bash
+bun .nbook/agent/skills/llmlint/bin/llmlint.ts config set detector.proxy http://127.0.0.1:7890
+```
 
-## Config
+静态命中不是判决，P(AI) 也不是单独裁决。二者都只是审稿证据。
 
-默认启用 `builtin/default` ruleset。它合并了人工维护的 anti-ai-slop 规则与中文规则样本的策展结果，已包含 R18/成人词汇规则；普通项目可用 `namespaces: {"vocabulary.r18": "off"}` 关闭。
+### 3. 合成报告
 
-`builtin/default` 已取三个同类项目（shuorenhua「说人话」为主，avoid-ai-writing、humanizer 为辅）的精华扩充成体系规则：新增 `opening.cliche`（开场套话）、`inflation.significance`（渲染性强调）、`transition.summary`（过渡废话）、`attribution.vague`（无源引用）、`cliche.uplift`（正能量收尾）、`sycophantic`（谄媚/助手腔）等默认展示命名空间，以及 `jargon.engineer`、`jargon.social`、`translationese`、`structure.fragment` 等默认归 human 桶的高误杀命名空间，外加一组移植自 avoid-ai-writing 的机械痕迹规则 `mechanical.*`（零宽字符、同形字、未填充占位符、chatbot 泄漏标记，语言无关、高精度）。这些规则在小说正文里多为休眠状态、几乎不增噪，遇到 AI 文章/聊天腔或粘贴泄漏时密集命中。完整清单见 [patterns.md](references/patterns.md)。
+把 `check` 与 `detect` 合成一个面向用户的审稿报告：
 
-`builtin/default` 内部固定从 `rules/` 目录递归加载规则文件，例如 `rules/filler/index.json`、`rules/abstraction/hollow.json`、`rules/vocabulary/r18.json`。目录层级只方便维护者阅读，规则语义只来自每条 rule record 的 `namespace`。用户配置仍以 ruleset、namespace、rule id 为入口；不要通过手改内置规则文件来开关某类规则。
+- 静态分级表：按 `high / medium / low` 和 `review` 桶列出规则命中、密度指纹、handler detail。
+- 热区表：列出 `pAi >= 0.85` 的 chunk 行号范围、P(AI)、短预览。
+- 四象限交叉：
+  - 规则密集 × 热力红：确认疑难，优先读上下文，必要时交用户判定。
+  - 规则静默 × 热力红：漏网新规则候选，记录片段和观察，不直接大改。
+  - 规则密集 × 热力绿：误报候选，优先保留作者声音或调整规则配置。
+  - 双绿：不打扰。
+- LLM 语义规则：继续执行 `show-llm-rules`，主动阅读全文审查无法静态定位的问题。
 
-项目可放置 `llmlint.config.ts`：
+报告不要输出原始 JSON 给用户。只摘取必要行号、规则、热区和建议。
 
-```typescript
-export default {
-    rulesets: [
-        "builtin/default",
-    ],
-    trustedRulesets: [],
-    rulesetOverrides: {},
-    namespaces: {
-        modifier: "medium",
-        "vocabulary.r18": "off",
-        "商务黑话": "off",
+### 4. 修复 ↔ 复测一轮
+
+生成 `.agent/polish-plan.md`，内容包括：
+- 统计和四象限摘要。
+- 明确建议修复、建议保留、需要用户确认的项目。
+- 每项引用行号、原文片段、修复理由。
+
+等待用户审批后执行修复。默认写入 `.agent/polish-output.md`，只有用户明确要求时才直接修改原文件。
+
+修复完成后只复测一轮：
+
+```bash
+bun .nbook/agent/skills/llmlint/bin/llmlint.ts check .agent/polish-output.md --format json
+bun .nbook/agent/skills/llmlint/bin/llmlint.ts detect .agent/polish-output.md --format json
+```
+
+如果复测仍有高风险问题，报告剩余风险，不无限循环。不要为了压低检测分数牺牲语义、角色声音或可读性。
+
+### 5. 台账与学习出口
+
+本轮结束时写入或更新 `.agent/llmlint-session.json`：
+
+```json
+{
+    "version": 1,
+    "sourceFiles": [],
+    "createdAt": "",
+    "updatedAt": "",
+    "status": "completed",
+    "settings": {
+        "sharingTier": "stats",
+        "login": "none"
     },
-    rules: {
-        "filler-word-actually": "warn",
-        "firstly-secondly": "error",
-        "filler-lets": "off",
+    "summary": {
+        "staticIssues": 0,
+        "densityIssues": 0,
+        "hotChunks": 0
     },
-    output: "stylish",
-};
+    "decisions": [],
+    "localConfigSuggestions": []
+}
 ```
 
-`rulesets` 是安装和启用单元；配置只能选择已经安装在 `rulesets/` 下的规则包。同一个 ruleset 内部必须把规则放进 `rules/` 目录，loader 会递归扫描所有 `.json` 规则数组文件；这只是资产组织方式，不改变配置入口。同 namespace 不同 id 会追加；同 id 会由后加载的 ruleset 覆盖前者，并产生 diagnostics。官方推荐入口是 `builtin/default`。
+疑难片段判定要记录：文件、行号、规则/热区证据、用户判定、保留或修复理由、建议的本地 config 覆盖。上传能力不在本版本实现；远端学习出口只说明“待后续 contributions 命令”。
 
-覆盖优先级：rule id > namespace > ruleset > rule 默认 enabled / level。namespace 负责分类和批量开关，rule id 负责精确定位和覆盖。namespace 推荐使用稳定英文 key，也支持内置中文 alias，例如 `商务黑话` 会归一到 `jargon.business`。
+本地学习出口只能给 diff 建议，例如关闭某条误报规则、把某 namespace 移到 human 桶、添加 `ignoreTerms`。未经用户批准，不写 `llmlint.config.ts`。
 
-规则有三个独立维度：`level`（严重度）、`review`（审查受众：agent/human/none）、`fixability`（修复能力：auto/candidate/manual）。`check` 默认只展示 `review: agent` 的命中——破折号、比喻、泛词形副词等更偏作者偏好的命名空间默认归到 `human`，连续符号去重等机械命名空间归到 `none`。用 `--review human` / `--review all` 查看其它桶。
+## Repair Discipline
 
-默认规则集只给 3 条确定性机械规则 `fixability:auto`，不默认启用 `candidate`，所有语义规则均为 `manual`。规则的 `action.replace` 只携带可供参考的替换模板，不等于 Agent 可以直接应用；只有最终 `fixability` 授权对应动作。用户配置可把明确选中的 regex replace 规则提升为 `candidate`，但仍必须逐条确认，不能混入批量机械修复。
+修复时使用 [repair-guide.md](references/repair-guide.md)：
+- 删除优先，先删无信息负担，再重写必要句子。
+- 对白先分类：保留角色声音，拿不准归入需确认。
+- 数据包腔、系统公告、技术说明可以保留载体，但不要让叙述者变成 API 文档。
+- 每轮修复有收敛边界，不因检测分数继续无意义打磨。
 
-规则覆盖值（namespace 和 rules 通用）。两种写法会归一成同一个 patch：字符串是语法糖，对象是显式 patch。
-- 字符串简写：
-  - `off`：禁用规则（= `{enabled: false}`）
-  - `warn`：启用并作为 medium 级别（= `{enabled: true, level: "medium"}`）
-  - `error`：启用并作为 high 级别（= `{enabled: true, level: "high"}`）
-  - `low` / `medium` / `high`：启用并指定级别（= `{enabled: true, level: X}`）
-- 对象形态：`{ enabled?, level?, review?, fixability? }`，只覆盖显式设置的字段，其余保持不变。
-  - 想启用一条默认禁用的规则并同时调级别/受众时，必须显式写 `enabled: true`（纯属性对象不改启停状态）：
+## Rule Author Notes
 
-```typescript
-rules: {
-    // 启用一条默认禁用的规则，并设为 high、交人工审查
-    "modifier.extreme.some-rule": {enabled: true, level: "high", review: "human"},
-    // 只调受众，不动启停与级别
-    "filler-word-actually": {review: "agent"},
-},
-namespaces: {
-    "punctuation.dash": {review: "human"},
-},
-```
-
-## Judgment Rules
-
-- High：强烈建议修复，但仍需确认语境；技术步骤或报告提纲可能合理。
-- Medium：读取前后文后判断；对话口癖、人物声音、引用和讽刺可能应保留。
-- Low：默认保留，除非明显降低密度、自然度或可信度。
-- 不熟悉专有名词、同人梗、科幻设定、历史事实或领域知识时，先调研再判断。
-- 不要为了消除“AI 味”把作者风格、角色声音或有效文体特征磨平。
+- `scope.layer:"narrative"` 扫描的是引号外等长占位视图；引号段呈现为等长 `。`。规则不能依赖“数句号”判断。
+- `scope.layer:"dialogue"` 扫描成对引号和 `【】` 面板内文本，适合公告/系统台词。
+- `density` 表示分布指纹，命中一条代表全文或一段的统计结论，不能机械替换。
+- `ignoreTerms` 是项目级白名单；命中与术语区间重叠会被三种 detector 统一跳过。
 
 ## References
 
 - [CLI 详细使用说明](references/cli-usage.md)
 - [中文文本润色模式库](references/patterns.md)
 - [完整流程详解](references/workflow.md)
+- [修复指导](references/repair-guide.md)

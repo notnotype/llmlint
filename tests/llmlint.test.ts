@@ -663,7 +663,7 @@ describe("llmlint", () => {
             counts[rule.fixability] += 1;
         }
 
-        expect(counts).toEqual({auto: 3, candidate: 0, manual: 300});
+        expect(counts).toEqual({auto: 3, candidate: 0, manual: 308});
         expect(loadedRules.regexRules
             .filter((rule) => rule.fixability === "auto")
             .every((rule) => rule.action.type === "replace")).toBe(true);

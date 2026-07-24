@@ -4,10 +4,34 @@
 
 ## 基本用法
 
-检查文件中的 regex detector 命中项：
+查看本地初始化状态、共享设置、项目配置路径和检测器状态：
+
+```bash
+bun .nbook/agent/skills/llmlint/bin/llmlint.ts status
+bun .nbook/agent/skills/llmlint/bin/llmlint.ts status --format json
+```
+
+管理用户级 `settings.json`：
+
+```bash
+bun .nbook/agent/skills/llmlint/bin/llmlint.ts config get
+bun .nbook/agent/skills/llmlint/bin/llmlint.ts config get sharing.tier
+bun .nbook/agent/skills/llmlint/bin/llmlint.ts config set sharing.tier stats
+```
+
+`config` 只管理用户级设置，不会修改项目级 `llmlint.config.ts`。
+
+检查文件中的静态 detector 命中项：
 
 ```bash
 bun .nbook/agent/skills/llmlint/bin/llmlint.ts check <文件路径>
+```
+
+估算文本 P(AI) 并输出热区：
+
+```bash
+bun .nbook/agent/skills/llmlint/bin/llmlint.ts detect <文件路径>
+bun .nbook/agent/skills/llmlint/bin/llmlint.ts detect <文件路径> --format json
 ```
 
 显示需要 Agent 主动全文审查的 LLM 规则：
@@ -27,6 +51,7 @@ bun .nbook/agent/skills/llmlint/bin/llmlint.ts --config llmlint.config.ts check 
 ```bash
 bun .nbook/agent/skills/llmlint/bin/llmlint.ts --format json check <文件路径>
 bun .nbook/agent/skills/llmlint/bin/llmlint.ts --format json show-llm-rules
+bun .nbook/agent/skills/llmlint/bin/llmlint.ts --format json detect <文件路径>
 ```
 
 长文件按最低级别过滤：
@@ -89,7 +114,7 @@ bun .nbook/agent/skills/llmlint/bin/llmlint.ts fix chapter.md --format json
 
 ## check 输出格式
 
-`check` 只运行 regex detector。regex detector 表示“候选文本可以被稳定识别”，不表示一定要修复。
+`check` 运行 regex、handler 和 density detector。regex/handler 是逐处候选；density 是全文或段落级分布指纹。命中表示“可以被稳定识别”，不表示一定要修复。
 
 每条规则有三个互相独立的维度：
 - `level`（high / medium / low）：只表严重度，决定 `--min-level` 过滤和退出码。
@@ -124,6 +149,8 @@ filler-word-actually [filler] (无意义填充词)
 - rule id、namespace、ruleset 来源
 - 规则级别统计
 - 规则 action 中的删除、替换候选或提示
+
+handler 命中可能带 `detail`，用于说明动态计数，例如连续短句数量。density 命中在 stylish 输出中以“密度指纹”分段显示，包含命中次数、每千字密度和样本。
 
 `--min-level` 会隐藏低于指定级别的候选，并在 stylish / JSON 输出中记录被隐藏数量。默认值是 `low`，即显示全部级别。
 `--review` 会按审查受众过滤候选，默认 `agent`。`--review` 与 `--min-level` 是两个独立过滤器，被隐藏数量分别统计为“按审查受众隐藏”和“按级别隐藏”。
@@ -184,6 +211,19 @@ namespace: abstraction.hollow
 
 检查多个文件时 `kind` 为 `"check-multi"`：顶层 `registry` / `diagnostics` / `filter` 为全局，`files[]` 给逐文件 `{filePath, summary, issues}`，`summary` 为聚合统计。`fix --format json` 输出 `kind: "fix"`，含 `write`、逐文件 `ruleCounts` 与 `totalOccurrences`。
 
+有 density 命中时，`check` 和 `check-multi` 会额外输出 `densityIssues`：
+
+```json
+{
+  "rule": {"id": "story-deslop.explanation-chain"},
+  "line": 1,
+  "column": 1,
+  "hits": 8,
+  "perKilo": 18.5,
+  "samples": ["这意味着", "必须确认"]
+}
+```
+
 `show-llm-rules --format json` 输出：
 
 ```json
@@ -196,9 +236,46 @@ namespace: abstraction.hollow
 }
 ```
 
+`status --format json` 输出：
+
+```json
+{
+  "kind": "status",
+  "version": "2.0.0",
+  "initialized": false,
+  "login": "none",
+  "sharing": {"tier": "fragments", "mode": "ask", "anonymous": false},
+  "configPath": null,
+  "detector": {
+    "space": "yuchuantian-aigc-text-detector.hf.space",
+    "proxyConfigured": false,
+    "cacheDir": "~/.llmlint/cache"
+  }
+}
+```
+
+`detect --format json` 输出：
+
+```json
+{
+  "kind": "detect",
+  "files": [
+    {
+      "filePath": "chapter.md",
+      "docPAi": 0.12,
+      "maxPAi": 0.91,
+      "cached": false,
+      "chunks": [
+        {"span": [0, 120], "line": 1, "pAi": 0.91}
+      ]
+    }
+  ]
+}
+```
+
 ## Regex Detector 与 LLM Detector
 
-`regex` detector 负责定位候选文本，例如：
+`regex` detector 负责定位逐处候选文本，例如：
 - 填充词：其实、实际上、事实上
 - 机械过渡：首先...其次...最后...
 - 二元对比：不是...而是...
@@ -221,10 +298,21 @@ namespace: abstraction.hollow
 
 二元对比、公式化设问、商务黑话等虽然可以被 regex detector 定位，但修复决策仍需要上下文判断。不要因为 CLI 命中就自动修改。
 
+`density` detector 负责分布问题，例如套词密度、解释链密度、微动作复读、动作清单和公文腔公告。它按全部门槛 AND 判定，命中后只给人工/Agent 提示，不提供机械替换。
+
+`handler` rule 负责声明式模型表达不了的纯函数算法，例如 not-is 状态机、碎句号、过度精炼和低连接密度。handler 名必须是内置注册表键名；未知名会被跳过并产生 warning。
+
+### scope、density 与 ignoreTerms
+
+- `scope.layer:"narrative"`：只扫成对引号外的叙述层；引号段在扫描视图中是等长 `。` 占位，行列和 span 仍对应原文。规则作者不要依赖“数句号”。
+- `scope.layer:"dialogue"`：只扫成对引号和 `【】` 面板内文本。
+- `scope.position`：只扫开头或结尾可见字符窗口，例如章尾预告腔只看文末 600 字。
+- `ignoreTerms`：项目级豁免词。regex、density、handler 的命中与豁免词区间重叠都会被丢弃。
+
 ### detector 与 review 是两个不同概念
 
-- `detector`（regex / llm）决定**用什么手段检测**：regex 由 `check` 静态扫描命中，llm 由 `show-llm-rules` 交给 Agent 全文审查。
-- `review`（agent / human / none）决定一条 regex 命中**默认给谁看**。`check --review agent` 是 regex 命中里需要 Agent 处理的审查入口；它和 `show-llm-rules`（detector 为 llm 的全文语义规则）是两个互补的 Agent 审查面，完整审查时两者都要跑。
+- `detector`（regex / density / handler / llm）决定**用什么手段检测**：regex、density、handler 由 `check` 静态扫描命中，llm 由 `show-llm-rules` 交给 Agent 全文审查。
+- `review`（agent / human / none）决定一条静态命中**默认给谁看**。`check --review agent` 是需要 Agent 处理的静态审查入口；它和 `show-llm-rules`（detector 为 llm 的全文语义规则）是两个互补的 Agent 审查面，完整审查时两者都要跑。
 
 ## 彩色输出
 
@@ -246,7 +334,7 @@ stylish 输出在交互式终端（TTY）下按语义着色：级别 high 红、
 
 标准流程：
 
-1. 执行 `check <file>`，获取 regex detector 命中项。
+1. 执行 `check <file>`，获取静态 detector 命中项。
 2. 执行 `show-llm-rules`，获取需要主动全文审查的 LLM 规则。
 3. 复核 regex 命中项，读取上下文后判断修复、保留或需要用户确认。
 4. 对每条 LLM rule 主动审查全文；没有候选也要在计划中说明“未发现明显问题”。

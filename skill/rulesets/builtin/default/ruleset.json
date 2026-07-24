@@ -3,6 +3,7 @@
   "title": "llmlint Default Rules",
   "version": "1.0.0",
   "description": "llmlint 官方推荐规则集，合并人工维护的 anti-ai-slop 规则与中文规则样本的策展结果。",
+  "attribution": "部分校准检测器移植自 oh-story-claudecode/skills/story-deslop（MIT）。相关规则记录会标注 source.importedFrom 与校准基线。",
   "namespaceAliases": {
     "填充短语": "filler",
     "机械过渡": "transition.mechanical",
@@ -63,6 +64,18 @@
     "调试腔": "jargon.engineer",
     "自媒体腔": "jargon.social",
     "翻译腔": "translationese",
-    "戏剧化碎句": "structure.fragment"
+    "戏剧化碎句": "structure.fragment",
+    "音量反差腔": "cliche.voice-contrast",
+    "预告式收尾": "ending.trailer",
+    "章尾预告腔": "ending.trailer",
+    "解释链": "explanation.chain",
+    "动作清单": "rhythm.action-list",
+    "监控动作清单": "rhythm.action-list",
+    "碎句号": "rhythm.period-stutter",
+    "过度精炼": "rhythm.overcompressed",
+    "低连接密度": "rhythm.low-connective",
+    "公文腔公告": "register.notice",
+    "工程词泄漏": "mechanical.stage-leak",
+    "微动作复读": "rhythm.micro-action"
   }
 }

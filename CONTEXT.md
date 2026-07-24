@@ -152,6 +152,11 @@ llmlint 是针对 **LLM 生成中文文本**的 linter：CLI 用正则确定性�
 - **I16 LLM 报告证据单源**：`record_rule_hit` 是 LLM 规则命中的唯一结构化事实；最终报告 evidence 必须由服务器从已校验 hits 生成，Agent 不得重复抄写 quote/ruleId/reason。风险分同样由服务器按命中密度校准，模型只提交审查置信度、结论和建议。
 - **I17 分数统一表示风险**：web 三路分数与综合项都表示“AI 痕迹风险”，越高越可疑、颜色越偏红；不得用裸“得分/满分”暗示稿件质量。
 - **I18 Harness Core 与宿主投影分离**：provider-neutral Session/Invocation/Tool/approval/compaction/事件事实由 NeuroAgentHarness Core 负责；Pi、Prisma、SSE DTO、`MachineLlmReview` 和权限必须留在 llmlint Adapter/Workflow。新增消费者只能通过 Adapter 接入，不得把宿主业务字段倒灌进 Core。
+- **I19 Invocation Revision 单源**：`AgentSession.revisionId` 只表示线性 lineage 的当前指针，历史 Invocation 的版本归属只能读取其自己的 `AgentInvocation.revisionId`。禁止用 Session 当前指针反推历史 Invocation、Review、重试或 terminal 刷新所属版本；Session 推进只能沿同一 Text 的直接子 Revision 串行发生。
+- **I20 历史恢复不启动工作**：从历史记录 hydrate 工作台不得隐式 reveal、advance 或 invoke；若 lineage Session 已有 active Invocation，恢复必须绑定其 invocationId 执行 abort。未揭示 head 保持只读，只有用户显式点击“继续检测”后才能揭示并启动 Analysis。
+- **I21 机械修复只跑全文全域**：`fixability:auto` 或 `candidate` 的规则必须是 `scope: all` 且无 position 窗口；loader 发现 narrative/dialogue/position scope 时必须降级为 `manual` 并给 error 诊断。派生视图里的占位符不能被写回原文。
+- **I22 新规则形态前向兼容**：未知 `detector.type` 或未注册 handler 名必须 skip + diagnostic warning，不得抛错阻断整个 ruleset。规则共享生态允许新版规则包被旧版 skill 读取时优雅降级。
+- **I23 narrative 占位视图语义**：`scope.layer:"narrative"` 运行在引号段等长 `。` 占位视图上，offset 与原文一致。规则作者不得依赖“数句号”或占位串长度做判断；需要句长、密度、run 状态机时使用 density 或 handler。
 
 ## 4b. 检测数据（category ③）采集不变量
 

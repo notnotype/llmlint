@@ -10,7 +10,7 @@ llmlint 是针对 LLM 生成中文文本的 linter：CLI 用正则确定性定�
 
 > eval 是本项目最核心的部分；方法论与术语是一等规范，代码按它实现。
 
-- [CONTEXT.md](CONTEXT.md)：领域语言（术语）+ 硬不变量 I1–I11。
+- [CONTEXT.md](CONTEXT.md)：领域语言（术语）+ 硬不变量 I1–I23。
 - [evals/METHODOLOGY.md](evals/METHODOLOGY.md)：评测方法论 / 流程规范（代码遵守它，冲突以它为准）。
 
 ## Architecture
