@@ -69,6 +69,34 @@ describe("handler rules", () => {
         expect(issues).toHaveLength(0);
     });
 
+    it("quote-emphasis 统计叙述层短词引号强调，并全文只报一条", () => {
+        const content = "这场胜利像「礼物」，那次失败成了「钥匙」。他把沉默称为「答案」。";
+        const issues = scanHandlerRules(prepareScanContext(content), [handlerRule("h.quote", "quote-emphasis")]);
+
+        expect(issues).toHaveLength(1);
+        expect(issues[0]).toMatchObject({
+            line: 1,
+            column: 6,
+            target: "quote-emphasis",
+            match: "「礼物」",
+        });
+        expect(issues[0]!.detail).toContain("短词加引号强调 3 处");
+        expect(issues[0]!.detail).toContain("礼物");
+    });
+
+    it("quote-emphasis 豁免极短对白、系统面板与低于阈值的零散强调", () => {
+        const rule = handlerRule("h.quote.safe", "quote-emphasis");
+        const safeCases = [
+            "他说「好」。她问「行吗？」他答「可以」。",
+            "【系统】\n【公告】\n【提示】",
+            "这场胜利像「礼物」，那次失败成了「钥匙」。",
+        ];
+
+        for (const content of safeCases) {
+            expect(scanHandlerRules(prepareScanContext(content), [rule]), content).toHaveLength(0);
+        }
+    });
+
     it("loader：handler 规则入册，非 manual fixability 诊断并归一 manual", async () => {
         const rulesetId = "test-handler-plumb";
         const root = join(RULESETS_ROOT, rulesetId);

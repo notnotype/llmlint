@@ -4,7 +4,8 @@
     "namespace": "contrast.binary",
     "title": "二元对比结构",
     "level": "medium",
-    "note": "“不是...而是...”可以被稳定识别为候选结构，是否生硬仍需要结合上下文判断。",
+    "enabled": false,
+    "note": "默认关闭：与 cn.sentence.compound.contrastive-turn-preface 高度重叠；保留给项目显式开启。",
     "detector": {
       "type": "regex",
       "targets": [

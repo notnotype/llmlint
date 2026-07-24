@@ -56,7 +56,8 @@
     "namespace": "regex.advanced",
     "title": "正则-高级替换",
     "level": "medium",
-    "enabled": true,
+    "enabled": false,
+    "note": "默认关闭：与 cn.modifier.measure.specific-measure-word 完全重叠，避免同一量词进入多条默认候选。",
     "source": {
       "canonicalKey": "regex.advanced\tg\t一丝(?!不[挂苟])|(?<=[这那着被是以用有了和出起到过成为])(一?股子?|[一某][种缕抹点道层声])",
       "importedFrom": "curated-cn-rule-samples"

@@ -75,6 +75,7 @@ describe("llmlint", () => {
     },
     rules: {
         "filler-word-actually": "off",
+        "not-but-structure": {enabled: true},
     },
 };
 `, "utf-8");
@@ -663,7 +664,7 @@ describe("llmlint", () => {
             counts[rule.fixability] += 1;
         }
 
-        expect(counts).toEqual({auto: 3, candidate: 0, manual: 307});
+        expect(counts).toEqual({auto: 3, candidate: 0, manual: 299});
         expect(loadedRules.regexRules
             .filter((rule) => rule.fixability === "auto")
             .every((rule) => rule.action.type === "replace")).toBe(true);
@@ -672,7 +673,7 @@ describe("llmlint", () => {
     it("用户配置仍可把指定语义 replace 显式提升为 candidate", async () => {
         const loadedRules = await loadRules({
             ...emptyConfig(["builtin/default"]),
-            rules: {"not-but-structure": {fixability: "candidate"}},
+            rules: {"not-but-structure": {enabled: true, fixability: "candidate"}},
         });
 
         expect(loadedRules.regexRules.find((rule) => rule.id === "not-but-structure")?.fixability).toBe("candidate");

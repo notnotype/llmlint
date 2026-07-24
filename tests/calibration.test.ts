@@ -57,6 +57,10 @@ function densityIds(content: string, loaded: LoadedRules): string[] {
     return scanAll(content, loaded).densityIssues.map((issue) => issue.rule.id);
 }
 
+function issueIds(content: string, loaded: LoadedRules): string[] {
+    return scanAll(content, loaded).issues.map((issue) => issue.rule.id);
+}
+
 async function runCheck(filePath: string): Promise<{code: number; stdout: string; stderr: string}> {
     try {
         const result = await execFileAsync("bun", [LLMLINT_BIN, "check", filePath, "--review", "all", "--format", "json"], {
@@ -130,6 +134,17 @@ describe("story-deslop calibration rules", () => {
 
         expect(densityIds(longDialogue, loaded)).not.toContain("story-deslop.long-paragraph");
         expect(densityIds(longNarrative, loaded)).toContain("story-deslop.long-paragraph");
+    });
+
+    it("引号强调规则作为 human advisory 进入默认 ruleset", async () => {
+        const loaded = await loadDefault();
+        const risky = "这场胜利像「礼物」，那次失败成了「钥匙」。他把沉默称为「答案」。";
+        const safeDialogue = "他说「好」。她问「行吗？」他答「可以」。";
+
+        expect(issueIds(risky, loaded)).toContain("story-deslop.quote-emphasis");
+        const quoteIssue = scanAll(risky, loaded).issues.find((issue) => issue.rule.id === "story-deslop.quote-emphasis");
+        expect(quoteIssue?.rule).toMatchObject({level: "low", review: "human", fixability: "manual"});
+        expect(issueIds(safeDialogue, loaded)).not.toContain("story-deslop.quote-emphasis");
     });
 
     it("CLI fixture：真人校准句 0 blocking，漏网例句命中并在 --review all 落桶", async () => {

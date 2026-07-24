@@ -124,8 +124,8 @@
     "namespace": "sentence.compound",
     "title": "修剪连续“不是…不是…”",
     "level": "medium",
-    "enabled": true,
-    "note": "修剪连续“不是…不是…”",
+    "enabled": false,
+    "note": "默认关闭：命中全部被 cn.sentence.compound.contrastive-turn-preface 覆盖。",
     "source": {
       "canonicalKey": "sentence.compound\t\t(?:(?<=^|[,，。])不是[\\u4e00-\\u9fff]+[,，。])+[而只]?是",
       "importedFrom": "curated-cn-rule-samples"
@@ -196,8 +196,8 @@
     "namespace": "sentence.compound",
     "title": "删未发生部分前半句",
     "level": "medium",
-    "enabled": true,
-    "note": "删未发生部分前半句",
+    "enabled": false,
+    "note": "默认关闭：与 cn.sentence.compound.contrastive-turn-preface 同 span 重叠率超过 90%，统一交给 canonical rule 判断。",
     "source": {
       "canonicalKey": "sentence.compound\t\t(?:并[未非不]|并?(?:没有|不[再是像])|非但)[\\u4e00-\\u9fff]{1,20}[,，](?:[更又全也倒只而][像是]|反[而倒]是?)",
       "importedFrom": "curated-cn-rule-samples"

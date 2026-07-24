@@ -1,22 +1,24 @@
 // 服务端机器扫描（Task 13 D-C：机器信号一律服务器计算写入，浏览器扫描只作展示层）。
-// 引擎与浏览器同一套：构建期预烘的 registry.json（默认配置 materializeRules 产物）+ 纯函数 scanText。
+// 引擎与浏览器同一套：构建期预烘的 registry.json（默认配置 materializeRules 产物）+ 纯函数扫描。
 // docScore 口径对齐 evals/lib/scan.ts：去重 span / 千字，字数 = 去空白码点（visibleCharCount）。
 // 与 evals 一致做全文扫描（不做 Markdown 遮罩）——采集正文是小说散文，且要与 evals 基线可比。
-import {scanText} from "llmlint/scanner";
-import type {Issue, RegexRuleRecord} from "llmlint/types";
+import {prepareScanContext} from "llmlint/scan-context";
+import {scanHandlerRules, scanWithContext} from "llmlint/scanner";
+import type {ActiveHandlerRuleRecord, Issue, RegexRuleRecord} from "llmlint/types";
 import registryData from "../../app/data/registry.json";
 import type {CreativeRuleProfile} from "../../shared/rule-profile";
-import {compositeScore, ruleFaceScore, type AnalysisStatus, type RevisionAnalysis} from "../../shared/analysis";
+import {compositeScore, llmReviewStatus, ruleFaceScore, type AnalysisStatus, type RevisionAnalysis} from "../../shared/analysis";
 import {visibleCharCount} from "./dto";
 import {revisionLlmReviewDto, type MachineLlmReviewDto} from "./llm-review";
 import {latestMachineDetectRun} from "./detect";
 import {prisma} from "../database/prisma";
 
-// registry.json 的 regexRules 就是 build 期 materializeRules(默认配置) 的产物；
+// registry.json 的静态规则就是 build 期 materializeRules(默认配置) 的产物；
 // 服务端无用户覆盖，直接消费单源产物，engineVersion 与之同一次构建生成（单源）。
 const registry = registryData as unknown as {
     engineVersion: string;
     regexRules: RegexRuleRecord[];
+    handlerRules: ActiveHandlerRuleRecord[];
     creativeProfile: CreativeRuleProfile;
 };
 
@@ -55,7 +57,7 @@ export type MachineDetectDto = {
 
 /**
  * 一个 revision 的全部机器断言（D2：只有揭示后才可返回给客户端）。scan 为最新引擎版本的一条；理论上创建即扫，null 仅作防御。
- * llmReview（Task 17 工单 C）：最新一次 LLM 规则评审；null = 异步未到或通道未配置（前端轮询 machine 端点等它落库）。
+ * llmReview（Task 17 工单 C）：最新一次 LLM 规则评审；null = 异步未到或通道未配置。前端只用 machine 轮询发现 Session，LLM 终态由 Session SSE/snapshot 收口。
  */
 export type RevisionMachineDto = {
     scan: MachineScanDto | null;
@@ -69,7 +71,8 @@ export type RevisionMachineDto = {
  * 供 llm-fix（W4）组「问题清单」用——DTO 化的 hits 只有 ruleId/span，不够组 prompt。
  */
 export function scanBodyIssues(body: string): Issue[] {
-    return scanText(body, registry.regexRules, {});
+    const ctx = prepareScanContext(body);
+    return [...scanWithContext(ctx, registry.regexRules), ...scanHandlerRules(ctx, registry.handlerRules)];
 }
 
 /**
@@ -115,34 +118,22 @@ export async function recordMachineScan(revisionId: string, body: string): Promi
  * 仅供 reveal / machine 端点在揭示语义成立后调用；D2 的闸在调用方。
  */
 export async function revisionMachineDto(revisionId: string): Promise<RevisionMachineDto> {
-    const [scan, detects, llmReview, detectRun, session] = await Promise.all([
+    const [scan, detects, llmReview, detectRun, latestInvocation] = await Promise.all([
         prisma.machineScan.findFirst({where: {revisionId}, orderBy: {scannedAt: "desc"}}),
         prisma.machineDetect.findMany({where: {revisionId}, orderBy: {checkedAt: "asc"}}),
         revisionLlmReviewDto(revisionId),
         latestMachineDetectRun(revisionId),
-        prisma.agentSession.findFirst({where: {revisionId, profileKey: "llmlint.review"}, include: {invocations: {orderBy: {createdAt: "desc"}, take: 1}}}),
+        prisma.agentInvocation.findFirst({where: {revisionId, phase: "analysis"}, include: {session: {select: {status: true}}}, orderBy: {createdAt: "desc"}}),
     ]);
     const rulesScore = scan ? Math.round(ruleFaceScore(scan.docScore)) : undefined;
     const detectorScore = detects.length > 0 ? Math.round(detects.reduce((sum, detect) => sum + detect.docPAi, 0) / detects.length * 100) : undefined;
-    const latestInvocation = session?.invocations[0];
-    const analysisRunning = (session?.status === "running" || session?.status === "aborting") && latestInvocation?.phase === "analysis";
-    const llmScore = analysisRunning ? undefined : llmReview?.score;
+    const llmStatus = llmReviewStatus({reviewExists: llmReview !== null, invocationStatus: latestInvocation?.status, sessionStatus: latestInvocation?.session.status, error: latestInvocation?.error});
+    const llmScore = llmStatus === "completed" ? llmReview?.score : undefined;
     const detectorStatus = detects.length > 0 ? "completed" : detectRunStatus(detectRun?.status, detectRun?.error);
-    const llmStatus: AnalysisStatus = llmReview
-        ? analysisRunning ? "running" : "completed"
-        : session?.status === "running" || session?.status === "aborting"
-            ? "running"
-            : latestInvocation?.status === "failed"
-                ? latestInvocation.error?.includes("通道未配置") ? "unavailable" : "failed"
-                : latestInvocation?.status === "aborted"
-                    ? "cancelled"
-                    : session?.status === "interrupted"
-                        ? "interrupted"
-                        : "waiting";
     const analysis: RevisionAnalysis = {
         rules: {status: scan ? "completed" : "waiting", score: rulesScore ?? null, error: null},
         detector: {status: detectorStatus, score: detectorScore ?? null, error: detectRun?.error ?? null, runId: detectRun?.id},
-        llm: {status: llmStatus, score: llmScore ?? null, error: latestInvocation?.error ?? null, sessionId: session?.id, confidence: llmReview?.confidence ?? null, report: llmReview?.report ?? null},
+        llm: {status: llmStatus, score: llmScore ?? null, error: latestInvocation?.error ?? null, sessionId: llmReview?.sessionId ?? latestInvocation?.sessionId, confidence: llmReview?.confidence ?? null, report: llmReview?.report ?? null},
         composite: compositeScore({rules: rulesScore, detector: detectorScore, llm: llmScore}),
     };
     return {

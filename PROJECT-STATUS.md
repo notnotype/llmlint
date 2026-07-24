@@ -19,26 +19,31 @@ llmlint 是针对 LLM 生成中文文本的 linter：CLI 用正则确定性定�
 - `skill/` 是可安装、可发布的 runtime 包（name=`llmlint`）：`bin/llmlint.ts` + `src/`（config / rules / scanner / reporter / markdown-mask / cli）+ `rulesets/builtin/default/` + `references/` + `SKILL.md`。
 - `evals/` 是判别力评测 harness（consumer + generator + acquire），进 git 但不进 `skill/`；语料合规边界见 `docs/tasks/03-llmlint-eval-harness/data-acquisition.md`。
 - `web/` 是单 Node Nuxt 采集站（`ssr:false` 保留）：构建期把完整规则 catalog + 默认 active registry 预烘成 `registry.json`，浏览器按本地设置覆盖调用纯函数 `materializeRules`，再用 `scanText`/`computeMaskedRanges` 本地检测；Nitro server 提供配置式鉴权（开发默认关闭登录并使用稳定本地用户，生产默认启用 `nuxt-auth-utils` session）、Prisma 7 + libSQL 持久化、`/contribute` 盲评采集、服务端机器信号全通道落库、span 自然语言标注和管理员导出。部署形态为 `nuxt build` + Node 宿主。
-- web 的 LLM 分析/改写只依赖深 Module `AgentHarnessPort`，唯一实现为公开包 `@notnotype/neuro-agent-harness@0.1.0`。llmlint Adapter 提供 Prisma SessionStore、Pi ModelRuntime、analysis/optimize Profile、MachineLlmReviewProjector、权限和 SSE DTO；Core 直接提供 cursor/replay，不再经过第二层 EventBus。Store 使用进程级 per-session queue 并明确只支持单 Node + SQLite；历史 Session 由 `bun run agent:migrate-neuro` 显式备份、按 ledger 重建、重跑 analysis 后 hard cut。
-- `/contribute` 报告为三维“AI 痕迹风险”：规则引擎、外部检测、LLM Agent 并列，越高越可疑、绿→黄→红；综合风险仅作次级参考（30%/45%/25%，缺失通道重新归一）。外部检测与 LLM 分析均支持真实取消、失败/取消/中断重试；分析 session 后续直接承载 64 轮/64 replace 的 Agent 对话，结果统一进入 diff 审阅。
-- LLM 评审 prompt 已升到 `llm-rules-agent-v4` 适配 mimo：模型只逐条记录规则命中并提交置信度/结论/建议，evidence 与风险分由服务器从已校验 hits 生成。真实 smoke：典型 `index2.md` 3 轮、0 命中、风险 0；明确反例 4 轮完成，命中 `monotone-rhythm`、`over-explaining-reader`、`quotable-punchline`、`mechanical-elevation-ending` 等规则，不再出现重复抄写证据导致的工具死循环。
-- 运行时：**Bun 原生** 或 **Node + tsx**；裸 `node` 因无扩展名 TS 相对导入不可直接运行。依赖装在 `skill/` 内自包含（commander / picocolors / tinyglobby）。
+- web 的 LLM 分析/改写只依赖深 Module `AgentHarnessPort`，唯一实现为公开包 `@notnotype/neuro-agent-harness@0.1.0`。llmlint Adapter 提供 Prisma SessionStore、Pi ModelRuntime、analysis/optimize Profile、MachineLlmReviewProjector、权限和 SSE DTO；Core 直接提供 cursor/replay，不再经过第二层 EventBus。Store 使用进程级 per-session queue并明确只支持单 Node + SQLite；libSQL 连接容忍有限外部 busy lock，projector 只补缺失 review，startup reconcile 顺序且防重入。SSE route 由请求级生命周期统一关闭 heartbeat、Core subscription、forward task 与 H3 writer。历史 Session 由 `bun run agent:migrate-neuro` 显式备份、按 ledger 重建、重跑 analysis 后 hard cut。
+- `/contribute` Agent tab 展示完整可观察 transcript：System Prompt 使用折叠节点，Profile 内部首条 user-role 消息标记为“模型输入”，只有 `llmlint.request` 标记为“你”；Assistant、工具、edit/report 与 Invocation 状态正常展示。Composer 统一承载选区、输入、外部 LLM、retry、发送/停止与连接状态。Cancel 绑定 active invocation ID 并等待 SSE terminal；durable workspace 经 SSE 实时写入只读中的正式修复稿，断线可由 snapshot 恢复。Assistant 内容使用 `marked + DOMPurify` 安全 Markdown。
+- `/contribute` 报告为三维“AI 痕迹风险”：规则引擎、外部检测、LLM Agent 并列，越高越可疑、绿→黄→红；综合风险仅作次级参考（30%/45%/25%，缺失通道重新归一）。一条线性 Revision lineage 复用同一 Agent Session，Session revisionId 是当前指针，Invocation revisionId 是运行归属真相。`RevisionTextWorkspace` 暴露 `read/edit/lint_check/lint_fix/get_revision_detections`；历史 Revision 只读，current 工作副本结果统一进入 diff 审阅。
+- LLM 评审使用 `llm-rules-agent-v6`，Optimize 使用 `repair-agent-v5`。一键修到底先由宿主应用 `fixability:auto` 静态修复，再以更新后的草稿声明 `objective=polish_ai_risk`；该 Invocation 不暴露 `lint_fix`，避免模型未读正文先改工作副本。强判别与当前启用的 `vocabulary.*` AI 敏感词是必修，weak/LLM Review 结合语境处理；eval report 缺失时安全降级为 contextual。Agent 可对高风险句段做小范围整体润色，并在内部多候选中选择最不像模型惯用表达的方案。历史恢复不会启动工作，跨篇状态清场后已有 active Invocation 会按 ID abort，未揭示 head 等待用户显式“继续检测”。正文只经 `read` 进入模型上下文；单轮输出预算按模型上限计算并封顶 65,536。
+- 运行时：**Bun 原生** 或 **Node + tsx**；裸 `node` 因无扩展名 TS 相对导入不可直接运行。依赖装在 `skill/` 内自包含（commander / node-fetch-native / picocolors / tinyglobby）。
 
 ## Rules / CLI Facts
 
-- 默认无 config 时加载单一内置 ruleset `builtin/default`：约 **340 rules / 311 active**，跨 40+ namespaces，由人工基础规则 + 中文策展规则（shuorenhua / avoid-ai-writing / humanizer）合并生成。
-- 三个正交维度：`level`（high/medium/low，严重度+退出码）、`review`（agent/human/none，审查受众，`check` 默认 `--review agent`）、`fixability`（auto/candidate/manual，机械修复能力）。默认规则集为 auto=3、candidate=0，其余 manual；`action.replace` 只是替换模板，不授予应用权限。
+- 默认无 config 时加载单一内置 ruleset `builtin/default`：约 **360 rules / 323 active**，跨 50+ namespaces，由人工基础规则、中文策展规则（shuorenhua / avoid-ai-writing / humanizer）与 story-deslop 校准检测器合并生成。
+- 三个正交维度：`level`（high/medium/low，严重度+退出码）、`review`（agent/human/none，审查受众，`check` 默认 `--review agent`）、`fixability`（auto/candidate/manual，机械修复能力）。默认 regex 规则为 auto=3、candidate=0、manual=299；`action.replace` 只是替换模板，不授予应用权限。
 - 配置三层覆盖：rule id > namespace > ruleset > rule 默认；字符串是对象覆盖的语法糖，config 一处去糖、消费端无分支 patch。
-- `check` 支持多文件/glob/目录、Markdown 遮罩（代码块/frontmatter/链接不误杀）、`--min-level` / `--review` 过滤、stylish（TTY 上色）与 `--format json`。
+- 规则模型 v3 已落地：`scope.layer` 支持 narrative/dialogue/all 等长视图，`ignoreTerms` 统一遮罩 regex/density/handler，density detector 负责全文/段落分布指纹，builtin handler 负责 not-is 状态机、碎句号、过度精炼、低连接密度和引号强调；CLI、web 本地扫描、服务端 MachineScan 与 Agent `lint_check` 均消费同一份预烘静态规则。未知 detector/handler 按 warning 优雅跳过。
+- `check` 支持多文件/glob/目录、Markdown 遮罩（代码块/frontmatter/链接不误杀）、regex+density+handler 静态扫描、`--min-level` / `--review` 过滤、stylish（TTY 上色）与 `--format json`。
 - `fix` 只做 `fixability:auto` 机械修复（零宽字符 + 连续符号去重），默认 dry-run（有待修退出 1，可做 CI 门禁）、`--write` 落盘；语义修复仍由 Agent 读上下文、经用户审批执行。
+- `status` / `config` 提供用户级 `~/.llmlint/settings.json` 初始化门；`detect` 直连 HF Space `yuchuantian-aigc-text-detector.hf.space`，句界分块、代理分流、content-hash 缓存，并输出 chunk 热区。
 - Web 同样严格区分修复权限：一键机械修复只吃 auto；默认 semantic replace 全部 manual，candidate 只保留给用户配置的显式白名单。构建期 `creative-writing@1` profile 直接消费 holdout report，排除 noise/anti 与稳定重复家族；MachineScan 和原始 eval 仍扫描完整超集。
 
 ## Recent Tasks
 
 | Task | Status | Notes |
 | --- | --- | --- |
+| [23 Skill 闭环与服务接入](docs/tasks/23-skill-loop-and-service/README.md) | 分片 1 A/B Done / 规则整理进行中 | B 线已提交 `0d8b7f3`：handler 管线测试、用户状态层、`status`/`config`、`detect`、缓存与验证闭环。A 线完成 story-deslop 校准规则导入、namespace 策略、校准测试、SKILL.md 五步流程、repair-guide 与规则模型 v3 不变量文档；后续规则整理已默认关闭 8 条稳定重叠旧规则，并补 `quote-emphasis` human advisory。分片 2 contributions 与分片 3 登录仍未做。 |
+| [22 Agent Chat 界面适配](docs/tasks/22-agent-chat-ui/README.md) | Implemented / Browser Pending | Flow 展示可区分来源的完整运行上下文；同 Session 跨 Revision 保留 transcript/cursor；历史 Analysis 重试与取消由 `useAgentChat` 按 Invocation revision 收口；一键入口先应用 auto 静态修复，再把更新后的草稿交给不含 `lint_fix` 的风险润色 Agent。最终全量 34 files / 290 tests、双 typecheck、Nuxt production build 通过；浏览器验收待用户授权。 |
 | [20 AGPL-3.0-only 许可证迁移](docs/tasks/20-agpl-license-migration/README.md) | Implemented | 根开发仓和可安装 `skill/` package 已迁移到 AGPL-3.0-only，并同步刷新 NeuroBook vendored/user runtime 的许可证、README 与 manifest；NeuroBook 聚焦同步测试通过。 |
-| [21 NeuroAgentHarness llmlint Adapter](docs/tasks/21-neuro-agent-harness-llmlint/README.md) | Complete | `@notnotype/neuro-agent-harness@0.1.0` 已公开发布并精确安装；`LocalAgentHarness`、灰度开关、`harnessKind` 与第二层 EventBus 已删除。7/7 历史 Session 已备份、真实重跑 analysis 并完成 hard cut，真实 Pi finish/max-turn partial/abort partial/SSE reconnect smoke 与全量门禁通过。 |
+| [21 NeuroAgentHarness llmlint Adapter](docs/tasks/21-neuro-agent-harness-llmlint/README.md) | Complete / Runtime Hardened | 公开 Harness hard cut 保持；同一线性 Revision lineage 复用 Session，Invocation revisionId 作为归属真相；`RevisionTextWorkspace` 统一 read/edit、CLI 同源 check/auto fix、历史只读 Revision 与三路持久检测。幂等 advance、精确读取覆盖和规则结果清零均已回归；业务能力仍留在 llmlint Adapter/Profile，不进入 Core。 |
 | [01 anti-ai-slop / llmlint skill](docs/tasks/01-anti-ai-slop-skill/README.md) | 历史 | llmlint 源头（原名 anti-ai-slop）：TypeScript+正则、static/llm 分层、6 步润色流程、CLI 与参考文档、2026-06-28 硬切重命名。 |
 | [02 llmlint Rule Registry](docs/tasks/02-llmlint-rule-registry/README.md) | Implemented | flat Rule Registry（id/namespace/ruleset）、三层覆盖、review/fixability 维度、rules 目录递归加载、CLI `fix`+多文件+Markdown 遮罩；2026-07-11 第二轮收紧为默认 auto=3/candidate=0，并以版本化 creative profile 收敛 8 条稳定重复规则，不删除全局规则资产。 |
 | [03 llmlint Eval Harness](docs/tasks/03-llmlint-eval-harness/README.md) | M1–M3-B Done | 判别挖掘 harness：配对 lift、docScore ROC-AUC、模型排名、误杀率、默认 40% holdout 与 overlap 重复率；正式 test AUC 0.807，creative profile test AUC 0.990、重复率 11.1%。 |
@@ -157,17 +162,18 @@ Task 08 latest supplement addendum（2026-07-14）：评测可信度前置守门
 
 ## Known Follow-ups
 
+- **Agent 历史与 Revision workflow（TODO，2026-07-19）**：后续评估接入 nb-history 承载 Session 历史浏览/分支；Revision 提交、进入下一版本、Session 切换、检测触发/重试必须统一设计 approval、幂等、长任务状态和失败恢复，本轮没有加入临时写工具。
 - **Task 11 编辑器数据模型（Implemented，2026-07-07，待 playwright 验收）**：编辑器从四套并存坐标系收敛到**单一坐标权威**——一切锚定不可变原文坐标，草稿坐标由 piece-table 投影现算。批注改源锚定 `ReviewAnnotation`（`sourceFrom/sourceTo` + 投影 `stale`「原句已改」提示），`transformReviewComments/Diffs*` 命令式搬运与 `repairDiffs` prop 等死代码全删，undo 只回滚 plan 快照；sidecar 批注存储升 v2（按**原文** key，v1 废弃）。建议与已应用编辑显式分层：**未应用替换不再常驻画进正文**（绿浮标错位与「未修改却有删除线」两 bug 的根因），替换预览按需收敛到工具条/选区菜单/IssueCard，preview 徽章与删除线仅 active 命中显示。86 测试 + 双 typecheck 绿；预览精确 offset 映射（替换 indexOf 模糊匹配）拍板延后为独立任务。详见 [docs/tasks/11-editor-data-model/README.md](docs/tasks/11-editor-data-model/README.md)。
 
 - **Task 12 统一数据模型（Designed，2026-07-06）**：评测语料 + web 采集收进同一概念模型（参与者×文本×断言；reference+render = LLM 扮演参与者，量大信度低）。设计定稿：`origin` 三变体（curated/generated/uploaded，删 seeded_gold/goldProvenance）、MachineRecord 拆 MachineScan/MachineDetect（含热力图 chunksJson 槽位）、PairJudgment/LlmJudgment 规范先行建表后置、**D1 改写为 lift 闸门**（只吃 origin∈{curated,generated}）。CONTEXT §2.5/D1 与 METHODOLOGY §0/§7 已同步。**web schema 增量迁移已由 [Task 13](docs/tasks/13-web-five-step-flow/README.md) W1 执行**（2026-07-07）。详见 [docs/tasks/12-unified-data-model/README.md](docs/tasks/12-unified-data-model/README.md)。
 
 - **Task 08 Eval Pipeline Hardening（Implemented，2026-07-03）**：环 ① 全链路硬化 + 小验证轮已跑通。M1 calibre 批转 mobi + catalog 状态层（`neuro-book/datasets/aigc-detection`，manifest 为书目真相源）+ 3 新题组（武侠/宫斗/无限流）；M2 generator 硬化（commander、`eval.config.json`+example 双文件、prompt 版本化注册表守 I8、`claude -p`/`codex exec` CLI transport 走 stdin/合并契约、per-provider 限流、token 预算预估/实报/自校准）；M3 可换外部检测器（HF yuchuantian，句界分块避截断、长度加权 mean、sidecar 内容 hash 缓存、`report.externalDetector` 对照节，复用 rocAuc 同口径）；M4 5 题组/65 render：**llmlint AUC 0.681**（较旧 2 组 0.833 降＝判别力 genre-dependent 实证）、**holdout 首解锁** train0.616/test0.778、**外部检测器 AUC 0.941 ≫ llmlint**（证检测器是强 oracle 地基、gap=漏网新规则矿）。⚠ CLI transport 上游 anyrouter 不可达（claude 挂起/codex Reconnecting）未端到端验证，已降级快退。详见 [docs/tasks/08-eval-pipeline-hardening/README.md](docs/tasks/08-eval-pipeline-hardening/README.md)。
 - **Eval M3**：更多题材/题组/模型 + 文风预设档 + holdout 切分；补稀疏规则 prevalence 口径、真 1:1 同 brief 配对；稳后把「规则体检表」正式交 Task 02 驱动规则修复。M4 的 repair 一轮已建（[Task 14](docs/tasks/14-line-a-repair-loop/README.md)，2026-07-07），余 realism 难度档 + critic；之后 M5（LLM 规则判别 + 产品成绩单 + 显形回归集）。
-- **规则质量**：第二轮已落地 `creative-writing@1`：排除 noise/anti，稳定抑制 8 条重叠规则，保留 canonical rule 与原因；真实中文小说候选不再重复。后续继续用更多题材 holdout 校准，避免把单轮 verdict 物理写死为全局删规则。
+- **规则质量**：第二轮已落地 `creative-writing@1`：排除 noise/anti，稳定抑制 8 条重叠规则，保留 canonical rule 与原因；Task 23 后续规则整理已把这 8 条同步为默认 disabled，但不删除资产。后续继续用更多题材 holdout 校准，避免把单轮 verdict 物理写死为全局删规则。
 
 ## 2026-07-11 第二轮规则精简
 
-- 默认规则 materialize 结果：303 regex 中 `auto=3 / candidate=0 / manual=300`；用户配置仍可把指定 regex replace 提升为 candidate。
+- 默认规则 materialize 结果（Task 23 规则整理后）：302 regex 中 `auto=3 / candidate=0 / manual=299`；用户配置仍可把指定 regex replace 提升为 candidate。
 - Web registry 烘焙版本化 `creative-writing@1` profile。报告有效时排除 noise/anti；报告缺失时保留全量，但稳定 overlap 抑制仍生效。规则页保留完整超集并解释 profile 排除原因。
 - `Report.overlap` 已纳入正式报告：16,962 raw hits / 11,388 unique spans / 32.9% 原始重复率；score 默认 holdout=0.4。
 - 指定 NeuroBook `index2.md`：全量静态命中 115、机械修复 0、LLM 创作候选 17、候选重复 span 0。程度副词、量词、句尾比喻和二元转折家族不再重复进入清单。

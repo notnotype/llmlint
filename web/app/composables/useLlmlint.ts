@@ -1,6 +1,7 @@
 import {computed} from "vue";
 import {computeMaskedRanges} from "llmlint/markdown-mask";
-import {scanText} from "llmlint/scanner";
+import {prepareScanContext} from "llmlint/scan-context";
+import {scanHandlerRules, scanText, scanWithContext} from "llmlint/scanner";
 import {applyAutoFixWithChanges, type AutoFixChange} from "llmlint/fix";
 import {materializeRules} from "llmlint/rule-registry";
 import registryData from "../data/registry.json";
@@ -35,6 +36,7 @@ export function useLlmlint() {
                 rulesetOverrides: {},
                 namespaces: settings.value.namespaceOverrides,
                 rules: settings.value.ruleOverrides,
+                ignoreTerms: [],
                 output: "json",
             },
             diagnostics: baseRegistry.diagnostics,
@@ -45,6 +47,8 @@ export function useLlmlint() {
             ...baseRegistry,
             summary: loaded.summary,
             regexRules: loaded.regexRules,
+            densityRules: loaded.densityRules,
+            handlerRules: loaded.handlerRules,
             llmRules: loaded.llmRules,
         };
     });
@@ -54,7 +58,8 @@ export function useLlmlint() {
             return [];
         }
         const maskedRanges = scanAll ? [] : computeMaskedRanges(text);
-        return scanText(text, registry.value.regexRules, {maskedRanges});
+        const ctx = prepareScanContext(text, {maskedRanges});
+        return [...scanWithContext(ctx, registry.value.regexRules), ...scanHandlerRules(ctx, registry.value.handlerRules)];
     }
 
     function scanDefault(text: string, scanAll: boolean): Issue[] {
@@ -62,7 +67,8 @@ export function useLlmlint() {
             return [];
         }
         const maskedRanges = scanAll ? [] : computeMaskedRanges(text);
-        return scanText(text, baseRegistry.regexRules, {maskedRanges});
+        const ctx = prepareScanContext(text, {maskedRanges});
+        return [...scanWithContext(ctx, baseRegistry.regexRules), ...scanHandlerRules(ctx, baseRegistry.handlerRules)];
     }
 
     function applyFilters(issues: Issue[], filters: UiFilters): Issue[] {
@@ -122,7 +128,7 @@ export function useLlmlint() {
     function namespaceOptions(): string[] {
         const set = new Set<string>();
         for (const item of baseRegistry.catalog) {
-            if (item.rule.detector.type === "regex") {
+            if ("detector" in item.rule && item.rule.detector.type === "regex") {
                 set.add(item.rule.namespace);
             }
         }

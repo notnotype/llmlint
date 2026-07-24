@@ -102,8 +102,8 @@
     "namespace": "modifier",
     "title": "兼容不带“的/地”",
     "level": "medium",
-    "enabled": true,
-    "note": "兼容不带“的/地”",
+    "enabled": false,
+    "note": "默认关闭：与 cn.modifier.stacked-degree-adverbs 同 span 重叠率约 99%，保留覆盖更完整的 canonical rule。",
     "source": {
       "canonicalKey": "modifier\t\t(?:死死|紧紧|深深|浅浅|浓浓|稍稍|完全|彻底|[格分]外|[甚乃]至|[全突忽]然|极[其度致具]|[稍略轻微]微|[猛勐][的地]|[无下]意识|不自觉|习惯性)[的地]?(?=[\\u4e00-\\u9fff])",
       "importedFrom": "curated-cn-rule-samples"
@@ -361,8 +361,8 @@
     "namespace": "modifier",
     "title": "删低信息程度壳",
     "level": "medium",
-    "enabled": true,
-    "note": "删低信息程度壳",
+    "enabled": false,
+    "note": "默认关闭：与 cn.modifier.stacked-degree-adverbs 同 span 重叠率接近 100%，不重复进入默认候选。",
     "source": {
       "canonicalKey": "modifier\t\t(?:一丝丝|极其|极度|极致|死死|紧紧|深深|浅浅|浓浓|稍稍|稍微|略微|轻微|微微|完全|彻底|格外|分外|甚至|乃至|全然|突然|忽然|猛的|猛地|勐的|勐地|近乎于|近乎|无意识|下意识|不自觉|习惯性)(?:的|地)?",
       "importedFrom": "curated-cn-rule-samples"

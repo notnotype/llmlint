@@ -1,6 +1,8 @@
 import type {
     Issue,
+    ActiveHandlerRuleRecord,
     LLMRuleRecord,
+    DensityRuleRecord,
     RegexRuleRecord,
     RegistryDiagnostic,
     RegistrySummary,
@@ -17,6 +19,8 @@ export type {
     ActiveRuleRecord,
     RegexRuleRecord,
     LLMRuleRecord,
+    DensityRuleRecord,
+    ActiveHandlerRuleRecord,
     RegistrySummary,
     RegistryDiagnostic,
     CheckSummary,
@@ -41,7 +45,7 @@ export type RuleVerdictBake = {
 /** 构建期预烘产物 registry.json 的形态（由 scripts/build-registry.ts 生成）。 */
 export type LlmlintRegistry = {
     version: string;
-    /** 引擎版本单源（Task 13 D-C）：包版本 + regex 规则集内容 hash，服务端 MachineScan 落库用同一值。 */
+    /** 引擎版本单源（Task 13 D-C）：包版本 + 静态扫描规则集内容 hash，服务端 MachineScan 落库用同一值。 */
     engineVersion: string;
     generatedFrom: string;
     catalog: RuleRegistryCatalogItem[];
@@ -50,6 +54,8 @@ export type LlmlintRegistry = {
     summary: RegistrySummary;
     diagnostics: RegistryDiagnostic[];
     regexRules: RegexRuleRecord[];
+    densityRules: DensityRuleRecord[];
+    handlerRules: ActiveHandlerRuleRecord[];
     llmRules: LLMRuleRecord[];
     /** ruleId → 判别裁决；用于规则排序、展示与创作修复 task profile。 */
     ruleVerdicts?: Record<string, RuleVerdictBake>;
@@ -102,9 +108,9 @@ export type UiFilters = {
     scanAll: boolean;
 };
 
-/** 按规则分组后的一组命中，供 IssueList 渲染。 */
+/** 按规则分组后的一组命中，供 IssueList 渲染。rule 取 Issue.rule 联合（regex/handler）。 */
 export type RuleGroup = {
-    rule: RegexRuleRecord;
+    rule: Issue["rule"];
     issues: Issue[];
 };
 

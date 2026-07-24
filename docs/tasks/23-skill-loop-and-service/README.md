@@ -26,7 +26,7 @@
 
 ## Current State
 
-- `skill/` 已是 v2.0.0 自包含包：`check`（regex 候选定位 + markdown 遮罩）/ `fix`（仅 auto 桶）/ `show-llm-rules`；340 规则 / 311 active；`llmlint.config.ts` 三层覆盖（rule id > namespace > ruleset）。
+- `skill/` 已是 v2.0.0 自包含包：`check`（regex 候选定位 + markdown 遮罩）/ `fix`（仅 auto 桶）/ `show-llm-rules`；当前默认规则为 360 rules / 323 active；`llmlint.config.ts` 三层覆盖（rule id > namespace > ruleset）。
 - 神经检测：`evals/detector/hf-client.ts`（客户端直连 HF yuchuantian gradio、句界分块、P(AI) 归一、长度加权 mean+max、content-hash sidecar 缓存）；web 端 `detect.ts` 同算法 + 代理 + `chunksJson` 热力图落库。
 - web 鉴权：nuxt-auth-utils 自有账号，未接 Passport。
 - skill 无用户级状态层、无神经检测命令、无上传通道。
@@ -49,7 +49,7 @@
 
 - B 线提交前验证：`bun run test:vitest` 267 passed；`bunx tsc --noEmit --pretty false` 通过；`cd web && bun run typecheck` 通过（Volar 既有插件警告）；`status/config` 临时 `LLMLINT_HOME` 冒烟通过；HF detect 真跑成功，二次 `cached:true`，`--no-cache` 返回 `cached:false`。
 - A 线聚焦验证：`bunx vitest run tests\calibration.test.ts` 3 passed；`bunx vitest run tests\calibration.test.ts tests\scan-context.test.ts tests\density.test.ts tests\handler-rules.test.ts` 35 passed。
-- A 线最终验证记录：接管前 `bun run test:vitest` 270 passed。接管后复跑 A/B 交叉窄测 35 passed；`bunx tsc --noEmit --pretty false` 通过；`cd web && bun run typecheck` 通过（Volar 既有插件警告：`vue-router/volar/sfc-route-blocks` 加载失败）。后续审查修复长对白误报后复测 Task 23 窄测 50 passed、完整 `bun run test:vitest` 271 passed、HF detect 小文本真跑成功且二次 `cached:true`；web registry 当前为 310 regex / 8 llm / 330/359 active。
+- A 线最终验证记录：接管前 `bun run test:vitest` 270 passed。接管后复跑 A/B 交叉窄测 35 passed；`bunx tsc --noEmit --pretty false` 通过；`cd web && bun run typecheck` 通过（Volar 既有插件警告：`vue-router/volar/sfc-route-blocks` 加载失败）。后续审查修复长对白误报后复测 Task 23 窄测 50 passed、完整 `bun run test:vitest` 271 passed、HF detect 小文本真跑成功且二次 `cached:true`。
 
 ## Implementation Walkthrough
 
@@ -78,7 +78,15 @@
 
 - blocking：`cliche.voice-contrast`、`contrast.binary` 的 `not-is-comparison` handler 与 `reverse-not-is`、`contrast.negative-listing` 两种否定排比、`ending.trailer` 文末 600 字窗口、`mechanical.stage-leak` tier1。
 - advisory / human：套词密度、比喻密度、解释链、抽象总结复读、微动作复读、动作清单、公文腔公告、碎句号、过度精炼、低连接密度、长段落、工程词 tier2。
-- 与计划出入：① `notice-formality` 受当前 density 执行器限制，按 `dialogue + paragraph` 近似实现，未复刻原脚本“至少 4 行公告”门槛；② `quote-emphasis` 与复读/截断退化仍按设计留后续批次；③ 破折号差集核对后未新增规则，沿用现有 `punctuation.dash` 家族，避免重复。
+- 与计划出入：① `notice-formality` 受当前 density 执行器限制，按 `dialogue + paragraph` 近似实现，未复刻原脚本“至少 4 行公告”门槛；② 破折号差集核对后未新增规则，沿用现有 `punctuation.dash` 家族，避免重复；③ 复读/截断退化仍留后续批次。
+
+### 规则系统精简补充（2026-07-24）
+
+- 默认规则整理：把 creative profile 已稳定抑制的 8 条高重叠旧规则同步为默认 `enabled:false`，不物理删除资产，用户仍可通过 rule override 显式启用。涉及程度副词、量词、句尾比喻和二元转折四个家族，默认保留对应 canonical rule，降低同一 span 重复进入问题清单的概率。
+- story-deslop 继续吸收：新增 `story-deslop.quote-emphasis` handler 规则，统计叙述层 1-4 字短词引号强调，全文 ≥3 处只报一条 human advisory；极短对白、系统面板、纯对白行和低于阈值的零散强调豁免。
+- 闭环遗漏修复：web registry 现在预烘 active density/handler 规则，engineVersion hash 覆盖 regex+density+handler；web 本地扫描、服务端 MachineScan 与 Agent `RevisionTextWorkspace.lint_check` 均消费 regex+handler，Agent 报告额外带 density 指纹段。story-deslop high 校准 blocking 规则即使未入 eval verdict，也在 Agent 修复门中按必修强判别处理。
+- 当前默认 materialize：360 total / 323 active；302 regex / 8 density / 5 handler / 8 LLM；regex fixability = auto 3 / candidate 0 / manual 299。
+- 拿不准的规则族和许可边界集中记录在 `rule-curation-open-questions.md`，等待用户一次性拍板。
 
 ## TODO / Follow-ups
 
@@ -89,4 +97,4 @@
 - [ ] 分片 2 实施
 - [ ] 分片 3 实施
 - [ ] contributions 数据模型对 Task 12 统一模型的映射设计
-- [ ] 后置：banned-words 逐词差集（独立任务）；quote-emphasis handler、复读/截断退化检测（后续批次）
+- [ ] 后置：banned-words 逐词差集（独立任务）；复读/截断退化检测（后续批次，见 `rule-curation-open-questions.md`）

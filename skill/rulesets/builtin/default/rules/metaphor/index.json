@@ -124,8 +124,8 @@
     "namespace": "metaphor",
     "title": "删句尾整段比喻尾巴",
     "level": "medium",
-    "enabled": true,
-    "note": "删句尾整段比喻尾巴",
+    "enabled": false,
+    "note": "默认关闭：命中 100% 被 cn.metaphor.trailing-simile-clause 覆盖，保留覆盖略广且 lift 略高者。",
     "source": {
       "canonicalKey": "metaphor\t\t(?:[，,](?:[好就]?像|仿佛|如[若同]|[宛犹][如若]))[\\u4e00-\\u9fff]*(?=。)",
       "importedFrom": "curated-cn-rule-samples"

@@ -16,6 +16,7 @@ export const HANDLER_REGISTRY: Record<string, RuleHandler> = {
     "period-stutter": findPeriodStutter,
     "overcompressed-prose": findOvercompressedProse,
     "low-connective-density": findLowConnectiveDensity,
+    "quote-emphasis": findQuoteEmphasis,
 };
 
 // ---- 共享常量（移植自 check-ai-patterns.js）----
@@ -357,6 +358,69 @@ function findLowConnectiveDensity(ctx: ScanContext): HandlerFinding[] {
     }];
 }
 
+// ---- quote-emphasis（advisory，全文一条）----
+// 引号强调滥用：叙述层 1-4 字短词被成对引号标出，全文 ≥3 处才提示。台词、
+// 系统面板、引号套引号与引语动词邻接的极短对白都不算。校准：story-deslop
+// demo 前 20 章 0 章过阈值；《万疆》20 章 2 章过阈值，因此只进 human advisory。
+
+const QUOTE_EMPHASIS_MIN_HITS = 3;
+const QUOTE_EMPHASIS_MAX_VISIBLE = 4;
+const QUOTE_EMPHASIS_PUNCTUATION_PATTERN = /[。！？!?…，,；;：:]/u;
+const QUOTE_EMPHASIS_SPEECH_VERB_PATTERN = /[说道问喊答念叫回吼骂写读唱嘀咕]/u;
+
+function findQuoteEmphasis(ctx: ScanContext): HandlerFinding[] {
+    let hits = 0;
+    let firstRange: {start: number; end: number} | null = null;
+    const samples: string[] = [];
+
+    for (const line of ctx.lines) {
+        const trimmed = line.text.trim();
+        if (!trimmed || line.structural || isMasked(line.start, ctx.maskedRanges)) {
+            continue;
+        }
+        const narrative = narrativeOfLine(ctx, line);
+        // 纯台词、弹幕流或独立系统面板没有叙述层强调问题。
+        if (visibleLength(narrative.text) === 0) {
+            continue;
+        }
+        for (const range of dialogueRangesOfLine(ctx, line)) {
+            const open = ctx.content[range.start];
+            if (open === "【") {
+                continue;
+            }
+            const inner = ctx.content.slice(range.start + 1, range.end - 1);
+            const visible = visibleLength(inner);
+            if (visible < 1 || visible > QUOTE_EMPHASIS_MAX_VISIBLE) {
+                continue;
+            }
+            if (QUOTE_EMPHASIS_PUNCTUATION_PATTERN.test(inner)) {
+                continue;
+            }
+            const before = ctx.content.slice(Math.max(0, range.start - 6), range.start);
+            const after = ctx.content.slice(range.end, range.end + 3);
+            if (QUOTE_EMPHASIS_SPEECH_VERB_PATTERN.test(before) || QUOTE_EMPHASIS_SPEECH_VERB_PATTERN.test(after)) {
+                continue;
+            }
+
+            hits += 1;
+            firstRange ??= range;
+            if (samples.length < 6 && !samples.includes(inner)) {
+                samples.push(inner);
+            }
+        }
+    }
+
+    if (hits < QUOTE_EMPHASIS_MIN_HITS || firstRange === null) {
+        return [];
+    }
+
+    return [{
+        index: firstRange.start,
+        length: firstRange.end - firstRange.start,
+        message: `叙述里 1-4 字短词加引号强调 ${hits} 处；样本：${samples.join("、")}`,
+    }];
+}
+
 // ---- 共享工具 ----
 
 /**
@@ -376,6 +440,22 @@ function narrativeOfLine(ctx: ScanContext, line: ScanLine): {text: string; map: 
         map.push(absolute);
     }
     return {text, map};
+}
+
+/** 当前行内的成对引号区间；computeDialogueRanges 已按行配对并合并嵌套区间。 */
+function dialogueRangesOfLine(ctx: ScanContext, line: ScanLine): Array<{start: number; end: number}> {
+    const lineEnd = line.start + line.text.length;
+    const ranges: Array<{start: number; end: number}> = [];
+    for (const [start, end] of ctx.dialogueRanges) {
+        if (end <= line.start) {
+            continue;
+        }
+        if (start >= lineEnd) {
+            break;
+        }
+        ranges.push({start, end});
+    }
+    return ranges;
 }
 
 /** 按句读切分并保留片段在输入串中的 [start, end) 偏移；空片段已滤除。 */

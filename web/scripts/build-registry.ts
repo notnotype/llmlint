@@ -19,6 +19,7 @@ const DEFAULT_CONFIG: NormalizedLlmlintConfig = {
     rulesetOverrides: {},
     namespaces: {},
     rules: {},
+    ignoreTerms: [],
     output: "json",
 };
 
@@ -34,10 +35,15 @@ const loaded = materializeRules({
     loadedRulesets: source.loadedRulesets,
 });
 
-// engineVersion 单源（Task 13 D-C）：包版本 + 默认配置下 regex 规则集的内容 hash。
+// engineVersion 单源（Task 13 D-C）：包版本 + 默认配置下静态扫描规则集的内容 hash。
 // 规则文件改动但包版本未升时，hash 变化仍能把 MachineScan 按真实引擎行为分版（@@unique(revisionId, engineVersion) 允许 re-scan）。
-// 只 hash regexRules：扫描与 docScore 的行为完全由它决定（verdict 烘焙不改变扫描行为，不入 hash）。
-const rulesHash = createHash("sha256").update(JSON.stringify(loaded.regexRules)).digest("hex").slice(0, 8);
+// 只 hash 静态扫描相关规则：verdict 烘焙不改变扫描行为，不入 hash。
+const staticRules = {
+    regexRules: loaded.regexRules,
+    densityRules: loaded.densityRules,
+    handlerRules: loaded.handlerRules,
+};
+const rulesHash = createHash("sha256").update(JSON.stringify(staticRules)).digest("hex").slice(0, 8);
 const engineVersion = `${LLMLINT_VERSION}+r${rulesHash}`;
 
 // 判别裁决烘焙：读 evals 跑分产物 report.json（若存在），把 per-rule verdict/effectiveLift
@@ -77,7 +83,7 @@ const creativeProfile = buildCreativeProfile(
     ruleVerdicts,
 );
 
-// 只序列化浏览器需要的：扫描用的 regexRules（含全部元数据）、只读展示用的 llmRules、
+// 只序列化浏览器需要的：扫描用的 regex/density/handler 规则（含全部元数据）、只读展示用的 llmRules、
 // 统计 summary、加载 diagnostics。version 供页脚展示；engineVersion 供服务端 MachineScan 落库（单源）；
 // ruleVerdicts 供规则排序、展示与创作修复 profile 使用（report 缺失则整个字段缺省）。
 const registry = {
@@ -90,6 +96,8 @@ const registry = {
     summary: loaded.summary,
     diagnostics: loaded.diagnostics,
     regexRules: loaded.regexRules,
+    densityRules: loaded.densityRules,
+    handlerRules: loaded.handlerRules,
     llmRules: loaded.llmRules,
     creativeProfile,
     ...(ruleVerdicts === undefined ? {} : {ruleVerdicts}),
@@ -103,6 +111,7 @@ const strongCount = ruleVerdicts === undefined
     : Object.values(ruleVerdicts).filter((entry) => entry.verdict === "strong").length;
 console.log(
     `registry.json 已生成：${loaded.regexRules.length} 条 regex 规则、` +
+        `${loaded.densityRules.length} 条 density 规则、${loaded.handlerRules.length} 条 handler 规则、` +
         `${loaded.llmRules.length} 条 llm 规则、${loaded.summary.activeRules}/${loaded.summary.totalRules} active，engine ${engineVersion}，` +
         (strongCount === null
             ? "verdict 未烘焙（降级口径）。"
