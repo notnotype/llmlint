@@ -53,15 +53,16 @@
     "title": "删除生理/生理性",
     "level": "medium",
     "enabled": true,
-    "note": "删除生理/生理性",
+    "note": "默认收窄：“生理性的/生理层面/生理本能”由 cn.vocabulary.academic-anatomy.physiological-academic-label 覆盖；这里仅保留生理眼泪/快感的独有前缀。",
     "source": {
       "canonicalKey": "modifier.measure\t\t生理性?(?=[眼泪]|快感)|生理(?:性|层面|本能)的",
-      "importedFrom": "curated-cn-rule-samples"
+      "importedFrom": "curated-cn-rule-samples",
+      "version": "rule-curation-v16"
     },
     "detector": {
       "type": "regex",
       "targets": [
-        "生理性?(?=[眼泪]|快感)|生理(?:性|层面|本能)的"
+        "生理性?(?=[眼泪]|快感)"
       ]
     },
     "action": {

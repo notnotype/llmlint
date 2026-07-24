@@ -675,6 +675,10 @@ describe("llmlint", () => {
             .map((issue) => issue.match)).toEqual(["沉甸甸"]);
         expect(scanText("这句话沉甸甸的，落下来时沉甸甸。", [byId.get("cn.modifier.sensory-atmosphere-modifier") as RegexRuleRecord])
             .map((issue) => issue.match)).toEqual(["沉甸甸的"]);
+        expect(scanText("生理性的反应与生理眼泪、生理快感、生理性快感不同。", [byId.get("cn.modifier.measure.physiological-label") as RegexRuleRecord])
+            .map((issue) => issue.match)).toEqual(["生理", "生理", "生理性"]);
+        expect(scanText("生理性的反应、生理性快感、生理眼泪、生理层面的解释、生理本能的冲动。", [byId.get("cn.vocabulary.academic-anatomy.physiological-academic-label") as RegexRuleRecord])
+            .map((issue) => issue.match)).toEqual(["生理性的", "生理层面的", "生理本能的"]);
         expect(scanText("这是不容置疑的权威感。", [byId.get("cn.cliche.baguwen.unquestionable-claim") as RegexRuleRecord])
             .map((issue) => issue.match)).toEqual([]);
         expect(scanText("这是不容置疑的权威感。", [byId.get("cn.modifier.absolute-claim-modifier") as RegexRuleRecord])

@@ -512,6 +512,22 @@ function applyCuratedPatch(rule: LintRuleRecord): LintRuleRecord {
             },
         };
     }
+    if (rule.id === "cn.modifier.measure.physiological-label") {
+        return {
+            ...rule,
+            note: "默认收窄：“生理性的/生理层面/生理本能”由 cn.vocabulary.academic-anatomy.physiological-academic-label 覆盖；这里仅保留生理眼泪/快感的独有前缀。",
+            source: {...(rule.source ?? {}), version: "rule-curation-v16"},
+            detector: {type: "regex", targets: ["生理性?(?=[眼泪]|快感)"]},
+        };
+    }
+    if (rule.id === "cn.vocabulary.academic-anatomy.physiological-academic-label") {
+        return {
+            ...rule,
+            note: "默认收窄：“生理性眼泪/快感”由 cn.modifier.measure.physiological-label 覆盖；这里仅保留分析腔标签。",
+            source: {...(rule.source ?? {}), version: "rule-curation-v16"},
+            detector: {type: "regex", targets: ["(?:生理层面|生理本能)的?|生理性(?![眼泪]|快感)的?"]},
+        };
+    }
     if (rule.id === "cn.modifier.heavy-degree-shell") {
         return {
             ...rule,

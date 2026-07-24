@@ -51,14 +51,16 @@
     "title": "学术与解剖词汇",
     "level": "medium",
     "enabled": true,
+    "note": "默认收窄：“生理性眼泪/快感”由 cn.modifier.measure.physiological-label 覆盖；这里仅保留分析腔标签。",
     "source": {
       "canonicalKey": "vocabulary.academic-anatomy\t\t(?:生理性|生理层面|生理本能)的?",
-      "importedFrom": "curated-cn-rule-samples"
+      "importedFrom": "curated-cn-rule-samples",
+      "version": "rule-curation-v16"
     },
     "detector": {
       "type": "regex",
       "targets": [
-        "(?:生理性|生理层面|生理本能)的?"
+        "(?:生理层面|生理本能)的?|生理性(?![眼泪]|快感)的?"
       ]
     },
     "action": {
