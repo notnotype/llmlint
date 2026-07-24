@@ -476,6 +476,15 @@ function applyCuratedPatch(rule: LintRuleRecord): LintRuleRecord {
             source: {...(rule.source ?? {}), version: "rule-curation-v6"},
         };
     }
+    if (rule.id === "cn.regex.advanced.few-degree") {
+        return {
+            ...rule,
+            review: "human",
+            note: "默认交人工：当前数据集扩充后 reference 命中率高于 AI 文本；同时排除“几分钟/几分之一”这类普通表达，避免半截误报。",
+            source: {...(rule.source ?? {}), version: "rule-curation-v8"},
+            detector: {type: "regex", targets: ["([有了上带添多染])几分(?![钟之])"], flags: "g"},
+        };
+    }
     if (rule.id === "cn.tone.tone-placeholder") {
         return {
             ...rule,

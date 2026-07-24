@@ -8,6 +8,7 @@
 - 2026-07-24：`filler-can-say`、`filler-lets`、`emphasis-crutch`、`rhetorical-setup`、`inflation-marvel`、`transition-summary-conclude`、`assistant-comfort-pose` 和 `cn.cliche.body-reaction.controlling-gaze` 已转 `human`，不再进入默认 Agent 桶。
 - 2026-07-24：宽泛低信号 regex 继续下沉：`filler-worth-noting`、`opening-cliche-announce`、`opening-cliche-moreover`、`transition-summary-essence`、`cn.action-expression.calm-voice-shell`、`cn.action-expression.scream-to-whimper`、`cn.action-expression.teasing-modifier`、`cn.cliche.baguwen.death-grip-adverb`、`cn.cliche.baguwen.extreme-degree`、`cn.cliche.quote-meta-*`、`cn.cliche.gaze-emotion-container`、`cn.cliche.teeth-clenched-speech`、`cn.cliche.trailing-callus-clause`、`cn.cliche.voice-emotion-container`、`cn.sentence.compound.ordinary-days-preface` 和 `cn.sentence.compound.single-negative-contrast` 已转 `human`。`opening.cliche` 家族与 `dated-opening` 已限制到叙述层文首窗口。
 - 2026-07-24：素材通配符转换遗留已默认关闭：`cn.cliche.body-reaction.mouth-corner-lift-arc`、`cn.cliche.body-reaction.mouth-corner-smile-arc`、`cn.cliche.body-reaction.smile-arc-comma-marked`、`cn.cliche.body-reaction.smile-arc-marked`、7 条 `cn.metaphor.like.*` 占位比喻壳和 `cn.tone.tone-placeholder`。`cn.cliche.baguwen.white-knuckles` 因与 `cn.cliche.hand-color-clause` 典型同 span 重复也已默认关闭。裸词级 `拆解`、`甚至是`、`因为惯性`、`外壳` 已转 `human`。
+- 2026-07-24：`cn.regex.advanced.few-degree` 在扩充后的当前 dataset 中 reference 命中率高于 AI 文本，已撤回 Agent 例外并回到 `human`；detector 同时加 `(?![钟之])`，避免“过了几分钟 / 几分之一”被半截命中。
 
 ## 待用户拍板
 
@@ -30,7 +31,7 @@
    - 待确认：后续是否把这个作为规则整理常规策略：稳定重叠且有 canonical 替代时，默认关闭旧规则，但不物理删除。
 
 5. **人工桶后的规则级例外是否要提回 Agent**
-   - 本轮已把 `vocabulary.body`、`vocabulary.r18`、`vocabulary.academic-anatomy`、`color-description`、`sound.once`、`jargon.business`、`regex.advanced` 默认下沉 `human`；只把 `cn.regex.advanced.few-degree` 作为强信号例外保留 `agent`。
+   - 本轮已把 `vocabulary.body`、`vocabulary.r18`、`vocabulary.academic-anatomy`、`color-description`、`sound.once`、`jargon.business`、`regex.advanced` 默认下沉 `human`；`cn.regex.advanced.few-degree` 的 Agent 例外已因扩充 dataset 反证撤回。
    - 待确认：是否把 `vocabulary.body.flesh-skin` / `back-spine` / `mouth-corner`、`sound.once.laugh-one-sound` 等 weak 但人类命中低的规则级例外提回 `agent`，还是继续把这些题材词表留给人工复核。
 
 6. **LLM 金句感是否继续打扰 Agent**
@@ -47,3 +48,8 @@
     - 复筛后仍有 `cn.cliche.vague-transition-phrase` ↔ `cn.modifier.stacked-degree-adverbs`、`cn.cliche.baguwen.vague-amount-noun` ↔ `cn.modifier.measure.specific-measure-word` 等 agent/human 跨桶 overlap，以及少量 human/human overlap。
     - 我没有继续硬改的原因：这些不是同一受众里的重复提示；关闭哪边会改变默认 Agent 入口或 `--review all` 人工清单的职责边界。
     - 待确认：跨桶 overlap 是否也按 canonical 默认关闭一侧，还是保留当前“Agent 高信号规则 + Human 词表规则”并存。
+
+9. **story-deslop 否定连排是否继续 high blocking**
+    - 当前 dataset 重扫发现 `story-deslop.negation-parade.repeated-none` 在一段 reference 中命中“没有混杂木屑，没有太多麸质，”，同时 AI 文本中也有 3 处典型命中。
+    - 我没有直接下沉的原因：这是 story-deslop high blocking 校准规则，原校准集 0 人类命中；单个 reference 命中不足以否定整条规则。
+    - 待确认：是否继续保持 `high + agent`，还是收窄为只处理否定后转入抽象总结/情绪结论的结构。

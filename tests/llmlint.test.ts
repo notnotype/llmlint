@@ -655,6 +655,9 @@ describe("llmlint", () => {
         for (const ruleId of strongOverrides) {
             expect(byId.get(ruleId)?.review).toBe("agent");
         }
+        expect(byId.get("cn.regex.advanced.few-degree")?.review).toBe("human");
+        expect(scanText("过了几分钟，他安心了几分。", [byId.get("cn.regex.advanced.few-degree") as RegexRuleRecord])
+            .map((issue) => issue.match)).toEqual(["了几分"]);
     });
 
     it("默认 ruleset 只有确定性机械规则可自动修复，语义 replace 全部为 manual", async () => {

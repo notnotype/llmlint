@@ -82,14 +82,17 @@
     "title": "正则-高级替换",
     "level": "medium",
     "enabled": true,
+    "review": "human",
+    "note": "默认交人工：当前数据集扩充后 reference 命中率高于 AI 文本；同时排除“几分钟/几分之一”这类普通表达，避免半截误报。",
     "source": {
+      "version": "rule-curation-v8",
       "canonicalKey": "regex.advanced\tg\t([有了上带添多染])几分",
       "importedFrom": "curated-cn-rule-samples"
     },
     "detector": {
       "type": "regex",
       "targets": [
-        "([有了上带添多染])几分"
+        "([有了上带添多染])几分(?![钟之])"
       ],
       "flags": "g"
     },

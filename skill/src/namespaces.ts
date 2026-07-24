@@ -166,5 +166,4 @@ export const DEFAULT_RULE_POLICY: Record<string, NamespacePolicy> = {
     "cn.proliferation.mixed.repeated-de-pairs": {review: "agent"},
     "cn.modifier.absolute-claim-modifier": {review: "agent"},
     "cn.modifier.optional-mood-modifiers": {review: "agent"},
-    "cn.regex.advanced.few-degree": {review: "agent"},
 };
