@@ -97,9 +97,10 @@
 - 默认 review 下沉补充（四）：撤回 `cn.modifier.absolute-claim-modifier` 与 `cn.modifier.optional-mood-modifiers` 的旧 strong 规则级路由覆盖。当前正式 report 中两条均为 weak，且属于语境敏感的 modifier 桶；默认回到 `human`，避免“难以言喻的 / 低沉的 / 精准地”等宽泛修饰词继续打扰 Agent 入口。
 - 默认 review 下沉补充（五）：`cn.cliche.trailing-sound-clause` 转 `human`。当前命中多是普通动作音效尾句，删除可能损失画面信息；默认 Agent 继续保留信号更明确的 `trailing-sensory-clause`，声音尾句交人工上下文判断。
 - overlap 收窄补充：`cn.cliche.baguwen.unquestionable-claim` 排除后接“的/地”，避免和 `cn.modifier.absolute-claim-modifier` 对同一修饰 span 重复；`cn.cliche.trailing-sensory-clause` 限制到叙述层，避免对白/系统面板里的尾句误报；`story-deslop.negation-parade.repeated-none` 排除后接“只有/只是/只会”的同 span 场景，交给 `story-deslop.negation-parade.only-turn`。
+- overlap 收窄补充（二）：`cn.cliche.baguwen.vague-amount-noun` 排除标点后的“一股”，该位置交给 strong canonical `cn.modifier.measure.subject-measure-word`；保留句中“一股”和“那股”，避免量词规则对同一 span 双报。
 - story-deslop 继续吸收：新增 `story-deslop.quote-emphasis` handler 规则，统计叙述层 1-4 字短词引号强调，全文 ≥3 处只报一条 human advisory；极短对白、系统面板、纯对白行和低于阈值的零散强调豁免。
 - 闭环遗漏修复：web registry 现在预烘 active density/handler 规则，engineVersion hash 覆盖 regex+density+handler；web 本地扫描、服务端 MachineScan 与 Agent `RevisionTextWorkspace.lint_check` 均消费 regex+handler，Agent 报告额外带 density 指纹段。story-deslop high 校准 blocking 规则即使未入 eval verdict，也在 Agent 修复门中按必修强判别处理。
-- 当前默认 materialize：360 total / 287 active；266 regex / 8 density / 5 handler / 8 LLM；review = agent 96 / human 188 / none 3；regex fixability = auto 3 / candidate 0 / manual 263。临时内存复算当前语料：overlap duplicate rate ≈1.6%，人类侧 Agent 中位误杀率 0/千字（未改写 `evals/report/report.json`）。
+- 当前默认 materialize：360 total / 287 active；266 regex / 8 density / 5 handler / 8 LLM；review = agent 96 / human 188 / none 3；regex fixability = auto 3 / candidate 0 / manual 263。临时内存复算当前语料：overlap duplicate rate ≈1.1%，人类侧 Agent 中位误杀率 0/千字（未改写 `evals/report/report.json`）。
 - 拿不准的规则族和许可边界集中记录在 `rule-curation-open-questions.md`，等待用户一次性拍板。
 
 ## TODO / Follow-ups

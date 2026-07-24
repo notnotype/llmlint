@@ -350,14 +350,16 @@
     "title": "八股句式/短语删除",
     "level": "medium",
     "enabled": true,
+    "note": "默认收窄：标点后的“一股”由 cn.modifier.measure.subject-measure-word 覆盖；这里保留句中“一股”和“那股”，避免同 span 量词重复提示。",
     "source": {
       "canonicalKey": "cliche.baguwen\t\t(?:一|那)股子?",
-      "importedFrom": "curated-cn-rule-samples"
+      "importedFrom": "curated-cn-rule-samples",
+      "version": "rule-curation-v14"
     },
     "detector": {
       "type": "regex",
       "targets": [
-        "(?:一|那)股子?"
+        "(?<![,，。])一股子?|那股子?"
       ]
     },
     "action": {

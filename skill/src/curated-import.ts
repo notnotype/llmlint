@@ -463,6 +463,14 @@ function applyCuratedPatch(rule: LintRuleRecord): LintRuleRecord {
             detector: {type: "regex", targets: ["(?:与|却)?不容置疑(?![的地])"]},
         };
     }
+    if (rule.id === "cn.cliche.baguwen.vague-amount-noun") {
+        return {
+            ...rule,
+            note: "默认收窄：标点后的“一股”由 cn.modifier.measure.subject-measure-word 覆盖；这里保留句中“一股”和“那股”，避免同 span 量词重复提示。",
+            source: {...(rule.source ?? {}), version: "rule-curation-v14"},
+            detector: {type: "regex", targets: ["(?<![,，。])一股子?|那股子?"]},
+        };
+    }
     if (
         rule.id === "cn.cliche.body-reaction.mouth-corner-lift-arc"
         || rule.id === "cn.cliche.body-reaction.mouth-corner-smile-arc"

@@ -665,6 +665,10 @@ describe("llmlint", () => {
             .map((issue) => issue.match)).toEqual(["了几分"]);
         expect(scanText("拿到了近乎成本价的新灯，取而代之的是旧灯。", [byId.get("cn.cliche.vague-transition-phrase") as RegexRuleRecord])
             .map((issue) => issue.match)).toEqual(["取而代之的是"]);
+        expect(scanText("她停下，一股寒意涌来，心里有一股火，那股压力还在。", [byId.get("cn.cliche.baguwen.vague-amount-noun") as RegexRuleRecord])
+            .map((issue) => issue.match)).toEqual(["一股", "那股"]);
+        expect(scanText("她停下，一股寒意涌来，心里有一股火，那股压力还在。", [byId.get("cn.modifier.measure.subject-measure-word") as RegexRuleRecord])
+            .map((issue) => issue.match)).toEqual(["一股"]);
         expect(scanText("这是不容置疑的权威感。", [byId.get("cn.cliche.baguwen.unquestionable-claim") as RegexRuleRecord])
             .map((issue) => issue.match)).toEqual([]);
         expect(scanText("这是不容置疑的权威感。", [byId.get("cn.modifier.absolute-claim-modifier") as RegexRuleRecord])

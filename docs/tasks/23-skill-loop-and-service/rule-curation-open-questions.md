@@ -16,6 +16,7 @@
 - 2026-07-24：`opening-cliche-era` 与 `inflation-novelty` 已转 `human`。前者旧报告 insufficient 且当前 dataset 无命中；后者旧报告 weak、当前 dataset 仅 1 个 AI 命中，且“前所未有”等词在小说视角和评论中都依赖上下文。
 - 2026-07-24：撤回 `cn.modifier.absolute-claim-modifier` 与 `cn.modifier.optional-mood-modifiers` 的旧 strong rule override。当前正式 `report.json` 两条均为 weak，且它们属于已整体下沉的 modifier 桶；默认回到 `human`，避免把“难以言喻的 / 低沉的 / 精准地”等语境敏感修饰词硬塞进 Agent 入口。
 - 2026-07-24：`cn.cliche.trailing-sound-clause` 已转 `human`。当前样例多为踩枯枝、碰撞、洗牌等正常动作音效，旧报告仅 weak；保留扫描资产，但不再默认要求 Agent 删除“发出…声/响”尾部分句。
+- 2026-07-25：`cn.cliche.baguwen.vague-amount-noun` 已收窄。标点后的“一股”交给 strong canonical `cn.modifier.measure.subject-measure-word`，baguwen 规则只保留句中“一股”和“那股”，避免同 span 量词重复提示。
 
 ## 待用户拍板
 
@@ -52,7 +53,7 @@
     - 待确认：后续是否采用机械策略“verdict=insufficient 且无 blocking 校准来源 → 默认 `human`”，还是继续允许少量语义明确但样本支持不足的规则留在 `agent`。
 
 8. **剩余 active overlap 的跨桶处理边界**
-    - 复筛后仍有 `cn.cliche.vague-transition-phrase` ↔ `cn.modifier.stacked-degree-adverbs`、`cn.cliche.baguwen.vague-amount-noun` ↔ `cn.modifier.measure.specific-measure-word` 等 agent/human 跨桶 overlap，以及少量 human/human overlap。
+    - 复筛后仍有 `cn.cliche.vague-transition-phrase` ↔ `cn.modifier.stacked-degree-adverbs` 等 agent/human 跨桶 overlap，以及少量 human/human overlap。`cn.cliche.baguwen.vague-amount-noun` ↔ `cn.modifier.measure.subject-measure-word` 的同 span overlap 已先按 canonical 分工收窄。
     - 我没有继续硬改的原因：这些不是同一受众里的重复提示；关闭哪边会改变默认 Agent 入口或 `--review all` 人工清单的职责边界。
     - 待确认：跨桶 overlap 是否也按 canonical 默认关闭一侧，还是保留当前“Agent 高信号规则 + Human 词表规则”并存。
 
