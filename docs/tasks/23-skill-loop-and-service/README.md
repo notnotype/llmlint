@@ -22,7 +22,7 @@
 
 ## Goal
 
-skill 端形成「初始化 → 检测 → 修复 → 疑难片段 → 学习/上传」完整闭环，verified by：新 CLI 命令（`status`/`config set`/`detect`/`login`）可独立运行、SKILL.md 五步流程改写完成、contributions 上传与 web ingest 端到端打通。约束：不破坏现有 `check`/`fix`/`show-llm-rules` 合同与三层配置覆盖机制；不改内置规则文件语义模型（吸收新规则走正常 ruleset 资产路径）。
+分片 1 的目标是让 skill 端形成「初始化 → 检测 → 修复 → 疑难片段 → 本地学习建议」本地闭环，verified by：`status` / `config set` / `detect` 可独立运行、SKILL.md 五步流程改写完成、疑难片段台账和本地 `llmlint.config.ts` 覆盖建议出口写清。约束：不破坏现有 `check`/`fix`/`show-llm-rules` 合同与三层配置覆盖机制；吸收新规则走正常 ruleset 资产路径。`login`、contributions 上传和 web ingest 端到端打通留给分片 2/3。
 
 ## Current State
 
@@ -49,7 +49,7 @@ skill 端形成「初始化 → 检测 → 修复 → 疑难片段 → 学习/�
 
 - B 线提交前验证：`bun run test:vitest` 267 passed；`bunx tsc --noEmit --pretty false` 通过；`cd web && bun run typecheck` 通过（Volar 既有插件警告）；`status/config` 临时 `LLMLINT_HOME` 冒烟通过；HF detect 真跑成功，二次 `cached:true`，`--no-cache` 返回 `cached:false`。
 - A 线聚焦验证：`bunx vitest run tests\calibration.test.ts` 3 passed；`bunx vitest run tests\calibration.test.ts tests\scan-context.test.ts tests\density.test.ts tests\handler-rules.test.ts` 35 passed。
-- A 线最终验证记录：接管前 `bun run test:vitest` 270 passed。接管后复跑 A/B 交叉窄测 35 passed；`bunx tsc --noEmit --pretty false` 通过；`cd web && bun run typecheck` 通过（Volar 既有插件警告：`vue-router/volar/sfc-route-blocks` 加载失败）。复跑当前完整工作树 `bun run test:vitest` 时被未提交 Task 22 测试 `tests/revision-text-workspace.test.ts` 的单个超长行用例 5000ms timeout 阻断，非本次 A 线提交范围。本轮 A 线未重跑 HF detect，网络真跑结果沿用 B 线提交前验证（二次 `cached:true`）。
+- A 线最终验证记录：接管前 `bun run test:vitest` 270 passed。接管后复跑 A/B 交叉窄测 35 passed；`bunx tsc --noEmit --pretty false` 通过；`cd web && bun run typecheck` 通过（Volar 既有插件警告：`vue-router/volar/sfc-route-blocks` 加载失败）。后续审查修复长对白误报后复测 Task 23 窄测 50 passed、完整 `bun run test:vitest` 271 passed、HF detect 小文本真跑成功且二次 `cached:true`；web registry 当前为 310 regex / 8 llm / 330/359 active。
 
 ## Implementation Walkthrough
 

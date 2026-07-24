@@ -38,10 +38,15 @@
       "layer": "narrative"
     },
     "detector": {
-      "type": "regex",
-      "targets": [
-        "[^\\n]{200,}"
-      ]
+      "type": "density",
+      "patterns": [
+        {
+          "target": "[\\p{L}\\p{N}]",
+          "flags": "u"
+        }
+      ],
+      "minHits": 200,
+      "granularity": "paragraph"
     },
     "action": {
       "type": "suggest",

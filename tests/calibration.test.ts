@@ -53,6 +53,10 @@ function storyBlockingIds(content: string, loaded: LoadedRules): string[] {
         .map((issue) => issue.rule.id);
 }
 
+function densityIds(content: string, loaded: LoadedRules): string[] {
+    return scanAll(content, loaded).densityIssues.map((issue) => issue.rule.id);
+}
+
 async function runCheck(filePath: string): Promise<{code: number; stdout: string; stderr: string}> {
     try {
         const result = await execFileAsync("bun", [LLMLINT_BIN, "check", filePath, "--review", "all", "--format", "json"], {
@@ -117,6 +121,15 @@ describe("story-deslop calibration rules", () => {
 
         const outsideEnding = `没人知道，这才刚刚开始。\n${"风继续吹。".repeat(220)}`;
         expect(storyBlockingIds(outsideEnding, loaded)).not.toContain("story-deslop.trailer-ending");
+    });
+
+    it("长段落规则只看叙述层可见字符，不把长对白占位算作叙述段", async () => {
+        const loaded = await loadDefault();
+        const longDialogue = `「${"你".repeat(210)}」`;
+        const longNarrative = `${"风继续吹".repeat(70)}。`;
+
+        expect(densityIds(longDialogue, loaded)).not.toContain("story-deslop.long-paragraph");
+        expect(densityIds(longNarrative, loaded)).toContain("story-deslop.long-paragraph");
     });
 
     it("CLI fixture：真人校准句 0 blocking，漏网例句命中并在 --review all 落桶", async () => {
