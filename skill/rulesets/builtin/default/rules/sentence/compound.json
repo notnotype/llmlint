@@ -77,8 +77,10 @@
     "title": "弱化固定句壳",
     "level": "medium",
     "enabled": true,
-    "note": "弱化固定句壳",
+    "review": "human",
+    "note": "默认交人工：“并没有立刻”是普通叙述短语，当前 eval support 很低；只在它形成拖沓句壳时修。",
     "source": {
+      "version": "rule-curation-v2",
       "canonicalKey": "sentence.compound\t\t并没有立刻",
       "importedFrom": "curated-cn-rule-samples"
     },
@@ -221,8 +223,10 @@
     "title": "删未发生部分前半句",
     "level": "medium",
     "enabled": true,
-    "note": "删未发生部分前半句",
+    "review": "human",
+    "note": "默认交人工：带主语的“并没有…而是”可能是正常对比，当前 eval 人类侧命中；只在否定铺垫无功能时修。",
     "source": {
+      "version": "rule-curation-v2",
       "canonicalKey": "sentence.compound\t\t([\\u4e00-\\u9fff]+)并(?:没有|未)[\\u4e00-\\u9fff，、“”‘’]{1,20}[，,]而是",
       "importedFrom": "curated-cn-rule-samples"
     },

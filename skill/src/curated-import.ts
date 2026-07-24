@@ -391,6 +391,22 @@ function applyCuratedPatch(rule: LintRuleRecord): LintRuleRecord {
             source: {...(rule.source ?? {}), version: "rule-curation-v2"},
         };
     }
+    if (rule.id === "cn.sentence.compound.immediate-delay-shell") {
+        return {
+            ...rule,
+            review: "human",
+            note: "默认交人工：“并没有立刻”是普通叙述短语，当前 eval support 很低；只在它形成拖沓句壳时修。",
+            source: {...(rule.source ?? {}), version: "rule-curation-v2"},
+        };
+    }
+    if (rule.id === "cn.sentence.compound.unrealized-subject-preface") {
+        return {
+            ...rule,
+            review: "human",
+            note: "默认交人工：带主语的“并没有…而是”可能是正常对比，当前 eval 人类侧命中；只在否定铺垫无功能时修。",
+            source: {...(rule.source ?? {}), version: "rule-curation-v2"},
+        };
+    }
     if (rule.id === "cn.cliche.body-reaction.controlling-gaze") {
         return {
             ...rule,

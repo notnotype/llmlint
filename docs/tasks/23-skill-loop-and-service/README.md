@@ -85,10 +85,11 @@
 - 默认规则整理：把 creative profile 已稳定抑制的 8 条高重叠旧规则同步为默认 `enabled:false`，不物理删除资产，用户仍可通过 rule override 显式启用。涉及程度副词、量词、句尾比喻和二元转折四个家族，默认保留对应 canonical rule，降低同一 span 重复进入问题清单的概率。
 - 默认规则整理（二批）：继续默认关闭旧 `not-but-structure` / `not-x-is-y` / `negative-listing` 与两个无效星号二元规则，二元对比统一交给 story-deslop handler / 校准规则；默认关闭对白冒号替换、宽泛 simile-like、重复 body target、过宽“规律”和 `(?:了|这)一点`，并收窄 `controlling-gaze` 为必须出现“目光/眼神”。
 - 默认规则整理（三批）：`on-one-hand` / `comprehensive-listing` 转 `human`；`格格不入` / `面无表情` 转 `human`；裸 `嘴角勾` 默认关闭，避免与更长嘴角弧度规则产生半截候选。
+- 默认规则整理（四批）：`并没有立刻`、带主语 `并没有…而是` 转 `human`，保留给上下文判断，不作为默认 Agent 强修入口。
 - 默认 review 下沉：`vocabulary.body`、`vocabulary.r18`、`vocabulary.academic-anatomy`、`color-description`、`sound.once`、`jargon.business`、`regex.advanced` 默认转入 `human` 桶；`cn.regex.advanced.few-degree` 作为强信号 rule-level 例外保留 `agent`。`filler-word-actually`、`meta-announcement`、`quotable-punchline-candidate` 因 eval noise 改为 `human`。
 - story-deslop 继续吸收：新增 `story-deslop.quote-emphasis` handler 规则，统计叙述层 1-4 字短词引号强调，全文 ≥3 处只报一条 human advisory；极短对白、系统面板、纯对白行和低于阈值的零散强调豁免。
 - 闭环遗漏修复：web registry 现在预烘 active density/handler 规则，engineVersion hash 覆盖 regex+density+handler；web 本地扫描、服务端 MachineScan 与 Agent `RevisionTextWorkspace.lint_check` 均消费 regex+handler，Agent 报告额外带 density 指纹段。story-deslop high 校准 blocking 规则即使未入 eval verdict，也在 Agent 修复门中按必修强判别处理。
-- 当前默认 materialize：360 total / 311 active；290 regex / 8 density / 5 handler / 8 LLM；review = agent 145 / human 163 / none 3；regex fixability = auto 3 / candidate 0 / manual 287。
+- 当前默认 materialize：360 total / 311 active；290 regex / 8 density / 5 handler / 8 LLM；review = agent 143 / human 165 / none 3；regex fixability = auto 3 / candidate 0 / manual 287。
 - 拿不准的规则族和许可边界集中记录在 `rule-curation-open-questions.md`，等待用户一次性拍板。
 
 ## TODO / Follow-ups
