@@ -447,6 +447,14 @@ function applyCuratedPatch(rule: LintRuleRecord): LintRuleRecord {
             source: {...(rule.source ?? {}), version: "rule-curation-v6"},
         };
     }
+    if (rule.id === "cn.cliche.baguwen.white-knuckles") {
+        return {
+            ...rule,
+            enabled: false,
+            note: "默认关闭：当前规则是“手指泛白”的窄规则，与 cn.cliche.hand-color-clause 在典型命中上同 span 重复；保留更宽手部颜色 canonical。",
+            source: {...(rule.source ?? {}), version: "rule-curation-v6"},
+        };
+    }
     if (
         rule.id === "cn.cliche.body-reaction.mouth-corner-lift-arc"
         || rule.id === "cn.cliche.body-reaction.mouth-corner-smile-arc"

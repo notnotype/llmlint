@@ -370,8 +370,10 @@
     "namespace": "cliche.baguwen",
     "title": "八股句式/短语删除",
     "level": "medium",
-    "enabled": true,
+    "enabled": false,
+    "note": "默认关闭：当前规则是“手指泛白”的窄规则，与 cn.cliche.hand-color-clause 在典型命中上同 span 重复；保留更宽手部颜色 canonical。",
     "source": {
+      "version": "rule-curation-v6",
       "canonicalKey": "cliche.baguwen\t\t，?手指泛白",
       "importedFrom": "curated-cn-rule-samples"
     },
