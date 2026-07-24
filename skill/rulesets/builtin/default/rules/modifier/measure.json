@@ -77,15 +77,16 @@
     "title": "删除特定量词",
     "level": "medium",
     "enabled": true,
-    "note": "删除特定量词",
+    "note": "默认收窄：“一股/那股”已由 baguwen.vague-amount-noun 与 subject-measure-word 覆盖；specific-measure 不再重复消费“股”。",
     "source": {
       "canonicalKey": "modifier.measure\t\t一丝丝|一丝(?!不[挂苟])|(?<=[这那着被是以用有了和出起到过成为])(?:几分(?!钟)|一?股(?!沟)子?|[这那]种|[一某][种缕抹点道层声])(?=[\\u4e00-\\u9fff])",
-      "importedFrom": "curated-cn-rule-samples"
+      "importedFrom": "curated-cn-rule-samples",
+      "version": "rule-curation-v14"
     },
     "detector": {
       "type": "regex",
       "targets": [
-        "一丝丝|一丝(?!不[挂苟])|(?<=[这那着被是以用有了和出起到过成为])(?:几分(?!钟)|一?股(?!沟)子?|[这那]种|[一某][种缕抹点道层声])(?=[\\u4e00-\\u9fff])"
+        "一丝丝|一丝(?!不[挂苟])|(?<=[这那着被是以用有了和出起到过成为])(?:几分(?!钟)|[这那]种|[一某][种缕抹点道层声])(?=[\\u4e00-\\u9fff])"
       ]
     },
     "action": {

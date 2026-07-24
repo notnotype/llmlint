@@ -298,14 +298,16 @@
     "title": "形副词系",
     "level": "medium",
     "enabled": true,
+    "note": "默认收窄：带“的/地”的“沉甸甸”已由 cn.modifier.sensory-atmosphere-modifier 覆盖；这里只保留裸“沉甸甸”，避免同 span 重复。",
     "source": {
       "canonicalKey": "modifier\t\t(?:显得格外)?沉甸甸(?:的|地)?",
-      "importedFrom": "curated-cn-rule-samples"
+      "importedFrom": "curated-cn-rule-samples",
+      "version": "rule-curation-v15"
     },
     "detector": {
       "type": "regex",
       "targets": [
-        "(?:显得格外)?沉甸甸(?:的|地)?"
+        "(?:显得格外)?沉甸甸(?![的地])"
       ]
     },
     "action": {

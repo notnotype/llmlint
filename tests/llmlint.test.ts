@@ -669,6 +669,12 @@ describe("llmlint", () => {
             .map((issue) => issue.match)).toEqual(["一股", "那股"]);
         expect(scanText("她停下，一股寒意涌来，心里有一股火，那股压力还在。", [byId.get("cn.modifier.measure.subject-measure-word") as RegexRuleRecord])
             .map((issue) => issue.match)).toEqual(["一股"]);
+        expect(scanText("心里有一股火，那股压力还在，语气带着几分冷意。", [byId.get("cn.modifier.measure.specific-measure-word") as RegexRuleRecord])
+            .map((issue) => issue.match)).toEqual(["几分"]);
+        expect(scanText("这句话沉甸甸的，落下来时沉甸甸。", [byId.get("cn.modifier.heavy-degree-shell") as RegexRuleRecord])
+            .map((issue) => issue.match)).toEqual(["沉甸甸"]);
+        expect(scanText("这句话沉甸甸的，落下来时沉甸甸。", [byId.get("cn.modifier.sensory-atmosphere-modifier") as RegexRuleRecord])
+            .map((issue) => issue.match)).toEqual(["沉甸甸的"]);
         expect(scanText("这是不容置疑的权威感。", [byId.get("cn.cliche.baguwen.unquestionable-claim") as RegexRuleRecord])
             .map((issue) => issue.match)).toEqual([]);
         expect(scanText("这是不容置疑的权威感。", [byId.get("cn.modifier.absolute-claim-modifier") as RegexRuleRecord])

@@ -501,6 +501,25 @@ function applyCuratedPatch(rule: LintRuleRecord): LintRuleRecord {
             detector: {type: "regex", targets: ["([有了上带添多染])几分(?![钟之])"], flags: "g"},
         };
     }
+    if (rule.id === "cn.modifier.measure.specific-measure-word") {
+        return {
+            ...rule,
+            note: "默认收窄：“一股/那股”已由 baguwen.vague-amount-noun 与 subject-measure-word 覆盖；specific-measure 不再重复消费“股”。",
+            source: {...(rule.source ?? {}), version: "rule-curation-v14"},
+            detector: {
+                type: "regex",
+                targets: ["一丝丝|一丝(?!不[挂苟])|(?<=[这那着被是以用有了和出起到过成为])(?:几分(?!钟)|[这那]种|[一某][种缕抹点道层声])(?=[\\u4e00-\\u9fff])"],
+            },
+        };
+    }
+    if (rule.id === "cn.modifier.heavy-degree-shell") {
+        return {
+            ...rule,
+            note: "默认收窄：带“的/地”的“沉甸甸”已由 cn.modifier.sensory-atmosphere-modifier 覆盖；这里只保留裸“沉甸甸”，避免同 span 重复。",
+            source: {...(rule.source ?? {}), version: "rule-curation-v15"},
+            detector: {type: "regex", targets: ["(?:显得格外)?沉甸甸(?![的地])"]},
+        };
+    }
     if (rule.id === "cn.tone.tone-placeholder") {
         return {
             ...rule,
