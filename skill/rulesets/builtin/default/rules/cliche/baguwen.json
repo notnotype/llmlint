@@ -212,8 +212,10 @@
     "namespace": "cliche.baguwen",
     "title": "八股句式/短语删除",
     "level": "medium",
-    "enabled": true,
+    "enabled": false,
+    "note": "默认关闭：(?:了|这)一点过宽，当前 eval 为 noise；保留给项目显式开启。",
     "source": {
+      "version": "rule-curation-v2",
       "canonicalKey": "cliche.baguwen\t\t(?:了|这)一点",
       "importedFrom": "curated-cn-rule-samples"
     },
@@ -259,9 +261,10 @@
     "title": "八股句式/短语删除",
     "level": "medium",
     "enabled": true,
-    "note": "只检查“突然间/忽然间”；普通“突然/忽然”由程度副词 canonical family 判断，避免同 span 重复命中。",
+    "review": "human",
+    "note": "默认交人工：只检查“突然间/忽然间”，但当前 eval 人类命中更高；普通“突然/忽然”由程度副词 canonical family 判断。",
     "source": {
-      "version": "creative-profile-v1",
+      "version": "rule-curation-v2",
       "canonicalKey": "cliche.baguwen\t\t(?:突|忽)然间?，?",
       "importedFrom": "curated-cn-rule-samples"
     },

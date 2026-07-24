@@ -347,15 +347,35 @@ function toRuleRecord(draft: CuratedRuleDraft): LintRuleRecord {
  * 规则生成必须经过这里，避免直接修改生成 JSON 后下次重建又回退。
  */
 function applyCuratedPatch(rule: LintRuleRecord): LintRuleRecord {
-    if (rule.id !== "cn.cliche.baguwen.sudden-moment" || !("detector" in rule)) {
+    if (!("detector" in rule)) {
         return rule;
     }
-    return {
-        ...rule,
-        note: "只检查“突然间/忽然间”；普通“突然/忽然”由程度副词 canonical family 判断，避免同 span 重复命中。",
-        source: {...rule.source, version: "creative-profile-v1"},
-        detector: {type: "regex", targets: ["(?:突|忽)然间，?"]},
-    };
+    if (rule.id === "cn.cliche.baguwen.point-reference") {
+        return {
+            ...rule,
+            enabled: false,
+            note: "默认关闭：(?:了|这)一点过宽，当前 eval 为 noise；保留给项目显式开启。",
+            source: {...(rule.source ?? {}), version: "rule-curation-v2"},
+        };
+    }
+    if (rule.id === "cn.cliche.baguwen.sudden-moment") {
+        return {
+            ...rule,
+            review: "human",
+            note: "默认交人工：只检查“突然间/忽然间”，但当前 eval 人类命中更高；普通“突然/忽然”由程度副词 canonical family 判断。",
+            source: {...(rule.source ?? {}), version: "rule-curation-v2"},
+            detector: {type: "regex", targets: ["(?:突|忽)然间，?"]},
+        };
+    }
+    if (rule.id === "cn.cliche.body-reaction.controlling-gaze") {
+        return {
+            ...rule,
+            note: "收窄：要求出现“目光/眼神”，避免裸“探究/审视/掌控”被当作 body-reaction 候选。",
+            source: {...(rule.source ?? {}), version: "rule-curation-v2"},
+            detector: {type: "regex", targets: ["(?:探究|审视|掌控)(?:着)?(?:的|地)?(?:目光|眼神)"]},
+        };
+    }
+    return rule;
 }
 
 async function readSourceRuleFile(filePath: string): Promise<SourceRuleGroup[]> {

@@ -5,14 +5,16 @@
     "title": "嘴角与生理泪水",
     "level": "medium",
     "enabled": true,
+    "note": "收窄：要求出现“目光/眼神”，避免裸“探究/审视/掌控”被当作 body-reaction 候选。",
     "source": {
+      "version": "rule-curation-v2",
       "canonicalKey": "cliche.body-reaction\t\t(?:探究|审视|掌控)(?:着)?(?:的|地)?(?:目光|眼神)?",
       "importedFrom": "curated-cn-rule-samples"
     },
     "detector": {
       "type": "regex",
       "targets": [
-        "(?:探究|审视|掌控)(?:着)?(?:的|地)?(?:目光|眼神)?"
+        "(?:探究|审视|掌控)(?:着)?(?:的|地)?(?:目光|眼神)"
       ]
     },
     "action": {
