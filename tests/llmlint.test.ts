@@ -659,6 +659,7 @@ describe("llmlint", () => {
         expect(byId.get("cn.action-expression.mouth-corner-arc")?.review).toBe("human");
         expect(byId.get("opening-cliche-era")?.review).toBe("human");
         expect(byId.get("inflation-novelty")?.review).toBe("human");
+        expect(byId.get("cn.cliche.trailing-sound-clause")?.review).toBe("human");
         expect(byId.get("cn.regex.advanced.few-degree")?.review).toBe("human");
         expect(scanText("过了几分钟，他安心了几分。", [byId.get("cn.regex.advanced.few-degree") as RegexRuleRecord])
             .map((issue) => issue.match)).toEqual(["了几分"]);

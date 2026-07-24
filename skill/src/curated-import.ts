@@ -573,6 +573,14 @@ function applyCuratedPatch(rule: LintRuleRecord): LintRuleRecord {
             scope: {layer: "narrative"},
         };
     }
+    if (rule.id === "cn.cliche.trailing-sound-clause") {
+        return {
+            ...rule,
+            review: "human",
+            note: "默认交人工：“发出…声/响”常是正常动作音效，当前 eval 仅 weak；只在它成为无功能尾部分句或音效模板重复时删。",
+            source: {...(rule.source ?? {}), version: "rule-curation-v13"},
+        };
+    }
     if (rule.id === "cn.action-expression.mouth-corner-arc") {
         return {
             ...rule,

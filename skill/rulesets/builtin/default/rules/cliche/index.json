@@ -748,10 +748,12 @@
     "title": "只删末尾或对话前置分句",
     "level": "medium",
     "enabled": true,
-    "note": "只删末尾或对话前置分句",
+    "review": "human",
+    "note": "默认交人工：“发出…声/响”常是正常动作音效，当前 eval 仅 weak；只在它成为无功能尾部分句或音效模板重复时删。",
     "source": {
       "canonicalKey": "cliche\t\t[,，]发出[\\u4e00-\\u9fff“”\"、]+[声音响](?=。|[,，:：][“「\"])",
-      "importedFrom": "curated-cn-rule-samples"
+      "importedFrom": "curated-cn-rule-samples",
+      "version": "rule-curation-v13"
     },
     "detector": {
       "type": "regex",
