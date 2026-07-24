@@ -38,7 +38,8 @@
     "namespace": "inflation.significance",
     "title": "新颖性通胀",
     "level": "medium",
-    "note": "「前所未有 / 史无前例 / 颠覆性 / 范式转移」是夸大新颖度的 AI 套话。给对比数据或说清楚到底变了什么。",
+    "review": "human",
+    "note": "默认交人工：「前所未有 / 史无前例 / 颠覆性 / 范式转移」在小说视角和评论中都可能合法；旧报告仅 weak，当前 dataset 只剩 1 个 AI 命中。",
     "detector": {
       "type": "regex",
       "targets": [

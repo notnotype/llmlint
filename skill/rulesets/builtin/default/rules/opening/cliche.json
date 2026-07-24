@@ -57,7 +57,8 @@
     "namespace": "opening.cliche",
     "title": "宏大时代开场",
     "level": "medium",
-    "note": "用宏大背景替代具体事实的作文式开场。改成具体时间、对象或事件。",
+    "review": "human",
+    "note": "默认交人工：“在这个…时代 / 随着…发展”可能是世界观设定或报告开场；旧报告 support 不足，当前 dataset 无命中，只在它替代具体场景时修。",
     "scope": {
       "layer": "narrative",
       "position": {

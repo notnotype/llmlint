@@ -93,10 +93,11 @@
 - 默认 review 下沉：`vocabulary.body`、`vocabulary.r18`、`vocabulary.academic-anatomy`、`color-description`、`sound.once`、`jargon.business`、`regex.advanced` 默认转入 `human` 桶；`filler-word-actually`、`meta-announcement`、`quotable-punchline-candidate` 因 eval noise 改为 `human`。后续重扫发现 `cn.regex.advanced.few-degree` 在扩充 reference 中命中率高于 AI 文本，已撤回原 strong 例外并补 `(?![钟之])` 排除“几分钟/几分之一”半截误报；`cn.cliche.vague-transition-phrase` 移除裸“近乎”，只保留“近乎于”和“取而代之的是”。
 - 默认 review 下沉补充：`cn.sentence.compound.contrastive-turn-preface` 转 `human`，因为泛“不是/并非/没有…而是/反而”在当前 dataset 中会命中合法对白、设定解释和事实辨析；默认 Agent 继续保留 story-deslop 的高信号否定对比/否定排比规则。
 - 默认 review 下沉补充（二）：`cn.action-expression.mouth-corner-arc` 转 `human`，旧报告 support 不足且当前 dataset 只剩 1 个 AI 命中；默认 Agent 保留尾部分句 canonical `cn.cliche.trailing-mouth-arc-clause`。
+- 默认 review 下沉补充（三）：`opening-cliche-era` 与 `inflation-novelty` 转 `human`；前者旧报告 insufficient 且当前 dataset 无命中，后者旧报告 weak、当前 dataset 仅 1 个 AI 命中，且“前所未有”等新颖性词汇在小说视角中需要上下文判断。
 - overlap 收窄补充：`cn.cliche.baguwen.unquestionable-claim` 排除后接“的/地”，避免和 `cn.modifier.absolute-claim-modifier` 对同一修饰 span 重复；`cn.cliche.trailing-sensory-clause` 限制到叙述层，避免对白/系统面板里的尾句误报；`story-deslop.negation-parade.repeated-none` 排除后接“只有/只是/只会”的同 span 场景，交给 `story-deslop.negation-parade.only-turn`。
 - story-deslop 继续吸收：新增 `story-deslop.quote-emphasis` handler 规则，统计叙述层 1-4 字短词引号强调，全文 ≥3 处只报一条 human advisory；极短对白、系统面板、纯对白行和低于阈值的零散强调豁免。
 - 闭环遗漏修复：web registry 现在预烘 active density/handler 规则，engineVersion hash 覆盖 regex+density+handler；web 本地扫描、服务端 MachineScan 与 Agent `RevisionTextWorkspace.lint_check` 均消费 regex+handler，Agent 报告额外带 density 指纹段。story-deslop high 校准 blocking 规则即使未入 eval verdict，也在 Agent 修复门中按必修强判别处理。
-- 当前默认 materialize：360 total / 287 active；266 regex / 8 density / 5 handler / 8 LLM；review = agent 101 / human 183 / none 3；regex fixability = auto 3 / candidate 0 / manual 263。临时内存复算当前语料：overlap duplicate rate ≈1.6%，人类侧 Agent 中位误杀率 0/千字（未改写 `evals/report/report.json`）。
+- 当前默认 materialize：360 total / 287 active；266 regex / 8 density / 5 handler / 8 LLM；review = agent 99 / human 185 / none 3；regex fixability = auto 3 / candidate 0 / manual 263。临时内存复算当前语料：overlap duplicate rate ≈1.6%，人类侧 Agent 中位误杀率 0/千字（未改写 `evals/report/report.json`）。
 - 拿不准的规则族和许可边界集中记录在 `rule-curation-open-questions.md`，等待用户一次性拍板。
 
 ## TODO / Follow-ups
