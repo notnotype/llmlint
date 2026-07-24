@@ -22,7 +22,8 @@
     "namespace": "contrast.binary",
     "title": "问题定义对比",
     "level": "medium",
-    "note": "定义式反转可以被静态识别，是否多余需要结合上下文判断。",
+    "enabled": false,
+    "note": "默认关闭：旧定义式对比规则与 story-deslop.not-is-comparison handler 重叠，且 handler 已处理确认语、对白和合成词豁免。",
     "detector": {
       "type": "regex",
       "targets": [
@@ -39,7 +40,8 @@
     "namespace": "contrast.binary",
     "title": "不是而是",
     "level": "medium",
-    "enabled": true,
+    "enabled": false,
+    "note": "默认关闭：旧 curated 模式依赖字面星号，实测没有稳定命中；二元对比统一交给 story-deslop.not-is-comparison handler。",
     "source": {
       "canonicalKey": "contrast.binary\t\t(?:，|。)\\*(?:既不是|是|不是)\\*，(?:是|不是|而是|只是)\\*，",
       "importedFrom": "curated-cn-rule-samples"
@@ -62,7 +64,8 @@
     "namespace": "contrast.binary",
     "title": "不是而是",
     "level": "medium",
-    "enabled": true,
+    "enabled": false,
+    "note": "默认关闭：旧 curated 模式依赖字面星号，实测没有稳定命中；二元对比统一交给 story-deslop.not-is-comparison handler。",
     "source": {
       "canonicalKey": "contrast.binary\t\t(?:，|。)\\*(?:既不是|是|不是)\\*，(?:是|不是|而是|只是)\\*。",
       "importedFrom": "curated-cn-rule-samples"

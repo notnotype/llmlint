@@ -4,8 +4,8 @@ import type {LintRuleRecord} from "../types";
  * 黑话三类：商业黑话扩展（jargon.business）、工程师/调试腔（jargon.engineer）、自媒体腔（jargon.social）。
  *
  * 取材自 shuorenhua/references/phrases-zh.md「商业/互联网黑话 / 工程师腔 / 暴力动作腔 / 自媒体腔」段。
- * engineer / social 误杀率高（技术语境、网络用语都可能合理），按命名空间策略默认归 human 桶，
- * 默认不刷 agent 视图；business 在小说里少见但出现即明显，保持默认展示。
+ * business / engineer / social 都可能是准确术语或刻意文体，按命名空间策略默认归 human 桶，
+ * 默认不刷 agent 视图；只在项目明确要清商业/网络腔时打开。
  */
 export const JARGON_RULES = [
     {

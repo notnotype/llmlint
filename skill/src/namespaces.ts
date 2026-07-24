@@ -88,7 +88,7 @@ export type NamespacePolicy = {
  * 内置命名空间的审查受众与修复能力默认策略。
  *
  * 设计意图：默认 `check --review agent` 只展示真正值得 Agent 处理的 AI 痕迹（填充、机械过渡、
- * 二元对比、喉舌开头、陈词滥调、商务黑话、词汇替换等），把在中文小说里误伤率高、更偏作者
+ * 二元对比、喉舌开头、陈词滥调等），把在中文小说里误伤率高、更偏作者
  * 风格偏好的命名空间（破折号、比喻、泛词形副词、段落结构、节奏评分）降到 `human` 桶，把纯
  * 机械去重降到 `none` 桶。未列出的命名空间走 detector/action 推导，默认 `agent`。
  *
@@ -115,6 +115,16 @@ export const DEFAULT_NAMESPACE_POLICY: Record<string, NamespacePolicy> = {
     "modifier.physiological": {review: "human", fixability: "manual"},
     "absolute": {review: "human", fixability: "manual"},
     "abstraction.hollow": {review: "human", fixability: "manual"},
+
+    // 题材 / 词表偏好：商业、人体、R18、解剖、颜色和“一声”替换都高度依赖项目文风。
+    // 这些规则可提示作者复核，但不应在默认 Agent 视图里和 blocking 结构规则同权重出现。
+    "jargon.business": {review: "human", fixability: "manual"},
+    "vocabulary.body": {review: "human", fixability: "manual"},
+    "vocabulary.r18": {review: "human", fixability: "manual"},
+    "vocabulary.academic-anatomy": {review: "human", fixability: "manual"},
+    "color-description": {review: "human", fixability: "manual"},
+    "sound.once": {review: "human", fixability: "manual"},
+    "regex.advanced": {review: "human", fixability: "manual"},
 
     // 结构与评分：段落切分、节奏评分属于宏观风格，不适合逐条喂 Agent
     "paragraph.merge-short": {review: "human", fixability: "manual"},
@@ -156,4 +166,5 @@ export const DEFAULT_RULE_POLICY: Record<string, NamespacePolicy> = {
     "cn.proliferation.mixed.repeated-de-pairs": {review: "agent"},
     "cn.modifier.absolute-claim-modifier": {review: "agent"},
     "cn.modifier.optional-mood-modifiers": {review: "agent"},
+    "cn.regex.advanced.few-degree": {review: "agent"},
 };

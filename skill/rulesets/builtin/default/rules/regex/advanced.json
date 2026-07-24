@@ -291,7 +291,8 @@
     "namespace": "regex.advanced",
     "title": "正则-高级替换",
     "level": "medium",
-    "enabled": true,
+    "enabled": false,
+    "note": "默认关闭：单个“像/仿佛……一样”不是稳定 AI 味，当前 eval 为 noise；比喻问题改由 metaphor human 桶和 story-deslop.metaphor-density 处理。",
     "source": {
       "canonicalKey": "regex.advanced\tg\t(像|如同|仿佛|宛如)([^，。！？\\n]{1,30}?)一样(?=[，。！？、；：”'\"\\n]|$)",
       "importedFrom": "curated-cn-rule-samples"
@@ -315,7 +316,8 @@
     "namespace": "regex.advanced",
     "title": "正则-高级替换",
     "level": "medium",
-    "enabled": true,
+    "enabled": false,
+    "note": "默认关闭：旧 simile-like 续接规则与比喻壳/密度规则重叠，且当前 eval 为 noise；保留给项目显式开启。",
     "source": {
       "canonicalKey": "regex.advanced\tg\t(像|如同|仿佛|宛如|跟|和)([^，。！？\\n]{1,30}?)一样(?=[^，。！？\\n])",
       "importedFrom": "curated-cn-rule-samples"

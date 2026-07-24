@@ -4,7 +4,8 @@
     "namespace": "punchline",
     "title": "金句式收束候选",
     "level": "low",
-    "note": "这类句式容易变成可摘录的标语，而不是推进信息。",
+    "review": "human",
+    "note": "默认交人工：真正/这才是/从来不是这类壳需要上下文判断，当前 eval 为 noise；仅在它替代具体信息时修。",
     "detector": {
       "type": "regex",
       "targets": [

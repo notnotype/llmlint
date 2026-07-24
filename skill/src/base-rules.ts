@@ -19,7 +19,8 @@ const CORE_BASE_RULES = [
         "namespace": "filler",
         "title": "无意义填充词",
         "level": "medium",
-        "note": "这类词通常不增加实质内容，只是为了让语气显得缓和或自然。读取上下文判断是否为角色口癖；若删除后句意不变，建议直接删除。",
+        "review": "human",
+        "note": "默认交人工：其实/实际上/事实上可作角色口癖、语气转折或论证标记，当前 eval 为 noise；若删除后句意不变，再建议删除。",
         "detector": {
             "type": "regex",
             "targets": [
@@ -127,7 +128,8 @@ const CORE_BASE_RULES = [
         "namespace": "contrast.binary",
         "title": "二元对比结构",
         "level": "medium",
-        "note": "“不是...而是...”可以被稳定识别为候选结构，是否生硬仍需要结合上下文判断。",
+        "enabled": false,
+        "note": "默认关闭：与 cn.sentence.compound.contrastive-turn-preface 高度重叠；保留给项目显式开启。",
         "detector": {
             "type": "regex",
             "targets": [
@@ -144,7 +146,8 @@ const CORE_BASE_RULES = [
         "namespace": "contrast.binary",
         "title": "问题定义对比",
         "level": "medium",
-        "note": "定义式反转可以被静态识别，是否多余需要结合上下文判断。",
+        "enabled": false,
+        "note": "默认关闭：旧定义式对比规则与 story-deslop.not-is-comparison handler 重叠，且 handler 已处理确认语、对白和合成词豁免。",
         "detector": {
             "type": "regex",
             "targets": [
@@ -161,7 +164,8 @@ const CORE_BASE_RULES = [
         "namespace": "contrast.negative-listing",
         "title": "负向列举",
         "level": "medium",
-        "note": "连续否定常用来制造揭示感，但很多时候读者不需要先看一串被否定的选项。",
+        "enabled": false,
+        "note": "默认关闭：旧宽泛规则在当前 eval 中为 noise，且已由 story-deslop.negation-parade.* 两条叙述层校准规则接管；保留给项目显式开启。",
         "detector": {
             "type": "regex",
             "targets": [
@@ -229,7 +233,8 @@ const CORE_BASE_RULES = [
         "namespace": "meta",
         "title": "元叙述式公告",
         "level": "low",
-        "note": "这些是自我引用的结构公告，文本先宣布自己要做什么，而不是直接推进内容。",
+        "review": "human",
+        "note": "默认交人工：教程、报告、章节导语中可能合法；当前 eval 为 noise。若正文只是宣布自己要做什么，再建议直接进入内容。",
         "detector": {
             "type": "regex",
             "targets": [
@@ -333,7 +338,8 @@ const CORE_BASE_RULES = [
         "namespace": "punchline",
         "title": "金句式收束候选",
         "level": "low",
-        "note": "这类句式容易变成可摘录的标语，而不是推进信息。",
+        "review": "human",
+        "note": "默认交人工：真正/这才是/从来不是这类壳需要上下文判断，当前 eval 为 noise；仅在它替代具体信息时修。",
         "detector": {
             "type": "regex",
             "targets": [

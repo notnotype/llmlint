@@ -4,7 +4,8 @@
     "namespace": "meta",
     "title": "元叙述式公告",
     "level": "low",
-    "note": "这些是自我引用的结构公告，文本先宣布自己要做什么，而不是直接推进内容。",
+    "review": "human",
+    "note": "默认交人工：教程、报告、章节导语中可能合法；当前 eval 为 noise。若正文只是宣布自己要做什么，再建议直接进入内容。",
     "detector": {
       "type": "regex",
       "targets": [

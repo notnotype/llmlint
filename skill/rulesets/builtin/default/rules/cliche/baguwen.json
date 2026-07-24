@@ -50,7 +50,8 @@
     "namespace": "cliche.baguwen",
     "title": "八股句式/短语删除",
     "level": "medium",
-    "enabled": true,
+    "enabled": false,
+    "note": "默认关闭：中文对白冒号是常见排版选择，当前 eval 中人类命中很高；不再作为 AI 味默认证据。",
     "source": {
       "canonicalKey": "cliche.baguwen\t\t：“",
       "importedFrom": "curated-cn-rule-samples"

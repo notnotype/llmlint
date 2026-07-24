@@ -413,7 +413,7 @@
     "title": "弱化拟人化元叙述",
     "level": "medium",
     "enabled": true,
-    "note": "弱化拟人化元叙述",
+    "note": "弱化拟人化元叙述；排除“都在诉说着”，避免与更长 canonical 规则重叠并产生半截候选替换。",
     "source": {
       "canonicalKey": "cliche\t\t都在诉说",
       "importedFrom": "curated-cn-rule-samples"
@@ -421,7 +421,7 @@
     "detector": {
       "type": "regex",
       "targets": [
-        "都在诉说"
+        "都在诉说(?!着)"
       ]
     },
     "action": {

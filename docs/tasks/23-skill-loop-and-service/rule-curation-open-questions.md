@@ -37,3 +37,11 @@
 8. **默认规则是否继续同步 creative overlap 抑制**
    - 本轮已把 creative profile 里稳定 overlap 的 8 条旧规则同步为默认 `enabled:false`，保留规则资产和用户显式开启能力。
    - 待确认：后续是否把这个作为规则整理常规策略：稳定重叠且有 canonical 替代时，默认关闭旧规则，但不物理删除。
+
+9. **人工桶后的规则级例外是否要提回 Agent**
+   - 本轮已把 `vocabulary.body`、`vocabulary.r18`、`vocabulary.academic-anatomy`、`color-description`、`sound.once`、`jargon.business`、`regex.advanced` 默认下沉 `human`；只把 `cn.regex.advanced.few-degree` 作为强信号例外保留 `agent`。
+   - 待确认：是否把 `vocabulary.body.flesh-skin` / `back-spine` / `mouth-corner`、`sound.once.laugh-one-sound` 等 weak 但人类命中低的规则级例外提回 `agent`，还是继续把这些题材词表留给人工复核。
+
+10. **宽泛低信号规则是否继续打扰 Agent**
+    - 本轮已将 `filler-word-actually`、`meta-announcement`、`quotable-punchline-candidate` 下沉 `human`；但 `filler-worth-noting`、`filler-can-say`、`filler-lets` 与 LLM 版 `quotable-punchline` 仍在 `agent`。
+    - 待确认：是否进一步把这些宽泛填充词 / 金句感默认转为 `human`，或保持当前状态，让 Agent 继续处理明确模板化的用法。

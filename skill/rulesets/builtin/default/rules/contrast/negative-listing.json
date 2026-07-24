@@ -4,7 +4,8 @@
     "namespace": "contrast.negative-listing",
     "title": "负向列举",
     "level": "medium",
-    "note": "连续否定常用来制造揭示感，但很多时候读者不需要先看一串被否定的选项。",
+    "enabled": false,
+    "note": "默认关闭：旧宽泛规则在当前 eval 中为 noise，且已由 story-deslop.negation-parade.* 两条叙述层校准规则接管；保留给项目显式开启。",
     "detector": {
       "type": "regex",
       "targets": [

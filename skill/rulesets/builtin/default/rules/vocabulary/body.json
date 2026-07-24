@@ -99,8 +99,8 @@
     "namespace": "vocabulary.body",
     "title": "人体词换通俗说法",
     "level": "medium",
-    "enabled": true,
-    "note": "人体词换通俗说法",
+    "enabled": false,
+    "note": "默认关闭：被 cn.vocabulary.body.butt-cheek-suffix 完全覆盖，避免同一词进入多条候选。",
     "source": {
       "canonicalKey": "vocabulary.body\t\t屁股蛋",
       "importedFrom": "curated-cn-rule-samples"
@@ -123,8 +123,8 @@
     "namespace": "vocabulary.body",
     "title": "人体词换通俗说法",
     "level": "medium",
-    "enabled": true,
-    "note": "人体词换通俗说法",
+    "enabled": false,
+    "note": "默认关闭：被 cn.vocabulary.body.butt-cheek-suffix 完全覆盖，避免同一词进入多条候选。",
     "source": {
       "canonicalKey": "vocabulary.body\t\t屁股蛋子",
       "importedFrom": "curated-cn-rule-samples"
@@ -265,6 +265,7 @@
     "title": "人体词汇转换",
     "level": "medium",
     "enabled": true,
+    "note": "排除“指骨关节/指骨的关节”，避免与 cn.vocabulary.body.finger-joint-phrase 重叠。",
     "source": {
       "canonicalKey": "vocabulary.body\t\t指骨",
       "importedFrom": "curated-cn-rule-samples"
@@ -272,7 +273,7 @@
     "detector": {
       "type": "regex",
       "targets": [
-        "指骨"
+        "指骨(?!的?关节)"
       ]
     },
     "action": {

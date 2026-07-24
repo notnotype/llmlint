@@ -73,7 +73,8 @@
     "namespace": "vocabulary.academic-anatomy",
     "title": "学术与解剖词汇",
     "level": "medium",
-    "enabled": true,
+    "enabled": false,
+    "note": "默认关闭：单词“规律”过宽，容易误伤普通叙述；更具体的 cn.vocabulary.academic-anatomy.rhythmic-regularity 仍保留。",
     "source": {
       "canonicalKey": "vocabulary.academic-anatomy\t\t规律",
       "importedFrom": "curated-cn-rule-samples"

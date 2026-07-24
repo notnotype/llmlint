@@ -4,7 +4,8 @@
     "namespace": "filler",
     "title": "无意义填充词",
     "level": "medium",
-    "note": "这类词通常不增加实质内容，只是为了让语气显得缓和或自然。读取上下文判断是否为角色口癖；若删除后句意不变，建议直接删除。",
+    "review": "human",
+    "note": "默认交人工：其实/实际上/事实上可作角色口癖、语气转折或论证标记，当前 eval 为 noise；若删除后句意不变，再建议删除。",
     "detector": {
       "type": "regex",
       "targets": [
