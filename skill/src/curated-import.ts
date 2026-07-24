@@ -613,6 +613,14 @@ function applyCuratedPatch(rule: LintRuleRecord): LintRuleRecord {
             source: {...(rule.source ?? {}), version: "rule-curation-v5"},
         };
     }
+    if (rule.id === "cn.sentence.compound.contrastive-turn-preface") {
+        return {
+            ...rule,
+            review: "human",
+            note: "默认交人工：泛“不是/并非/没有…而是/反而”会命中合法对白、设定解释和事实辨析；默认 Agent 只保留 story-deslop 的高信号否定对比规则。",
+            source: {...(rule.source ?? {}), version: "rule-curation-v11"},
+        };
+    }
     if (rule.id === "cn.cliche.body-reaction.controlling-gaze") {
         return {
             ...rule,

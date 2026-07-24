@@ -11,6 +11,7 @@
 - 2026-07-24：`cn.regex.advanced.few-degree` 在扩充后的当前 dataset 中 reference 命中率高于 AI 文本，已撤回 Agent 例外并回到 `human`；detector 同时加 `(?![钟之])`，避免“过了几分钟 / 几分之一”被半截命中。
 - 2026-07-24：`cn.cliche.vague-transition-phrase` 收窄：裸“近乎”在当前 reference 中有真实用法（如“近乎成本价”），默认 Agent 只保留“近乎于”和“取而代之的是”。
 - 2026-07-24：跨规则重叠继续收窄：`cn.cliche.baguwen.unquestionable-claim` 排除后接“的/地”，带修饰用法交给 `cn.modifier.absolute-claim-modifier`；`cn.cliche.trailing-sensory-clause` 限制到叙述层，避免对白/系统面板误报；`story-deslop.negation-parade.repeated-none` 排除后接“只有/只是/只会”的场景，避免和 `story-deslop.negation-parade.only-turn` 同报。
+- 2026-07-24：`cn.sentence.compound.contrastive-turn-preface` 已转 `human`。当前 dataset 中它会命中合法对白、设定解释和事实辨析；默认 Agent 继续依赖 story-deslop 的高信号否定对比/否定排比规则。
 
 ## 待用户拍板
 

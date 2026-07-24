@@ -5,8 +5,10 @@
     "title": "修剪特定转折句",
     "level": "medium",
     "enabled": true,
-    "note": "修剪特定转折句",
+    "review": "human",
+    "note": "默认交人工：泛“不是/并非/没有…而是/反而”会命中合法对白、设定解释和事实辨析；默认 Agent 只保留 story-deslop 的高信号否定对比规则。",
     "source": {
+      "version": "rule-curation-v11",
       "canonicalKey": "sentence.compound\t\t(?:非但|不[是像再]|并[未非不]|(?:并|不仅)?没有)[\\u4e00-\\u9fff]+[,，](?:是|反[而倒]是?|[而倒只也更又全][是像]是?)",
       "importedFrom": "curated-cn-rule-samples"
     },
