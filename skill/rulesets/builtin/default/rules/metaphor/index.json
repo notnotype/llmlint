@@ -76,11 +76,12 @@
     "namespace": "metaphor",
     "title": "删插入式比喻壳",
     "level": "medium",
-    "enabled": true,
-    "note": "删插入式比喻壳",
+    "enabled": false,
+    "note": "默认关闭：当前 eval 中 100% 被 cn.metaphor.simile-modifier-shell 覆盖；保留更宽比喻修饰 canonical，避免同一比喻壳重复提示。",
     "source": {
       "canonicalKey": "metaphor\t\t(?<=[\\u4e00-\\u9fff，,])(?:[好就]?像|仿佛|如[若同]|[宛犹][如若])[\\u4e00-\\u9fff]{1,10}(?:似的|一?般|一样)[的，,]?(?=[\\u4e00-\\u9fff])",
-      "importedFrom": "curated-cn-rule-samples"
+      "importedFrom": "curated-cn-rule-samples",
+      "version": "rule-curation-v3"
     },
     "detector": {
       "type": "regex",

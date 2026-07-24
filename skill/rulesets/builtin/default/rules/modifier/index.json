@@ -79,10 +79,12 @@
     "namespace": "modifier",
     "title": "形副词系",
     "level": "medium",
-    "enabled": true,
+    "enabled": false,
+    "note": "默认关闭：当前 eval 中 100% 被 cn.modifier.absolute-claim-modifier 覆盖；保留更宽 absolute claim canonical，避免绝对判断修饰重复提示。",
     "source": {
       "canonicalKey": "modifier\t\t(?:不容|不可|无法|难以)(?:质疑|置疑|置喙|拒绝|抗拒)(?:的|地)",
-      "importedFrom": "curated-cn-rule-samples"
+      "importedFrom": "curated-cn-rule-samples",
+      "version": "rule-curation-v3"
     },
     "detector": {
       "type": "regex",
@@ -221,10 +223,12 @@
     "namespace": "modifier",
     "title": "形副词系",
     "level": "medium",
-    "enabled": true,
+    "enabled": false,
+    "note": "默认关闭：当前 eval 中 100% 被 cn.modifier.excessive-state-simile 覆盖；保留更宽状态修饰 canonical，避免夸张比附修饰重复提示。",
     "source": {
       "canonicalKey": "modifier\t\t(?:惊人|灭顶|细若蚊蝇|细若蚊呐|不似人声|似有似无|若有若无|铺天盖地|毁天灭地|狂风暴雨|暴风骤雨)般?(?:的|地)",
-      "importedFrom": "curated-cn-rule-samples"
+      "importedFrom": "curated-cn-rule-samples",
+      "version": "rule-curation-v3"
     },
     "detector": {
       "type": "regex",
@@ -244,11 +248,12 @@
     "namespace": "modifier",
     "title": "删夸张比附修饰",
     "level": "medium",
-    "enabled": true,
-    "note": "删夸张比附修饰",
+    "enabled": false,
+    "note": "默认关闭：当前 eval 中 100% 被 cn.modifier.excessive-state-simile 覆盖；保留更宽状态修饰 canonical，避免夸张比附修饰重复提示。",
     "source": {
       "canonicalKey": "modifier\t\t(?:惊人|灭顶|细若蚊蝇|细若蚊呐|不似人声|似有似无|若有若无|并不存在|不存在|铺天盖地|毁天灭地|狂风暴雨|暴风骤雨)般?(?:的|地)",
-      "importedFrom": "curated-cn-rule-samples"
+      "importedFrom": "curated-cn-rule-samples",
+      "version": "rule-curation-v3"
     },
     "detector": {
       "type": "regex",
@@ -315,10 +320,12 @@
     "namespace": "modifier",
     "title": "形副词系",
     "level": "medium",
-    "enabled": true,
+    "enabled": false,
+    "note": "默认关闭：当前 eval 中 100% 被 cn.modifier.template-state-modifier 覆盖；保留模板化状态 canonical，避免空洞状态修饰重复提示。",
     "source": {
       "canonicalKey": "modifier\t\t(?:谄媚|讨好|虔诚|狂热|绝望|病态|空洞|麻木|木讷|笨拙|毫无生气)(?:的|地)",
-      "importedFrom": "curated-cn-rule-samples"
+      "importedFrom": "curated-cn-rule-samples",
+      "version": "rule-curation-v3"
     },
     "detector": {
       "type": "regex",
@@ -502,10 +509,12 @@
     "namespace": "modifier",
     "title": "形副词系",
     "level": "medium",
-    "enabled": true,
+    "enabled": false,
+    "note": "默认关闭：当前 eval 中 100% 被 cn.modifier.sensory-atmosphere-modifier 覆盖；保留更宽氛围修饰 canonical，避免氛围形副词重复提示。",
     "source": {
       "canonicalKey": "modifier\t\t(?:略显粗糙|粗糙|逼仄|玩味|餍足|旖旎|甜腻|低哑|喑哑|沙哑|嘶哑|微哑|亮晶晶|直勾勾|硬生生)(?:的|地)",
-      "importedFrom": "curated-cn-rule-samples"
+      "importedFrom": "curated-cn-rule-samples",
+      "version": "rule-curation-v3"
     },
     "detector": {
       "type": "regex",
@@ -618,11 +627,12 @@
     "namespace": "modifier",
     "title": "删模板化修饰壳",
     "level": "medium",
-    "enabled": true,
-    "note": "删模板化修饰壳",
+    "enabled": false,
+    "note": "默认关闭：当前 eval 中 100% 被 cn.modifier.sensory-atmosphere-modifier 覆盖；保留更宽氛围修饰 canonical，避免模板化氛围修饰重复提示。",
     "source": {
       "canonicalKey": "modifier\t\t(?:略显粗糙|粗糙|生理层面|生理本能|生理性|生理|逼仄|戏谑|狡黠|玩味|餍足|旖旎|甜腻|黏腻|低哑|喑哑|沙哑|嘶哑|微哑|沉甸甸|亮晶晶|直勾勾|硬生生)(?:的|地)",
-      "importedFrom": "curated-cn-rule-samples"
+      "importedFrom": "curated-cn-rule-samples",
+      "version": "rule-curation-v3"
     },
     "detector": {
       "type": "regex",
@@ -642,11 +652,12 @@
     "namespace": "modifier",
     "title": "删模板化状态修饰",
     "level": "medium",
-    "enabled": true,
-    "note": "删模板化状态修饰",
+    "enabled": false,
+    "note": "默认关闭：当前 eval 中 100% 被 cn.modifier.excessive-state-simile 覆盖；保留更宽状态修饰 canonical，避免模板化状态修饰重复提示。",
     "source": {
       "canonicalKey": "modifier\t\t(?:谄媚|讨好|虔诚|狂热|崩溃|绝望|病态|空洞|麻木|木讷|笨拙|僵硬|机械|毫无生气)(?:的|地)",
-      "importedFrom": "curated-cn-rule-samples"
+      "importedFrom": "curated-cn-rule-samples",
+      "version": "rule-curation-v3"
     },
     "detector": {
       "type": "regex",

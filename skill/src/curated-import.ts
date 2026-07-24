@@ -415,6 +415,94 @@ function applyCuratedPatch(rule: LintRuleRecord): LintRuleRecord {
             detector: {type: "regex", targets: ["(?:探究|审视|掌控)(?:着)?(?:的|地)?(?:目光|眼神)"]},
         };
     }
+    if (rule.id === "cn.cliche.hand-whitening-detail") {
+        return {
+            ...rule,
+            enabled: false,
+            note: "默认关闭：与 cn.cliche.hand-color-clause 在当前 eval 中 100% 同 span 重叠；保留更宽 canonical，避免手部泛白细节重复提示。",
+            source: {...(rule.source ?? {}), version: "rule-curation-v3"},
+        };
+    }
+    if (rule.id === "cn.cliche.mid-sentence-summary") {
+        return {
+            ...rule,
+            enabled: false,
+            note: "默认关闭：当前 eval 中 100% 被 cn.cliche.vague-transition-phrase 与 cn.cliche.trailing-sensory-clause 覆盖；保留 canonical，避免句中总结腔重复提示。",
+            source: {...(rule.source ?? {}), version: "rule-curation-v3"},
+        };
+    }
+    if (rule.id === "cn.cliche.mouth-corner-arc-cliche") {
+        return {
+            ...rule,
+            enabled: false,
+            note: "默认关闭：当前 eval 中 100% 被 cn.cliche.trailing-mouth-arc-clause 覆盖；保留尾部分句 canonical，避免嘴角弧度重复提示。",
+            source: {...(rule.source ?? {}), version: "rule-curation-v3"},
+        };
+    }
+    if (rule.id === "cn.metaphor.inserted-simile-shell") {
+        return {
+            ...rule,
+            enabled: false,
+            note: "默认关闭：当前 eval 中 100% 被 cn.metaphor.simile-modifier-shell 覆盖；保留更宽比喻修饰 canonical，避免同一比喻壳重复提示。",
+            source: {...(rule.source ?? {}), version: "rule-curation-v3"},
+        };
+    }
+    if (rule.id === "cn.modifier.absolute-judgment-modifier") {
+        return {
+            ...rule,
+            enabled: false,
+            note: "默认关闭：当前 eval 中 100% 被 cn.modifier.absolute-claim-modifier 覆盖；保留更宽 absolute claim canonical，避免绝对判断修饰重复提示。",
+            source: {...(rule.source ?? {}), version: "rule-curation-v3"},
+        };
+    }
+    if (rule.id === "cn.modifier.extreme-sensory-simile") {
+        return {
+            ...rule,
+            enabled: false,
+            note: "默认关闭：当前 eval 中 100% 被 cn.modifier.excessive-state-simile 覆盖；保留更宽状态修饰 canonical，避免夸张比附修饰重复提示。",
+            source: {...(rule.source ?? {}), version: "rule-curation-v3"},
+        };
+    }
+    if (rule.id === "cn.modifier.grandiose-simile-modifier") {
+        return {
+            ...rule,
+            enabled: false,
+            note: "默认关闭：当前 eval 中 100% 被 cn.modifier.excessive-state-simile 覆盖；保留更宽状态修饰 canonical，避免夸张比附修饰重复提示。",
+            source: {...(rule.source ?? {}), version: "rule-curation-v3"},
+        };
+    }
+    if (rule.id === "cn.modifier.hollow-state-modifier") {
+        return {
+            ...rule,
+            enabled: false,
+            note: "默认关闭：当前 eval 中 100% 被 cn.modifier.template-state-modifier 覆盖；保留模板化状态 canonical，避免空洞状态修饰重复提示。",
+            source: {...(rule.source ?? {}), version: "rule-curation-v3"},
+        };
+    }
+    if (rule.id === "cn.modifier.sensory-atmosphere-core") {
+        return {
+            ...rule,
+            enabled: false,
+            note: "默认关闭：当前 eval 中 100% 被 cn.modifier.sensory-atmosphere-modifier 覆盖；保留更宽氛围修饰 canonical，避免氛围形副词重复提示。",
+            source: {...(rule.source ?? {}), version: "rule-curation-v3"},
+        };
+    }
+    if (rule.id === "cn.modifier.template-atmosphere-modifier") {
+        return {
+            ...rule,
+            enabled: false,
+            note: "默认关闭：当前 eval 中 100% 被 cn.modifier.sensory-atmosphere-modifier 覆盖；保留更宽氛围修饰 canonical，避免模板化氛围修饰重复提示。",
+            source: {...(rule.source ?? {}), version: "rule-curation-v3"},
+        };
+    }
+    if (rule.id === "cn.modifier.template-state-modifier") {
+        return {
+            ...rule,
+            enabled: false,
+            note: "默认关闭：当前 eval 中 100% 被 cn.modifier.excessive-state-simile 覆盖；保留更宽状态修饰 canonical，避免模板化状态修饰重复提示。",
+            source: {...(rule.source ?? {}), version: "rule-curation-v3"},
+        };
+    }
     return rule;
 }
 

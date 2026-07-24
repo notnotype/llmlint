@@ -296,11 +296,12 @@
     "namespace": "cliche",
     "title": "删手部泛白特写",
     "level": "medium",
-    "enabled": true,
-    "note": "删手部泛白特写",
+    "enabled": false,
+    "note": "默认关闭：与 cn.cliche.hand-color-clause 在当前 eval 中 100% 同 span 重叠；保留更宽 canonical，避免手部泛白细节重复提示。",
     "source": {
       "canonicalKey": "cliche\t\t[,，](?:手指|骨节|指[尖节甲]|指关节)[\\u4e00-\\u9fff]{1,20}(?:白|[白青血颜]色)(?=[,，。])",
-      "importedFrom": "curated-cn-rule-samples"
+      "importedFrom": "curated-cn-rule-samples",
+      "version": "rule-curation-v3"
     },
     "detector": {
       "type": "regex",
@@ -344,11 +345,12 @@
     "namespace": "cliche",
     "title": "删句中总结腔",
     "level": "medium",
-    "enabled": true,
-    "note": "删句中总结腔",
+    "enabled": false,
+    "note": "默认关闭：当前 eval 中 100% 被 cn.cliche.vague-transition-phrase 与 cn.cliche.trailing-sensory-clause 覆盖；保留 canonical，避免句中总结腔重复提示。",
     "source": {
       "canonicalKey": "cliche\t\t取而代之的[,，]?是|[，,](?:带着|[尾声]音|语[气调])[\\u4e00-\\u9fff]*(?=。)",
-      "importedFrom": "curated-cn-rule-samples"
+      "importedFrom": "curated-cn-rule-samples",
+      "version": "rule-curation-v3"
     },
     "detector": {
       "type": "regex",
@@ -368,11 +370,12 @@
     "namespace": "cliche",
     "title": "删嘴角弧度套话",
     "level": "medium",
-    "enabled": true,
-    "note": "删嘴角弧度套话",
+    "enabled": false,
+    "note": "默认关闭：当前 eval 中 100% 被 cn.cliche.trailing-mouth-arc-clause 覆盖；保留尾部分句 canonical，避免嘴角弧度重复提示。",
     "source": {
       "canonicalKey": "cliche\t\t[,，]嘴[角唇][\\u4e00-\\u9fff、]{1,20}弧度(?=。)",
-      "importedFrom": "curated-cn-rule-samples"
+      "importedFrom": "curated-cn-rule-samples",
+      "version": "rule-curation-v3"
     },
     "detector": {
       "type": "regex",

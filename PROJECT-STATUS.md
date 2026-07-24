@@ -27,8 +27,8 @@ llmlint 是针对 LLM 生成中文文本的 linter：CLI 用正则确定性定�
 
 ## Rules / CLI Facts
 
-- 默认无 config 时加载单一内置 ruleset `builtin/default`：约 **360 rules / 311 active**，跨 50+ namespaces，由人工基础规则、中文策展规则（shuorenhua / avoid-ai-writing / humanizer）与 story-deslop 校准检测器合并生成。
-- 三个正交维度：`level`（high/medium/low，严重度+退出码）、`review`（agent/human/none，审查受众，`check` 默认 `--review agent`）、`fixability`（auto/candidate/manual，机械修复能力）。默认 review 桶为 agent=143 / human=165 / none=3；默认 regex 规则为 auto=3、candidate=0、manual=287；`action.replace` 只是替换模板，不授予应用权限。
+- 默认无 config 时加载单一内置 ruleset `builtin/default`：约 **360 rules / 300 active**，跨 50+ namespaces，由人工基础规则、中文策展规则（shuorenhua / avoid-ai-writing / humanizer）与 story-deslop 校准检测器合并生成。
+- 三个正交维度：`level`（high/medium/low，严重度+退出码）、`review`（agent/human/none，审查受众，`check` 默认 `--review agent`）、`fixability`（auto/candidate/manual，机械修复能力）。默认 review 桶为 agent=140 / human=157 / none=3；默认 regex 规则为 auto=3、candidate=0、manual=276；`action.replace` 只是替换模板，不授予应用权限。
 - 配置三层覆盖：rule id > namespace > ruleset > rule 默认；字符串是对象覆盖的语法糖，config 一处去糖、消费端无分支 patch。
 - 规则模型 v3 已落地：`scope.layer` 支持 narrative/dialogue/all 等长视图，`ignoreTerms` 统一遮罩 regex/density/handler，density detector 负责全文/段落分布指纹，builtin handler 负责 not-is 状态机、碎句号、过度精炼、低连接密度和引号强调；CLI、web 本地扫描、服务端 MachineScan 与 Agent `lint_check` 均消费同一份预烘静态规则。未知 detector/handler 按 warning 优雅跳过。
 - `check` 支持多文件/glob/目录、Markdown 遮罩（代码块/frontmatter/链接不误杀）、regex+density+handler 静态扫描、`--min-level` / `--review` 过滤、stylish（TTY 上色）与 `--format json`。
@@ -173,7 +173,7 @@ Task 08 latest supplement addendum（2026-07-14）：评测可信度前置守门
 
 ## 2026-07-11 第二轮规则精简
 
-- 默认规则 materialize 结果（Task 23 规则整理后）：360 total / 311 active；290 regex / 8 density / 5 handler / 8 LLM；review = agent 143 / human 165 / none 3；regex fixability = `auto=3 / candidate=0 / manual=287`。用户配置仍可把指定 regex replace 提升为 candidate。
+- 默认规则 materialize 结果（Task 23 规则整理后）：360 total / 300 active；279 regex / 8 density / 5 handler / 8 LLM；review = agent 140 / human 157 / none 3；regex fixability = `auto=3 / candidate=0 / manual=276`。用户配置仍可把指定 regex replace 提升为 candidate。
 - Web registry 烘焙版本化 `creative-writing@1` profile。报告有效时排除 noise/anti；报告缺失时保留全量，但稳定 overlap 抑制仍生效。规则页保留完整超集并解释 profile 排除原因。
 - `Report.overlap` 已纳入正式报告：16,962 raw hits / 11,388 unique spans / 32.9% 原始重复率；score 默认 holdout=0.4。
 - 指定 NeuroBook `index2.md`：全量静态命中 115、机械修复 0、LLM 创作候选 17、候选重复 span 0。程度副词、量词、句尾比喻和二元转折家族不再重复进入清单。
