@@ -5,9 +5,10 @@
     "title": "嘴角与生理泪水",
     "level": "medium",
     "enabled": true,
-    "note": "收窄：要求出现“目光/眼神”，避免裸“探究/审视/掌控”被当作 body-reaction 候选。",
+    "review": "human",
+    "note": "默认交人工：已要求出现“目光/眼神”，但当前 eval 仍为 noise；只在目光描写替代具体动作或心理推进时修。",
     "source": {
-      "version": "rule-curation-v2",
+      "version": "rule-curation-v4",
       "canonicalKey": "cliche.body-reaction\t\t(?:探究|审视|掌控)(?:着)?(?:的|地)?(?:目光|眼神)?",
       "importedFrom": "curated-cn-rule-samples"
     },

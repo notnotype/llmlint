@@ -55,7 +55,8 @@
     "namespace": "inflation.significance",
     "title": "惊叹式渲染",
     "level": "medium",
-    "note": "「令人瞩目 / 令人惊叹」用惊叹替代证据。给具体数据或事实。",
+    "review": "human",
+    "note": "默认交人工：「令人瞩目 / 令人惊叹」在新闻、评论和角色视角中可能合法；当前 eval 人类侧命中高于 AI 侧，只在它替代证据时修。",
     "detector": {
       "type": "regex",
       "targets": [

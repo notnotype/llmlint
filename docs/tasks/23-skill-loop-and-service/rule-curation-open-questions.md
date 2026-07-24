@@ -5,6 +5,7 @@
 ## 已按证据处理
 
 - 2026-07-24：`cn.metaphor.inserted-simile-shell`、`cn.cliche.mid-sentence-summary`、手部泛白 / 嘴角弧度重复规则、氛围修饰、状态修饰、夸张比附和绝对判断修饰中的 100% active-to-active overlap 条目，已按“保留更宽 canonical、不物理删除资产”的策略默认关闭。
+- 2026-07-24：`filler-can-say`、`filler-lets`、`emphasis-crutch`、`rhetorical-setup`、`inflation-marvel`、`transition-summary-conclude`、`assistant-comfort-pose` 和 `cn.cliche.body-reaction.controlling-gaze` 已转 `human`，不再进入默认 Agent 桶。
 
 ## 待用户拍板
 
@@ -31,11 +32,11 @@
    - 待确认：是否把 `vocabulary.body.flesh-skin` / `back-spine` / `mouth-corner`、`sound.once.laugh-one-sound` 等 weak 但人类命中低的规则级例外提回 `agent`，还是继续把这些题材词表留给人工复核。
 
 6. **宽泛低信号规则是否继续打扰 Agent**
-    - 本轮已将 `filler-word-actually`、`meta-announcement`、`quotable-punchline-candidate` 下沉 `human`；但 `filler-worth-noting`、`filler-can-say`、`filler-lets` 与 LLM 版 `quotable-punchline` 仍在 `agent`。
-    - 待确认：是否进一步把这些宽泛填充词 / 金句感默认转为 `human`，或保持当前状态，让 Agent 继续处理明确模板化的用法。
+    - 本轮已将 `filler-word-actually`、`filler-can-say`、`filler-lets`、`meta-announcement`、`quotable-punchline-candidate` 下沉 `human`；但 `filler-worth-noting` 与 LLM 版 `quotable-punchline` 仍在 `agent`。
+    - 待确认：是否进一步把这些宽泛填充词 / 金句感默认转为 `human`，或保持当前状态，让 Agent 继续处理更明确的模板化用法。
 
 7. **剩余 Agent 桶 insufficient 规则是否按策略统一下沉**
-    - 当前仍保留在 `agent` 的 low-support 规则包括：`transition-summary-*`、`inflation-marvel`、`emphasis-crutch`、`opening-cliche-*`、`rhetorical-setup`、`assistant-comfort-pose`，以及 `cliche` 中的声音状态容器、引语元叙述壳等。手部泛白和嘴角弧度里的 100% 重复条目已默认关闭。
+    - 当前仍保留在 `agent` 的 low-support 规则包括：`transition-summary-essence`、`opening-cliche-*`，以及 `cliche` 中的声音状态容器、引语元叙述壳等。手部泛白和嘴角弧度里的 100% 重复条目已默认关闭。
     - 我没有继续硬改的原因：这些模式虽然本轮 eval support 低，但和 story-deslop / repair-guide 的“总结帽子、拔高姿态、声音/嘴角/手部模板、开场助手腔”原则一致，语义上仍像 Agent 可处理的 AI 味候选。
     - 待确认：后续是否采用机械策略“verdict=insufficient 且无 blocking 校准来源 → 默认 `human`”，还是继续允许少量语义明确但样本支持不足的规则留在 `agent`。
 

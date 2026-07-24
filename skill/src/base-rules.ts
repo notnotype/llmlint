@@ -58,7 +58,8 @@ const CORE_BASE_RULES = [
         "namespace": "filler",
         "title": "弱化陈述词",
         "level": "low",
-        "note": "这类词弱化了陈述的确定性，通常可以直接删除。",
+        "review": "human",
+        "note": "默认交人工：“可以说/不得不说”在评论和角色口吻中可能合法；当前 eval support 很低，只在删除后不损失语气功能时修。",
         "detector": {
             "type": "regex",
             "targets": [
@@ -77,7 +78,8 @@ const CORE_BASE_RULES = [
         "namespace": "filler",
         "title": "虚假邀请句式",
         "level": "low",
-        "note": "“让我们”常用于制造共同探讨感，在正式写作中容易显得做作。",
+        "review": "human",
+        "note": "默认交人工：“让我们”可能是正常号召、角色台词或说明文组织语；当前 eval support 很低，只在它形成助手腔邀请时修。",
         "detector": {
             "type": "regex",
             "targets": [
@@ -253,7 +255,8 @@ const CORE_BASE_RULES = [
         "namespace": "rhetorical-question",
         "title": "公式化设问",
         "level": "medium",
-        "note": "公式化设问常用来制造悬念，但多数时候下一句可以直接陈述。",
+        "review": "human",
+        "note": "默认交人工：设问可能承担真实悬念或教学组织功能；当前 eval support 很低，只在下一句直接回答、设问本身无信息时修。",
         "detector": {
             "type": "regex",
             "targets": [
@@ -270,7 +273,8 @@ const CORE_BASE_RULES = [
         "namespace": "emphasis-crutch",
         "title": "强调拐杖",
         "level": "medium",
-        "note": "这类词常用强调姿态替代具体内容。",
+        "review": "human",
+        "note": "默认交人工：强调词可能是论证标记或角色语气；当前 eval support 很低，只在它替代证据或具体内容时修。",
         "detector": {
             "type": "regex",
             "targets": [

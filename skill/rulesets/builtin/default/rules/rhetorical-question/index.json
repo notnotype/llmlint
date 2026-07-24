@@ -4,7 +4,8 @@
     "namespace": "rhetorical-question",
     "title": "公式化设问",
     "level": "medium",
-    "note": "公式化设问常用来制造悬念，但多数时候下一句可以直接陈述。",
+    "review": "human",
+    "note": "默认交人工：设问可能承担真实悬念或教学组织功能；当前 eval support 很低，只在下一句直接回答、设问本身无信息时修。",
     "detector": {
       "type": "regex",
       "targets": [

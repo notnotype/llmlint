@@ -4,7 +4,8 @@
     "namespace": "transition.summary",
     "title": "总结式过渡",
     "level": "medium",
-    "note": "「综上所述 / 总而言之 / 由此可见」式过渡，多数可删掉直接给结论。",
+    "review": "human",
+    "note": "默认交人工：「综上所述 / 总而言之 / 由此可见」在说明文和论证收束中可能合法；当前 eval 人类侧不低于 AI 侧，只在它形成空转总结时修。",
     "detector": {
       "type": "regex",
       "targets": [

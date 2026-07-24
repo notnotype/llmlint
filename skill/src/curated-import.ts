@@ -410,8 +410,9 @@ function applyCuratedPatch(rule: LintRuleRecord): LintRuleRecord {
     if (rule.id === "cn.cliche.body-reaction.controlling-gaze") {
         return {
             ...rule,
-            note: "收窄：要求出现“目光/眼神”，避免裸“探究/审视/掌控”被当作 body-reaction 候选。",
-            source: {...(rule.source ?? {}), version: "rule-curation-v2"},
+            review: "human",
+            note: "默认交人工：已要求出现“目光/眼神”，但当前 eval 仍为 noise；只在目光描写替代具体动作或心理推进时修。",
+            source: {...(rule.source ?? {}), version: "rule-curation-v4"},
             detector: {type: "regex", targets: ["(?:探究|审视|掌控)(?:着)?(?:的|地)?(?:目光|眼神)"]},
         };
     }

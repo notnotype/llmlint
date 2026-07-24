@@ -4,7 +4,8 @@
     "namespace": "emphasis-crutch",
     "title": "强调拐杖",
     "level": "medium",
-    "note": "这类词常用强调姿态替代具体内容。",
+    "review": "human",
+    "note": "默认交人工：强调词可能是论证标记或角色语气；当前 eval support 很低，只在它替代证据或具体内容时修。",
     "detector": {
       "type": "regex",
       "targets": [

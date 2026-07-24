@@ -61,7 +61,8 @@
     "namespace": "sycophantic",
     "title": "过度安抚姿态",
     "level": "low",
-    "note": "「稳稳接住你 / 我就在这里 / 你只是太久没被接住」是 AI 的咨询式安抚姿态，删掉姿态改回具体回应；别替对方下心理结论。",
+    "review": "human",
+    "note": "默认交人工：「稳稳接住你 / 我就在这里」在心理咨询、角色对白或引用中可能合法；当前 eval 人类侧命中高于 AI 侧，只在它形成助手式安抚姿态时修。",
     "detector": {
       "type": "regex",
       "targets": [
