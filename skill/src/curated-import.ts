@@ -423,6 +423,59 @@ function applyCuratedPatch(rule: LintRuleRecord): LintRuleRecord {
             source: {...(rule.source ?? {}), version: "rule-curation-v5"},
         };
     }
+    if (rule.id === "cn.cliche.baguwen.even-is") {
+        return {
+            ...rule,
+            review: "human",
+            note: "默认交人工：“甚至是”是普通递进连接词，不应作为默认 Agent 强提示；只在它形成八股递进壳时修。",
+            source: {...(rule.source ?? {}), version: "rule-curation-v6"},
+        };
+    }
+    if (rule.id === "cn.cliche.baguwen.inertia-cause") {
+        return {
+            ...rule,
+            review: "human",
+            note: "默认交人工：“因为惯性”可能是动作、物理或心理惯性的真实因果，不应作为默认 Agent 强提示。",
+            source: {...(rule.source ?? {}), version: "rule-curation-v6"},
+        };
+    }
+    if (rule.id === "cn.cliche.baguwen.shell-noun") {
+        return {
+            ...rule,
+            review: "human",
+            note: "默认交人工：“外壳”是普通名词，只有在抽象包装腔里才需要处理。",
+            source: {...(rule.source ?? {}), version: "rule-curation-v6"},
+        };
+    }
+    if (
+        rule.id === "cn.cliche.body-reaction.mouth-corner-lift-arc"
+        || rule.id === "cn.cliche.body-reaction.mouth-corner-smile-arc"
+        || rule.id === "cn.cliche.body-reaction.smile-arc-comma-marked"
+        || rule.id === "cn.cliche.body-reaction.smile-arc-marked"
+    ) {
+        return {
+            ...rule,
+            enabled: false,
+            note: "默认关闭：素材里的 * 通配符被转换为字面量星号，当前规则只会命中带星号的文本；保留资产，等待重新建模嘴角规则。",
+            source: {...(rule.source ?? {}), version: "rule-curation-v6"},
+        };
+    }
+    if (rule.id === "cn.collection.deepseek.decompose-to-understand") {
+        return {
+            ...rule,
+            review: "human",
+            note: "默认交人工：“拆解”是技术说明、分析文和创作讨论里的普通动词，不应作为默认 Agent 强提示。",
+            source: {...(rule.source ?? {}), version: "rule-curation-v6"},
+        };
+    }
+    if (rule.id === "cn.tone.tone-placeholder") {
+        return {
+            ...rule,
+            enabled: false,
+            note: "默认关闭：素材里的 * 通配符被转换为字面量星号，当前规则只会命中“语气*”这类异常文本；保留资产等待重新建模。",
+            source: {...(rule.source ?? {}), version: "rule-curation-v6"},
+        };
+    }
     if (rule.id === "cn.cliche.quote-meta-as-if" || rule.id === "cn.cliche.quote-meta-like" || rule.id === "cn.cliche.quote-meta-seems") {
         return {
             ...rule,

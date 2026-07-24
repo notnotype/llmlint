@@ -101,7 +101,10 @@
     "title": "八股句式/短语删除",
     "level": "medium",
     "enabled": true,
+    "review": "human",
+    "note": "默认交人工：“甚至是”是普通递进连接词，不应作为默认 Agent 强提示；只在它形成八股递进壳时修。",
     "source": {
+      "version": "rule-curation-v6",
       "canonicalKey": "cliche.baguwen\t\t甚至是",
       "importedFrom": "curated-cn-rule-samples"
     },
@@ -150,7 +153,10 @@
     "title": "八股句式/短语删除",
     "level": "medium",
     "enabled": true,
+    "review": "human",
+    "note": "默认交人工：“因为惯性”可能是动作、物理或心理惯性的真实因果，不应作为默认 Agent 强提示。",
     "source": {
+      "version": "rule-curation-v6",
       "canonicalKey": "cliche.baguwen\t\t因为惯性",
       "importedFrom": "curated-cn-rule-samples"
     },
@@ -244,7 +250,10 @@
     "title": "八股句式/短语删除",
     "level": "medium",
     "enabled": true,
+    "review": "human",
+    "note": "默认交人工：“外壳”是普通名词，只有在抽象包装腔里才需要处理。",
     "source": {
+      "version": "rule-curation-v6",
       "canonicalKey": "cliche.baguwen\t\t外壳",
       "importedFrom": "curated-cn-rule-samples"
     },

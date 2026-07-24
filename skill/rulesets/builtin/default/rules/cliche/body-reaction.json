@@ -30,8 +30,10 @@
     "namespace": "cliche.body-reaction",
     "title": "嘴角与生理泪水",
     "level": "medium",
-    "enabled": true,
+    "enabled": false,
+    "note": "默认关闭：素材里的 * 通配符被转换为字面量星号，当前规则只会命中带星号的文本；保留资产，等待重新建模嘴角规则。",
     "source": {
+      "version": "rule-curation-v6",
       "canonicalKey": "cliche.body-reaction\t\t(?:嘴|唇)角挑起(?:了)?一(?:抹|丝|个)\\*(?:弧度|笑意)",
       "importedFrom": "curated-cn-rule-samples"
     },
@@ -57,8 +59,10 @@
     "namespace": "cliche.body-reaction",
     "title": "嘴角与生理泪水",
     "level": "medium",
-    "enabled": true,
+    "enabled": false,
+    "note": "默认关闭：素材里的 * 通配符被转换为字面量星号，当前规则只会命中带星号的文本；保留资产，等待重新建模嘴角规则。",
     "source": {
+      "version": "rule-curation-v6",
       "canonicalKey": "cliche.body-reaction\t\t(?:嘴|唇)角勾起(?:了)?一(?:抹|丝|个)\\*(?:弧度|笑意)",
       "importedFrom": "curated-cn-rule-samples"
     },
@@ -111,8 +115,10 @@
     "namespace": "cliche.body-reaction",
     "title": "嘴角与生理泪水",
     "level": "medium",
-    "enabled": true,
+    "enabled": false,
+    "note": "默认关闭：素材里的 * 通配符被转换为字面量星号，当前规则只会命中带星号的文本；保留资产，等待重新建模嘴角规则。",
     "source": {
+      "version": "rule-curation-v6",
       "canonicalKey": "cliche.body-reaction\t\t(?:唇|嘴)角\\*，\\*(?:弧度|笑意)\\*(?:，|。)",
       "importedFrom": "curated-cn-rule-samples"
     },
@@ -137,8 +143,10 @@
     "namespace": "cliche.body-reaction",
     "title": "嘴角与生理泪水",
     "level": "medium",
-    "enabled": true,
+    "enabled": false,
+    "note": "默认关闭：素材里的 * 通配符被转换为字面量星号，当前规则只会命中带星号的文本；保留资产，等待重新建模嘴角规则。",
     "source": {
+      "version": "rule-curation-v6",
       "canonicalKey": "cliche.body-reaction\t\t(?:唇|嘴)角\\*(?:弧度|笑意)\\*(?:，|。)",
       "importedFrom": "curated-cn-rule-samples"
     },
