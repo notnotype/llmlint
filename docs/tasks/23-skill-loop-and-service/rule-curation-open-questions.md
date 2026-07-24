@@ -9,6 +9,7 @@
 - 2026-07-24：宽泛低信号 regex 继续下沉：`filler-worth-noting`、`opening-cliche-announce`、`opening-cliche-moreover`、`transition-summary-essence`、`cn.action-expression.calm-voice-shell`、`cn.action-expression.scream-to-whimper`、`cn.action-expression.teasing-modifier`、`cn.cliche.baguwen.death-grip-adverb`、`cn.cliche.baguwen.extreme-degree`、`cn.cliche.quote-meta-*`、`cn.cliche.gaze-emotion-container`、`cn.cliche.teeth-clenched-speech`、`cn.cliche.trailing-callus-clause`、`cn.cliche.voice-emotion-container`、`cn.sentence.compound.ordinary-days-preface` 和 `cn.sentence.compound.single-negative-contrast` 已转 `human`。`opening.cliche` 家族与 `dated-opening` 已限制到叙述层文首窗口。
 - 2026-07-24：素材通配符转换遗留已默认关闭：`cn.cliche.body-reaction.mouth-corner-lift-arc`、`cn.cliche.body-reaction.mouth-corner-smile-arc`、`cn.cliche.body-reaction.smile-arc-comma-marked`、`cn.cliche.body-reaction.smile-arc-marked`、7 条 `cn.metaphor.like.*` 占位比喻壳和 `cn.tone.tone-placeholder`。`cn.cliche.baguwen.white-knuckles` 因与 `cn.cliche.hand-color-clause` 典型同 span 重复也已默认关闭。裸词级 `拆解`、`甚至是`、`因为惯性`、`外壳` 已转 `human`。
 - 2026-07-24：`cn.regex.advanced.few-degree` 在扩充后的当前 dataset 中 reference 命中率高于 AI 文本，已撤回 Agent 例外并回到 `human`；detector 同时加 `(?![钟之])`，避免“过了几分钟 / 几分之一”被半截命中。
+- 2026-07-24：`cn.cliche.vague-transition-phrase` 收窄：裸“近乎”在当前 reference 中有真实用法（如“近乎成本价”），默认 Agent 只保留“近乎于”和“取而代之的是”。
 
 ## 待用户拍板
 

@@ -549,6 +549,14 @@ function applyCuratedPatch(rule: LintRuleRecord): LintRuleRecord {
             source: {...(rule.source ?? {}), version: "rule-curation-v5"},
         };
     }
+    if (rule.id === "cn.cliche.vague-transition-phrase") {
+        return {
+            ...rule,
+            note: "默认收窄：裸“近乎”在当前 reference 中出现真实用法（如“近乎成本价”），Agent 默认只保留“取而代之的是”和更明确的“近乎于”。",
+            source: {...(rule.source ?? {}), version: "rule-curation-v9"},
+            detector: {type: "regex", targets: ["近乎于|取而代之的[,，]?是"]},
+        };
+    }
     if (rule.id === "cn.action-expression.mouth-corner-hook") {
         return {
             ...rule,

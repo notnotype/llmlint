@@ -658,6 +658,8 @@ describe("llmlint", () => {
         expect(byId.get("cn.regex.advanced.few-degree")?.review).toBe("human");
         expect(scanText("过了几分钟，他安心了几分。", [byId.get("cn.regex.advanced.few-degree") as RegexRuleRecord])
             .map((issue) => issue.match)).toEqual(["了几分"]);
+        expect(scanText("拿到了近乎成本价的新灯，取而代之的是旧灯。", [byId.get("cn.cliche.vague-transition-phrase") as RegexRuleRecord])
+            .map((issue) => issue.match)).toEqual(["取而代之的是"]);
     });
 
     it("默认 ruleset 只有确定性机械规则可自动修复，语义 replace 全部为 manual", async () => {
