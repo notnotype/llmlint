@@ -573,6 +573,14 @@ function applyCuratedPatch(rule: LintRuleRecord): LintRuleRecord {
             scope: {layer: "narrative"},
         };
     }
+    if (rule.id === "cn.action-expression.mouth-corner-arc") {
+        return {
+            ...rule,
+            review: "human",
+            note: "默认交人工：裸“嘴/唇角…弧度”旧报告 support 不足，且尾部分句场景已有 cn.cliche.trailing-mouth-arc-clause 作为 canonical。",
+            source: {...(rule.source ?? {}), version: "rule-curation-v12"},
+        };
+    }
     if (rule.id === "cn.action-expression.mouth-corner-hook") {
         return {
             ...rule,

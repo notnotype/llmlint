@@ -100,7 +100,10 @@
     "title": "动作与神态",
     "level": "medium",
     "enabled": true,
+    "review": "human",
+    "note": "默认交人工：裸“嘴/唇角…弧度”旧报告 support 不足，且尾部分句场景已有 cn.cliche.trailing-mouth-arc-clause 作为 canonical。",
     "source": {
+      "version": "rule-curation-v12",
       "canonicalKey": "action-expression\t\t(?:嘴|唇)角(?:弯出|翘起|扯出|勾起)一?个(?:好看的|没有温度的|的)?弧度",
       "importedFrom": "curated-cn-rule-samples"
     },

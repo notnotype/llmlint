@@ -12,6 +12,7 @@
 - 2026-07-24：`cn.cliche.vague-transition-phrase` 收窄：裸“近乎”在当前 reference 中有真实用法（如“近乎成本价”），默认 Agent 只保留“近乎于”和“取而代之的是”。
 - 2026-07-24：跨规则重叠继续收窄：`cn.cliche.baguwen.unquestionable-claim` 排除后接“的/地”，带修饰用法交给 `cn.modifier.absolute-claim-modifier`；`cn.cliche.trailing-sensory-clause` 限制到叙述层，避免对白/系统面板误报；`story-deslop.negation-parade.repeated-none` 排除后接“只有/只是/只会”的场景，避免和 `story-deslop.negation-parade.only-turn` 同报。
 - 2026-07-24：`cn.sentence.compound.contrastive-turn-preface` 已转 `human`。当前 dataset 中它会命中合法对白、设定解释和事实辨析；默认 Agent 继续依赖 story-deslop 的高信号否定对比/否定排比规则。
+- 2026-07-24：`cn.action-expression.mouth-corner-arc` 已转 `human`。旧报告 verdict 为 insufficient，当前 dataset 只剩 1 个 AI 命中；默认 Agent 保留尾部分句 canonical `cn.cliche.trailing-mouth-arc-clause`。
 
 ## 待用户拍板
 
@@ -43,7 +44,7 @@
     - 待确认：LLM 版金句感是否继续作为默认 Agent 审查项，还是也转为 `human`。
 
 7. **剩余 Agent 桶 insufficient 规则是否按策略统一下沉**
-    - 当前仍保留在 `agent` 的 low-support 规则主要包括：`cn.action-expression.mouth-corner-arc`、`cn.cliche.hand-color-clause`、`cn.cliche.trailing-mouth-arc-clause`、`cn.cliche.trailing-sensory-clause` / `trailing-sound-clause`、`cn.cliche.baguwen.unquestionable-claim`、`inflation-novelty`，以及 story-deslop 的少量 high blocking 校准规则；其中 `trailing-sensory-clause` 和 `unquestionable-claim` 已先按明确 overlap 收窄。
+    - 当前仍保留在 `agent` 的 low-support 规则主要包括：`cn.cliche.hand-color-clause`、`cn.cliche.trailing-mouth-arc-clause`、`cn.cliche.trailing-sensory-clause` / `trailing-sound-clause`、`cn.cliche.baguwen.unquestionable-claim`、`inflation-novelty`，以及 story-deslop 的少量 high blocking 校准规则；其中 `trailing-sensory-clause` 和 `unquestionable-claim` 已先按明确 overlap 收窄。
     - 我没有继续硬改的原因：story-deslop blocking 有独立真人校准来源；嘴角/手部/尾部分句/拔高规则虽 support 低，但和 repair-guide 的“身体模板、总结帽子、拔高姿态”原则一致，仍像 Agent 可处理的 AI 味候选。
     - 待确认：后续是否采用机械策略“verdict=insufficient 且无 blocking 校准来源 → 默认 `human`”，还是继续允许少量语义明确但样本支持不足的规则留在 `agent`。
 
