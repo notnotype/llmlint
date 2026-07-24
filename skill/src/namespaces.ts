@@ -158,12 +158,11 @@ export const DEFAULT_NAMESPACE_POLICY: Record<string, NamespacePolicy> = {
 };
 
 /**
- * 第一版创作语料报告确认的 strong 规则级路由覆盖。
+ * 当前创作语料报告确认的 strong 规则级路由覆盖。
  * 这些规则所在 namespace 默认偏人工，但规则本身有稳定区分力，应交 Agent 结合上下文判断。
+ * 旧版曾把 absolute-claim / optional-mood 提权；当前正式 report 已降为 weak，回到 modifier human 桶。
  */
 export const DEFAULT_RULE_POLICY: Record<string, NamespacePolicy> = {
     "cn.modifier.measure.subject-measure-word": {review: "agent"},
     "cn.proliferation.mixed.repeated-de-pairs": {review: "agent"},
-    "cn.modifier.absolute-claim-modifier": {review: "agent"},
-    "cn.modifier.optional-mood-modifiers": {review: "agent"},
 };

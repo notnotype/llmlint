@@ -14,6 +14,7 @@
 - 2026-07-24：`cn.sentence.compound.contrastive-turn-preface` 已转 `human`。当前 dataset 中它会命中合法对白、设定解释和事实辨析；默认 Agent 继续依赖 story-deslop 的高信号否定对比/否定排比规则。
 - 2026-07-24：`cn.action-expression.mouth-corner-arc` 已转 `human`。旧报告 verdict 为 insufficient，当前 dataset 只剩 1 个 AI 命中；默认 Agent 保留尾部分句 canonical `cn.cliche.trailing-mouth-arc-clause`。
 - 2026-07-24：`opening-cliche-era` 与 `inflation-novelty` 已转 `human`。前者旧报告 insufficient 且当前 dataset 无命中；后者旧报告 weak、当前 dataset 仅 1 个 AI 命中，且“前所未有”等词在小说视角和评论中都依赖上下文。
+- 2026-07-24：撤回 `cn.modifier.absolute-claim-modifier` 与 `cn.modifier.optional-mood-modifiers` 的旧 strong rule override。当前正式 `report.json` 两条均为 weak，且它们属于已整体下沉的 modifier 桶；默认回到 `human`，避免把“难以言喻的 / 低沉的 / 精准地”等语境敏感修饰词硬塞进 Agent 入口。
 
 ## 待用户拍板
 
@@ -45,8 +46,8 @@
     - 待确认：LLM 版金句感是否继续作为默认 Agent 审查项，还是也转为 `human`。
 
 7. **剩余 Agent 桶 insufficient 规则是否按策略统一下沉**
-    - 当前仍保留在 `agent` 且旧报告 verdict 为 `weak` / `insufficient` 的规则主要包括：`cn.cliche.hand-color-clause`、`cn.cliche.trailing-mouth-arc-clause`、`cn.cliche.trailing-sensory-clause` / `trailing-sound-clause`、`cn.cliche.baguwen.unquestionable-claim`、`cn.modifier.absolute-claim-modifier`、`cn.modifier.optional-mood-modifiers`，以及 story-deslop 的少量 high blocking 校准规则；其中 `trailing-sensory-clause` 和 `unquestionable-claim` 已先按明确 overlap 收窄，`mouth-corner-arc`、`opening-cliche-era`、`inflation-novelty` 已转 `human`。
-    - 我没有继续硬改的原因：story-deslop blocking 有独立真人校准来源；嘴角/手部/尾部分句/拔高规则虽 support 低，但和 repair-guide 的“身体模板、总结帽子、拔高姿态”原则一致，仍像 Agent 可处理的 AI 味候选。
+    - 当前仍保留在 `agent` 且旧报告 verdict 为 `weak` / `insufficient` 的规则主要包括：`cn.cliche.hand-color-clause`、`cn.cliche.trailing-mouth-arc-clause`、`cn.cliche.trailing-sensory-clause` / `trailing-sound-clause`、`cn.cliche.baguwen.unquestionable-claim`，以及 story-deslop 的少量 high blocking 校准规则；其中 `trailing-sensory-clause` 和 `unquestionable-claim` 已先按明确 overlap 收窄，`mouth-corner-arc`、`opening-cliche-era`、`inflation-novelty`、两个 modifier 旧 strong override 已转 `human`。
+    - 我没有继续硬改的原因：story-deslop blocking 有独立真人校准来源；嘴角/手部/尾部分句规则虽 support 低，但和 repair-guide 的“身体模板、总结帽子”原则一致，仍像 Agent 可处理的 AI 味候选。
     - 待确认：后续是否采用机械策略“verdict=insufficient 且无 blocking 校准来源 → 默认 `human`”，还是继续允许少量语义明确但样本支持不足的规则留在 `agent`。
 
 8. **剩余 active overlap 的跨桶处理边界**

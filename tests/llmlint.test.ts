@@ -642,19 +642,19 @@ describe("llmlint", () => {
         expect(byId.get("test.policy.suggest")).toMatchObject({review: "agent", fixability: "manual"});
     });
 
-    it("创作报告中的 strong 规则可覆盖粗粒度 namespace 路由进入 Agent 桶", async () => {
+    it("当前创作报告中的 strong 规则可覆盖粗粒度 namespace 路由进入 Agent 桶", async () => {
         const loadedRules = await loadRules(emptyConfig(["builtin/default"]));
         const byId = new Map(loadedRules.rules.map((rule) => [rule.id, rule]));
         const strongOverrides = [
             "cn.modifier.measure.subject-measure-word",
             "cn.proliferation.mixed.repeated-de-pairs",
-            "cn.modifier.absolute-claim-modifier",
-            "cn.modifier.optional-mood-modifiers",
         ];
 
         for (const ruleId of strongOverrides) {
             expect(byId.get(ruleId)?.review).toBe("agent");
         }
+        expect(byId.get("cn.modifier.absolute-claim-modifier")?.review).toBe("human");
+        expect(byId.get("cn.modifier.optional-mood-modifiers")?.review).toBe("human");
         expect(byId.get("cn.sentence.compound.contrastive-turn-preface")?.review).toBe("human");
         expect(byId.get("cn.action-expression.mouth-corner-arc")?.review).toBe("human");
         expect(byId.get("opening-cliche-era")?.review).toBe("human");
