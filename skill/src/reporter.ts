@@ -1,5 +1,5 @@
 import {createColors} from "picocolors";
-import type {CheckFileEntry, CheckFilterInfo, CheckJsonReport, CheckMultiJsonReport, CheckSummary, FixFileEntry, FixFileResult, FixReport, FixRuleCount, Issue, LLMRuleRecord, LLMRulesJsonReport, LoadedRules, RegistryDiagnostic, Review, RuleLevel} from "./types";
+import type {CheckFileEntry, CheckFilterInfo, CheckJsonReport, CheckMultiJsonReport, CheckSummary, DensityIssue, FixFileEntry, FixFileResult, FixReport, FixRuleCount, Issue, LLMRuleRecord, LLMRulesJsonReport, LoadedRules, RegistryDiagnostic, Review, RuleLevel} from "./types";
 
 /** picocolors 着色器；createColors(false) 时所有方法为恒等，输出纯文本。 */
 type Painter = ReturnType<typeof createColors>;
@@ -20,6 +20,8 @@ export type CheckReportOptions = {
     includeDiagnostics?: boolean;
     /** 是否对 stylish 输出着色；由 CLI 按 TTY/NO_COLOR/非 json 决定，缺省 false。 */
     color?: boolean;
+    /** density 规则命中；缺省 = 未跑 density 扫描。 */
+    densityIssues?: DensityIssue[];
 };
 
 export function formatCheckReport(filePath: string, issues: Issue[], loadedRules: LoadedRules, options: CheckReportOptions = {}): string {
@@ -31,7 +33,8 @@ export function formatCheckReport(filePath: string, issues: Issue[], loadedRules
     ];
     const hiddenByReview = options.hiddenByReview ?? 0;
     const hiddenByLevel = options.hiddenByLevel ?? 0;
-    if (issues.length === 0) {
+    const densityIssues = options.densityIssues ?? [];
+    if (issues.length === 0 && densityIssues.length === 0) {
         const hiddenNote = formatHiddenNote(hiddenByReview, hiddenByLevel);
         lines.push(hiddenNote ? `${pc.green("✓ No problems found in current view.")}${hiddenNote}` : pc.green("✓ No problems found"));
         return lines.join("\n");
@@ -65,6 +68,9 @@ export function formatCheckReport(filePath: string, issues: Issue[], loadedRules
                 lines.push(options.showLines
                     ? `  ${formatIssueRange(issue)}  ${formatMarkedLine(issue)}`.trimEnd()
                     : `  ${formatIssueRange(issue)}  match: ${pc.yellow(formatMatchText(issue.match))}`);
+                if (issue.detail) {
+                    lines.push(pc.dim(`    ${issue.detail}`));
+                }
                 if (options.showLines) {
                     lines.push("");
                 }
@@ -82,12 +88,37 @@ export function formatCheckReport(filePath: string, issues: Issue[], loadedRules
         }
     }
 
+    // 密度指纹段：与逐处命中分开呈现——它是「分布问题」，一条代表全文/一段的统计结论。
+    if (densityIssues.length > 0) {
+        lines.push(pc.bold(`密度指纹 (${densityIssues.length})`));
+        lines.push("");
+        for (const issue of densityIssues) {
+            const rule = issue.rule;
+            lines.push(`${pc.cyan(rule.id)} ${pc.dim(`[${rule.namespace}]`)} (${rule.title})`);
+            lines.push(pc.dim(`  来源：${rule.ruleset}；级别：${rule.level}；审查：${rule.review}；修复：${rule.fixability}`));
+            lines.push(`  ${issue.line}:${issue.column}  ${issue.hits} 处命中，${issue.perKilo}/千字`);
+            if (issue.samples.length > 0) {
+                lines.push(pc.dim(`  样本：${issue.samples.map((sample) => formatMatchText(sample)).join("、")}`));
+            }
+            lines.push(`  ${formatAction(rule.action)}`);
+            if (rule.note) {
+                lines.push(pc.dim(`  说明：${rule.note}`));
+            }
+            lines.push("");
+        }
+    }
+
     const parts = [];
     if (summary.high > 0) parts.push(`${summary.high} high`);
     if (summary.medium > 0) parts.push(`${summary.medium} medium`);
     if (summary.low > 0) parts.push(`${summary.low} low`);
     // 隐藏统计只在顶部过滤表头展示一次，总结行不重复。
-    lines.push(pc.red(`✖ ${summary.total} problem${summary.total > 1 ? "s" : ""} (${parts.join(", ")})`));
+    if (summary.total > 0) {
+        lines.push(pc.red(`✖ ${summary.total} problem${summary.total > 1 ? "s" : ""} (${parts.join(", ")})`));
+    }
+    if (densityIssues.length > 0) {
+        lines.push(pc.red(`✖ ${densityIssues.length} 条密度指纹`));
+    }
 
     return lines.join("\n");
 }
@@ -138,6 +169,7 @@ export function createCheckJsonReport(filePath: string, configPath: string | nul
         registry: loadedRules.summary,
         diagnostics: loadedRules.diagnostics,
         issues,
+        ...(options.densityIssues ? {densityIssues: options.densityIssues} : {}),
     };
 }
 
@@ -145,13 +177,15 @@ export function createCheckJsonReport(filePath: string, configPath: string | nul
 export function formatCheckAggregate(files: CheckFileEntry[], color = false): string {
     const pc = createColors(color);
     const summary = aggregateSummary(files);
-    const filesWithIssues = files.filter((file) => file.issues.length > 0).length;
+    const filesWithIssues = files.filter((file) => file.issues.length > 0 || (file.densityIssues?.length ?? 0) > 0).length;
+    const densityTotal = files.reduce((sum, file) => sum + (file.densityIssues?.length ?? 0), 0);
     const parts: string[] = [];
     if (summary.high > 0) parts.push(`${summary.high} high`);
     if (summary.medium > 0) parts.push(`${summary.medium} medium`);
     if (summary.low > 0) parts.push(`${summary.low} low`);
     const detail = parts.length > 0 ? ` (${parts.join(", ")})` : "";
-    return pc.bold(`═══ 汇总：${files.length} 个文件，${filesWithIssues} 个有命中，共 ${summary.total} problem${summary.total === 1 ? "" : "s"}${detail} ═══`);
+    const densityNote = densityTotal > 0 ? `，${densityTotal} 条密度指纹` : "";
+    return pc.bold(`═══ 汇总：${files.length} 个文件，${filesWithIssues} 个有命中，共 ${summary.total} problem${summary.total === 1 ? "" : "s"}${detail}${densityNote} ═══`);
 }
 
 export function createMultiCheckJsonReport(configPath: string | null, files: CheckFileEntry[], loadedRules: LoadedRules, filter: CheckFilterInfo): CheckMultiJsonReport {
@@ -161,7 +195,12 @@ export function createMultiCheckJsonReport(configPath: string | null, files: Che
         filter,
         registry: loadedRules.summary,
         diagnostics: loadedRules.diagnostics,
-        files: files.map((file) => ({filePath: file.filePath, summary: file.summary, issues: file.issues})),
+        files: files.map((file) => ({
+            filePath: file.filePath,
+            summary: file.summary,
+            issues: file.issues,
+            ...(file.densityIssues ? {densityIssues: file.densityIssues} : {}),
+        })),
         summary: aggregateSummary(files),
     };
 }

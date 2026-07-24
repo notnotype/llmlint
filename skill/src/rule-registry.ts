@@ -1,6 +1,8 @@
 import {DEFAULT_NAMESPACE_ALIASES} from "./namespaces";
 import type {
+    ActiveHandlerRuleRecord,
     ActiveRuleRecord,
+    DensityRuleRecord,
     LoadedRules,
     LLMRuleRecord,
     NormalizedLlmlintConfig,
@@ -34,13 +36,17 @@ export function materializeRules(options: {
 }): LoadedRules {
     const activeRules = options.catalog
         .flatMap((item) => applyConfig(item, options.config, options.namespaceAliases));
-    const regexRules = activeRules.filter((rule): rule is RegexRuleRecord => rule.detector.type === "regex");
-    const llmRules = activeRules.filter((rule): rule is LLMRuleRecord => rule.detector.type === "llm");
+    const regexRules = activeRules.filter((rule): rule is RegexRuleRecord => "detector" in rule && rule.detector.type === "regex");
+    const llmRules = activeRules.filter((rule): rule is LLMRuleRecord => "detector" in rule && rule.detector.type === "llm");
+    const densityRules = activeRules.filter((rule): rule is DensityRuleRecord => "detector" in rule && rule.detector.type === "density");
+    const handlerRules = activeRules.filter((rule): rule is ActiveHandlerRuleRecord => "handler" in rule);
 
     return {
         rules: activeRules,
         regexRules,
         llmRules,
+        densityRules,
+        handlerRules,
         diagnostics: options.diagnostics,
         summary: summarizeRegistry(options.catalog, activeRules, options.loadedRulesets),
     };

@@ -26,6 +26,7 @@
         "@notnotype/neuro-agent-harness": "0.1.0",
         "commander": "^14.0.2",
         "fflate": "^0.8.3",
+        "node-fetch-native": "^1.6.7",
         "picocolors": "^1.1.1",
         "tinyglobby": "^0.2.15"
     },

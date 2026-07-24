@@ -1,5 +1,7 @@
 import {isMasked} from "./markdown-mask";
-import type {Issue, MaskedRange, RegexRuleRecord} from "./types";
+import {HANDLER_REGISTRY} from "./handler-rules";
+import {computePositionWindow, overlapsRanges, prepareScanContext} from "./scan-context";
+import type {ActiveHandlerRuleRecord, Issue, MaskedRange, RegexRuleRecord, ScanContext} from "./types";
 
 export type ScanOptions = {
     /** Markdown 遮罩区间；命中起点落入其中时跳过（代码块/frontmatter/链接等）。缺省=不遮罩。 */
@@ -8,14 +10,26 @@ export type ScanOptions = {
 
 /**
  * 使用 regex detector 扫描全文。命中只表示候选，是否修复仍由 Agent 结合上下文判断。
- * 传入 maskedRanges 时，跳过命中起点落在遮罩区域内的结果，但不改变行列定位。
+ * 旧签名薄包装：内部自建 ScanContext；需要多次重扫或引号分域时改用
+ * `prepareScanContext` + `scanWithContext`（视图只算一次）。
  */
 export function scanText(content: string, rules: RegexRuleRecord[], options: ScanOptions = {}): Issue[] {
+    return scanWithContext(prepareScanContext(content, {maskedRanges: options.maskedRanges}), rules);
+}
+
+/**
+ * 在扫描上下文上执行 regex 规则：按 `rule.scope.layer` 选等长视图 exec，视图偏移与原文
+ * 一致，命中定位与 excerpt 一律取原文。跳过条件：命中起点落 maskedRanges、命中区间与
+ * ignoreRanges 重叠、命中起点落 position 窗口外。
+ */
+export function scanWithContext(ctx: ScanContext, rules: RegexRuleRecord[]): Issue[] {
+    const content = ctx.content;
     const lineStarts = buildLineStarts(content);
-    const maskedRanges = options.maskedRanges ?? [];
     const issues: Issue[] = [];
 
     for (const rule of rules) {
+        const view = ctx.layers[rule.scope?.layer ?? "all"];
+        const window = rule.scope?.position ? computePositionWindow(ctx, rule.scope.position) : null;
         for (const target of rule.detector.targets) {
             let regex: RegExp;
             try {
@@ -25,18 +39,26 @@ export function scanText(content: string, rules: RegexRuleRecord[], options: Sca
             }
 
             let match: RegExpExecArray | null;
-            while ((match = regex.exec(content)) !== null) {
+            while ((match = regex.exec(view)) !== null) {
                 const matchIndex = match.index;
-                const matchText = match[0];
+                const matchLength = match[0].length;
                 // 零长匹配先推进 lastIndex，避免死循环；遮罩判断与下面的 continue 不影响推进。
-                if (matchText.length === 0) {
+                if (matchLength === 0) {
                     regex.lastIndex++;
                 }
-                if (maskedRanges.length > 0 && isMasked(matchIndex, maskedRanges)) {
+                if (ctx.maskedRanges.length > 0 && isMasked(matchIndex, ctx.maskedRanges)) {
                     continue;
                 }
+                if (ctx.ignoreRanges.length > 0 && overlapsRanges(matchIndex, matchIndex + matchLength, ctx.ignoreRanges)) {
+                    continue;
+                }
+                if (window && (matchIndex < window[0] || matchIndex >= window[1])) {
+                    continue;
+                }
+                // 视图与原文等长，回原文切片保证 excerpt 是真实文本（视图里可能含 `。` 占位）。
+                const matchText = content.slice(matchIndex, matchIndex + matchLength);
                 const position = locatePosition(content, lineStarts, matchIndex);
-                const endPosition = locateEndPosition(content, lineStarts, matchIndex, matchText.length);
+                const endPosition = locateEndPosition(content, lineStarts, matchIndex, matchLength);
                 issues.push({
                     rule,
                     line: position.line,
@@ -45,7 +67,7 @@ export function scanText(content: string, rules: RegexRuleRecord[], options: Sca
                     endColumn: endPosition.column,
                     match: matchText,
                     target,
-                    context: extractContext(content, matchIndex, matchText.length),
+                    context: extractContext(content, matchIndex, matchLength),
                 });
             }
         }
@@ -61,7 +83,53 @@ export function ensureGlobalFlags(flags: string | undefined): string {
     return [...merged].join("");
 }
 
-function buildLineStarts(content: string): number[] {
+/**
+ * 执行 handler 规则：从编译期注册表按名取算法，findings 过 masked/ignore 过滤后映射
+ * 为 Issue。loader 已拒绝未注册名，这里遇到（防御）直接跳过。handler 自行消费 ctx
+ * 的分层视图与结构行标记，scope 字段对 handler 只是元数据。
+ */
+export function scanHandlerRules(ctx: ScanContext, rules: ActiveHandlerRuleRecord[]): Issue[] {
+    if (rules.length === 0) {
+        return [];
+    }
+    const content = ctx.content;
+    const lineStarts = buildLineStarts(content);
+    const issues: Issue[] = [];
+
+    for (const rule of rules) {
+        const handler = HANDLER_REGISTRY[rule.handler.name];
+        if (!handler) {
+            continue;
+        }
+        for (const finding of handler(ctx)) {
+            const {index, length} = finding;
+            if (ctx.maskedRanges.length > 0 && isMasked(index, ctx.maskedRanges)) {
+                continue;
+            }
+            if (ctx.ignoreRanges.length > 0 && overlapsRanges(index, index + length, ctx.ignoreRanges)) {
+                continue;
+            }
+            const position = locatePosition(content, lineStarts, index);
+            const endPosition = locateEndPosition(content, lineStarts, index, length);
+            issues.push({
+                rule,
+                line: position.line,
+                column: position.column,
+                endLine: endPosition.line,
+                endColumn: endPosition.column,
+                match: content.slice(index, index + length),
+                target: rule.handler.name,
+                ...(finding.message !== undefined ? {detail: finding.message} : {}),
+                context: extractContext(content, index, length),
+            });
+        }
+    }
+
+    return issues;
+}
+
+/** 预计算各行起点偏移，供 locatePosition 二分定位；density/handler 锚定复用。 */
+export function buildLineStarts(content: string): number[] {
     const lineStarts = [0];
     for (let index = 0; index < content.length; index++) {
         if (content[index] === "\n") {
@@ -71,7 +139,8 @@ function buildLineStarts(content: string): number[] {
     return lineStarts;
 }
 
-function locatePosition(content: string, lineStarts: number[], index: number): {line: number; column: number} {
+/** 把字符偏移定位成 1-based 行/列（列按码点计）；density/handler 锚定复用。 */
+export function locatePosition(content: string, lineStarts: number[], index: number): {line: number; column: number} {
     const lineIndex = locateLineIndex(lineStarts, index);
     const lineStart = lineStarts[lineIndex] ?? 0;
     return {

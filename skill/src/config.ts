@@ -9,6 +9,7 @@ const DEFAULT_CONFIG: NormalizedLlmlintConfig = {
     rulesetOverrides: {},
     namespaces: {},
     rules: {},
+    ignoreTerms: [],
     output: "stylish",
 };
 
@@ -74,6 +75,7 @@ function normalizeConfig(config: LlmlintConfig): NormalizedLlmlintConfig {
         rulesetOverrides: normalizeRulesetOverrides(config.rulesetOverrides),
         namespaces: normalizeRuleOverrides(config.namespaces, "namespaces"),
         rules: normalizeRuleOverrides(config.rules, "rules"),
+        ignoreTerms: normalizeStringArray(config.ignoreTerms, DEFAULT_CONFIG.ignoreTerms, "ignoreTerms"),
         output: normalizeOutput(config.output),
     };
 }
@@ -85,6 +87,7 @@ function cloneDefaultConfig(): NormalizedLlmlintConfig {
         rulesetOverrides: {},
         namespaces: {},
         rules: {},
+        ignoreTerms: [],
         output: DEFAULT_CONFIG.output,
     };
 }

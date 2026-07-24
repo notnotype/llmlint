@@ -3,9 +3,11 @@ import {readFile, readdir, stat} from "node:fs/promises";
 import {dirname, relative, resolve} from "node:path";
 import {fileURLToPath} from "node:url";
 import {DEFAULT_NAMESPACE_ALIASES, DEFAULT_NAMESPACE_POLICY, DEFAULT_RULE_POLICY} from "./namespaces";
+import {HANDLER_REGISTRY} from "./handler-rules";
 import {materializeRules} from "./rule-registry";
 import type {
     ActiveRuleRecord,
+    BaseLintRuleRecord,
     DeclarativeRuleRecord,
     Fixability,
     HandlerRuleRecord,
@@ -18,6 +20,7 @@ import type {
     RuleLevel,
     RuleRegistryCatalogItem,
     RulesetManifest,
+    ScanScope,
 } from "./types";
 
 const SKILL_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -60,7 +63,7 @@ export async function loadRuleCatalog(config: NormalizedLlmlintConfig): Promise<
         const manifest = await loadManifest(rulesetId);
         Object.assign(namespaceAliases, manifest.namespaceAliases ?? {});
 
-        const rules = await loadRulesetRecords(manifest);
+        const rules = await loadRulesetRecords(manifest, diagnostics);
         let mergedRules = 0;
         let skippedByRulesetOff = 0;
         for (const rawRule of rules) {
@@ -137,7 +140,7 @@ async function loadManifest(rulesetId: string): Promise<RulesetManifest> {
     return {id, title, version, description, namespaceAliases};
 }
 
-async function loadRulesetRecords(manifest: RulesetManifest): Promise<LintRuleRecord[]> {
+async function loadRulesetRecords(manifest: RulesetManifest, diagnostics: RegistryDiagnostic[]): Promise<LintRuleRecord[]> {
     const root = resolveRulesetRoot(manifest.id);
     const rulesRoot = resolve(root, RULES_DIRECTORY);
     if (existsSync(resolve(root, "rules.json"))) {
@@ -161,7 +164,12 @@ async function loadRulesetRecords(manifest: RulesetManifest): Promise<LintRuleRe
         if (!Array.isArray(rules)) {
             throw new Error(`规则包 ${manifest.id} 的 ${ruleFile} 必须是数组。`);
         }
-        records.push(...rules.map((rule, index) => validateRuleRecord(rule, `${manifest.id}.${ruleFile}[${index}]`)));
+        for (const [index, rule] of rules.entries()) {
+            const validated = validateRuleRecord(rule, `${manifest.id}.${ruleFile}[${index}]`, diagnostics, manifest.id);
+            if (validated) {
+                records.push(validated);
+            }
+        }
     }
     return records;
 }
@@ -172,18 +180,6 @@ function normalizeRule(
     aliases: Record<string, string>,
     diagnostics: RegistryDiagnostic[],
 ): ActiveRuleRecord | null {
-    if ("handler" in rule) {
-        diagnostics.push({
-            level: "warning",
-            code: "handler-not-implemented",
-            message: `规则 ${rule.id} 是 handler rule；llmlint v1 只登记诊断，不执行第三方 handler。`,
-            ruleset: manifest.id,
-            ruleId: rule.id,
-            namespace: normalizeNamespace(rule.namespace, aliases),
-        });
-        return null;
-    }
-
     const namespace = normalizeNamespace(rule.namespace, aliases);
     if (namespace !== rule.namespace) {
         diagnostics.push({
@@ -200,13 +196,83 @@ function normalizeRule(
     // fixability 最后还要受规则能力约束：只有 regex + replace 才能进入 auto/candidate。
     const namespacePolicy = DEFAULT_NAMESPACE_POLICY[namespace];
     const rulePolicy = DEFAULT_RULE_POLICY[rule.id];
-    return {
+
+    if ("handler" in rule) {
+        // handler 名必须在编译期注册表内：未注册 = 跳过 + 诊断。这既是老版本 skill 装
+        // 新版规则包的优雅降级，也天然拒绝第三方规则包携带的外部算法引用。
+        if (!(rule.handler.name in HANDLER_REGISTRY)) {
+            diagnostics.push({
+                level: "warning",
+                code: "unknown-handler-name",
+                message: `规则 ${rule.id} 引用的 handler "${rule.handler.name}" 未在当前版本注册，规则已跳过（可能来自更新版本的规则包）。`,
+                ruleset: manifest.id,
+                ruleId: rule.id,
+                namespace,
+            });
+            return null;
+        }
+        // handler 规则 fixability 恒为 manual（无机械修复）；显式声明其他值是规则错误。
+        if (rule.fixability !== undefined && rule.fixability !== "manual") {
+            diagnostics.push({
+                level: "error",
+                code: "handler-rule-not-fixable",
+                message: `规则 ${rule.id} 是 handler 规则，fixability 恒为 manual；声明的 ${rule.fixability} 已忽略。`,
+                ruleset: manifest.id,
+                ruleId: rule.id,
+                namespace,
+            });
+        }
+        return {
+            ...rule,
+            namespace,
+            ruleset: manifest.id,
+            review: rule.review ?? rulePolicy?.review ?? namespacePolicy?.review ?? "agent",
+            fixability: "manual",
+        };
+    }
+
+    const resolved: ActiveRuleRecord = {
         ...rule,
         namespace,
         ruleset: manifest.id,
         review: rule.review ?? rulePolicy?.review ?? namespacePolicy?.review ?? deriveReview(rule),
         fixability: resolveFixability(rule, rulePolicy?.fixability ?? namespacePolicy?.fixability),
     };
+
+    // 不变量（v3.1）：机械修复只允许全文全域。fix 拿命中区间改原文，narrative/dialogue
+    // 视图里的 `。` 占位命中会写坏原文；position 窗口同理不给机械修复留口。
+    if (resolved.fixability !== "manual" && isScopedRule(resolved)) {
+        diagnostics.push({
+            level: "error",
+            code: "scoped-rule-not-auto-fixable",
+            message: `规则 ${rule.id} 声明了非全域 scope，fixability ${resolved.fixability} 已降级为 manual（机械修复只允许全文全域）。`,
+            ruleset: manifest.id,
+            ruleId: rule.id,
+            namespace,
+        });
+        resolved.fixability = "manual";
+    }
+    // density 规则 fixability 恒为 manual（分布问题没有机械修复）；显式声明其他值是规则错误。
+    if (rule.detector.type === "density" && rule.fixability !== undefined && rule.fixability !== "manual") {
+        diagnostics.push({
+            level: "error",
+            code: "density-rule-not-fixable",
+            message: `规则 ${rule.id} 是 density 规则，fixability 恒为 manual；声明的 ${rule.fixability} 已忽略。`,
+            ruleset: manifest.id,
+            ruleId: rule.id,
+            namespace,
+        });
+    }
+    return resolved;
+}
+
+/** 是否声明了非全域扫描范围（narrative/dialogue 层或位置窗口）。 */
+function isScopedRule(rule: BaseLintRuleRecord): boolean {
+    const scope = rule.scope;
+    if (!scope) {
+        return false;
+    }
+    return (scope.layer !== undefined && scope.layer !== "all") || scope.position !== undefined;
 }
 
 /** detector/action 推导默认审查受众：默认都交给 Agent，再由命名空间策略表下调到 human/none。 */
@@ -301,9 +367,28 @@ function rejectRemovedManifestField(manifest: Record<string, unknown>, key: stri
     }
 }
 
-function validateRuleRecord(value: unknown, fieldName: string): LintRuleRecord {
+/** 已知 detector 类型；此外的类型 skip + 诊断（规则共享生态的前向兼容硬前提）。 */
+const KNOWN_DETECTOR_TYPES = new Set(["regex", "llm", "density"]);
+
+/**
+ * 校验单条规则记录。未知 `detector.type` 返回 null 并登记 warning 诊断（老版本 skill
+ * 装到新版规则包必须优雅降级，不抛错）；结构性错误（缺字段/类型不对）仍然抛。
+ */
+function validateRuleRecord(value: unknown, fieldName: string, diagnostics: RegistryDiagnostic[], rulesetId: string): LintRuleRecord | null {
     if (!isObject(value)) {
         throw new Error(`${fieldName} 必须是规则对象。`);
+    }
+
+    if (!("handler" in value) && isObject(value.detector)
+        && typeof value.detector.type === "string" && !KNOWN_DETECTOR_TYPES.has(value.detector.type)) {
+        diagnostics.push({
+            level: "warning",
+            code: "unknown-detector-type",
+            message: `${fieldName} 的 detector.type "${value.detector.type}" 不被当前版本支持，规则已跳过（可能来自更新版本的规则包）。`,
+            ruleset: rulesetId,
+            ruleId: typeof value.id === "string" ? value.id : undefined,
+        });
+        return null;
     }
 
     const base = {
@@ -318,11 +403,16 @@ function validateRuleRecord(value: unknown, fieldName: string): LintRuleRecord {
         note: readOptionalString(value, "note", `${fieldName}.note`),
         examples: readExamples(value.examples, `${fieldName}.examples`),
         source: readSource(value.source, `${fieldName}.source`),
+        scope: readScope(value.scope, `${fieldName}.scope`),
     };
 
     if ("handler" in value) {
         const handler = readHandler(value.handler, `${fieldName}.handler`);
-        return compactObject({...base, handler}) as LintRuleRecord;
+        const action = readAction(value.action, `${fieldName}.action`);
+        if (action.type !== "suggest") {
+            throw new Error(`${fieldName}.action.type handler 规则只支持 suggest。`);
+        }
+        return compactObject({...base, handler, action}) as LintRuleRecord;
     }
 
     const detector = readDetector(value.detector, `${fieldName}.detector`);
@@ -347,7 +437,73 @@ function readDetector(value: unknown, fieldName: string): DeclarativeRuleRecord[
             prompt: readRequiredString(value, "prompt", `${fieldName}.prompt`),
         };
     }
-    throw new Error(`${fieldName}.type 必须是 regex 或 llm。`);
+    if (value.type === "density") {
+        return readDensityDetector(value, fieldName);
+    }
+    throw new Error(`${fieldName}.type 必须是 regex、llm 或 density。`);
+}
+
+/** 校验 density detector：patterns 非空、minHits ≥ 1、门槛字段均为正数。 */
+function readDensityDetector(value: Record<string, unknown>, fieldName: string): DeclarativeRuleRecord["detector"] {
+    const rawPatterns = value.patterns;
+    if (!Array.isArray(rawPatterns) || rawPatterns.length === 0) {
+        throw new Error(`${fieldName}.patterns 必须是非空数组。`);
+    }
+    const patterns = rawPatterns.map((item, index) => {
+        if (!isObject(item)) {
+            throw new Error(`${fieldName}.patterns[${index}] 必须是对象。`);
+        }
+        return compactObject({
+            target: readRequiredString(item, "target", `${fieldName}.patterns[${index}].target`),
+            flags: readOptionalString(item, "flags", `${fieldName}.patterns[${index}].flags`),
+            bucket: readOptionalString(item, "bucket", `${fieldName}.patterns[${index}].bucket`),
+            core: readOptionalBoolean(item, "core", `${fieldName}.patterns[${index}].core`),
+        });
+    });
+    const minHits = readPositiveInteger(value, "minHits", `${fieldName}.minHits`);
+    if (minHits === undefined) {
+        throw new Error(`${fieldName}.minHits 必须是 ≥1 的整数。`);
+    }
+    let granularity: "doc" | "paragraph" | undefined;
+    if (value.granularity === "doc" || value.granularity === "paragraph") {
+        granularity = value.granularity;
+    } else if (value.granularity !== undefined) {
+        throw new Error(`${fieldName}.granularity 必须是 doc 或 paragraph。`);
+    }
+    return compactObject({
+        type: "density" as const,
+        patterns,
+        minHits,
+        perKilo: readPositiveNumber(value, "perKilo", `${fieldName}.perKilo`),
+        coreMinHits: readPositiveInteger(value, "coreMinHits", `${fieldName}.coreMinHits`),
+        minBuckets: readPositiveInteger(value, "minBuckets", `${fieldName}.minBuckets`),
+        minChars: readPositiveInteger(value, "minChars", `${fieldName}.minChars`),
+        granularity,
+    });
+}
+
+/** 读可选正整数字段（≥1）；缺省返回 undefined。 */
+function readPositiveInteger(value: Record<string, unknown>, key: string, fieldName: string): number | undefined {
+    const raw = value[key];
+    if (raw === undefined) {
+        return undefined;
+    }
+    if (typeof raw !== "number" || !Number.isInteger(raw) || raw < 1) {
+        throw new Error(`${fieldName} 必须是 ≥1 的整数。`);
+    }
+    return raw;
+}
+
+/** 读可选正数字段（> 0）；缺省返回 undefined。 */
+function readPositiveNumber(value: Record<string, unknown>, key: string, fieldName: string): number | undefined {
+    const raw = value[key];
+    if (raw === undefined) {
+        return undefined;
+    }
+    if (typeof raw !== "number" || !Number.isFinite(raw) || raw <= 0) {
+        throw new Error(`${fieldName} 必须是正数。`);
+    }
+    return raw;
 }
 
 function readAction(value: unknown, fieldName: string): DeclarativeRuleRecord["action"] {
@@ -373,17 +529,12 @@ function readHandler(value: unknown, fieldName: string): HandlerRuleRecord["hand
     if (!isObject(value)) {
         throw new Error(`${fieldName} 必须是 handler 对象。`);
     }
-    if (value.type !== "module") {
-        throw new Error(`${fieldName}.type 第一版只支持 module。`);
-    }
-    const handlerPath = readRequiredString(value, "path", `${fieldName}.path`);
-    if (handlerPath.includes("..") || handlerPath.startsWith("/") || handlerPath.startsWith("\\")) {
-        throw new Error(`${fieldName}.path 必须是 ruleset 内部相对路径。`);
+    if (value.type !== "builtin") {
+        throw new Error(`${fieldName}.type 只支持 builtin（v3 起废弃 module 形态，handler 只随包编译分发）。`);
     }
     return {
-        type: "module",
-        path: handlerPath,
-        export: readOptionalString(value, "export", `${fieldName}.export`),
+        type: "builtin",
+        name: readRequiredString(value, "name", `${fieldName}.name`),
     };
 }
 
@@ -407,6 +558,38 @@ function readExamples(value: unknown, fieldName: string): BaseExample[] | undefi
 }
 
 type BaseExample = NonNullable<DeclarativeRuleRecord["examples"]>[number];
+
+/** 解析可选 scope 字段：layer 枚举 + position 位置窗口（chars 必须是正整数）。 */
+function readScope(value: unknown, fieldName: string): ScanScope | undefined {
+    if (value === undefined) {
+        return undefined;
+    }
+    if (!isObject(value)) {
+        throw new Error(`${fieldName} 必须是 scope 对象。`);
+    }
+    let layer: ScanScope["layer"];
+    if (value.layer === "narrative" || value.layer === "dialogue" || value.layer === "all") {
+        layer = value.layer;
+    } else if (value.layer !== undefined) {
+        throw new Error(`${fieldName}.layer 必须是 narrative、dialogue 或 all。`);
+    }
+    let position: ScanScope["position"];
+    if (value.position !== undefined) {
+        if (!isObject(value.position)) {
+            throw new Error(`${fieldName}.position 必须是对象。`);
+        }
+        const kind = value.position.kind;
+        if (kind !== "opening" && kind !== "ending") {
+            throw new Error(`${fieldName}.position.kind 必须是 opening 或 ending。`);
+        }
+        const chars = value.position.chars;
+        if (typeof chars !== "number" || !Number.isInteger(chars) || chars <= 0) {
+            throw new Error(`${fieldName}.position.chars 必须是正整数。`);
+        }
+        position = {kind, chars};
+    }
+    return compactObject({layer, position});
+}
 
 function readSource(value: unknown, fieldName: string): DeclarativeRuleRecord["source"] {
     if (value === undefined) {

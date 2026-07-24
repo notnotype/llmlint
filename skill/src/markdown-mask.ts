@@ -65,10 +65,10 @@ export function isMasked(index: number, ranges: MaskedRange[]): boolean {
     return false;
 }
 
-type LineSpan = {start: number; end: number; text: string};
+export type LineSpan = {start: number; end: number; text: string};
 
 /** 按行切分，保留每行在原文中的起止偏移（end 含换行符，指向下一行起点）。 */
-function splitLines(content: string): LineSpan[] {
+export function splitLines(content: string): LineSpan[] {
     const lines: LineSpan[] = [];
     let start = 0;
     for (let index = 0; index < content.length; index++) {
@@ -127,7 +127,7 @@ function pushMatches(text: string, offset: number, ranges: MaskedRange[], regex:
 }
 
 /** 排序并合并重叠 / 相邻区间，得到不相交、按起点升序的区间列表。 */
-function mergeRanges(ranges: MaskedRange[]): MaskedRange[] {
+export function mergeRanges(ranges: MaskedRange[]): MaskedRange[] {
     if (ranges.length <= 1) {
         return ranges;
     }

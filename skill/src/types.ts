@@ -56,6 +56,8 @@ export type LlmlintConfig = {
     namespaces?: Record<string, RuleOverride>;
     /** 按规则 ID 覆盖级别；off 表示禁用该规则。 */
     rules?: Record<string, RuleOverride>;
+    /** 项目级豁免词（世界观术语、绰号、章名）。命中区间与豁免词出现区间重叠即丢弃该命中。 */
+    ignoreTerms?: string[];
     output?: LlmlintOutput;
 };
 
@@ -65,6 +67,7 @@ export type NormalizedLlmlintConfig = {
     rulesetOverrides: Record<string, RulesetOverride>;
     namespaces: Record<string, NormalizedRuleOverride>;
     rules: Record<string, NormalizedRuleOverride>;
+    ignoreTerms: string[];
     output: LlmlintOutput;
 };
 
@@ -77,6 +80,21 @@ export type RulesetManifest = {
 };
 
 export type LintRuleRecord = DeclarativeRuleRecord | HandlerRuleRecord;
+
+/** 扫描域的文本层。narrative=成对引号外的叙述；dialogue=成对引号内（含【】面板）；all=全文。 */
+export type ScanScopeLayer = "narrative" | "dialogue" | "all";
+
+/**
+ * 扫描域：规则在哪一层文本、哪个位置窗口上生效。缺省 = 全文全域（向后兼容）。
+ * 不变量：fixability 为 auto/candidate 的规则必须是全文全域（loader 强制降级）——
+ * narrative/dialogue 视图里引号段是等长 `。` 占位串，机械修复在派生视图上会写坏原文。
+ */
+export type ScanScope = {
+    /** 文本层；缺省 = all。 */
+    layer?: ScanScopeLayer;
+    /** 位置窗口：只在文首/文末 chars 个可见字符（按 narrative 层计）内生效。缺省 = 不限位置。 */
+    position?: {kind: "opening" | "ending"; chars: number};
+};
 
 export type BaseLintRuleRecord = {
     id: string;
@@ -101,6 +119,8 @@ export type BaseLintRuleRecord = {
         canonicalKey?: string;
         importedFrom?: string;
     };
+    /** 扫描域；缺省 = 全文全域（向后兼容既有规则）。 */
+    scope?: ScanScope;
 };
 
 export type RegexDetector = {
@@ -114,35 +134,94 @@ export type LLMDetector = {
     prompt: string;
 };
 
+/**
+ * 密度型 detector：逐处正则报不了「套词 12 处/千字才是模板腔」这类分布指纹。
+ * 所有门槛 AND 语义（全部满足才报）；计数与分母跳过遮罩区、豁免区与结构行。
+ * fixability 恒为 manual（分布问题没有机械修复），loader 强制校验。
+ */
+export type DensityDetector = {
+    type: "density";
+    /** 计数模式组；总命中 = 各 pattern 命中之和。 */
+    patterns: Array<{
+        target: string;
+        flags?: string;
+        /** 统计桶名，缺省 "default"；供 minBuckets 多样性门槛。 */
+        bucket?: string;
+        /** 核心桶命中（coreMinHits 统计口径），缺省 false。 */
+        core?: boolean;
+    }>;
+    /** 绝对次数门槛：总命中低于此数不报。 */
+    minHits: number;
+    /** 密度门槛：每千可见字命中数（按 scope 层可见字数计），缺省不设。 */
+    perKilo?: number;
+    /** 核心命中数门槛，缺省不设。 */
+    coreMinHits?: number;
+    /** 至少命中的不同桶数，缺省不设。 */
+    minBuckets?: number;
+    /** 参与评估的最小可见字数：文本太短不评密度，缺省不设。 */
+    minChars?: number;
+    /** 统计粒度：doc=全文一条（缺省）；paragraph=逐段（行）评估、逐段报。 */
+    granularity?: "doc" | "paragraph";
+};
+
 export type DeclarativeRuleRecord = BaseLintRuleRecord & {
-    detector: RegexDetector | LLMDetector;
+    detector: RegexDetector | LLMDetector | DensityDetector;
     action:
         | {type: "replace"; replacements: string[]}
         | {type: "suggest"; message: string};
 };
 
+/**
+ * handler rule：算法体编译进 skill 包的具名 handler（声明式模型表达不了的状态机/
+ * 统计逻辑）。规则 JSON 仍是数据（level/review/scope/文案），只有算法在代码里；
+ * 第三方规则包引用未注册的 handler 名会得到诊断并被跳过，天然拒绝外部代码。
+ */
 export type HandlerRuleRecord = BaseLintRuleRecord & {
     handler: {
-        type: "module";
-        path: string;
-        export?: string;
+        type: "builtin";
+        /** 编译进 skill 包的 handler 注册表键名（skill/src/handler-rules）。 */
+        name: string;
     };
+    /** 命中呈现文案；handler 无机械修复，action 恒为 suggest。 */
+    action: {type: "suggest"; message: string};
 };
 
-export type ActiveRuleRecord = DeclarativeRuleRecord & {
+/** handler 契约：纯函数，输入扫描上下文，输出命中区间；不碰文件系统，浏览器可打包。 */
+export type RuleHandler = (ctx: ScanContext) => HandlerFinding[];
+
+export type HandlerFinding = {
+    index: number;
+    length: number;
+    /** 覆盖规则默认文案的动态补充说明（如具体计数）；呈现为 Issue.detail。 */
+    message?: string;
+};
+
+/** loader 解析后的声明式规则：review / fixability 一定有值。 */
+export type ActiveDeclarativeRuleRecord = DeclarativeRuleRecord & {
     ruleset: string;
-    /** loader 解析后的最终审查受众，下游一定有值。 */
     review: Review;
-    /** loader 解析后的最终修复能力，下游一定有值。 */
     fixability: Fixability;
 };
 
-export type RegexRuleRecord = ActiveRuleRecord & {
+/** loader 解析后的 handler 规则；fixability 恒为 manual。 */
+export type ActiveHandlerRuleRecord = HandlerRuleRecord & {
+    ruleset: string;
+    review: Review;
+    fixability: Fixability;
+};
+
+export type ActiveRuleRecord = ActiveDeclarativeRuleRecord | ActiveHandlerRuleRecord;
+
+export type RegexRuleRecord = ActiveDeclarativeRuleRecord & {
     detector: RegexDetector;
 };
 
-export type LLMRuleRecord = ActiveRuleRecord & {
+export type LLMRuleRecord = ActiveDeclarativeRuleRecord & {
     detector: LLMDetector;
+};
+
+export type DensityRuleRecord = ActiveDeclarativeRuleRecord & {
+    detector: DensityDetector;
 };
 
 export type RegistryDiagnostic = {
@@ -172,6 +251,8 @@ export type LoadedRules = {
     rules: ActiveRuleRecord[];
     regexRules: RegexRuleRecord[];
     llmRules: LLMRuleRecord[];
+    densityRules: DensityRuleRecord[];
+    handlerRules: ActiveHandlerRuleRecord[];
     diagnostics: RegistryDiagnostic[];
     summary: RegistrySummary;
 };
@@ -187,20 +268,69 @@ export type RuleRegistryCatalogItem = {
 /** Markdown 遮罩区间：半开 `[start, end)`，字符索引空间与 scanner 的 `match.index` 一致。 */
 export type MaskedRange = [number, number];
 
+/** 带结构标记的行切分条目。offsets 与原文一致（end 含换行符，指向下一行起点）。 */
+export type ScanLine = {
+    start: number;
+    end: number;
+    /** 行文本（不含换行符与行尾 \r）。 */
+    text: string;
+    /** markdown 结构行（标题/列表/引用/表格/分隔线）或章节标题行；density/handler 统计默认跳过。 */
+    structural: boolean;
+};
+
+/**
+ * 扫描上下文：一次算好遮罩、引号分域与派生视图，供 regex / density / handler 三种 detector 共享。
+ * 由 `prepareScanContext` 构建；纯数据，浏览器端可用。
+ */
+export type ScanContext = {
+    content: string;
+    /**
+     * 三层等长视图：all 即原文引用（无拷贝）；narrative = 成对引号段（含引号）替换为等长 `。`；
+     * dialogue = 补集同法。换行符在所有视图中原样保留，`match.index` 与原文偏移一致。
+     * narrative 规则作者须知：引号段呈现为 `。` 串，规则模式不得依赖「数句号」类判断。
+     */
+    layers: {all: string; narrative: string; dialogue: string};
+    /** markdown 结构遮罩（代码块/frontmatter/链接等）；命中起点落入即跳过。 */
+    maskedRanges: MaskedRange[];
+    /** 词级白名单区间；命中区间与之重叠即丢弃。 */
+    ignoreRanges: MaskedRange[];
+    /** 成对引号区间（含引号本身），行内配对；诊断/报告可复用。 */
+    dialogueRanges: MaskedRange[];
+    /** 行切分结果；density(paragraph) 与 handler 复用，免逐个重算。 */
+    lines: ScanLine[];
+};
+
 export interface Issue {
-    rule: RegexRuleRecord;
+    /** 命中来源规则：regex 逐处命中或 handler 命中（density 走 DensityIssue）。 */
+    rule: RegexRuleRecord | ActiveHandlerRuleRecord;
     line: number;
     column: number;
     endLine: number;
     endColumn: number;
     match: string;
+    /** regex 命中 = 命中的 target 模式；handler 命中 = handler 注册表键名。 */
     target: string;
+    /** handler 输出的动态补充说明（如具体计数）；regex 命中无此字段。 */
+    detail?: string;
     context: {
         before: string;
         current: string;
         after: string;
     };
 }
+
+/** density 规则命中：全文（doc）/每段（paragraph）最多一条，锚在首个命中位置。 */
+export type DensityIssue = {
+    rule: DensityRuleRecord;
+    line: number;
+    column: number;
+    /** 总命中次数。 */
+    hits: number;
+    /** 每千可见字命中数（分母跳过遮罩/豁免/结构行）。 */
+    perKilo: number;
+    /** 去重样本（≤8 条），供 Agent/人快速识别命中形态。 */
+    samples: string[];
+};
 
 export type CheckSummary = {
     total: number;
@@ -219,6 +349,8 @@ export type CheckJsonReport = {
     registry: RegistrySummary;
     diagnostics: RegistryDiagnostic[];
     issues: Issue[];
+    /** density 规则命中；缺省 = 未跑 density 扫描（旧消费端无感）。 */
+    densityIssues?: DensityIssue[];
 };
 
 /** CLI 级别 / 审查受众过滤信息，check 与 check-multi 共用。 */
@@ -242,6 +374,8 @@ export type CheckFileEntry = {
     filePath: string;
     summary: CheckSummary;
     issues: Issue[];
+    /** density 规则命中；缺省 = 未跑 density 扫描。 */
+    densityIssues?: DensityIssue[];
 };
 
 /** 多文件 check 报告；registry/diagnostics/filter 为全局，files 为逐文件结果，summary 为聚合。 */

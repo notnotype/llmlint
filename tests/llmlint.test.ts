@@ -91,6 +91,7 @@ describe("llmlint", () => {
         const loadedRules = await loadRules({
             rulesets: ["builtin/default"],
             trustedRulesets: [],
+            ignoreTerms: [],
             rulesetOverrides: {},
             namespaces: {
                 "vocabulary.r18": {enabled: false},
@@ -118,6 +119,7 @@ describe("llmlint", () => {
         const loadedRules = await loadRules({
             rulesets: [firstRuleset, secondRuleset],
             trustedRulesets: [],
+            ignoreTerms: [],
             rulesetOverrides: {},
             namespaces: {},
             rules: {},
@@ -225,6 +227,7 @@ describe("llmlint", () => {
         const loadedRules = await loadRules({
             rulesets: [firstRuleset, secondRuleset],
             trustedRulesets: [],
+            ignoreTerms: [],
             rulesetOverrides: {
                 [secondRuleset]: "off",
             },
@@ -252,6 +255,7 @@ describe("llmlint", () => {
         const loadedRules = await loadRules({
             rulesets: [rulesetId],
             trustedRulesets: [],
+            ignoreTerms: [],
             rulesetOverrides: {
                 [rulesetId]: "off",
             },
@@ -344,7 +348,7 @@ describe("llmlint", () => {
         expect(output).toContain("1:32-35  这是一个很长的完整行，前面有足够多的上下文用于验证不会被截断，<mark>高风险词</mark>后面也应该保留完整上下文。");
     });
 
-    it("handler rule 第一版会跳过并产生 warning", async () => {
+    it("handler rule：module 形态拒载，未注册 builtin 名跳过并产生 warning", async () => {
         const rulesetId = `test/${randomUUID()}`;
         tempRoots.push(join(RULESETS_ROOT, "test"));
         await writeRuleset(rulesetId, [{
@@ -353,13 +357,24 @@ describe("llmlint", () => {
             title: "handler",
             level: "medium",
             handler: {type: "module", path: "handler.ts"},
-        }]);
+        } as never]);
 
+        // v3 起 handler 只支持编译进包的 builtin 具名形态，module 路径直接拒载。
+        await expect(loadRules(emptyConfig([rulesetId]))).rejects.toThrow(/builtin/);
+
+        await writeRuleset(rulesetId, [{
+            id: "test.handler.unknown",
+            namespace: "test.handler",
+            title: "handler",
+            level: "medium",
+            handler: {type: "builtin", name: "not-registered-anywhere"},
+            action: {type: "suggest", message: "x"},
+        } as never]);
         const loadedRules = await loadRules(emptyConfig([rulesetId]));
 
         expect(loadedRules.rules).toHaveLength(0);
         expect(loadedRules.diagnostics).toEqual(expect.arrayContaining([
-            expect.objectContaining({code: "handler-not-implemented", ruleId: "test.handler"}),
+            expect.objectContaining({code: "unknown-handler-name", ruleId: "test.handler.unknown"}),
         ]));
     });
 
@@ -674,6 +689,7 @@ describe("llmlint", () => {
         const loadedRules = await loadRules({
             rulesets: [rulesetId],
             trustedRulesets: [],
+            ignoreTerms: [],
             rulesetOverrides: {},
             namespaces: {"test.review": {review: "human"}},
             rules: {"test.review.a": {review: "none"}},
@@ -812,6 +828,7 @@ describe("llmlint", () => {
         const loadedRules = await loadRules({
             rulesets: [rulesetId],
             trustedRulesets: [],
+            ignoreTerms: [],
             rulesetOverrides: {},
             namespaces: {},
             rules: {"test.enable.obj": {enabled: true, level: "high", review: "human"}},
@@ -895,6 +912,7 @@ describe("llmlint", () => {
         const attrOnly = await loadRules({
             rulesets: [rulesetId],
             trustedRulesets: [],
+            ignoreTerms: [],
             rulesetOverrides: {[rulesetId]: "off"},
             namespaces: {"test.resurrect": {review: "human"}},
             rules: {},
@@ -905,6 +923,7 @@ describe("llmlint", () => {
         const withEnable = await loadRules({
             rulesets: [rulesetId],
             trustedRulesets: [],
+            ignoreTerms: [],
             rulesetOverrides: {[rulesetId]: "off"},
             namespaces: {"test.resurrect": {enabled: true, review: "human"}},
             rules: {},
@@ -1297,6 +1316,7 @@ function emptyConfig(rulesets: string[]) {
     return {
         rulesets,
         trustedRulesets: [],
+        ignoreTerms: [],
         rulesetOverrides: {},
         namespaces: {},
         rules: {},

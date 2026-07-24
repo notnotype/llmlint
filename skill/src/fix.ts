@@ -207,6 +207,10 @@ export type SingleIssueReplacementOptions = {
 export function applySingleIssueReplacement(content: string, issue: Issue, startOffset: number, options: SingleIssueReplacementOptions = {}): SingleIssueReplacement | null {
     const rule = issue.rule;
     const allowedFixabilities = options.allowedFixabilities ?? ["auto"];
+    // handler 命中（无 regex detector）没有可复放的机械替换，直接拒绝。
+    if (!("detector" in rule) || rule.detector.type !== "regex") {
+        return null;
+    }
     if (!allowedFixabilities.includes(rule.fixability) || rule.action.type !== "replace") {
         return null;
     }
