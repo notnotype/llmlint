@@ -44,7 +44,7 @@
     - 待确认：LLM 版金句感是否继续作为默认 Agent 审查项，还是也转为 `human`。
 
 7. **剩余 Agent 桶 insufficient 规则是否按策略统一下沉**
-    - 当前仍保留在 `agent` 的 low-support 规则主要包括：`cn.cliche.hand-color-clause`、`cn.cliche.trailing-mouth-arc-clause`、`cn.cliche.trailing-sensory-clause` / `trailing-sound-clause`、`cn.cliche.baguwen.unquestionable-claim`、`inflation-novelty`，以及 story-deslop 的少量 high blocking 校准规则；其中 `trailing-sensory-clause` 和 `unquestionable-claim` 已先按明确 overlap 收窄。
+    - 三批整理后，当前仍保留在 `agent` 且旧报告 verdict 为 `weak` / `insufficient` 的规则主要包括：`opening-cliche-era`、`cn.cliche.hand-color-clause`、`cn.cliche.trailing-mouth-arc-clause`、`cn.cliche.trailing-sensory-clause` / `trailing-sound-clause`、`cn.cliche.baguwen.unquestionable-claim`、`inflation-novelty`、`cn.modifier.absolute-claim-modifier`、`cn.modifier.optional-mood-modifiers`，以及 story-deslop 的少量 high blocking 校准规则；其中 `trailing-sensory-clause` 和 `unquestionable-claim` 已先按明确 overlap 收窄，`mouth-corner-arc` 已转 `human`。
     - 我没有继续硬改的原因：story-deslop blocking 有独立真人校准来源；嘴角/手部/尾部分句/拔高规则虽 support 低，但和 repair-guide 的“身体模板、总结帽子、拔高姿态”原则一致，仍像 Agent 可处理的 AI 味候选。
     - 待确认：后续是否采用机械策略“verdict=insufficient 且无 blocking 校准来源 → 默认 `human`”，还是继续允许少量语义明确但样本支持不足的规则留在 `agent`。
 
@@ -54,7 +54,7 @@
     - 待确认：跨桶 overlap 是否也按 canonical 默认关闭一侧，还是保留当前“Agent 高信号规则 + Human 词表规则”并存。
 
 9. **story-deslop 否定连排是否继续 high blocking**
-    - 当前 dataset 重扫发现 `story-deslop.negation-parade.repeated-none` 在一段 reference 中命中“没有混杂木屑，没有太多麸质，”，同时 AI 文本中也有 3 处典型命中。
+    - 当前 dataset 重扫发现 `story-deslop.negation-parade.repeated-none` 在一段 reference 中命中“没有混杂木屑，没有太多麸质，”，收窄后 AI 文本中剩 2 处典型命中。
     - 已处理的确定问题：后接“只有/只是/只会”的同 span 场景已排除，避免和 `story-deslop.negation-parade.only-turn` 重复。
     - 我没有直接下沉的原因：这是 story-deslop high blocking 校准规则，原校准集 0 人类命中；单个 reference 命中不足以否定整条规则。
     - 待确认：是否继续保持 `high + agent`，还是收窄为只处理否定后转入抽象总结/情绪结论的结构。
