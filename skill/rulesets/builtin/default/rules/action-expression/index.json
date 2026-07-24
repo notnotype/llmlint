@@ -119,8 +119,10 @@
     "namespace": "action-expression",
     "title": "动作与神态",
     "level": "medium",
-    "enabled": true,
+    "enabled": false,
+    "note": "默认关闭：裸“嘴角勾”过宽，容易与更长嘴角弧度规则产生半截候选；保留给项目显式开启。",
     "source": {
+      "version": "rule-curation-v2",
       "canonicalKey": "action-expression\t\t嘴角勾",
       "importedFrom": "curated-cn-rule-samples"
     },

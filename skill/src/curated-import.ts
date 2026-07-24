@@ -367,6 +367,30 @@ function applyCuratedPatch(rule: LintRuleRecord): LintRuleRecord {
             detector: {type: "regex", targets: ["(?:突|忽)然间，?"]},
         };
     }
+    if (rule.id === "cn.cliche.awkward-fit-judgment") {
+        return {
+            ...rule,
+            review: "human",
+            note: "默认交人工：“格格不入”是常见成语，当前 eval support 很低；只在它替代具体不协调细节时修。",
+            source: {...(rule.source ?? {}), version: "rule-curation-v2"},
+        };
+    }
+    if (rule.id === "cn.cliche.blank-face") {
+        return {
+            ...rule,
+            review: "human",
+            note: "默认交人工：“面无表情”是常见表情描写，当前 eval support 很低；只在同段模板化重复时修。",
+            source: {...(rule.source ?? {}), version: "rule-curation-v2"},
+        };
+    }
+    if (rule.id === "cn.action-expression.mouth-corner-hook") {
+        return {
+            ...rule,
+            enabled: false,
+            note: "默认关闭：裸“嘴角勾”过宽，容易与更长嘴角弧度规则产生半截候选；保留给项目显式开启。",
+            source: {...(rule.source ?? {}), version: "rule-curation-v2"},
+        };
+    }
     if (rule.id === "cn.cliche.body-reaction.controlling-gaze") {
         return {
             ...rule,

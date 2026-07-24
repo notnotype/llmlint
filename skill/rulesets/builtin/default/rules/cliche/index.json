@@ -5,8 +5,10 @@
     "title": "弱化抽象评断词",
     "level": "medium",
     "enabled": true,
-    "note": "弱化抽象评断词",
+    "review": "human",
+    "note": "默认交人工：“格格不入”是常见成语，当前 eval support 很低；只在它替代具体不协调细节时修。",
     "source": {
+      "version": "rule-curation-v2",
       "canonicalKey": "cliche\t\t格格不入",
       "importedFrom": "curated-cn-rule-samples"
     },
@@ -29,8 +31,10 @@
     "title": "弱化模板化面部描写",
     "level": "medium",
     "enabled": true,
-    "note": "弱化模板化面部描写",
+    "review": "human",
+    "note": "默认交人工：“面无表情”是常见表情描写，当前 eval support 很低；只在同段模板化重复时修。",
     "source": {
+      "version": "rule-curation-v2",
       "canonicalKey": "cliche\t\t面无表情",
       "importedFrom": "curated-cn-rule-samples"
     },

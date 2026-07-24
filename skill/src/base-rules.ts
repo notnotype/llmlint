@@ -111,7 +111,8 @@ const CORE_BASE_RULES = [
         "namespace": "transition.mechanical",
         "title": "机械对比过渡",
         "level": "medium",
-        "note": "这种对比方式过于套路化，更自然的写作会使用更灵活的过渡。",
+        "review": "human",
+        "note": "默认交人工：“一方面/另一方面”在说明文和论证中合法，当前 eval support 很低；只在它替代具体因果推进时修。",
         "detector": {
             "type": "regex",
             "targets": [
@@ -216,7 +217,8 @@ const CORE_BASE_RULES = [
         "namespace": "transition.mechanical",
         "title": "全面式并列结构",
         "level": "medium",
-        "note": "这种面面俱到的并列结构容易为了显得全面而稀释重点。",
+        "review": "human",
+        "note": "默认交人工：“无论/不仅”结构常用于正常概括，当前 eval 为 insufficient；只在面面俱到稀释重点时修。",
         "detector": {
             "type": "regex",
             "targets": [
