@@ -28,7 +28,10 @@
     "title": "八股句式/短语删除",
     "level": "medium",
     "enabled": true,
+    "review": "human",
+    "note": "默认交人工：“得死死的”是常见强度描写，当前 eval support 很低；只在它形成重复身体模板时删。",
     "source": {
+      "version": "rule-curation-v5",
       "canonicalKey": "cliche.baguwen\t\t得死死的",
       "importedFrom": "curated-cn-rule-samples"
     },
@@ -121,7 +124,10 @@
     "title": "八股句式/短语删除",
     "level": "medium",
     "enabled": true,
+    "review": "human",
+    "note": "默认交人工：“到了极致”是宽泛夸张词，当前 eval support 很低；只在它空转拔高时删。",
     "source": {
+      "version": "rule-curation-v5",
       "canonicalKey": "cliche.baguwen\t\t到了极致",
       "importedFrom": "curated-cn-rule-samples"
     },

@@ -39,7 +39,8 @@ const CORE_BASE_RULES = [
         "namespace": "filler",
         "title": "喉舌式开头",
         "level": "medium",
-        "note": "这类开头先宣布重点再进入内容，常削弱陈述力度。",
+        "review": "human",
+        "note": "默认交人工：“值得注意的是/需要指出的是”在报告和技术说明中常承担真实组织功能；只在它形成助手腔开场帽子时删除。",
         "detector": {
             "type": "regex",
             "targets": [
@@ -186,6 +187,7 @@ const CORE_BASE_RULES = [
         "title": "喉舌式时代开头",
         "level": "medium",
         "note": "这些是典型的作文式开头，容易用宏大背景替代具体事实。",
+        "scope": {"layer": "narrative", "position": {"kind": "opening", "chars": 600}},
         "detector": {
             "type": "regex",
             "targets": [

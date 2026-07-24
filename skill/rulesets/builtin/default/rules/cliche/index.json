@@ -225,8 +225,10 @@
     "title": "删眼神情绪总结壳",
     "level": "medium",
     "enabled": true,
-    "note": "删眼神情绪总结壳",
+    "review": "human",
+    "note": "默认交人工：“眼神里带着…”可能是正常叙事压缩，当前 eval 仅 weak；只在它替代具体行动或心理推进时修。",
     "source": {
+      "version": "rule-curation-v5",
       "canonicalKey": "cliche\t\t(?:眼神|眼底|眼中)(?:里)?(?:带着|满是|透着)[\\u4e00-\\u9fff]{1,8}(?=[，,。])",
       "importedFrom": "curated-cn-rule-samples"
     },
@@ -444,8 +446,10 @@
     "title": "弱化引语元叙述壳",
     "level": "medium",
     "enabled": true,
-    "note": "弱化引语元叙述壳",
+    "review": "human",
+    "note": "默认交人工：“仿佛/像/好像在说”需要判断前文是否已有足够动作和语气；当前 eval support 很低，只在它解释过度时修。",
     "source": {
+      "version": "rule-curation-v5",
       "canonicalKey": "cliche\t\t仿佛在说",
       "importedFrom": "curated-cn-rule-samples"
     },
@@ -468,8 +472,10 @@
     "title": "弱化引语元叙述壳",
     "level": "medium",
     "enabled": true,
-    "note": "弱化引语元叙述壳",
+    "review": "human",
+    "note": "默认交人工：“仿佛/像/好像在说”需要判断前文是否已有足够动作和语气；当前 eval support 很低，只在它解释过度时修。",
     "source": {
+      "version": "rule-curation-v5",
       "canonicalKey": "cliche\t\t像是在说",
       "importedFrom": "curated-cn-rule-samples"
     },
@@ -492,8 +498,10 @@
     "title": "弱化引语元叙述壳",
     "level": "medium",
     "enabled": true,
-    "note": "弱化引语元叙述壳",
+    "review": "human",
+    "note": "默认交人工：“仿佛/像/好像在说”需要判断前文是否已有足够动作和语气；当前 eval support 很低，只在它解释过度时修。",
     "source": {
+      "version": "rule-curation-v5",
       "canonicalKey": "cliche\t\t好像在说",
       "importedFrom": "curated-cn-rule-samples"
     },
@@ -564,8 +572,10 @@
     "title": "弱化咬字方式模板",
     "level": "medium",
     "enabled": true,
-    "note": "弱化咬字方式模板",
+    "review": "human",
+    "note": "默认交人工：“从牙缝里挤出”是常见咬字描写，当前 eval support 偏低；只在同类模板重复时修。",
     "source": {
+      "version": "rule-curation-v5",
       "canonicalKey": "cliche\t\t从牙缝里挤出",
       "importedFrom": "curated-cn-rule-samples"
     },
@@ -660,8 +670,10 @@
     "title": "只删末尾或对话前置分句",
     "level": "medium",
     "enabled": true,
-    "note": "只删末尾或对话前置分句",
+    "review": "human",
+    "note": "默认交人工：茧子细节高度依赖题材和人物设定，当前 eval support 很低；只在它成为无功能尾部分句时删。",
     "source": {
+      "version": "rule-curation-v5",
       "canonicalKey": "cliche\t\t[,，。][\\u4e00-\\u9fff、]+茧子?(?=。|[,，:：][“「\"])",
       "importedFrom": "curated-cn-rule-samples"
     },
@@ -804,8 +816,10 @@
     "title": "删声音状态容器壳",
     "level": "medium",
     "enabled": true,
-    "note": "删声音状态容器壳",
+    "review": "human",
+    "note": "默认交人工：“声音/语气里带着…”可能是有效对白提示，当前 eval support 很低；只在它解释过度或重复时修。",
     "source": {
+      "version": "rule-curation-v5",
       "canonicalKey": "cliche\t\t(?:声音|语气|语调)里(?:带着|满是|透着)[\\u4e00-\\u9fff]{1,8}(?=[，,。])",
       "importedFrom": "curated-cn-rule-samples"
     },

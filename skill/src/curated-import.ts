@@ -383,6 +383,86 @@ function applyCuratedPatch(rule: LintRuleRecord): LintRuleRecord {
             source: {...(rule.source ?? {}), version: "rule-curation-v2"},
         };
     }
+    if (rule.id === "cn.action-expression.calm-voice-shell") {
+        return {
+            ...rule,
+            review: "human",
+            note: "默认交人工：“平稳”是普通状态描写，当前 eval support 很低；只在它成为声音状态模板壳时修。",
+            source: {...(rule.source ?? {}), version: "rule-curation-v5"},
+        };
+    }
+    if (rule.id === "cn.action-expression.scream-to-whimper") {
+        return {
+            ...rule,
+            review: "human",
+            note: "默认交人工：裸“尖叫”不是稳定 AI 痕迹，且替换为“呜咽”会改变动作强度；只在上下文确认过度尖叫时改。",
+            source: {...(rule.source ?? {}), version: "rule-curation-v5"},
+        };
+    }
+    if (rule.id === "cn.action-expression.teasing-modifier") {
+        return {
+            ...rule,
+            review: "human",
+            note: "默认交人工：“戏谑”可能是人物口吻或真实语气，当前 eval support 低；只在它替代具体动作时修。",
+            source: {...(rule.source ?? {}), version: "rule-curation-v5"},
+        };
+    }
+    if (rule.id === "cn.cliche.baguwen.death-grip-adverb") {
+        return {
+            ...rule,
+            review: "human",
+            note: "默认交人工：“得死死的”是常见强度描写，当前 eval support 很低；只在它形成重复身体模板时删。",
+            source: {...(rule.source ?? {}), version: "rule-curation-v5"},
+        };
+    }
+    if (rule.id === "cn.cliche.baguwen.extreme-degree") {
+        return {
+            ...rule,
+            review: "human",
+            note: "默认交人工：“到了极致”是宽泛夸张词，当前 eval support 很低；只在它空转拔高时删。",
+            source: {...(rule.source ?? {}), version: "rule-curation-v5"},
+        };
+    }
+    if (rule.id === "cn.cliche.quote-meta-as-if" || rule.id === "cn.cliche.quote-meta-like" || rule.id === "cn.cliche.quote-meta-seems") {
+        return {
+            ...rule,
+            review: "human",
+            note: "默认交人工：“仿佛/像/好像在说”需要判断前文是否已有足够动作和语气；当前 eval support 很低，只在它解释过度时修。",
+            source: {...(rule.source ?? {}), version: "rule-curation-v5"},
+        };
+    }
+    if (rule.id === "cn.cliche.gaze-emotion-container") {
+        return {
+            ...rule,
+            review: "human",
+            note: "默认交人工：“眼神里带着…”可能是正常叙事压缩，当前 eval 仅 weak；只在它替代具体行动或心理推进时修。",
+            source: {...(rule.source ?? {}), version: "rule-curation-v5"},
+        };
+    }
+    if (rule.id === "cn.cliche.teeth-clenched-speech") {
+        return {
+            ...rule,
+            review: "human",
+            note: "默认交人工：“从牙缝里挤出”是常见咬字描写，当前 eval support 偏低；只在同类模板重复时修。",
+            source: {...(rule.source ?? {}), version: "rule-curation-v5"},
+        };
+    }
+    if (rule.id === "cn.cliche.trailing-callus-clause") {
+        return {
+            ...rule,
+            review: "human",
+            note: "默认交人工：茧子细节高度依赖题材和人物设定，当前 eval support 很低；只在它成为无功能尾部分句时删。",
+            source: {...(rule.source ?? {}), version: "rule-curation-v5"},
+        };
+    }
+    if (rule.id === "cn.cliche.voice-emotion-container") {
+        return {
+            ...rule,
+            review: "human",
+            note: "默认交人工：“声音/语气里带着…”可能是有效对白提示，当前 eval support 很低；只在它解释过度或重复时修。",
+            source: {...(rule.source ?? {}), version: "rule-curation-v5"},
+        };
+    }
     if (rule.id === "cn.action-expression.mouth-corner-hook") {
         return {
             ...rule,
@@ -405,6 +485,22 @@ function applyCuratedPatch(rule: LintRuleRecord): LintRuleRecord {
             review: "human",
             note: "默认交人工：带主语的“并没有…而是”可能是正常对比，当前 eval 人类侧命中；只在否定铺垫无功能时修。",
             source: {...(rule.source ?? {}), version: "rule-curation-v2"},
+        };
+    }
+    if (rule.id === "cn.sentence.compound.ordinary-days-preface") {
+        return {
+            ...rule,
+            review: "human",
+            note: "默认交人工：“平日里”是普通时间参照，当前 eval support 低；只在它成为可删除的参照依赖句壳时修。",
+            source: {...(rule.source ?? {}), version: "rule-curation-v5"},
+        };
+    }
+    if (rule.id === "cn.sentence.compound.single-negative-contrast") {
+        return {
+            ...rule,
+            review: "human",
+            note: "默认交人工：旧“不是…而是”regex 与 story-deslop handler 职责接近，且删前半句易改语义；默认不再喂给 Agent 强修。",
+            source: {...(rule.source ?? {}), version: "rule-curation-v5"},
         };
     }
     if (rule.id === "cn.cliche.body-reaction.controlling-gaze") {

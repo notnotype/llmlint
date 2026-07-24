@@ -103,8 +103,10 @@
     "title": "删参照依赖句壳",
     "level": "medium",
     "enabled": true,
-    "note": "删参照依赖句壳",
+    "review": "human",
+    "note": "默认交人工：“平日里”是普通时间参照，当前 eval support 低；只在它成为可删除的参照依赖句壳时修。",
     "source": {
+      "version": "rule-curation-v5",
       "canonicalKey": "sentence.compound\t\t平日里",
       "importedFrom": "curated-cn-rule-samples"
     },
@@ -175,8 +177,10 @@
     "title": "删单层否定对比前半句",
     "level": "medium",
     "enabled": true,
-    "note": "删单层否定对比前半句",
+    "review": "human",
+    "note": "默认交人工：旧“不是…而是”regex 与 story-deslop handler 职责接近，且删前半句易改语义；默认不再喂给 Agent 强修。",
     "source": {
+      "version": "rule-curation-v5",
       "canonicalKey": "sentence.compound\t\t(?<!不是不)([\\u4e00-\\u9fff]+)不是[\\u4e00-\\u9fff，、“”‘’]{1,20}[，,]而是",
       "importedFrom": "curated-cn-rule-samples"
     },

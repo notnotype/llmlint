@@ -6,6 +6,7 @@
 
 - 2026-07-24：`cn.metaphor.inserted-simile-shell`、`cn.cliche.mid-sentence-summary`、手部泛白 / 嘴角弧度重复规则、氛围修饰、状态修饰、夸张比附和绝对判断修饰中的 100% active-to-active overlap 条目，已按“保留更宽 canonical、不物理删除资产”的策略默认关闭。
 - 2026-07-24：`filler-can-say`、`filler-lets`、`emphasis-crutch`、`rhetorical-setup`、`inflation-marvel`、`transition-summary-conclude`、`assistant-comfort-pose` 和 `cn.cliche.body-reaction.controlling-gaze` 已转 `human`，不再进入默认 Agent 桶。
+- 2026-07-24：宽泛低信号 regex 继续下沉：`filler-worth-noting`、`opening-cliche-announce`、`opening-cliche-moreover`、`transition-summary-essence`、`cn.action-expression.calm-voice-shell`、`cn.action-expression.scream-to-whimper`、`cn.action-expression.teasing-modifier`、`cn.cliche.baguwen.death-grip-adverb`、`cn.cliche.baguwen.extreme-degree`、`cn.cliche.quote-meta-*`、`cn.cliche.gaze-emotion-container`、`cn.cliche.teeth-clenched-speech`、`cn.cliche.trailing-callus-clause`、`cn.cliche.voice-emotion-container`、`cn.sentence.compound.ordinary-days-preface` 和 `cn.sentence.compound.single-negative-contrast` 已转 `human`。`opening.cliche` 家族与 `dated-opening` 已限制到叙述层文首窗口。
 
 ## 待用户拍板
 
@@ -31,13 +32,14 @@
    - 本轮已把 `vocabulary.body`、`vocabulary.r18`、`vocabulary.academic-anatomy`、`color-description`、`sound.once`、`jargon.business`、`regex.advanced` 默认下沉 `human`；只把 `cn.regex.advanced.few-degree` 作为强信号例外保留 `agent`。
    - 待确认：是否把 `vocabulary.body.flesh-skin` / `back-spine` / `mouth-corner`、`sound.once.laugh-one-sound` 等 weak 但人类命中低的规则级例外提回 `agent`，还是继续把这些题材词表留给人工复核。
 
-6. **宽泛低信号规则是否继续打扰 Agent**
-    - 本轮已将 `filler-word-actually`、`filler-can-say`、`filler-lets`、`meta-announcement`、`quotable-punchline-candidate` 下沉 `human`；但 `filler-worth-noting` 与 LLM 版 `quotable-punchline` 仍在 `agent`。
-    - 待确认：是否进一步把这些宽泛填充词 / 金句感默认转为 `human`，或保持当前状态，让 Agent 继续处理更明确的模板化用法。
+6. **LLM 金句感是否继续打扰 Agent**
+    - 本轮已将宽泛 regex 入口继续下沉：`filler-worth-noting`、开场普通连接词、`transition-summary-essence` 和旧单层否定对比不再进入默认 Agent 桶。
+    - 当前仍保留在 `agent` 的同类高语义规则主要是 LLM 版 `quotable-punchline`。因为它不是裸 regex，而是要求读上下文判断“是否只剩姿态”，我暂未机械下沉。
+    - 待确认：LLM 版金句感是否继续作为默认 Agent 审查项，还是也转为 `human`。
 
 7. **剩余 Agent 桶 insufficient 规则是否按策略统一下沉**
-    - 当前仍保留在 `agent` 的 low-support 规则包括：`transition-summary-essence`、`opening-cliche-*`，以及 `cliche` 中的声音状态容器、引语元叙述壳等。手部泛白和嘴角弧度里的 100% 重复条目已默认关闭。
-    - 我没有继续硬改的原因：这些模式虽然本轮 eval support 低，但和 story-deslop / repair-guide 的“总结帽子、拔高姿态、声音/嘴角/手部模板、开场助手腔”原则一致，语义上仍像 Agent 可处理的 AI 味候选。
+    - 当前仍保留在 `agent` 的 low-support 规则主要包括：`cn.action-expression.mouth-corner-arc`、`cn.cliche.hand-color-clause`、`cn.cliche.trailing-mouth-arc-clause`、`cn.cliche.trailing-sensory-clause` / `trailing-sound-clause`、`cn.cliche.baguwen.unquestionable-claim`、`inflation-novelty`，以及 story-deslop 的少量 high blocking 校准规则。
+    - 我没有继续硬改的原因：story-deslop blocking 有独立真人校准来源；嘴角/手部/尾部分句/拔高规则虽 support 低，但和 repair-guide 的“身体模板、总结帽子、拔高姿态”原则一致，仍像 Agent 可处理的 AI 味候选。
     - 待确认：后续是否采用机械策略“verdict=insufficient 且无 blocking 校准来源 → 默认 `human`”，还是继续允许少量语义明确但样本支持不足的规则留在 `agent`。
 
 8. **剩余 active overlap 的跨桶处理边界**

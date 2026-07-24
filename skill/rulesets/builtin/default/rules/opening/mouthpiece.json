@@ -5,6 +5,13 @@
     "title": "喉舌式时代开头",
     "level": "medium",
     "note": "这些是典型的作文式开头，容易用宏大背景替代具体事实。",
+    "scope": {
+      "layer": "narrative",
+      "position": {
+        "kind": "opening",
+        "chars": 600
+      }
+    },
     "detector": {
       "type": "regex",
       "targets": [

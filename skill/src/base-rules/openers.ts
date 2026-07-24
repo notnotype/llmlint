@@ -1,10 +1,12 @@
 import type {LintRuleRecord} from "../types";
 
+const OPENING_NARRATIVE_SCOPE = {"layer": "narrative", "position": {"kind": "opening", "chars": 600}} as const;
+
 /**
  * 开场套话（opening.cliche）。
  *
  * 取材自 shuorenhua/references/phrases-zh.md「开场套话」段（Tier 1，默认替换）。
- * 这些是 AI 文本里高频的「先宣布、再进入」式开场，正文默认展示（review=agent）。
+ * 这些是 AI 文本里高频的「先宣布、再进入」式开场，只在叙述层文首窗口内检查。
  * 已避开 base-rules 核心规则中 filler-worth-noting / dated-opening / filler-can-say 已覆盖的词。
  */
 export const OPENER_RULES = [
@@ -13,7 +15,9 @@ export const OPENER_RULES = [
         "namespace": "opening.cliche",
         "title": "开场宣告套话",
         "level": "medium",
-        "note": "AI 高频的开场宣告，先宣布「这里有重点」再进入内容，删掉后句意通常不变。引用原文或讨论该说法本身时保留。",
+        "review": "human",
+        "note": "默认交人工：“值得一提的是/不难发现/不容忽视”在报告和评论中可能承担真实提示功能；只在文首助手腔帽子时删除。",
+        "scope": OPENING_NARRATIVE_SCOPE,
         "detector": {
             "type": "regex",
             "targets": [
@@ -28,6 +32,7 @@ export const OPENER_RULES = [
         "title": "虚假邀请开场",
         "level": "medium",
         "note": "「让我们一起来看看 / 接下来我将为你」是助手腔的邀请式开场，正文里直接进入内容即可。",
+        "scope": OPENING_NARRATIVE_SCOPE,
         "detector": {
             "type": "regex",
             "targets": [
@@ -42,6 +47,7 @@ export const OPENER_RULES = [
         "title": "宏大时代开场",
         "level": "medium",
         "note": "用宏大背景替代具体事实的作文式开场。改成具体时间、对象或事件。",
+        "scope": OPENING_NARRATIVE_SCOPE,
         "detector": {
             "type": "regex",
             "targets": [
@@ -56,6 +62,7 @@ export const OPENER_RULES = [
         "title": "深入探讨式预告",
         "level": "low",
         "note": "「深入探讨 / 深入剖析」是预告姿态，多数可删掉直接讨论。",
+        "scope": OPENING_NARRATIVE_SCOPE,
         "detector": {
             "type": "regex",
             "targets": [
@@ -70,6 +77,7 @@ export const OPENER_RULES = [
         "title": "公式化让步开场",
         "level": "low",
         "note": "「诚然」式让步常用来铺一个假转折，多数可删掉直接陈述。",
+        "scope": OPENING_NARRATIVE_SCOPE,
         "detector": {
             "type": "regex",
             "targets": [
@@ -83,7 +91,9 @@ export const OPENER_RULES = [
         "namespace": "opening.cliche",
         "title": "更重要的是 / 具体来说",
         "level": "low",
-        "note": "「更重要的是 / 具体来说 / 更进一步说」是 AI 常用的推进过渡，多数可删掉直接说下一点。偶尔承担真实转折时保留。",
+        "review": "human",
+        "note": "默认交人工：“更重要的是/具体来说”常是普通论证连接词；只在文首模板化推进、没有真实递进时删除。",
+        "scope": OPENING_NARRATIVE_SCOPE,
         "detector": {
             "type": "regex",
             "targets": [

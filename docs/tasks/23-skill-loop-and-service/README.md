@@ -88,10 +88,11 @@
 - 默认规则整理（四批）：`并没有立刻`、带主语 `并没有…而是` 转 `human`，保留给上下文判断，不作为默认 Agent 强修入口。
 - 默认规则整理（五批）：继续把 active-to-active overlap 中 100% 被 canonical 覆盖的 11 条旧规则默认关闭，不物理删除资产。Agent 桶关闭 `cn.cliche.hand-whitening-detail`、`cn.cliche.mid-sentence-summary`、`cn.cliche.mouth-corner-arc-cliche`；human 桶关闭比喻壳、氛围修饰、状态修饰、夸张比附和绝对判断修饰中的重复条目，降低 `--review all` 膨胀。
 - 默认规则整理（六批）：把 eval 反证或低 support 更明确的宽泛基础规则转 `human`：`filler-can-say`、`filler-lets`、`emphasis-crutch`、`rhetorical-setup`、`inflation-marvel`、`transition-summary-conclude`、`assistant-comfort-pose`；`cn.cliche.body-reaction.controlling-gaze` 已收窄后仍为 noise，也转人工上下文判断。
+- 默认规则整理（七批）：继续压默认 Agent 桶里的宽泛低支撑项。`filler-worth-noting`、普通开场连接词、`transition-summary-essence`、裸 `平稳` / `尖叫` / `戏谑`、声音/眼神情绪容器、引语元叙述、`平日里` 和旧单层 `不是…而是` regex 转 `human`；`opening.cliche` 家族与 `dated-opening` 限制到叙述层文首 600 可见字，避免正文中部普通连接词误入开场规则。
 - 默认 review 下沉：`vocabulary.body`、`vocabulary.r18`、`vocabulary.academic-anatomy`、`color-description`、`sound.once`、`jargon.business`、`regex.advanced` 默认转入 `human` 桶；`cn.regex.advanced.few-degree` 作为强信号 rule-level 例外保留 `agent`。`filler-word-actually`、`meta-announcement`、`quotable-punchline-candidate` 因 eval noise 改为 `human`。
 - story-deslop 继续吸收：新增 `story-deslop.quote-emphasis` handler 规则，统计叙述层 1-4 字短词引号强调，全文 ≥3 处只报一条 human advisory；极短对白、系统面板、纯对白行和低于阈值的零散强调豁免。
 - 闭环遗漏修复：web registry 现在预烘 active density/handler 规则，engineVersion hash 覆盖 regex+density+handler；web 本地扫描、服务端 MachineScan 与 Agent `RevisionTextWorkspace.lint_check` 均消费 regex+handler，Agent 报告额外带 density 指纹段。story-deslop high 校准 blocking 规则即使未入 eval verdict，也在 Agent 修复门中按必修强判别处理。
-- 当前默认 materialize：360 total / 300 active；279 regex / 8 density / 5 handler / 8 LLM；review = agent 132 / human 165 / none 3；regex fixability = auto 3 / candidate 0 / manual 276。
+- 当前默认 materialize：360 total / 300 active；279 regex / 8 density / 5 handler / 8 LLM；review = agent 114 / human 183 / none 3；regex fixability = auto 3 / candidate 0 / manual 276。临时内存复算当前语料：overlap duplicate rate ≈2.4%，human Agent false rate ≈0.44/千字（未改写 `evals/report/report.json`）。
 - 拿不准的规则族和许可边界集中记录在 `rule-curation-open-questions.md`，等待用户一次性拍板。
 
 ## TODO / Follow-ups

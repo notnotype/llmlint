@@ -5,7 +5,10 @@
     "title": "动作与神态",
     "level": "medium",
     "enabled": true,
+    "review": "human",
+    "note": "默认交人工：“平稳”是普通状态描写，当前 eval support 很低；只在它成为声音状态模板壳时修。",
     "source": {
+      "version": "rule-curation-v5",
       "canonicalKey": "action-expression\t\t(?:声音依旧|很)?平稳(?:与|，)?",
       "importedFrom": "curated-cn-rule-samples"
     },
@@ -168,7 +171,10 @@
     "title": "动作与神态",
     "level": "medium",
     "enabled": true,
+    "review": "human",
+    "note": "默认交人工：裸“尖叫”不是稳定 AI 痕迹，且替换为“呜咽”会改变动作强度；只在上下文确认过度尖叫时改。",
     "source": {
+      "version": "rule-curation-v5",
       "canonicalKey": "action-expression\t\t尖叫",
       "importedFrom": "curated-cn-rule-samples"
     },
@@ -214,7 +220,10 @@
     "title": "动作与神态",
     "level": "medium",
     "enabled": true,
+    "review": "human",
+    "note": "默认交人工：“戏谑”可能是人物口吻或真实语气，当前 eval support 低；只在它替代具体动作时修。",
     "source": {
+      "version": "rule-curation-v5",
       "canonicalKey": "action-expression\t\t的?戏谑(?:的|地)?",
       "importedFrom": "curated-cn-rule-samples"
     },

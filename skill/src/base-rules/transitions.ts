@@ -71,7 +71,8 @@ export const TRANSITION_SUMMARY_RULES = [
         "namespace": "transition.summary",
         "title": "本质式拔高过渡",
         "level": "low",
-        "note": "「本质上 / 核心在于 / 不言而喻」常用来给一句普通话戴帽子，多数可删掉直接说。",
+        "review": "human",
+        "note": "默认交人工：“本质上/核心在于/不言而喻”在论证中可能承担概念归纳；只在它替普通判断戴帽子时删除。",
         "detector": {
             "type": "regex",
             "targets": [
