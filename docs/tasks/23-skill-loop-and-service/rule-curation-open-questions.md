@@ -45,3 +45,8 @@
 10. **宽泛低信号规则是否继续打扰 Agent**
     - 本轮已将 `filler-word-actually`、`meta-announcement`、`quotable-punchline-candidate` 下沉 `human`；但 `filler-worth-noting`、`filler-can-say`、`filler-lets` 与 LLM 版 `quotable-punchline` 仍在 `agent`。
     - 待确认：是否进一步把这些宽泛填充词 / 金句感默认转为 `human`，或保持当前状态，让 Agent 继续处理明确模板化的用法。
+
+11. **剩余 Agent 桶 insufficient 规则是否按策略统一下沉**
+    - 当前仍保留在 `agent` 的 low-support 规则包括：`transition-summary-*`、`inflation-marvel`、`emphasis-crutch`、`opening-cliche-*`、`rhetorical-setup`、`assistant-comfort-pose`，以及 `cliche` 中的手部泛白、嘴角弧度、声音状态容器、引语元叙述壳等。
+    - 我没有继续硬改的原因：这些模式虽然本轮 eval support 低，但和 story-deslop / repair-guide 的“总结帽子、拔高姿态、声音/嘴角/手部模板、开场助手腔”原则一致，语义上仍像 Agent 可处理的 AI 味候选。
+    - 待确认：后续是否采用机械策略“verdict=insufficient 且无 blocking 校准来源 → 默认 `human`”，还是继续允许少量语义明确但样本支持不足的规则留在 `agent`。
