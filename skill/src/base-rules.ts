@@ -19,8 +19,9 @@ const CORE_BASE_RULES = [
         "namespace": "filler",
         "title": "无意义填充词",
         "level": "medium",
+        "enabled": false,
         "review": "human",
-        "note": "默认交人工：其实/实际上/事实上可作角色口癖、语气转折或论证标记，当前 eval 为 noise；若删除后句意不变，再建议删除。",
+        "note": "默认关闭：其实/实际上/事实上可作角色口癖、语气转折或论证标记，当前 dataset reference 侧不低于 AI 侧；保留资产给项目显式开启。",
         "detector": {
             "type": "regex",
             "targets": [
@@ -59,8 +60,9 @@ const CORE_BASE_RULES = [
         "namespace": "filler",
         "title": "弱化陈述词",
         "level": "low",
+        "enabled": false,
         "review": "human",
-        "note": "默认交人工：“可以说/不得不说”在评论和角色口吻中可能合法；当前 eval support 很低，只在删除后不损失语气功能时修。",
+        "note": "默认关闭：“可以说/不得不说”在评论和角色口吻中常有语气功能，当前 dataset reference 侧不低于 AI 侧；保留资产给项目显式开启。",
         "detector": {
             "type": "regex",
             "targets": [
@@ -221,8 +223,9 @@ const CORE_BASE_RULES = [
         "namespace": "transition.mechanical",
         "title": "全面式并列结构",
         "level": "medium",
+        "enabled": false,
         "review": "human",
-        "note": "默认交人工：“无论/不仅”结构常用于正常概括，当前 eval 为 insufficient；只在面面俱到稀释重点时修。",
+        "note": "默认关闭：“无论/不仅”结构常用于正常概括、对比和战斗能力说明，当前 dataset reference 侧不低于 AI 侧；保留资产给项目显式开启。",
         "detector": {
             "type": "regex",
             "targets": [
@@ -240,11 +243,11 @@ const CORE_BASE_RULES = [
         "title": "元叙述式公告",
         "level": "low",
         "review": "human",
-        "note": "默认交人工：教程、报告、章节导语中可能合法；当前 eval 为 noise。若正文只是宣布自己要做什么，再建议直接进入内容。",
+        "note": "默认收窄：只保留教程/报告导语形态；裸“接下来”是正常叙事承接，当前 dataset 真人侧高频，不再提示。",
         "detector": {
             "type": "regex",
             "targets": [
-                "下面(?:我们)?(?:将)?(?:来)?(?:介绍|分析|探讨)|接下来(?:我们)?(?:将)?|本文(?:将)?(?:从|通过)|本节(?:将)?(?:介绍|说明|分析)"
+                "下面(?:我们)?(?:将)?(?:来)?(?:介绍|分析|探讨)|接下来(?:我们)?(?:将|会|来)(?:介绍|分析|探讨|说明)?|本文(?:将)?(?:从|通过)|本节(?:将)?(?:介绍|说明|分析)"
             ]
         },
         "action": {
@@ -329,11 +332,11 @@ const CORE_BASE_RULES = [
         "namespace": "modifier",
         "title": "过度副词和强化词",
         "level": "low",
-        "note": "强化词常用来替代具体程度或证据；“极其/本质上”交给更具体的中文 modifier / transition 规则。",
+        "note": "默认收窄：非常/十分/特别在小说中是普通程度副词，当前 dataset 真人侧高频；这里只保留更偏公文和抽象判断的强化词。“极其/本质上”交给更具体的中文规则。",
         "detector": {
             "type": "regex",
             "targets": [
-                "非常|十分(?!钟)|特别|高度|深刻地|充分地|有效地|显著地|真正地|完全地|根本上"
+                "高度|深刻地|充分地|有效地|显著地|真正地|完全地|根本上"
             ]
         },
         "action": {
@@ -346,8 +349,9 @@ const CORE_BASE_RULES = [
         "namespace": "punchline",
         "title": "金句式收束候选",
         "level": "low",
+        "enabled": false,
         "review": "human",
-        "note": "默认交人工：真正/这才是/从来不是这类壳需要上下文判断，当前 eval 为 noise；仅在它替代具体信息时修。",
+        "note": "默认关闭：裸 regex 会误报“真正的幕后黑手 / 真正的安胎药”等有信息名词短语；金句感交给 LLM 版 quotable-punchline 读上下文判断。",
         "detector": {
             "type": "regex",
             "targets": [

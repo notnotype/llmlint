@@ -370,9 +370,10 @@ function applyCuratedPatch(rule: LintRuleRecord): LintRuleRecord {
     if (rule.id === "cn.cliche.baguwen.sudden-moment") {
         return {
             ...rule,
+            enabled: false,
             review: "human",
-            note: "默认交人工：只检查“突然间/忽然间”，但当前 eval 人类命中更高；普通“突然/忽然”由程度副词 canonical family 判断。",
-            source: {...(rule.source ?? {}), version: "rule-curation-v2"},
+            note: "默认关闭：“突然间/忽然间”是普通叙事转场，当前 dataset reference 侧高于 AI 侧；保留资产给项目显式开启。",
+            source: {...(rule.source ?? {}), version: "rule-curation-v29"},
             detector: {type: "regex", targets: ["(?:突|忽)然间，?"]},
         };
     }
@@ -475,9 +476,10 @@ function applyCuratedPatch(rule: LintRuleRecord): LintRuleRecord {
     if (rule.id === "cn.cliche.baguwen.even-is") {
         return {
             ...rule,
+            enabled: false,
             review: "human",
-            note: "默认交人工：“甚至是”是普通递进连接词，不应作为默认 Agent 强提示；只在它形成八股递进壳时修。",
-            source: {...(rule.source ?? {}), version: "rule-curation-v6"},
+            note: "默认关闭：“甚至是”是普通递进连接词，当前 dataset reference 侧不低于 AI 侧；保留资产给项目显式开启。",
+            source: {...(rule.source ?? {}), version: "rule-curation-v29"},
         };
     }
     if (rule.id === "cn.cliche.baguwen.inertia-cause") {

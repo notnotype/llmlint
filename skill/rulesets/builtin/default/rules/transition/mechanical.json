@@ -39,8 +39,9 @@
     "namespace": "transition.mechanical",
     "title": "全面式并列结构",
     "level": "medium",
+    "enabled": false,
     "review": "human",
-    "note": "默认交人工：“无论/不仅”结构常用于正常概括，当前 eval 为 insufficient；只在面面俱到稀释重点时修。",
+    "note": "默认关闭：“无论/不仅”结构常用于正常概括、对比和战斗能力说明，当前 dataset reference 侧不低于 AI 侧；保留资产给项目显式开启。",
     "detector": {
       "type": "regex",
       "targets": [

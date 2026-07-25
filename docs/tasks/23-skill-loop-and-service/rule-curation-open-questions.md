@@ -19,7 +19,7 @@
 - 2026-07-25：`cn.cliche.baguwen.vague-amount-noun` 已收窄。标点后的“一股”交给 strong canonical `cn.modifier.measure.subject-measure-word`，baguwen 规则只保留句中“一股”和“那股”，避免同 span 量词重复提示。
 - 2026-07-25：`cn.modifier.measure.specific-measure-word` 已移除“股”分支，并继续移除“这种/那种”指示代词分支；`cn.modifier.heavy-degree-shell` 已收窄为只匹配裸“沉甸甸”。这些都按“保留 canonical 或高信号分支，窄规则只留独有覆盖”的策略降低 `--review all` 噪声。
 - 2026-07-25：`cn.modifier.measure.physiological-label` 与 `cn.vocabulary.academic-anatomy.physiological-academic-label` 已互斥分工。前者只处理“生理眼泪/生理快感”的前缀；后者只处理“生理性的/生理层面/生理本能”这类分析腔标签，避免“生理性快感”同 span 双报。
-- 2026-07-25：当前 dataset 的剩余 active 同 span overlap 已归零。已处理分工：`adverb-intensifier` 移除“极其/本质上”，交给更具体规则；`cn.modifier.sensory-atmosphere-modifier` 移除“戏谑的/地”，交给 `cn.action-expression.teasing-modifier`；`cn.sentence.compound.single-negative-contrast` 排除“并不是…而是”，交给 `cn.sentence.compound.contrastive-turn-preface`。
+- 2026-07-25：当前 dataset 的 regex active 同 span overlap 已按 canonical 分工清到 0；全 detector 只剩两条 human 宏观节奏规则同段共振 1 处。已处理分工：`adverb-intensifier` 移除“极其/本质上”，交给更具体规则；`cn.modifier.sensory-atmosphere-modifier` 移除“戏谑的/地”，交给 `cn.action-expression.teasing-modifier`；`cn.sentence.compound.single-negative-contrast` 排除“并不是…而是”，交给 `cn.sentence.compound.contrastive-turn-preface`。
 - 2026-07-25：`story-deslop.negation-parade.repeated-none` 继续收窄，排除后接“然而/但/却”的真实转折句。当前 reference 误杀“没有混杂木屑，没有太多麸质，然而……”已覆盖，两个 render 典型命中仍保留。
 - 2026-07-25：当前 dataset 无命中、旧报告无 verdict、且删除/替换会损失人物语气或普通动作细节的规则转 `human`：`cn.action-expression.explicit-teasing-tone`、`flat-tone-shell`、`force-white-knuckle`、`teasing-attitude-shell`、`tightly-clenched`、`cn.cliche.cup-collision`、`table-cup-touch`、`knuckle-crack`、`cn.sentence.compound.generic-comparison-tone` 和 5 条 weather-tone 口气比喻。保留规则资产，但不再默认要求 Agent 强修。
 - 2026-07-25：无校准支撑的身体/触感/声音微细节转 `human`：胸腔/胸膛、冰凉触感、面色、骨节外观、指腹/掌心触感、喉咙/舌尖/咀嚼字句、从齿间挤出、声音突兀/清晰/回荡/传来。处理理由：它们可能是角色可感知的具体画面或人物声音，默认 Agent 不应无上下文删除。
@@ -31,12 +31,14 @@
 - 2026-07-25：`cn.proliferation.mixed.extra-punctuation` 与 `cn.punctuation.dash.dash-alone-to-comma` 已默认关闭。前者把普通逗号、顿号、句号、省略号当“增殖标点”，当前 dataset reference 命中 172 次；后者把裸破折号机械替逗号，reference 命中 21 次且多为悬念、插入解释、拖长音和节奏停顿。
 - 2026-07-25：`business-jargon` 已从裸词表收窄为业务语境 detector。`落地/链路/打法/沉淀/心智` 不再裸命中“落地镜”“轻巧落地”“灵魂链路”“这种打法”“情绪沉淀”，当前 fiction dataset 命中归零；业务文里的“对齐/业务链路/方案落地/增长打法”等仍保留 human advisory。
 - 2026-07-25：`cn.modifier.stacked-degree-adverbs` 已收窄。移除逐次提示价值低的“突然/忽然/稍微/略微/稍稍”，以及会半截命中“凶猛的/迅猛的”的“猛的”；`下意识/无意识/不自觉/习惯性` 只保留 adverbial “...地”。当前 dataset 从 reference 60 / render 305 降到 reference 25 / render 234。
-- 2026-07-25：`adverb-intensifier` 的“十分”改为 `十分(?!钟)`，避免半截命中“十分钟 / 二十分钟”；“十分清楚”这类程度副词仍保留 human advisory。
+- 2026-07-25：`adverb-intensifier` 继续收窄，移除“非常/十分/特别”，只保留更偏公文和抽象判断的强化词；“极其/本质上”此前已交给更具体规则。
 - 2026-07-25：`cn.cliche.trailing-sensory-clause` 已从泛尾部分句 detector 收窄为抽象情绪/气质/语气尾巴，放过“破风声 / 指甲 / 喉咙 / 气味 / 温度 / 回音”等具体物性信息；`cn.modifier.measure.subject-measure-word` 移除“这具/那具”，只保留句首或标点后的“一股”量词壳。
 - 2026-07-25：`cn.punctuation.dedup.repeated-symbols` 从 `none/auto` 降级为 `human/manual`。重复感叹号/问号在小说对白和拟声中常承担语气，不再由 `fix --write` 自动压缩；自动修复桶只保留更机械的零宽与省略号/破折号尾巴清理。
 - 2026-07-25：`lazy-extremes` 已收窄，移除“所有人/每个人/永远/一定会”等小说常用表达，只保留“大家都/从来不/必然/毫无例外/没有人/任何人都”这类更像无范围断言的分支。
 - 2026-07-25：`transition-summary-restate` 与 `inflation-superlative` 已转 `human`，当前 dataset 真人侧不低于 AI 侧，且命中多为设定解释、任务规则或说明性对白；`story-deslop.action-list` 已转 `human`，避免把打斗/追逐/调查等功能性动作编排默认交 Agent 强修。
 - 2026-07-25：继续按 canonical 分工收敛 active overlap：`cn.modifier.ineffable-absolute-modifier` 与 `cn.modifier.sticky-optional` 默认关闭；`cn.modifier.near-collapse-modifier` 排除带“的/地”的“崩溃”；`cn.modifier.stacked-degree-adverbs` 移除“一丝丝”和“近乎/近乎于”。当前复扫 active 同 span overlap 只剩两条 human 宏观节奏规则共振 1 处。
+- 2026-07-25：低信号 human 规则继续默认关闭：`filler-word-actually`、`filler-can-say`、`quotable-punchline-candidate`、`comprehensive-listing`、`cn.cliche.baguwen.sudden-moment`、`cn.cliche.baguwen.even-is`。这些规则在当前 dataset reference 侧不低于 AI 侧，或裸 regex 会误报有信息表达；保留资产给项目显式开启。
+- 2026-07-25：`meta-announcement` 收窄为“下面/接下来我们将介绍/分析…”这类教程导语，裸“接下来”不再提示；`jargon-engineer-debug` 移除“收敛/收束/锁住”，避免误伤小说动作和状态。
 
 ## 待用户拍板
 
@@ -91,7 +93,7 @@
     - 待确认：是否接受这类强判别规则保留少量人类侧命中，交 Agent 读上下文判断；还是把它们转 `human` / 增加更强结构条件，牺牲一部分 AI 文本召回。
 
 11. **剩余高频 human 桶是否继续激进收窄**
-    - 本轮已把 `extra-punctuation`、裸破折号替逗号、商业黑话裸词、`stacked-degree-adverbs` 的低信号/重复分支、`specific-measure-word` 的“这种/那种”、`lazy-extremes` 的普通小说绝对词、重复感叹/问号的 auto 权限，以及 `transition-summary-restate` / `inflation-superlative` / `action-list` 默认 Agent 噪声处理掉。
-    - 剩余高频 human 规则仍包括：`cn.modifier.stacked-degree-adverbs`、`cn.modifier.measure.specific-measure-word`、`cn.metaphor.trailing-simile-clause`、`cn.metaphor.simile-modifier-shell`、`adverb-intensifier`、`story-deslop.quote-emphasis` 等。
+    - 本轮已把 `extra-punctuation`、裸破折号替逗号、商业黑话裸词、`stacked-degree-adverbs` 的低信号/重复分支、`specific-measure-word` 的“这种/那种”、`lazy-extremes` 的普通小说绝对词、重复感叹/问号的 auto 权限、`transition-summary-restate` / `inflation-superlative` / `action-list` 默认 Agent 噪声、以及 6 条低信号 human regex 默认关闭或收窄。
+    - 剩余高频 human 规则仍包括：`cn.modifier.stacked-degree-adverbs`、`cn.modifier.measure.specific-measure-word`、`cn.metaphor.trailing-simile-clause`、`cn.metaphor.simile-modifier-shell`、`story-deslop.quote-emphasis`、`sound.once` 词表等。
     - 我没有继续硬改的原因：这些规则的 render 偏高仍有价值，但 reference 命中多是正常小说表达，例如“一道轨迹/一层光/一点细节”、有效比喻、普通“非常”；继续收窄需要更明确的产品取舍。
     - 待确认：`--review all` 是否要偏“干净列表”（继续默认关闭/大幅收窄这些 human 规则），还是偏“素材雷达”（保留 high-recall human advisory，让编辑器和人工判断承担噪声）。

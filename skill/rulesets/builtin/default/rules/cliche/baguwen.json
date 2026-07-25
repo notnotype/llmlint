@@ -100,11 +100,11 @@
     "namespace": "cliche.baguwen",
     "title": "八股句式/短语删除",
     "level": "medium",
-    "enabled": true,
+    "enabled": false,
     "review": "human",
-    "note": "默认交人工：“甚至是”是普通递进连接词，不应作为默认 Agent 强提示；只在它形成八股递进壳时修。",
+    "note": "默认关闭：“甚至是”是普通递进连接词，当前 dataset reference 侧不低于 AI 侧；保留资产给项目显式开启。",
     "source": {
-      "version": "rule-curation-v6",
+      "version": "rule-curation-v29",
       "canonicalKey": "cliche.baguwen\t\t甚至是",
       "importedFrom": "curated-cn-rule-samples"
     },
@@ -281,11 +281,11 @@
     "namespace": "cliche.baguwen",
     "title": "八股句式/短语删除",
     "level": "medium",
-    "enabled": true,
+    "enabled": false,
     "review": "human",
-    "note": "默认交人工：只检查“突然间/忽然间”，但当前 eval 人类命中更高；普通“突然/忽然”由程度副词 canonical family 判断。",
+    "note": "默认关闭：“突然间/忽然间”是普通叙事转场，当前 dataset reference 侧高于 AI 侧；保留资产给项目显式开启。",
     "source": {
-      "version": "rule-curation-v2",
+      "version": "rule-curation-v29",
       "canonicalKey": "cliche.baguwen\t\t(?:突|忽)然间?，?",
       "importedFrom": "curated-cn-rule-samples"
     },

@@ -4,8 +4,9 @@
     "namespace": "punchline",
     "title": "金句式收束候选",
     "level": "low",
+    "enabled": false,
     "review": "human",
-    "note": "默认交人工：真正/这才是/从来不是这类壳需要上下文判断，当前 eval 为 noise；仅在它替代具体信息时修。",
+    "note": "默认关闭：裸 regex 会误报“真正的幕后黑手 / 真正的安胎药”等有信息名词短语；金句感交给 LLM 版 quotable-punchline 读上下文判断。",
     "detector": {
       "type": "regex",
       "targets": [

@@ -27,11 +27,11 @@ export const JARGON_RULES = [
         "namespace": "jargon.engineer",
         "title": "工程师 / 调试腔",
         "level": "low",
-        "note": "AI 把 debug 术语用到日常对话，像写 postmortem。误杀防护：纯技术报告/incident/变更日志里「根因/收口/收敛」是标准术语应保留；若描述系统主语行为（如网关返回 504）也保留。小说叙述里出现这类姿态词才是 AI 味。",
+        "note": "AI 把 debug 术语用到日常对话，像写 postmortem。误杀防护：纯技术报告/incident/变更日志里「根因/收口」是标准术语应保留；小说里的“收敛/收束/锁住”多为普通动作或状态，已从默认 detector 移除。",
         "detector": {
             "type": "regex",
             "targets": [
-                "稳稳兜住|砍一刀|收口|收窄|打掉问题|避免漂移|落盘|兜底|压实|收敛|收束|锁住|口径|对上了|坐实了"
+                "稳稳兜住|砍一刀|收口|收窄|打掉问题|避免漂移|落盘|兜底|压实|口径|对上了|坐实了"
             ]
         },
         "action": {"type": "suggest", "message": "非纯技术语境时，改成自然说法：处理好、缩小范围、收尾、确认、保存、吻合等。"}

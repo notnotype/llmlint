@@ -731,9 +731,13 @@ describe("llmlint", () => {
         expect(scanText("生理性的反应、生理性快感、生理眼泪、生理层面的解释、生理本能的冲动。", [byId.get("cn.vocabulary.academic-anatomy.physiological-academic-label") as RegexRuleRecord])
             .map((issue) => issue.match)).toEqual(["生理性的", "生理层面的", "生理本能的"]);
         expect(scanText("非常清楚，极其细微，本质上来说如此，根本上不同。", [byId.get("adverb-intensifier") as RegexRuleRecord])
-            .map((issue) => issue.match)).toEqual(["非常", "根本上"]);
+            .map((issue) => issue.match)).toEqual(["根本上"]);
         expect(scanText("十分清楚，过了十分钟，又卡了二十分钟。", [byId.get("adverb-intensifier") as RegexRuleRecord])
-            .map((issue) => issue.match)).toEqual(["十分"]);
+            .map((issue) => issue.match)).toEqual([]);
+        expect(scanText("高度概括，完全地抽象，显著地提升。", [byId.get("adverb-intensifier") as RegexRuleRecord])
+            .map((issue) => issue.match)).toEqual(["高度", "完全地", "显著地"]);
+        expect(scanText("接下来就该上场了。接下来我们将介绍规则。", [byId.get("meta-announcement") as RegexRuleRecord])
+            .map((issue) => issue.match)).toEqual(["接下来我们将介绍"]);
         expect(scanText("“嘎噢噢！！”她问：“真的？？？”", [byId.get("cn.punctuation.dedup.repeated-symbols") as RegexRuleRecord])
             .map((issue) => issue.match)).toEqual(["！！", "？？？"]);
         expect(scanText("非常清楚，极其细微，本质上来说如此。", [byId.get("cn.modifier.stacked-degree-adverbs") as RegexRuleRecord])
@@ -773,6 +777,12 @@ describe("llmlint", () => {
             .some((issue) => issue.rule.id === "cn.numeral.three.numeral-three")).toBe(false);
         expect(byId.get("cn.proliferation.mixed.extra-punctuation")).toBeUndefined();
         expect(byId.get("cn.punctuation.dash.dash-alone-to-comma")).toBeUndefined();
+        expect(byId.get("filler-word-actually")).toBeUndefined();
+        expect(byId.get("filler-can-say")).toBeUndefined();
+        expect(byId.get("quotable-punchline-candidate")).toBeUndefined();
+        expect(byId.get("comprehensive-listing")).toBeUndefined();
+        expect(byId.get("cn.cliche.baguwen.sudden-moment")).toBeUndefined();
+        expect(byId.get("cn.cliche.baguwen.even-is")).toBeUndefined();
 
         const catalog = await loadRuleCatalog(emptyConfig(["builtin/default"]));
         const catalogById = new Map(catalog.catalog.map((item) => [item.rule.id, item.rule]));
@@ -780,6 +790,12 @@ describe("llmlint", () => {
         expect(catalogById.get("cn.punctuation.dash.dash-alone-to-comma")).toMatchObject({enabled: false});
         expect(catalogById.get("cn.modifier.ineffable-absolute-modifier")).toMatchObject({enabled: false});
         expect(catalogById.get("cn.modifier.sticky-optional")).toMatchObject({enabled: false});
+        expect(catalogById.get("filler-word-actually")).toMatchObject({enabled: false});
+        expect(catalogById.get("filler-can-say")).toMatchObject({enabled: false});
+        expect(catalogById.get("quotable-punchline-candidate")).toMatchObject({enabled: false});
+        expect(catalogById.get("comprehensive-listing")).toMatchObject({enabled: false});
+        expect(catalogById.get("cn.cliche.baguwen.sudden-moment")).toMatchObject({enabled: false});
+        expect(catalogById.get("cn.cliche.baguwen.even-is")).toMatchObject({enabled: false});
 
         const businessRule = byId.get("business-jargon") as RegexRuleRecord;
         expect(scanText("眼珠一转，飞快地理清思绪。她轻巧落地，走到落地镜前。", [businessRule])).toHaveLength(0);
@@ -792,6 +808,11 @@ describe("llmlint", () => {
             .toHaveLength(0);
         expect(scanText("没有人能例外，任何人都必然如此。", [lazyExtremesRule]).map((issue) => issue.match))
             .toEqual(["没有人", "任何人都", "必然"]);
+
+        const engineerRule = byId.get("jargon-engineer-debug") as RegexRuleRecord;
+        expect(scanText("动作慢慢收敛，门锁住了。", [engineerRule])).toHaveLength(0);
+        expect(scanText("这轮要收口，统一口径，再把结果落盘。", [engineerRule]).map((issue) => issue.match))
+            .toEqual(["收口", "口径", "落盘"]);
     });
 
     it("默认 ruleset 只有确定性机械规则可自动修复，语义 replace 全部为 manual", async () => {
@@ -801,7 +822,7 @@ describe("llmlint", () => {
             counts[rule.fixability] += 1;
         }
 
-        expect(counts).toEqual({auto: 2, candidate: 0, manual: 259});
+        expect(counts).toEqual({auto: 2, candidate: 0, manual: 253});
         expect(loadedRules.regexRules
             .filter((rule) => rule.fixability === "auto")
             .every((rule) => rule.action.type === "replace")).toBe(true);
@@ -1146,9 +1167,9 @@ describe("llmlint", () => {
     it("CLI check 多文件目录递归聚合，JSON 为 check-multi 形态", async () => {
         const root = await mkdtemp(join(tmpdir(), "llmlint-multi-"));
         tempRoots.push(root);
-        await writeFile(join(root, "a.md"), "其实甲。", "utf-8");
+        await writeFile(join(root, "a.md"), "根本上甲。", "utf-8");
         await mkdir(join(root, "sub"), {recursive: true});
-        await writeFile(join(root, "sub", "b.md"), "其实乙。", "utf-8");
+        await writeFile(join(root, "sub", "b.md"), "根本上乙。", "utf-8");
         const configPath = join(root, "llmlint.config.ts");
         await writeFile(configPath, `export default {rulesets:["builtin/default"], output:"json"};\n`, "utf-8");
         const log = vi.spyOn(console, "log").mockImplementation(() => undefined);
@@ -1164,17 +1185,17 @@ describe("llmlint", () => {
         const root = await mkdtemp(join(tmpdir(), "llmlint-scanall-"));
         tempRoots.push(root);
         const textPath = join(root, "input.md");
-        await writeFile(textPath, "正文。\n\n```\n其实代码\n```\n", "utf-8");
+        await writeFile(textPath, "正文。\n\n```\n根本上代码\n```\n", "utf-8");
         const configPath = join(root, "llmlint.config.ts");
         await writeFile(configPath, `export default {rulesets:["builtin/default"]};\n`, "utf-8");
         const log = vi.spyOn(console, "log").mockImplementation(() => undefined);
 
         await runCli(["bun", "llmlint", "--config", configPath, "check", textPath, "--review", "all"]);
-        expect(String(log.mock.calls[0]?.[0])).not.toContain("其实");
+        expect(String(log.mock.calls[0]?.[0])).not.toContain("根本上");
 
         log.mockClear();
         await runCli(["bun", "llmlint", "--config", configPath, "check", textPath, "--review", "all", "--scan-all"]);
-        expect(String(log.mock.calls[0]?.[0])).toContain("其实");
+        expect(String(log.mock.calls[0]?.[0])).toContain("根本上");
     });
 
     it("CLI check 输入路径不存在时报错并非零退出", async () => {
