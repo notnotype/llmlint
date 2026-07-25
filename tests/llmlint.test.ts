@@ -675,10 +675,24 @@ describe("llmlint", () => {
             .map((issue) => issue.match)).toEqual(["沉甸甸"]);
         expect(scanText("这句话沉甸甸的，落下来时沉甸甸。", [byId.get("cn.modifier.sensory-atmosphere-modifier") as RegexRuleRecord])
             .map((issue) => issue.match)).toEqual(["沉甸甸的"]);
+        expect(scanText("她露出戏谑的笑，低哑的声音压下来。", [byId.get("cn.modifier.sensory-atmosphere-modifier") as RegexRuleRecord])
+            .map((issue) => issue.match)).toEqual(["低哑的"]);
+        expect(scanText("她露出戏谑的笑，低哑的声音压下来。", [byId.get("cn.action-expression.teasing-modifier") as RegexRuleRecord])
+            .map((issue) => issue.match)).toEqual(["戏谑的"]);
         expect(scanText("生理性的反应与生理眼泪、生理快感、生理性快感不同。", [byId.get("cn.modifier.measure.physiological-label") as RegexRuleRecord])
             .map((issue) => issue.match)).toEqual(["生理", "生理", "生理性"]);
         expect(scanText("生理性的反应、生理性快感、生理眼泪、生理层面的解释、生理本能的冲动。", [byId.get("cn.vocabulary.academic-anatomy.physiological-academic-label") as RegexRuleRecord])
             .map((issue) => issue.match)).toEqual(["生理性的", "生理层面的", "生理本能的"]);
+        expect(scanText("非常清楚，极其细微，本质上来说如此，根本上不同。", [byId.get("adverb-intensifier") as RegexRuleRecord])
+            .map((issue) => issue.match)).toEqual(["非常", "根本上"]);
+        expect(scanText("非常清楚，极其细微，本质上来说如此。", [byId.get("cn.modifier.stacked-degree-adverbs") as RegexRuleRecord])
+            .map((issue) => issue.match)).toEqual(["极其"]);
+        expect(scanText("非常清楚，极其细微，本质上来说如此。", [byId.get("transition-summary-essence") as RegexRuleRecord])
+            .map((issue) => issue.match)).toEqual(["本质上来说"]);
+        expect(scanText("并不是这个地方，而是另一处。这里不是终点，而是新的开始。", [byId.get("cn.sentence.compound.single-negative-contrast") as RegexRuleRecord])
+            .map((issue) => issue.match)).toEqual(["这里不是终点，而是"]);
+        expect(scanText("并不是这个地方，而是另一处。这里不是终点，而是新的开始。", [byId.get("cn.sentence.compound.contrastive-turn-preface") as RegexRuleRecord])
+            .map((issue) => issue.match)).toEqual(["并不是这个地方，而是", "不是终点，而是"]);
         expect(scanText("这是不容置疑的权威感。", [byId.get("cn.cliche.baguwen.unquestionable-claim") as RegexRuleRecord])
             .map((issue) => issue.match)).toEqual([]);
         expect(scanText("这是不容置疑的权威感。", [byId.get("cn.modifier.absolute-claim-modifier") as RegexRuleRecord])

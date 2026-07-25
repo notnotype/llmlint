@@ -4,11 +4,11 @@
     "namespace": "modifier",
     "title": "过度副词和强化词",
     "level": "low",
-    "note": "强化词常用来替代具体程度或证据。",
+    "note": "强化词常用来替代具体程度或证据；“极其/本质上”交给更具体的中文 modifier / transition 规则。",
     "detector": {
       "type": "regex",
       "targets": [
-        "非常|十分|极其|特别|高度|深刻地|充分地|有效地|显著地|真正地|完全地|本质上|根本上"
+        "非常|十分|特别|高度|深刻地|充分地|有效地|显著地|真正地|完全地|根本上"
       ]
     },
     "action": {
@@ -537,15 +537,16 @@
     "title": "必带“的/地”防误伤",
     "level": "medium",
     "enabled": true,
-    "note": "必带“的/地”防误伤",
+    "note": "默认收窄：“戏谑的/地”由 cn.action-expression.teasing-modifier 覆盖；这里保留其它氛围修饰词。",
     "source": {
       "canonicalKey": "modifier\t\t(?:略显粗糙|粗糙|逼仄|惊人|戏谑|狡黠|玩味|餍足|甜腻|黏腻|磁性|低哑|喑哑|沙哑|嘶哑|微哑|沉甸甸|亮晶晶|直勾勾|硬生生)(?:的|地)",
-      "importedFrom": "curated-cn-rule-samples"
+      "importedFrom": "curated-cn-rule-samples",
+      "version": "rule-curation-v17"
     },
     "detector": {
       "type": "regex",
       "targets": [
-        "(?:略显粗糙|粗糙|逼仄|惊人|戏谑|狡黠|玩味|餍足|甜腻|黏腻|磁性|低哑|喑哑|沙哑|嘶哑|微哑|沉甸甸|亮晶晶|直勾勾|硬生生)(?:的|地)"
+        "(?:略显粗糙|粗糙|逼仄|惊人|狡黠|玩味|餍足|甜腻|黏腻|磁性|低哑|喑哑|沙哑|嘶哑|微哑|沉甸甸|亮晶晶|直勾勾|硬生生)(?:的|地)"
       ]
     },
     "action": {

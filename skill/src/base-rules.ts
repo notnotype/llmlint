@@ -329,11 +329,11 @@ const CORE_BASE_RULES = [
         "namespace": "modifier",
         "title": "过度副词和强化词",
         "level": "low",
-        "note": "强化词常用来替代具体程度或证据。",
+        "note": "强化词常用来替代具体程度或证据；“极其/本质上”交给更具体的中文 modifier / transition 规则。",
         "detector": {
             "type": "regex",
             "targets": [
-                "非常|十分|极其|特别|高度|深刻地|充分地|有效地|显著地|真正地|完全地|本质上|根本上"
+                "非常|十分|特别|高度|深刻地|充分地|有效地|显著地|真正地|完全地|根本上"
             ]
         },
         "action": {

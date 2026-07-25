@@ -536,6 +536,17 @@ function applyCuratedPatch(rule: LintRuleRecord): LintRuleRecord {
             detector: {type: "regex", targets: ["(?:显得格外)?沉甸甸(?![的地])"]},
         };
     }
+    if (rule.id === "cn.modifier.sensory-atmosphere-modifier") {
+        return {
+            ...rule,
+            note: "默认收窄：“戏谑的/地”由 cn.action-expression.teasing-modifier 覆盖；这里保留其它氛围修饰词。",
+            source: {...(rule.source ?? {}), version: "rule-curation-v17"},
+            detector: {
+                type: "regex",
+                targets: ["(?:略显粗糙|粗糙|逼仄|惊人|狡黠|玩味|餍足|甜腻|黏腻|磁性|低哑|喑哑|沙哑|嘶哑|微哑|沉甸甸|亮晶晶|直勾勾|硬生生)(?:的|地)"],
+            },
+        };
+    }
     if (rule.id === "cn.tone.tone-placeholder") {
         return {
             ...rule,
@@ -668,8 +679,9 @@ function applyCuratedPatch(rule: LintRuleRecord): LintRuleRecord {
         return {
             ...rule,
             review: "human",
-            note: "默认交人工：旧“不是…而是”regex 与 story-deslop handler 职责接近，且删前半句易改语义；默认不再喂给 Agent 强修。",
-            source: {...(rule.source ?? {}), version: "rule-curation-v5"},
+            note: "默认交人工：旧“不是…而是”regex 与 story-deslop handler 职责接近，且删前半句易改语义；排除“并不是…而是”，交给 contrastive-turn-preface。",
+            source: {...(rule.source ?? {}), version: "rule-curation-v17"},
+            detector: {type: "regex", targets: ["(?<!不是不)([\\u4e00-\\u9fff]+)(?<!并)不是[\\u4e00-\\u9fff，、“”‘’]{1,20}[，,]而是"]},
         };
     }
     if (rule.id === "cn.sentence.compound.contrastive-turn-preface") {

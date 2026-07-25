@@ -19,6 +19,7 @@
 - 2026-07-25：`cn.cliche.baguwen.vague-amount-noun` 已收窄。标点后的“一股”交给 strong canonical `cn.modifier.measure.subject-measure-word`，baguwen 规则只保留句中“一股”和“那股”，避免同 span 量词重复提示。
 - 2026-07-25：`cn.modifier.measure.specific-measure-word` 已移除“股”分支，`cn.modifier.heavy-degree-shell` 已收窄为只匹配裸“沉甸甸”。这两处都按“保留 canonical，窄规则只留独有覆盖”的策略降低 `--review all` 重复。
 - 2026-07-25：`cn.modifier.measure.physiological-label` 与 `cn.vocabulary.academic-anatomy.physiological-academic-label` 已互斥分工。前者只处理“生理眼泪/生理快感”的前缀；后者只处理“生理性的/生理层面/生理本能”这类分析腔标签，避免“生理性快感”同 span 双报。
+- 2026-07-25：当前 dataset 的剩余 active 同 span overlap 已归零。已处理分工：`adverb-intensifier` 移除“极其/本质上”，交给更具体规则；`cn.modifier.sensory-atmosphere-modifier` 移除“戏谑的/地”，交给 `cn.action-expression.teasing-modifier`；`cn.sentence.compound.single-negative-contrast` 排除“并不是…而是”，交给 `cn.sentence.compound.contrastive-turn-preface`。
 
 ## 待用户拍板
 
@@ -54,10 +55,10 @@
     - 我没有继续硬改的原因：story-deslop blocking 有独立真人校准来源；嘴角/手部/尾部分句规则虽 support 低，但和 repair-guide 的“身体模板、总结帽子”原则一致，仍像 Agent 可处理的 AI 味候选。
     - 待确认：后续是否采用机械策略“verdict=insufficient 且无 blocking 校准来源 → 默认 `human`”，还是继续允许少量语义明确但样本支持不足的规则留在 `agent`。
 
-8. **剩余 active overlap 的跨桶处理边界**
-    - 复筛后仍有 `adverb-intensifier` ↔ `cn.modifier.stacked-degree-adverbs` 等少量 human/human overlap。`cn.cliche.baguwen.vague-amount-noun` 相关的同 span 量词 overlap，以及 physiological label 相关 overlap 已先按 canonical 分工收窄。
-    - 我没有继续硬改的原因：这些不是同一受众里的重复提示；关闭哪边会改变默认 Agent 入口或 `--review all` 人工清单的职责边界。
-    - 待确认：跨桶 overlap 是否也按 canonical 默认关闭一侧，还是保留当前“Agent 高信号规则 + Human 词表规则”并存。
+8. **canonical 分工是否作为长期整理策略**
+    - 当前 dataset 里 active 同 span overlap 已按“保留更具体或更 canonical 的规则、收窄旧规则”处理到 0。
+    - 已处理结果不代表全语料永远无 overlap；它只是把当前可证实的重复提示消掉。
+    - 待确认：后续是否把“稳定重叠且有 canonical 替代 → 默认收窄或关闭旧规则、不物理删除资产”作为规则整理常规策略。
 
 9. **story-deslop 否定连排是否继续 high blocking**
     - 当前 dataset 重扫发现 `story-deslop.negation-parade.repeated-none` 在一段 reference 中命中“没有混杂木屑，没有太多麸质，”，收窄后 AI 文本中剩 2 处典型命中。

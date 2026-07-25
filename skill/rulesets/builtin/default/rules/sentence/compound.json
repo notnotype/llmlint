@@ -180,16 +180,16 @@
     "level": "medium",
     "enabled": true,
     "review": "human",
-    "note": "默认交人工：旧“不是…而是”regex 与 story-deslop handler 职责接近，且删前半句易改语义；默认不再喂给 Agent 强修。",
+    "note": "默认交人工：旧“不是…而是”regex 与 story-deslop handler 职责接近，且删前半句易改语义；排除“并不是…而是”，交给 contrastive-turn-preface。",
     "source": {
-      "version": "rule-curation-v5",
+      "version": "rule-curation-v17",
       "canonicalKey": "sentence.compound\t\t(?<!不是不)([\\u4e00-\\u9fff]+)不是[\\u4e00-\\u9fff，、“”‘’]{1,20}[，,]而是",
       "importedFrom": "curated-cn-rule-samples"
     },
     "detector": {
       "type": "regex",
       "targets": [
-        "(?<!不是不)([\\u4e00-\\u9fff]+)不是[\\u4e00-\\u9fff，、“”‘’]{1,20}[，,]而是"
+        "(?<!不是不)([\\u4e00-\\u9fff]+)(?<!并)不是[\\u4e00-\\u9fff，、“”‘’]{1,20}[，,]而是"
       ]
     },
     "action": {
