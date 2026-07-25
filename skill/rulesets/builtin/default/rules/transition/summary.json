@@ -24,7 +24,8 @@
     "namespace": "transition.summary",
     "title": "重述式过渡",
     "level": "medium",
-    "note": "「换句话说 / 简而言之」往往是把上一句再说一遍，说一遍就够了。",
+    "review": "human",
+    "note": "默认交人工：「换句话说 / 简而言之」在设定解释和对白规则说明里常有实际信息压缩功能；当前 dataset 真人侧不低于 AI 侧，只在它形成空转重述时修。",
     "detector": {
       "type": "regex",
       "targets": [

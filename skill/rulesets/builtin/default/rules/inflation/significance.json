@@ -21,7 +21,8 @@
     "namespace": "inflation.significance",
     "title": "重要性通胀",
     "level": "medium",
-    "note": "「至关重要 / 举足轻重 / 意义非凡」是没有依据的重要性宣称。改成「重要」并说明为什么重要，或给具体结果。",
+    "review": "human",
+    "note": "默认交人工：「至关重要 / 举足轻重 / 意义非凡」在任务规则、角色判断和说明性对白中可能合理；当前 dataset 真人侧不低于 AI 侧，只在它替代具体依据时修。",
     "detector": {
       "type": "regex",
       "targets": [

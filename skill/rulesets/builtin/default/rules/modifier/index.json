@@ -347,10 +347,12 @@
     "namespace": "modifier",
     "title": "形副词系",
     "level": "medium",
-    "enabled": true,
+    "enabled": false,
+    "note": "默认关闭：当前 dataset 中被 cn.modifier.absolute-claim-modifier 完整覆盖；保留更宽 absolute claim canonical，避免“无法言喻的”同 span 重复提示。",
     "source": {
       "canonicalKey": "modifier\t\t(?:不容|无法)(?:言喻|言明|言说|分说)(?:的|地)",
-      "importedFrom": "curated-cn-rule-samples"
+      "importedFrom": "curated-cn-rule-samples",
+      "version": "rule-curation-v28"
     },
     "detector": {
       "type": "regex",
@@ -395,14 +397,16 @@
     "title": "形副词系",
     "level": "medium",
     "enabled": true,
+    "note": "默认收窄：带“的/地”的“崩溃”已由 cn.modifier.excessive-state-simile 覆盖；这里只保留裸状态，避免同 span 重复。",
     "source": {
       "canonicalKey": "modifier\t\t(?:快要)?崩溃(?:的|地)?",
-      "importedFrom": "curated-cn-rule-samples"
+      "importedFrom": "curated-cn-rule-samples",
+      "version": "rule-curation-v28"
     },
     "detector": {
       "type": "regex",
       "targets": [
-        "(?:快要)?崩溃(?:的|地)?"
+        "(?:快要)?崩溃(?![的地])"
       ]
     },
     "action": {
@@ -562,16 +566,16 @@
     "title": "形副词系",
     "level": "medium",
     "enabled": true,
-    "note": "默认收窄：移除裸“突然/忽然”和“稍微/略微/稍稍”等低信号普通副词，并移除会半截命中“凶猛的/迅猛的”的“猛的”；保留更像装饰性堆叠或 AI 高频动作模板的分支。",
+    "note": "默认收窄：移除裸“突然/忽然”、“稍微/略微/稍稍”、“一丝丝”和“近乎/近乎于”等低信号或已有 canonical 接管的分支，并移除会半截命中“凶猛的/迅猛的”的“猛的”。",
     "source": {
       "canonicalKey": "modifier\t\t(?:一丝丝|极其|极度|极致|死死|紧紧|深深|浅浅|浓浓|稍稍|稍微|略微|极轻微|轻微|微微|完全|彻底|格外|分外|乃至|全然|突然|忽然|猛的|猛地|勐的|勐地|近乎于|近乎|无意识|下意识|不自觉|习惯性)(?:的|地)?",
       "importedFrom": "curated-cn-rule-samples",
-      "version": "rule-curation-v25"
+      "version": "rule-curation-v28"
     },
     "detector": {
       "type": "regex",
       "targets": [
-        "(?:一丝丝|极其|极度|极致|死死|紧紧|深深|浅浅|浓浓|极轻微|轻微|微微|完全|彻底|格外|分外|乃至|全然|猛地|勐地|近乎于|近乎|无意识地|下意识地|不自觉地|习惯性地)(?:的|地)?"
+        "(?:极其|极度|极致|死死|紧紧|深深|浅浅|浓浓|极轻微|轻微|微微|完全|彻底|格外|分外|乃至|全然|猛地|勐地|无意识地|下意识地|不自觉地|习惯性地)(?:的|地)?"
       ]
     },
     "action": {
@@ -586,10 +590,12 @@
     "namespace": "modifier",
     "title": "形副词系",
     "level": "medium",
-    "enabled": true,
+    "enabled": false,
+    "note": "默认关闭：“黏腻的/地”已由 cn.modifier.sensory-atmosphere-modifier 覆盖；裸“黏腻”在触感描写中语境敏感，不重复进入默认候选。",
     "source": {
       "canonicalKey": "modifier\t\t黏腻(?:的|与)?",
-      "importedFrom": "curated-cn-rule-samples"
+      "importedFrom": "curated-cn-rule-samples",
+      "version": "rule-curation-v28"
     },
     "detector": {
       "type": "regex",

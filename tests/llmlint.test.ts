@@ -658,7 +658,10 @@ describe("llmlint", () => {
         expect(byId.get("cn.sentence.compound.contrastive-turn-preface")?.review).toBe("human");
         expect(byId.get("cn.action-expression.mouth-corner-arc")?.review).toBe("human");
         expect(byId.get("opening-cliche-era")?.review).toBe("human");
+        expect(byId.get("transition-summary-restate")?.review).toBe("human");
+        expect(byId.get("inflation-superlative")?.review).toBe("human");
         expect(byId.get("inflation-novelty")?.review).toBe("human");
+        expect(byId.get("story-deslop.action-list")?.review).toBe("human");
         expect(byId.get("cn.cliche.trailing-sound-clause")?.review).toBe("human");
         expect(byId.get("cn.cliche.direct-mouth-arc")?.review).toBe("human");
         expect(byId.get("cn.cliche.trailing-mouth-arc-clause")?.review).toBe("human");
@@ -713,6 +716,8 @@ describe("llmlint", () => {
             .toHaveLength(0);
         expect(scanText("这种场面、那种职业、心里有一股火，那股压力还在，语气带着几分冷意。", [byId.get("cn.modifier.measure.specific-measure-word") as RegexRuleRecord])
             .map((issue) => issue.match)).toEqual(["几分"]);
+        expect(scanText("他还有一丝丝犹豫和一丝不安。", [byId.get("cn.modifier.measure.specific-measure-word") as RegexRuleRecord])
+            .map((issue) => issue.match)).toEqual(["一丝丝", "一丝"]);
         expect(scanText("这句话沉甸甸的，落下来时沉甸甸。", [byId.get("cn.modifier.heavy-degree-shell") as RegexRuleRecord])
             .map((issue) => issue.match)).toEqual(["沉甸甸"]);
         expect(scanText("这句话沉甸甸的，落下来时沉甸甸。", [byId.get("cn.modifier.sensory-atmosphere-modifier") as RegexRuleRecord])
@@ -735,8 +740,12 @@ describe("llmlint", () => {
             .map((issue) => issue.match)).toEqual(["极其"]);
         expect(scanText("他突然回头，忽然笑了，稍微停顿，略微弯腰，凶猛的怪兽，下意识抬手。", [byId.get("cn.modifier.stacked-degree-adverbs") as RegexRuleRecord])
             .map((issue) => issue.match)).toEqual([]);
-        expect(scanText("他下意识地回头，微微一笑，完全陌生，死死盯着。", [byId.get("cn.modifier.stacked-degree-adverbs") as RegexRuleRecord])
+        expect(scanText("他下意识地回头，微微一笑，完全陌生，死死盯着，一丝丝不安近乎于窒息。", [byId.get("cn.modifier.stacked-degree-adverbs") as RegexRuleRecord])
             .map((issue) => issue.match)).toEqual(["下意识地", "微微", "完全", "死死"]);
+        expect(scanText("她近乎于宣判地开口，取而代之的是沉默。", [byId.get("cn.cliche.vague-transition-phrase") as RegexRuleRecord])
+            .map((issue) => issue.match)).toEqual(["近乎于", "取而代之的是"]);
+        expect(scanText("她快要崩溃，崩溃的边缘仍有一点清醒。", [byId.get("cn.modifier.near-collapse-modifier") as RegexRuleRecord])
+            .map((issue) => issue.match)).toEqual(["快要崩溃"]);
         expect(scanText("非常清楚，极其细微，本质上来说如此。", [byId.get("transition-summary-essence") as RegexRuleRecord])
             .map((issue) => issue.match)).toEqual(["本质上来说"]);
         expect(scanText("并不是这个地方，而是另一处。这里不是终点，而是新的开始。", [byId.get("cn.sentence.compound.single-negative-contrast") as RegexRuleRecord])
@@ -769,6 +778,8 @@ describe("llmlint", () => {
         const catalogById = new Map(catalog.catalog.map((item) => [item.rule.id, item.rule]));
         expect(catalogById.get("cn.proliferation.mixed.extra-punctuation")).toMatchObject({enabled: false});
         expect(catalogById.get("cn.punctuation.dash.dash-alone-to-comma")).toMatchObject({enabled: false});
+        expect(catalogById.get("cn.modifier.ineffable-absolute-modifier")).toMatchObject({enabled: false});
+        expect(catalogById.get("cn.modifier.sticky-optional")).toMatchObject({enabled: false});
 
         const businessRule = byId.get("business-jargon") as RegexRuleRecord;
         expect(scanText("眼珠一转，飞快地理清思绪。她轻巧落地，走到落地镜前。", [businessRule])).toHaveLength(0);
@@ -790,7 +801,7 @@ describe("llmlint", () => {
             counts[rule.fixability] += 1;
         }
 
-        expect(counts).toEqual({auto: 2, candidate: 0, manual: 261});
+        expect(counts).toEqual({auto: 2, candidate: 0, manual: 259});
         expect(loadedRules.regexRules
             .filter((rule) => rule.fixability === "auto")
             .every((rule) => rule.action.type === "replace")).toBe(true);

@@ -669,11 +669,11 @@ function applyCuratedPatch(rule: LintRuleRecord): LintRuleRecord {
     if (rule.id === "cn.modifier.stacked-degree-adverbs") {
         return {
             ...rule,
-            note: "默认收窄：移除裸“突然/忽然”和“稍微/略微/稍稍”等低信号普通副词，并移除会半截命中“凶猛的/迅猛的”的“猛的”；保留更像装饰性堆叠或 AI 高频动作模板的分支。",
-            source: {...(rule.source ?? {}), version: "rule-curation-v25"},
+            note: "默认收窄：移除裸“突然/忽然”、“稍微/略微/稍稍”、“一丝丝”和“近乎/近乎于”等低信号或已有 canonical 接管的分支，并移除会半截命中“凶猛的/迅猛的”的“猛的”。",
+            source: {...(rule.source ?? {}), version: "rule-curation-v28"},
             detector: {
                 type: "regex",
-                targets: ["(?:一丝丝|极其|极度|极致|死死|紧紧|深深|浅浅|浓浓|极轻微|轻微|微微|完全|彻底|格外|分外|乃至|全然|猛地|勐地|近乎于|近乎|无意识地|下意识地|不自觉地|习惯性地)(?:的|地)?"],
+                targets: ["(?:极其|极度|极致|死死|紧紧|深深|浅浅|浓浓|极轻微|轻微|微微|完全|彻底|格外|分外|乃至|全然|猛地|勐地|无意识地|下意识地|不自觉地|习惯性地)(?:的|地)?"],
             },
         };
     }
@@ -949,6 +949,14 @@ function applyCuratedPatch(rule: LintRuleRecord): LintRuleRecord {
             source: {...(rule.source ?? {}), version: "rule-curation-v3"},
         };
     }
+    if (rule.id === "cn.modifier.ineffable-absolute-modifier") {
+        return {
+            ...rule,
+            enabled: false,
+            note: "默认关闭：当前 dataset 中被 cn.modifier.absolute-claim-modifier 完整覆盖；保留更宽 absolute claim canonical，避免“无法言喻的”同 span 重复提示。",
+            source: {...(rule.source ?? {}), version: "rule-curation-v28"},
+        };
+    }
     if (rule.id === "cn.modifier.extreme-sensory-simile") {
         return {
             ...rule,
@@ -973,12 +981,28 @@ function applyCuratedPatch(rule: LintRuleRecord): LintRuleRecord {
             source: {...(rule.source ?? {}), version: "rule-curation-v3"},
         };
     }
+    if (rule.id === "cn.modifier.near-collapse-modifier") {
+        return {
+            ...rule,
+            note: "默认收窄：带“的/地”的“崩溃”已由 cn.modifier.excessive-state-simile 覆盖；这里只保留裸状态，避免同 span 重复。",
+            source: {...(rule.source ?? {}), version: "rule-curation-v28"},
+            detector: {type: "regex", targets: ["(?:快要)?崩溃(?![的地])"]},
+        };
+    }
     if (rule.id === "cn.modifier.sensory-atmosphere-core") {
         return {
             ...rule,
             enabled: false,
             note: "默认关闭：当前 eval 中 100% 被 cn.modifier.sensory-atmosphere-modifier 覆盖；保留更宽氛围修饰 canonical，避免氛围形副词重复提示。",
             source: {...(rule.source ?? {}), version: "rule-curation-v3"},
+        };
+    }
+    if (rule.id === "cn.modifier.sticky-optional") {
+        return {
+            ...rule,
+            enabled: false,
+            note: "默认关闭：“黏腻的/地”已由 cn.modifier.sensory-atmosphere-modifier 覆盖；裸“黏腻”在触感描写中语境敏感，不重复进入默认候选。",
+            source: {...(rule.source ?? {}), version: "rule-curation-v28"},
         };
     }
     if (rule.id === "cn.modifier.template-atmosphere-modifier") {

@@ -4,9 +4,9 @@
     "namespace": "rhythm.action-list",
     "title": "监控摄像头式动作清单",
     "level": "medium",
-    "review": "agent",
+    "review": "human",
     "fixability": "manual",
-    "note": "移植自 story-deslop 的 action-list-tic；按段评估，同段至少 5 个通用动作动词且有分隔符桶时提示。打斗/追逐等功能性编排需要结合上下文复核。",
+    "note": "移植自 story-deslop 的 action-list-tic；按段评估，同段至少 5 个通用动作动词且有分隔符桶时提示。打斗/追逐/调查等功能性编排需要结合上下文复核，默认交人工。",
     "source": {
       "canonicalKey": "ACTION_LIST_VERB_PATTERN",
       "importedFrom": "oh-story-claudecode/story-deslop"

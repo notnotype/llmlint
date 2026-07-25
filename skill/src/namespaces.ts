@@ -148,7 +148,7 @@ export const DEFAULT_NAMESPACE_POLICY: Record<string, NamespacePolicy> = {
     "cliche.voice-contrast": {review: "agent", fixability: "manual"},
     "ending.trailer": {review: "agent", fixability: "manual"},
     "explanation.chain": {review: "agent", fixability: "manual"},
-    "rhythm.action-list": {review: "agent", fixability: "manual"},
+    "rhythm.action-list": {review: "human", fixability: "manual"},
     "rhythm.period-stutter": {review: "agent", fixability: "manual"},
     "rhythm.micro-action": {review: "agent", fixability: "manual"},
     "rhythm.overcompressed": {review: "human", fixability: "manual"},
