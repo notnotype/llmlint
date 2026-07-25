@@ -708,7 +708,7 @@ function applyCuratedPatch(rule: LintRuleRecord): LintRuleRecord {
     if (rule.id === "cn.cliche.trailing-sensory-clause") {
         return {
             ...rule,
-            note: "默认收窄：尾部分句只看叙述层，避免系统面板和整句对白里的“带着/声音/语气…”被当成可删叙述尾巴。",
+            note: "默认收窄：尾部分句只看叙述层，避免系统面板和整句对白误报；Agent 只处理无功能感官/语气尾巴，保留必要动作、物性和信息细节。",
             source: {...(rule.source ?? {}), version: "rule-curation-v10"},
             scope: {layer: "narrative"},
         };
@@ -759,6 +759,14 @@ function applyCuratedPatch(rule: LintRuleRecord): LintRuleRecord {
             enabled: false,
             note: "默认关闭：裸“嘴角勾”过宽，容易与更长嘴角弧度规则产生半截候选；保留给项目显式开启。",
             source: {...(rule.source ?? {}), version: "rule-curation-v2"},
+        };
+    }
+    if (rule.id === "cn.action-expression.rough-manner-modifier") {
+        return {
+            ...rule,
+            review: "human",
+            note: "默认交人工：旧报告为 strong，但裸“粗重/粗暴/疯狂”会命中呼吸、字体、码字、能量、心跳和真实动作；只在它成为空泛强度修饰时删。",
+            source: {...(rule.source ?? {}), version: "rule-curation-v22"},
         };
     }
     if (rule.id === "cn.sentence.compound.immediate-delay-shell") {
@@ -840,6 +848,13 @@ function applyCuratedPatch(rule: LintRuleRecord): LintRuleRecord {
             enabled: false,
             note: "默认关闭：与 cn.cliche.hand-color-clause 在当前 eval 中 100% 同 span 重叠；保留更宽 canonical，避免手部泛白细节重复提示。",
             source: {...(rule.source ?? {}), version: "rule-curation-v3"},
+        };
+    }
+    if (rule.id === "cn.proliferation.mixed.repeated-de-pairs") {
+        return {
+            ...rule,
+            note: "默认保留 Agent：当前 dataset 强判别，但不等于删除所有“的/地”并列；只压缩装饰性形容词堆叠，保留具体物性、动作条件和有信息量的排比。",
+            source: {...(rule.source ?? {}), version: "rule-curation-v22"},
         };
     }
     if (rule.id === "cn.cliche.mid-sentence-summary") {

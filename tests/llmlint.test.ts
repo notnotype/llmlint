@@ -674,6 +674,7 @@ describe("llmlint", () => {
         expect(byId.get("cn.action-expression.flat-tone-shell")?.review).toBe("human");
         expect(byId.get("cn.action-expression.force-white-knuckle")?.review).toBe("human");
         expect(byId.get("cn.action-expression.explicit-teasing-tone")?.review).toBe("human");
+        expect(byId.get("cn.action-expression.rough-manner-modifier")?.review).toBe("human");
         expect(byId.get("cn.action-expression.teasing-attitude-shell")?.review).toBe("human");
         expect(byId.get("cn.action-expression.tightly-clenched")?.review).toBe("human");
         expect(byId.get("cn.cliche.cup-collision")?.review).toBe("human");

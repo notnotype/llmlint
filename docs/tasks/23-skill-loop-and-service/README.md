@@ -100,14 +100,16 @@
 - 默认 review 下沉补充（七）：无校准支撑的身体/触感/声音微细节转 `human`：胸腔/胸膛、冰凉触感、面色、骨节外观、指腹/掌心触感、喉咙/舌尖/咀嚼字句、从齿间挤出、声音突兀/清晰/回荡/传来。原则是这些内容可能是具体画面或人物声音，只有在重复装饰性模板时才修。
 - 默认 review 下沉补充（八）：`direct-mouth-arc`、`trailing-mouth-arc-clause`、`hand-color-clause` 和 `physiological-tears` 转 `human`。这些规则旧报告 support 不足或无 verdict，且嘴角弧度 direct/trailing 形态在普通输入上会同 span 重叠；保留资产给人工判断，不再默认要求 Agent 删除身体反应细节。
 - 默认 review 下沉补充（九）：语气强度 / 身体紧绷 / 对白回声 / 场域前置壳转 `human`：`irrefutable-tone-colon`、`irresistible-but`、`taut-neck`、`unquestionable-claim`、`dialogue-echo-after-quote`、`setting-space-preface`。这些都依赖人物状态、停顿节奏或空间调度，无校准支撑时不作为默认 Agent 强修。
+- 默认 review 下沉补充（十）：`cn.action-expression.rough-manner-modifier` 转 `human`。旧报告 strong 来自当前正式 dataset 的 render-only 命中，但裸“粗重/粗暴/疯狂”会覆盖呼吸、字体、码字、能量、心跳、真实打斗动作和真人 reference 里的“疯狂的大叫”；继续保留规则资产，默认只交人工判断它是否为空泛强度修饰。
 - overlap 收窄补充：`cn.cliche.baguwen.unquestionable-claim` 排除后接“的/地”，避免和 `cn.modifier.absolute-claim-modifier` 对同一修饰 span 重复；`cn.cliche.trailing-sensory-clause` 限制到叙述层，避免对白/系统面板里的尾句误报；`story-deslop.negation-parade.repeated-none` 排除后接“只有/只是/只会”的同 span 场景，交给 `story-deslop.negation-parade.only-turn`，并排除后接“然而/但/却”的真实转折。
 - overlap 收窄补充（二）：`cn.cliche.baguwen.vague-amount-noun` 排除标点后的“一股”，该位置交给 strong canonical `cn.modifier.measure.subject-measure-word`；保留句中“一股”和“那股”，避免量词规则对同一 span 双报。
 - overlap 收窄补充（三）：`cn.modifier.measure.specific-measure-word` 移除“股”分支，避免与 `vague-amount-noun` 继续重复；`cn.modifier.heavy-degree-shell` 只保留裸“沉甸甸”，带“的/地”的场景交给 `cn.modifier.sensory-atmosphere-modifier`。
 - overlap 收窄补充（四）：`cn.modifier.measure.physiological-label` 只保留“生理眼泪/生理快感”的前缀命中；`cn.vocabulary.academic-anatomy.physiological-academic-label` 排除“生理性眼泪/快感”，只保留“生理性的/生理层面/生理本能”这类分析腔标签。
 - overlap 收窄补充（五）：基础 `adverb-intensifier` 移除“极其/本质上”，交给更具体的 `cn.modifier.stacked-degree-adverbs` / `transition-summary-essence`；`cn.modifier.sensory-atmosphere-modifier` 移除“戏谑的/地”，交给 `cn.action-expression.teasing-modifier`；`cn.sentence.compound.single-negative-contrast` 排除“并不是…而是”，交给 `contrastive-turn-preface`。当前 dataset 复扫 active 同 span overlap 为 0。
+- 高频 Agent 规则边界补强：`cn.proliferation.mixed.repeated-de-pairs` 和 `cn.cliche.trailing-sensory-clause` 保持默认 Agent，但 note 明确它们不是逐条机械删除规则；前者只压缩装饰性形容词堆叠，后者只处理无功能感官/语气尾巴，具体物性、动作条件、信息量排比应保留。
 - story-deslop 继续吸收：新增 `story-deslop.quote-emphasis` handler 规则，统计叙述层 1-4 字短词引号强调，全文 ≥3 处只报一条 human advisory；极短对白、系统面板、纯对白行和低于阈值的零散强调豁免。
 - 闭环遗漏修复：web registry 现在预烘 active density/handler 规则，engineVersion hash 覆盖 regex+density+handler；web 本地扫描、服务端 MachineScan 与 Agent `RevisionTextWorkspace.lint_check` 均消费 regex+handler，Agent 报告额外带 density 指纹段。story-deslop high 校准 blocking 规则即使未入 eval verdict，也在 Agent 修复门中按必修强判别处理。
-- 当前默认 materialize：360 total / 287 active；266 regex / 8 density / 5 handler / 8 LLM；review = agent 58 / human 226 / none 3；regex fixability = auto 3 / candidate 0 / manual 263。临时内存复算当前语料：active 同 span overlap = 0、overlap duplicate rate = 0；默认 Agent 桶 reference 侧仍只剩 `vague-amount-noun` 2 处和 `repeated-de-pairs` 1 处少量强判别权衡（未改写 `evals/report/report.json`）。
+- 当前默认 materialize：360 total / 287 active；266 regex / 8 density / 5 handler / 8 LLM；review = agent 57 / human 227 / none 3；regex fixability = auto 3 / candidate 0 / manual 263。临时内存复算当前语料：active 同 span overlap = 0、overlap duplicate rate = 0；默认 Agent 桶 reference 侧仍只剩 `vague-amount-noun` 2 处和 `repeated-de-pairs` 1 处少量强判别权衡（未改写 `evals/report/report.json`）。
 - 拿不准的规则族和许可边界集中记录在 `rule-curation-open-questions.md`，等待用户一次性拍板。
 
 ## TODO / Follow-ups

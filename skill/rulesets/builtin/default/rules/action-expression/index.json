@@ -160,7 +160,10 @@
     "title": "动作与神态",
     "level": "medium",
     "enabled": true,
+    "review": "human",
+    "note": "默认交人工：旧报告为 strong，但裸“粗重/粗暴/疯狂”会命中呼吸、字体、码字、能量、心跳和真实动作；只在它成为空泛强度修饰时删。",
     "source": {
+      "version": "rule-curation-v22",
       "canonicalKey": "action-expression\t\t(?:粗重|粗暴|疯狂)(?:的|地)?",
       "importedFrom": "curated-cn-rule-samples"
     },

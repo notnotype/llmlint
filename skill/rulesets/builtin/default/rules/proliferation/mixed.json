@@ -101,8 +101,9 @@
     "title": "AA的、BB的、CC的→AA的",
     "level": "medium",
     "enabled": true,
-    "note": "AA的、BB的、CC的→AA的",
+    "note": "默认保留 Agent：当前 dataset 强判别，但不等于删除所有“的/地”并列；只压缩装饰性形容词堆叠，保留具体物性、动作条件和有信息量的排比。",
     "source": {
+      "version": "rule-curation-v22",
       "canonicalKey": "proliferation.mixed\t\t(?<=的)(?:、[\\u4e00-\\u9fff]{1,6}的)+|(?<=地)(?:、[\\u4e00-\\u9fff]{1,6}地)+",
       "importedFrom": "curated-cn-rule-samples"
     },

@@ -25,6 +25,8 @@
 - 2026-07-25：无校准支撑的身体/触感/声音微细节转 `human`：胸腔/胸膛、冰凉触感、面色、骨节外观、指腹/掌心触感、喉咙/舌尖/咀嚼字句、从齿间挤出、声音突兀/清晰/回荡/传来。处理理由：它们可能是角色可感知的具体画面或人物声音，默认 Agent 不应无上下文删除。
 - 2026-07-25：`cn.cliche.direct-mouth-arc`、`cn.cliche.trailing-mouth-arc-clause`、`cn.cliche.hand-color-clause` 和 `cn.cliche.body-reaction.physiological-tears` 已转 `human`。嘴角弧度 direct/trailing 形态在普通输入上可同 span 重叠，手部泛白/生理泪水也属于低支撑身体反应细节，默认交人工上下文判断。
 - 2026-07-25：语气强度 / 身体紧绷 / 对白回声 / 场域前置壳转 `human`：`cn.cliche.baguwen.irrefutable-tone-colon`、`irresistible-but`、`taut-neck`、`unquestionable-claim`、`cn.sentence.compound.dialogue-echo-after-quote`、`setting-space-preface`。这些规则无校准支撑，且可能服务人物状态、停顿节奏或空间调度。
+- 2026-07-25：`cn.action-expression.rough-manner-modifier` 已转 `human`。旧报告为 strong，但当前命中包含“呼吸粗重”“字体更加粗重”“疯狂码字”“能量疯狂涌入”“心脏疯狂跳动”等真实动作、状态或物性描述；全语料 reference 侧也有“疯狂的大叫 / 疯狂的大声叫道”合法用法，裸词默认 Agent 删除风险过高。
+- 2026-07-25：高频 Agent 规则处理边界已补强：`cn.proliferation.mixed.repeated-de-pairs` 保留强判别入口但 note 要求只压缩装饰性形容词堆叠，`cn.cliche.trailing-sensory-clause` 保留 render-only 尾巴信号但 note 要求保留必要动作、物性和信息细节。
 
 ## 待用户拍板
 
