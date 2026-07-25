@@ -664,6 +664,12 @@ describe("llmlint", () => {
         expect(byId.get("cn.cliche.trailing-mouth-arc-clause")?.review).toBe("human");
         expect(byId.get("cn.cliche.hand-color-clause")?.review).toBe("human");
         expect(byId.get("cn.cliche.body-reaction.physiological-tears")?.review).toBe("human");
+        expect(byId.get("cn.cliche.baguwen.irrefutable-tone-colon")?.review).toBe("human");
+        expect(byId.get("cn.cliche.baguwen.irresistible-but")?.review).toBe("human");
+        expect(byId.get("cn.cliche.baguwen.taut-neck")?.review).toBe("human");
+        expect(byId.get("cn.cliche.baguwen.unquestionable-claim")?.review).toBe("human");
+        expect(byId.get("cn.sentence.compound.dialogue-echo-after-quote")?.review).toBe("human");
+        expect(byId.get("cn.sentence.compound.setting-space-preface")?.review).toBe("human");
         expect(byId.get("cn.regex.advanced.few-degree")?.review).toBe("human");
         expect(byId.get("cn.action-expression.flat-tone-shell")?.review).toBe("human");
         expect(byId.get("cn.action-expression.force-white-knuckle")?.review).toBe("human");

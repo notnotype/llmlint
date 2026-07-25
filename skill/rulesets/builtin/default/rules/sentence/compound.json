@@ -31,8 +31,10 @@
     "title": "删对白后的回声壳",
     "level": "medium",
     "enabled": true,
-    "note": "删对白后的回声壳",
+    "review": "human",
+    "note": "默认交人工：对白后的回声句和场域前置句可能服务节奏、停顿或空间调度；只在它成为空转句壳时删。",
     "source": {
+      "version": "rule-curation-v21",
       "canonicalKey": "sentence.compound\t\t(^|[。！？；\\n])(?:这句话|那句话|这几个字|这番话)(?:一出口|出口|一落下|落下)?[，,]",
       "importedFrom": "curated-cn-rule-samples"
     },
@@ -157,8 +159,10 @@
     "title": "删句首场域空壳",
     "level": "medium",
     "enabled": true,
-    "note": "删句首场域空壳",
+    "review": "human",
+    "note": "默认交人工：对白后的回声句和场域前置句可能服务节奏、停顿或空间调度；只在它成为空转句壳时删。",
     "source": {
+      "version": "rule-curation-v21",
       "canonicalKey": "sentence.compound\t\t(^|[。！？；\\n])在这个空间里[，,]",
       "importedFrom": "curated-cn-rule-samples"
     },

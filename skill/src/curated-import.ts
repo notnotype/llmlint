@@ -495,11 +495,24 @@ function applyCuratedPatch(rule: LintRuleRecord): LintRuleRecord {
             source: {...(rule.source ?? {}), version: "rule-curation-v6"},
         };
     }
+    if (
+        rule.id === "cn.cliche.baguwen.irrefutable-tone-colon"
+        || rule.id === "cn.cliche.baguwen.irresistible-but"
+        || rule.id === "cn.cliche.baguwen.taut-neck"
+    ) {
+        return {
+            ...rule,
+            review: "human",
+            note: "默认交人工：语气强度和身体紧绷描写依赖人物状态与场景张力；当前无校准支撑，只在模板化拔高时修。",
+            source: {...(rule.source ?? {}), version: "rule-curation-v21"},
+        };
+    }
     if (rule.id === "cn.cliche.baguwen.unquestionable-claim") {
         return {
             ...rule,
-            note: "默认收窄：带“的/地”的绝对判断修饰已由 cn.modifier.absolute-claim-modifier 覆盖；这里只保留裸“不容置疑”断言，避免同 span 重复。",
-            source: {...(rule.source ?? {}), version: "rule-curation-v10"},
+            review: "human",
+            note: "默认交人工：已收窄为裸“不容置疑”断言，但旧报告仍为 weak 且当前无命中；只在它空转拔高时修。",
+            source: {...(rule.source ?? {}), version: "rule-curation-v21"},
             detector: {type: "regex", targets: ["(?:与|却)?不容置疑(?![的地])"]},
         };
     }
@@ -787,6 +800,14 @@ function applyCuratedPatch(rule: LintRuleRecord): LintRuleRecord {
             review: "human",
             note: "默认交人工：泛“不是/并非/没有…而是/反而”会命中合法对白、设定解释和事实辨析；默认 Agent 只保留 story-deslop 的高信号否定对比规则。",
             source: {...(rule.source ?? {}), version: "rule-curation-v11"},
+        };
+    }
+    if (rule.id === "cn.sentence.compound.dialogue-echo-after-quote" || rule.id === "cn.sentence.compound.setting-space-preface") {
+        return {
+            ...rule,
+            review: "human",
+            note: "默认交人工：对白后的回声句和场域前置句可能服务节奏、停顿或空间调度；只在它成为空转句壳时删。",
+            source: {...(rule.source ?? {}), version: "rule-curation-v21"},
         };
     }
     if (
