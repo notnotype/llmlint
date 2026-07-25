@@ -20,6 +20,7 @@
 - 2026-07-25：`cn.modifier.measure.specific-measure-word` 已移除“股”分支，`cn.modifier.heavy-degree-shell` 已收窄为只匹配裸“沉甸甸”。这两处都按“保留 canonical，窄规则只留独有覆盖”的策略降低 `--review all` 重复。
 - 2026-07-25：`cn.modifier.measure.physiological-label` 与 `cn.vocabulary.academic-anatomy.physiological-academic-label` 已互斥分工。前者只处理“生理眼泪/生理快感”的前缀；后者只处理“生理性的/生理层面/生理本能”这类分析腔标签，避免“生理性快感”同 span 双报。
 - 2026-07-25：当前 dataset 的剩余 active 同 span overlap 已归零。已处理分工：`adverb-intensifier` 移除“极其/本质上”，交给更具体规则；`cn.modifier.sensory-atmosphere-modifier` 移除“戏谑的/地”，交给 `cn.action-expression.teasing-modifier`；`cn.sentence.compound.single-negative-contrast` 排除“并不是…而是”，交给 `cn.sentence.compound.contrastive-turn-preface`。
+- 2026-07-25：`story-deslop.negation-parade.repeated-none` 继续收窄，排除后接“然而/但/却”的真实转折句。当前 reference 误杀“没有混杂木屑，没有太多麸质，然而……”已覆盖，两个 render 典型命中仍保留。
 
 ## 待用户拍板
 
@@ -61,7 +62,7 @@
     - 待确认：后续是否把“稳定重叠且有 canonical 替代 → 默认收窄或关闭旧规则、不物理删除资产”作为规则整理常规策略。
 
 9. **story-deslop 否定连排是否继续 high blocking**
-    - 当前 dataset 重扫发现 `story-deslop.negation-parade.repeated-none` 在一段 reference 中命中“没有混杂木屑，没有太多麸质，”，收窄后 AI 文本中剩 2 处典型命中。
-    - 已处理的确定问题：后接“只有/只是/只会”的同 span 场景已排除，避免和 `story-deslop.negation-parade.only-turn` 重复。
-    - 我没有直接下沉的原因：这是 story-deslop high blocking 校准规则，原校准集 0 人类命中；单个 reference 命中不足以否定整条规则。
-    - 待确认：是否继续保持 `high + agent`，还是收窄为只处理否定后转入抽象总结/情绪结论的结构。
+    - 当前 dataset 继续收窄后，reference 误杀暂为 0，AI 文本剩 2 处典型命中。
+    - 已处理的确定问题：后接“只有/只是/只会”的同 span 场景已排除，避免和 `story-deslop.negation-parade.only-turn` 重复；后接“然而/但/却”的真实转折也已排除。
+    - 我没有直接下沉的原因：这是 story-deslop high blocking 校准规则，原校准集 0 人类命中；当前语料支持偏少，但没有形成反证。
+    - 待确认：是否继续保持 `high + agent`，还是进一步收窄为只处理否定后转入抽象总结/情绪结论的结构。

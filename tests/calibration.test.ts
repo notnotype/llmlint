@@ -98,6 +98,7 @@ describe("story-deslop calibration rules", () => {
             "这不是吗？",
             "「不是我干的，是他。」",
             "钟声再度响起，比赛正式拉开序幕。",
+            "没有混杂木屑，没有太多麸质，然而还是不好吃。",
         ];
 
         for (const sample of safeCases) {

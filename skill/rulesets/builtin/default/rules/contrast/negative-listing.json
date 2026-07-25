@@ -24,11 +24,11 @@
     "level": "high",
     "review": "agent",
     "fixability": "manual",
-    "note": "移植自 story-deslop 2026-07 blocking 校准；只收“没/没有”连排，不收真人叙述常见的“不哭不闹”类“不X”排比；默认排除后接“只有/只是/只会”的同 span 场景，避免和 only-turn 重复。",
+    "note": "移植自 story-deslop 2026-07 blocking 校准；只收“没/没有”连排，不收真人叙述常见的“不哭不闹”类“不X”排比；默认排除后接“只有/只是/只会”和“然而/但/却”的场景，避免重复或真实转折误伤。",
     "source": {
       "canonicalKey": "NEGATION_PARADE_PATTERNS[0]",
       "importedFrom": "oh-story-claudecode/story-deslop",
-      "version": "rule-curation-v10"
+      "version": "rule-curation-v18"
     },
     "scope": {
       "layer": "narrative"
@@ -36,7 +36,7 @@
     "detector": {
       "type": "regex",
       "targets": [
-        "(?:没有[^。！？!?\\n，,]{1,12}[，,]){2}(?![^。！？!?\\n，,]{0,6}只(?:是|会|有))"
+        "(?:没有[^。！？!?\\n，,]{1,12}[，,]){2}(?![^。！？!?\\n，,]{0,6}(?:只(?:是|会|有)|然而|但(?:是)?|却))"
       ]
     },
     "action": {

@@ -96,7 +96,7 @@
 - 默认 review 下沉补充（三）：`opening-cliche-era` 与 `inflation-novelty` 转 `human`；前者旧报告 insufficient 且当前 dataset 无命中，后者旧报告 weak、当前 dataset 仅 1 个 AI 命中，且“前所未有”等新颖性词汇在小说视角中需要上下文判断。
 - 默认 review 下沉补充（四）：撤回 `cn.modifier.absolute-claim-modifier` 与 `cn.modifier.optional-mood-modifiers` 的旧 strong 规则级路由覆盖。当前正式 report 中两条均为 weak，且属于语境敏感的 modifier 桶；默认回到 `human`，避免“难以言喻的 / 低沉的 / 精准地”等宽泛修饰词继续打扰 Agent 入口。
 - 默认 review 下沉补充（五）：`cn.cliche.trailing-sound-clause` 转 `human`。当前命中多是普通动作音效尾句，删除可能损失画面信息；默认 Agent 继续保留信号更明确的 `trailing-sensory-clause`，声音尾句交人工上下文判断。
-- overlap 收窄补充：`cn.cliche.baguwen.unquestionable-claim` 排除后接“的/地”，避免和 `cn.modifier.absolute-claim-modifier` 对同一修饰 span 重复；`cn.cliche.trailing-sensory-clause` 限制到叙述层，避免对白/系统面板里的尾句误报；`story-deslop.negation-parade.repeated-none` 排除后接“只有/只是/只会”的同 span 场景，交给 `story-deslop.negation-parade.only-turn`。
+- overlap 收窄补充：`cn.cliche.baguwen.unquestionable-claim` 排除后接“的/地”，避免和 `cn.modifier.absolute-claim-modifier` 对同一修饰 span 重复；`cn.cliche.trailing-sensory-clause` 限制到叙述层，避免对白/系统面板里的尾句误报；`story-deslop.negation-parade.repeated-none` 排除后接“只有/只是/只会”的同 span 场景，交给 `story-deslop.negation-parade.only-turn`，并排除后接“然而/但/却”的真实转折。
 - overlap 收窄补充（二）：`cn.cliche.baguwen.vague-amount-noun` 排除标点后的“一股”，该位置交给 strong canonical `cn.modifier.measure.subject-measure-word`；保留句中“一股”和“那股”，避免量词规则对同一 span 双报。
 - overlap 收窄补充（三）：`cn.modifier.measure.specific-measure-word` 移除“股”分支，避免与 `vague-amount-noun` 继续重复；`cn.modifier.heavy-degree-shell` 只保留裸“沉甸甸”，带“的/地”的场景交给 `cn.modifier.sensory-atmosphere-modifier`。
 - overlap 收窄补充（四）：`cn.modifier.measure.physiological-label` 只保留“生理眼泪/生理快感”的前缀命中；`cn.vocabulary.academic-anatomy.physiological-academic-label` 排除“生理性眼泪/快感”，只保留“生理性的/生理层面/生理本能”这类分析腔标签。
