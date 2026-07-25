@@ -512,6 +512,38 @@ function applyCuratedPatch(rule: LintRuleRecord): LintRuleRecord {
         };
     }
     if (
+        rule.id === "cn.cliche.chest-rise"
+        || rule.id === "cn.cliche.chest-vibration"
+        || rule.id === "cn.cliche.cold-touch-shell"
+        || rule.id === "cn.cliche.drained-face"
+        || rule.id === "cn.cliche.hand-appearance-shell"
+        || rule.id === "cn.cliche.rough-fingertip-touch"
+        || rule.id === "cn.cliche.throat-roll"
+        || rule.id === "cn.cliche.tongue-roll"
+        || rule.id === "cn.cliche.warm-palm-touch"
+        || rule.id === "cn.cliche.words-chewing"
+    ) {
+        return {
+            ...rule,
+            review: "human",
+            note: "默认交人工：身体/触感微细节可能是角色能直接感知的具体画面；只在它变成重复装饰性模板时删。",
+            source: {...(rule.source ?? {}), version: "rule-curation-v19"},
+        };
+    }
+    if (
+        rule.id === "cn.cliche.teeth-pressed-speech"
+        || rule.id === "cn.cliche.voice-evaluation-abrupt"
+        || rule.id === "cn.cliche.voice-evaluation-clear"
+        || rule.id === "cn.cliche.voice-travel-shell"
+    ) {
+        return {
+            ...rule,
+            review: "human",
+            note: "默认交人工：说话方式和声音空间感可能承载人物声音或场景调度；只在解释过度或重复时修。",
+            source: {...(rule.source ?? {}), version: "rule-curation-v19"},
+        };
+    }
+    if (
         rule.id === "cn.cliche.body-reaction.mouth-corner-lift-arc"
         || rule.id === "cn.cliche.body-reaction.mouth-corner-smile-arc"
         || rule.id === "cn.cliche.body-reaction.smile-arc-comma-marked"

@@ -57,8 +57,10 @@
     "title": "删身体局部糖精特写",
     "level": "medium",
     "enabled": true,
-    "note": "删身体局部糖精特写",
+    "review": "human",
+    "note": "默认交人工：身体/触感微细节可能是角色能直接感知的具体画面；只在它变成重复装饰性模板时删。",
     "source": {
+      "version": "rule-curation-v19",
       "canonicalKey": "cliche\t\t胸腔起伏",
       "importedFrom": "curated-cn-rule-samples"
     },
@@ -81,8 +83,10 @@
     "title": "删身体局部糖精特写",
     "level": "medium",
     "enabled": true,
-    "note": "删身体局部糖精特写",
+    "review": "human",
+    "note": "默认交人工：身体/触感微细节可能是角色能直接感知的具体画面；只在它变成重复装饰性模板时删。",
     "source": {
+      "version": "rule-curation-v19",
       "canonicalKey": "cliche\t\t胸膛震动",
       "importedFrom": "curated-cn-rule-samples"
     },
@@ -105,8 +109,10 @@
     "title": "删触感模板壳",
     "level": "medium",
     "enabled": true,
-    "note": "删触感模板壳",
+    "review": "human",
+    "note": "默认交人工：身体/触感微细节可能是角色能直接感知的具体画面；只在它变成重复装饰性模板时删。",
     "source": {
+      "version": "rule-curation-v19",
       "canonicalKey": "cliche\t\t冰凉的触感",
       "importedFrom": "curated-cn-rule-samples"
     },
@@ -203,8 +209,10 @@
     "title": "弱化模板化面色描写",
     "level": "medium",
     "enabled": true,
-    "note": "弱化模板化面色描写",
+    "review": "human",
+    "note": "默认交人工：身体/触感微细节可能是角色能直接感知的具体画面；只在它变成重复装饰性模板时删。",
     "source": {
+      "version": "rule-curation-v19",
       "canonicalKey": "cliche\t\t面色尽失",
       "importedFrom": "curated-cn-rule-samples"
     },
@@ -253,8 +261,10 @@
     "title": "删手部外观修饰壳",
     "level": "medium",
     "enabled": true,
-    "note": "删手部外观修饰壳",
+    "review": "human",
+    "note": "默认交人工：身体/触感微细节可能是角色能直接感知的具体画面；只在它变成重复装饰性模板时删。",
     "source": {
+      "version": "rule-curation-v19",
       "canonicalKey": "cliche\t\t骨节分明的",
       "importedFrom": "curated-cn-rule-samples"
     },
@@ -528,8 +538,10 @@
     "title": "删触感模板壳",
     "level": "medium",
     "enabled": true,
-    "note": "删触感模板壳",
+    "review": "human",
+    "note": "默认交人工：身体/触感微细节可能是角色能直接感知的具体画面；只在它变成重复装饰性模板时删。",
     "source": {
+      "version": "rule-curation-v19",
       "canonicalKey": "cliche\t\t粗糙的指腹",
       "importedFrom": "curated-cn-rule-samples"
     },
@@ -604,8 +616,10 @@
     "title": "弱化咬字方式模板",
     "level": "medium",
     "enabled": true,
-    "note": "弱化咬字方式模板",
+    "review": "human",
+    "note": "默认交人工：说话方式和声音空间感可能承载人物声音或场景调度；只在解释过度或重复时修。",
     "source": {
+      "version": "rule-curation-v19",
       "canonicalKey": "cliche\t\t从齿间挤出",
       "importedFrom": "curated-cn-rule-samples"
     },
@@ -628,8 +642,10 @@
     "title": "删身体局部糖精特写",
     "level": "medium",
     "enabled": true,
-    "note": "删身体局部糖精特写",
+    "review": "human",
+    "note": "默认交人工：身体/触感微细节可能是角色能直接感知的具体画面；只在它变成重复装饰性模板时删。",
     "source": {
+      "version": "rule-curation-v19",
       "canonicalKey": "cliche\t\t喉咙滚出",
       "importedFrom": "curated-cn-rule-samples"
     },
@@ -652,8 +668,10 @@
     "title": "删身体局部糖精特写",
     "level": "medium",
     "enabled": true,
-    "note": "删身体局部糖精特写",
+    "review": "human",
+    "note": "默认交人工：身体/触感微细节可能是角色能直接感知的具体画面；只在它变成重复装饰性模板时删。",
     "source": {
+      "version": "rule-curation-v19",
       "canonicalKey": "cliche\t\t舌尖滚过",
       "importedFrom": "curated-cn-rule-samples"
     },
@@ -855,8 +873,10 @@
     "title": "删声音评价壳",
     "level": "medium",
     "enabled": true,
-    "note": "删声音评价壳",
+    "review": "human",
+    "note": "默认交人工：说话方式和声音空间感可能承载人物声音或场景调度；只在解释过度或重复时修。",
     "source": {
+      "version": "rule-curation-v19",
       "canonicalKey": "cliche\t\t声音格外突兀",
       "importedFrom": "curated-cn-rule-samples"
     },
@@ -879,8 +899,10 @@
     "title": "删声音评价壳",
     "level": "medium",
     "enabled": true,
-    "note": "删声音评价壳",
+    "review": "human",
+    "note": "默认交人工：说话方式和声音空间感可能承载人物声音或场景调度；只在解释过度或重复时修。",
     "source": {
+      "version": "rule-curation-v19",
       "canonicalKey": "cliche\t\t声音格外清晰",
       "importedFrom": "curated-cn-rule-samples"
     },
@@ -903,8 +925,10 @@
     "title": "删声音传递过程壳",
     "level": "medium",
     "enabled": true,
-    "note": "删声音传递过程壳",
+    "review": "human",
+    "note": "默认交人工：说话方式和声音空间感可能承载人物声音或场景调度；只在解释过度或重复时修。",
     "source": {
+      "version": "rule-curation-v19",
       "canonicalKey": "cliche\t\t(?:(?:声音|话音|嗓音)[\\u4e00-\\u9fff]{0,4}回荡|(?:声音|话音|嗓音)(?:贴着|顺着)[\\u4e00-\\u9fff]{0,6}传来)(?=[，,。])",
       "importedFrom": "curated-cn-rule-samples"
     },
@@ -927,8 +951,10 @@
     "title": "删触感模板壳",
     "level": "medium",
     "enabled": true,
-    "note": "删触感模板壳",
+    "review": "human",
+    "note": "默认交人工：身体/触感微细节可能是角色能直接感知的具体画面；只在它变成重复装饰性模板时删。",
     "source": {
+      "version": "rule-curation-v19",
       "canonicalKey": "cliche\t\t掌心干燥温热",
       "importedFrom": "curated-cn-rule-samples"
     },
@@ -951,8 +977,10 @@
     "title": "删身体局部糖精特写",
     "level": "medium",
     "enabled": true,
-    "note": "删身体局部糖精特写",
+    "review": "human",
+    "note": "默认交人工：身体/触感微细节可能是角色能直接感知的具体画面；只在它变成重复装饰性模板时删。",
     "source": {
+      "version": "rule-curation-v19",
       "canonicalKey": "cliche\t\t咀嚼字句",
       "importedFrom": "curated-cn-rule-samples"
     },
