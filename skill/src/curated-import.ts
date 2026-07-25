@@ -350,6 +350,15 @@ function applyCuratedPatch(rule: LintRuleRecord): LintRuleRecord {
     if (!("detector" in rule)) {
         return rule;
     }
+    if (rule.id === "cn.punctuation.dedup.repeated-symbols") {
+        return {
+            ...rule,
+            review: "human",
+            fixability: "manual",
+            note: "默认降级：重复感叹号/问号在小说对白和拟声中常承担语气，当前 reference 命中高于 render；只作为人工提示，不再自动去重。",
+            source: {...(rule.source ?? {}), version: "rule-curation-v28"},
+        };
+    }
     if (rule.id === "cn.cliche.baguwen.point-reference") {
         return {
             ...rule,
@@ -614,6 +623,14 @@ function applyCuratedPatch(rule: LintRuleRecord): LintRuleRecord {
             },
         };
     }
+    if (rule.id === "cn.modifier.measure.subject-measure-word") {
+        return {
+            ...rule,
+            note: "默认收窄：保留标点后“一股”这类强判别量词壳；移除“这具/那具”，避免误删换身、转生题材中有实际指代功能的“这具身体”。",
+            source: {...(rule.source ?? {}), version: "rule-curation-v27"},
+            detector: {type: "regex", targets: ["(?<=^|[,，。])一股(?!脑)子?"]},
+        };
+    }
     if (rule.id === "cn.modifier.measure.physiological-label") {
         return {
             ...rule,
@@ -743,9 +760,17 @@ function applyCuratedPatch(rule: LintRuleRecord): LintRuleRecord {
     if (rule.id === "cn.cliche.trailing-sensory-clause") {
         return {
             ...rule,
-            note: "默认收窄：尾部分句只看叙述层，避免系统面板和整句对白误报；Agent 只处理无功能感官/语气尾巴，保留必要动作、物性和信息细节。",
-            source: {...(rule.source ?? {}), version: "rule-curation-v10"},
+            note: "默认收窄：尾部分句只看叙述层，并只保留抽象情绪/气质/语气尾巴；破风声、指甲、喉咙、气味、温度和回音等具体物性信息不再整段提示。",
+            source: {...(rule.source ?? {}), version: "rule-curation-v26"},
             scope: {layer: "narrative"},
+            detector: {
+                type: "regex",
+                targets: [
+                    "[,，。]带着(?:一种|某种|几分|一点点?|一丝|些许)[\\u4e00-\\u9fff、]*(?:感|意|审视|沉重|苦笑|庆幸|无奈|尾音|余韵|锐气)(?=。|[,，:：][“「\"])",
+                    "[,，。]带着(?:更)?浓郁的[\\u4e00-\\u9fff、]*(?:气息|风格)(?=。|[,，:：][“「\"])",
+                    "[,，。]语[气调](?:里|中)?(?:也)?带着(?:一种|某种|几分|一点点?|一丝|些许)[\\u4e00-\\u9fff、]+(?=。|[,，:：][“「\"])",
+                ],
+            },
         };
     }
     if (rule.id === "cn.cliche.trailing-sound-clause") {

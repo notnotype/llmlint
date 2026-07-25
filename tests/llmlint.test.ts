@@ -664,6 +664,7 @@ describe("llmlint", () => {
         expect(byId.get("cn.cliche.trailing-mouth-arc-clause")?.review).toBe("human");
         expect(byId.get("cn.cliche.hand-color-clause")?.review).toBe("human");
         expect(byId.get("cn.cliche.body-reaction.physiological-tears")?.review).toBe("human");
+        expect(byId.get("cn.punctuation.dedup.repeated-symbols")).toMatchObject({review: "human", fixability: "manual"});
         expect(byId.get("cn.cliche.baguwen.irrefutable-tone-colon")?.review).toBe("human");
         expect(byId.get("cn.cliche.baguwen.irresistible-but")?.review).toBe("human");
         expect(byId.get("cn.cliche.baguwen.taut-neck")?.review).toBe("human");
@@ -708,6 +709,8 @@ describe("llmlint", () => {
             .map((issue) => issue.match)).toEqual(["一股", "那股"]);
         expect(scanText("她停下，一股寒意涌来，心里有一股火，那股压力还在。", [byId.get("cn.modifier.measure.subject-measure-word") as RegexRuleRecord])
             .map((issue) => issue.match)).toEqual(["一股"]);
+        expect(scanText("这具身体还能思考，那具身体已经不见了。", [byId.get("cn.modifier.measure.subject-measure-word") as RegexRuleRecord]))
+            .toHaveLength(0);
         expect(scanText("这种场面、那种职业、心里有一股火，那股压力还在，语气带着几分冷意。", [byId.get("cn.modifier.measure.specific-measure-word") as RegexRuleRecord])
             .map((issue) => issue.match)).toEqual(["几分"]);
         expect(scanText("这句话沉甸甸的，落下来时沉甸甸。", [byId.get("cn.modifier.heavy-degree-shell") as RegexRuleRecord])
@@ -726,6 +729,8 @@ describe("llmlint", () => {
             .map((issue) => issue.match)).toEqual(["非常", "根本上"]);
         expect(scanText("十分清楚，过了十分钟，又卡了二十分钟。", [byId.get("adverb-intensifier") as RegexRuleRecord])
             .map((issue) => issue.match)).toEqual(["十分"]);
+        expect(scanText("“嘎噢噢！！”她问：“真的？？？”", [byId.get("cn.punctuation.dedup.repeated-symbols") as RegexRuleRecord])
+            .map((issue) => issue.match)).toEqual(["！！", "？？？"]);
         expect(scanText("非常清楚，极其细微，本质上来说如此。", [byId.get("cn.modifier.stacked-degree-adverbs") as RegexRuleRecord])
             .map((issue) => issue.match)).toEqual(["极其"]);
         expect(scanText("他突然回头，忽然笑了，稍微停顿，略微弯腰，凶猛的怪兽，下意识抬手。", [byId.get("cn.modifier.stacked-degree-adverbs") as RegexRuleRecord])
@@ -749,6 +754,10 @@ describe("llmlint", () => {
         expect(trailingSensoryRule.scope).toEqual({layer: "narrative"});
         expect(scanText("她停在门口，带着一点倦意。", [trailingSensoryRule])
             .map((issue) => issue.match)).toEqual(["，带着一点倦意"]);
+        expect(scanText("她问道，语气里带着一丝无奈。", [trailingSensoryRule])
+            .map((issue) => issue.match)).toEqual(["，语气里带着一丝无奈"]);
+        expect(scanText("大剑撕裂空气，带着破风声斜斩而下。指甲锋利如刀，空气带着灰尘和血腥气。", [trailingSensoryRule]))
+            .toHaveLength(0);
         expect(scanText("【成为闪耀的魔法少女，让所有人记住你的名字，带着她的那份一起活下去吧。】", [trailingSensoryRule])
             .map((issue) => issue.match)).toEqual([]);
         expect(scanText("三个夜班，三室一厅，凌晨三点。", loadedRules.regexRules)
@@ -766,6 +775,12 @@ describe("llmlint", () => {
         expect(scanText("灵魂链路锁定，这种打法太暴力，情绪最终沉淀下来。", [businessRule])).toHaveLength(0);
         expect(scanText("团队需要对齐业务链路，推动方案落地，并沉淀增长打法。", [businessRule]).map((issue) => issue.match))
             .toEqual(["对齐", "业务链路", "方案落地", "增长打法"]);
+
+        const lazyExtremesRule = byId.get("lazy-extremes") as RegexRuleRecord;
+        expect(scanText("所有人都会死，包括我。她一定会回来，那只猫永远没货。", [lazyExtremesRule]))
+            .toHaveLength(0);
+        expect(scanText("没有人能例外，任何人都必然如此。", [lazyExtremesRule]).map((issue) => issue.match))
+            .toEqual(["没有人", "任何人都", "必然"]);
     });
 
     it("默认 ruleset 只有确定性机械规则可自动修复，语义 replace 全部为 manual", async () => {
@@ -775,7 +790,7 @@ describe("llmlint", () => {
             counts[rule.fixability] += 1;
         }
 
-        expect(counts).toEqual({auto: 3, candidate: 0, manual: 260});
+        expect(counts).toEqual({auto: 2, candidate: 0, manual: 261});
         expect(loadedRules.regexRules
             .filter((rule) => rule.fixability === "auto")
             .every((rule) => rule.action.type === "replace")).toBe(true);
@@ -1174,32 +1189,32 @@ describe("llmlint", () => {
         expect(String(log.mock.calls[0]?.[0])).toContain("dry-run");
     });
 
-    it("fix --write 落盘：删零宽、连续符号去重，退出码不为 1", async () => {
+    it("fix --write 落盘：删零宽、省略号尾巴，不自动压缩对白重复符号", async () => {
         const root = await mkdtemp(join(tmpdir(), "llmlint-fix-write-"));
         tempRoots.push(root);
         const filePath = join(root, "doc.md");
         const zwsp = String.fromCharCode(0x200B);
-        await writeFile(filePath, `正文${zwsp}有零宽。\n\n真的？？？\n`, "utf-8");
+        await writeFile(filePath, `正文${zwsp}有零宽。\n\n尾巴……...\n\n真的？？？\n`, "utf-8");
         vi.spyOn(console, "log").mockImplementation(() => undefined);
 
         await runCli(["bun", "llmlint", "fix", filePath, "--write"]);
 
-        expect(await readFile(filePath, "utf-8")).toBe("正文有零宽。\n\n真的？\n");
+        expect(await readFile(filePath, "utf-8")).toBe("正文有零宽。\n\n尾巴……\n\n真的？？？\n");
         expect(process.exitCode).not.toBe(1);
     });
 
-    it("fix 尊重 Markdown 遮罩：代码块内连续符号不被修复", async () => {
+    it("fix 尊重 Markdown 遮罩：代码块内机械标点不被修复", async () => {
         const root = await mkdtemp(join(tmpdir(), "llmlint-fix-mask-"));
         tempRoots.push(root);
         const filePath = join(root, "doc.md");
-        await writeFile(filePath, "真的？？？\n\n```\n代码？？？保留\n```\n", "utf-8");
+        await writeFile(filePath, "真的……...\n\n```\n代码……...保留\n```\n", "utf-8");
         vi.spyOn(console, "log").mockImplementation(() => undefined);
 
         await runCli(["bun", "llmlint", "fix", filePath, "--write"]);
         const fixed = await readFile(filePath, "utf-8");
 
-        expect(fixed).toContain("真的？\n");
-        expect(fixed).toContain("代码？？？保留");
+        expect(fixed).toContain("真的……\n");
+        expect(fixed).toContain("代码……...保留");
     });
 
     it("单条 auto 替换保留全文上下文，支持 lookbehind 删除", () => {
@@ -1368,7 +1383,7 @@ describe("llmlint", () => {
         const root = await mkdtemp(join(tmpdir(), "llmlint-fix-json-"));
         tempRoots.push(root);
         const filePath = join(root, "doc.md");
-        await writeFile(filePath, "真的？？？\n", "utf-8");
+        await writeFile(filePath, "尾巴……...\n", "utf-8");
         const log = vi.spyOn(console, "log").mockImplementation(() => undefined);
 
         await runCli(["bun", "llmlint", "fix", filePath, "--format", "json"]);

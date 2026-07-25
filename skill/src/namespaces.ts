@@ -95,7 +95,7 @@ export type NamespacePolicy = {
  * 这张表是“默认降噪”的真正杠杆，可按项目偏好继续调整，调整这里不需要重生成规则文件。
  */
 export const DEFAULT_NAMESPACE_POLICY: Record<string, NamespacePolicy> = {
-    // 纯机械：连续符号去重，确定性替换，无需审查
+    // 纯机械：省略号/破折号尾部清理。重复感叹/问号由规则级补丁降级为人工提示。
     "punctuation.dedup": {review: "none", fixability: "auto"},
 
     // 标点风格：破折号及其增殖在中文小说里高度依赖作者偏好，默认交人工

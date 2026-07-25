@@ -21,7 +21,7 @@
 | **CLI**（本仓库 `bin/llmlint.ts`） | 用 regex detector 做**稳定、可复现的候选定位**，告诉你*哪里*可能有问题。 |
 | **Agent Skill**（`SKILL.md`） | 由 LLM/Agent 结合**语境**复核候选、给文本评分、生成修复计划，并*在你审批之后*才改写。 |
 
-核心理念：**命中只是候选，不是判决。** CLI 永远不会自动改写正文。只有无需判断的机械清理（零宽字符、连续符号去重）才由 `fix` 处理；所有语义级修复都交给人/Agent。
+核心理念：**命中只是候选，不是判决。** CLI 永远不会自动改写正文。只有无需判断的机械清理（零宽字符、省略号/破折号尾部清理）才由 `fix` 处理；所有语义级修复都交给人/Agent。
 
 ## 为什么需要它
 
@@ -78,7 +78,7 @@ bun bin/llmlint.ts check chapter.md --show-lines
 # 列出需要 Agent 全文审查的 LLM 规则
 bun bin/llmlint.ts show-llm-rules
 
-# 确定性机械修复（零宽字符、连续符号去重）—— 默认 dry-run
+# 确定性机械修复（零宽字符、省略号/破折号尾部清理）—— 默认 dry-run
 bun bin/llmlint.ts fix manuscript/             # 仅预览（有待修项时退出码 1）
 bun bin/llmlint.ts fix manuscript/ --write     # 写回原文件
 

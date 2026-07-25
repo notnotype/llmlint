@@ -32,6 +32,9 @@
 - 2026-07-25：`business-jargon` 已从裸词表收窄为业务语境 detector。`落地/链路/打法/沉淀/心智` 不再裸命中“落地镜”“轻巧落地”“灵魂链路”“这种打法”“情绪沉淀”，当前 fiction dataset 命中归零；业务文里的“对齐/业务链路/方案落地/增长打法”等仍保留 human advisory。
 - 2026-07-25：`cn.modifier.stacked-degree-adverbs` 已收窄。移除逐次提示价值低的“突然/忽然/稍微/略微/稍稍”，以及会半截命中“凶猛的/迅猛的”的“猛的”；`下意识/无意识/不自觉/习惯性` 只保留 adverbial “...地”。当前 dataset 从 reference 60 / render 305 降到 reference 25 / render 234。
 - 2026-07-25：`adverb-intensifier` 的“十分”改为 `十分(?!钟)`，避免半截命中“十分钟 / 二十分钟”；“十分清楚”这类程度副词仍保留 human advisory。
+- 2026-07-25：`cn.cliche.trailing-sensory-clause` 已从泛尾部分句 detector 收窄为抽象情绪/气质/语气尾巴，放过“破风声 / 指甲 / 喉咙 / 气味 / 温度 / 回音”等具体物性信息；`cn.modifier.measure.subject-measure-word` 移除“这具/那具”，只保留句首或标点后的“一股”量词壳。
+- 2026-07-25：`cn.punctuation.dedup.repeated-symbols` 从 `none/auto` 降级为 `human/manual`。重复感叹号/问号在小说对白和拟声中常承担语气，不再由 `fix --write` 自动压缩；自动修复桶只保留更机械的零宽与省略号/破折号尾巴清理。
+- 2026-07-25：`lazy-extremes` 已收窄，移除“所有人/每个人/永远/一定会”等小说常用表达，只保留“大家都/从来不/必然/毫无例外/没有人/任何人都”这类更像无范围断言的分支。
 
 ## 待用户拍板
 
@@ -63,8 +66,8 @@
     - 待确认：LLM 版金句感是否继续作为默认 Agent 审查项，还是也转为 `human`。
 
 7. **剩余 Agent 桶 insufficient 规则是否按策略统一下沉**
-    - 当前仍保留在 `agent` 且旧报告 verdict 为 `weak` / `insufficient` 的规则主要包括：`cn.cliche.trailing-sensory-clause`，以及 story-deslop 的少量 high blocking 校准规则；其中 `trailing-sensory-clause` 已先限制叙述层，`unquestionable-claim`、`mouth-corner-arc`、嘴角 direct/trailing、手部泛白、`opening-cliche-era`、`inflation-novelty`、`trailing-sound-clause`、两个 modifier 旧 strong override 已转 `human`。
-    - 我没有继续硬改的原因：story-deslop blocking 有独立真人校准来源；`trailing-sensory-clause` 当前 render 24 / reference 0，仍像默认 Agent 可处理的尾部总结帽子。
+    - 当前仍保留在 `agent` 且旧报告 verdict 为 `weak` / `insufficient` 的主要是 story-deslop 的少量 high blocking 校准规则，以及已二次收窄后的 `cn.cliche.trailing-sensory-clause`。
+    - 我没有继续硬改的原因：story-deslop blocking 有独立真人校准来源；`trailing-sensory-clause` 当前已降到 render 10 / reference 0，只保留抽象情绪/气质/语气尾巴，暂未形成转 `human` 的反证。
     - 待确认：后续是否采用机械策略“verdict=insufficient 且无 blocking 校准来源 → 默认 `human`”，还是继续允许少量语义明确但样本支持不足的规则留在 `agent`。
 
 8. **canonical 分工是否作为长期整理策略**
@@ -85,7 +88,7 @@
     - 待确认：是否接受这类强判别规则保留少量人类侧命中，交 Agent 读上下文判断；还是把它们转 `human` / 增加更强结构条件，牺牲一部分 AI 文本召回。
 
 11. **剩余高频 human 桶是否继续激进收窄**
-    - 本轮已把 `extra-punctuation`、裸破折号替逗号、商业黑话裸词、`stacked-degree-adverbs` 的低信号分支和 `specific-measure-word` 的“这种/那种”处理掉。
-    - 剩余高频 human 规则仍包括：`cn.modifier.stacked-degree-adverbs`（reference 25 / render 234）、`cn.modifier.measure.specific-measure-word`（reference 9 / render 158）、`cn.metaphor.trailing-simile-clause`（reference 8 / render 51）、`cn.metaphor.simile-modifier-shell`（reference 4 / render 44）、`adverb-intensifier`（reference 10 / render 20）、`lazy-extremes`（reference 7 / render 19）。
-    - 我没有继续硬改的原因：这些规则的 render 偏高仍有价值，但 reference 命中多是正常小说表达，例如“一道轨迹/一层光/一点细节”、有效比喻、普通“非常/所有人”；继续收窄需要更明确的产品取舍。
+    - 本轮已把 `extra-punctuation`、裸破折号替逗号、商业黑话裸词、`stacked-degree-adverbs` 的低信号分支、`specific-measure-word` 的“这种/那种”、`lazy-extremes` 的普通小说绝对词、以及重复感叹/问号的 auto 权限处理掉。
+    - 剩余高频 human 规则仍包括：`cn.modifier.stacked-degree-adverbs`（reference 25 / render 234）、`cn.modifier.measure.specific-measure-word`（reference 9 / render 158）、`cn.metaphor.trailing-simile-clause`（reference 8 / render 51）、`cn.metaphor.simile-modifier-shell`（reference 4 / render 44）、`adverb-intensifier`（reference 8 / render 16）。
+    - 我没有继续硬改的原因：这些规则的 render 偏高仍有价值，但 reference 命中多是正常小说表达，例如“一道轨迹/一层光/一点细节”、有效比喻、普通“非常”；继续收窄需要更明确的产品取舍。
     - 待确认：`--review all` 是否要偏“干净列表”（继续默认关闭/大幅收窄这些 human 规则），还是偏“素材雷达”（保留 high-recall human advisory，让编辑器和人工判断承担噪声）。

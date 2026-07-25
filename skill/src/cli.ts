@@ -145,7 +145,7 @@ export async function runCli(argv: string[]): Promise<void> {
 
     program
         .command("fix")
-        .description("应用 fixability:auto 的确定性机械修复（零宽字符、连续符号去重）；默认 dry-run，加 --write 落盘")
+        .description("应用 fixability:auto 的确定性机械修复（零宽字符、省略号/破折号尾部清理）；默认 dry-run，加 --write 落盘")
         .argument("<files...>", "要修复的 UTF-8 文本文件或目录，可传多个")
         .option("-f, --format <format>", "输出格式：stylish 或 json")
         .option("--write", "把修复写回原文件（缺省只预览，不改文件）")

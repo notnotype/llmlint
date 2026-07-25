@@ -100,7 +100,7 @@ bun .nbook/agent/skills/llmlint/bin/llmlint.ts check chapter.md --scan-all
 
 ## fix：确定性机械修复
 
-`fix` 只应用 `fixability: auto` 的规则——零宽字符删除、连续符号去重等**无需判断**的机械修复。删填充词、改写句式等语义修复不在此列，仍由 Agent 读上下文、经用户审批后处理（默认写 `.agent/polish-output.md`）。
+`fix` 只应用 `fixability: auto` 的规则——零宽字符删除、省略号/破折号尾部清理等**无需判断**的机械修复。重复感叹号/问号这类语气符号只作为人工提示，不再自动压缩。删填充词、改写句式等语义修复不在此列，仍由 Agent 读上下文、经用户审批后处理（默认写 `.agent/polish-output.md`）。
 
 默认 dry-run：只打印将修复什么（含 before → after 预览，零宽等不可见字符会被显形为 `▯`），不改文件；存在待修复项时退出码为 `1`（可用于「禁止零宽字符入库」一类 CI 门禁）。`--write` 才写回原文件：
 
@@ -118,10 +118,10 @@ bun .nbook/agent/skills/llmlint/bin/llmlint.ts fix chapter.md --format json
 
 每条规则有三个互相独立的维度：
 - `level`（high / medium / low）：只表严重度，决定 `--min-level` 过滤和退出码。
-- `review`（agent / human / none）：审查受众，决定默认进入哪个审查出口。`check` 默认只展示 `review: agent` 的命中，把破折号、比喻、泛词形副词等更偏作者偏好的命中归到 `human`，把连续符号去重等机械命中归到 `none`。
-- `fixability`（auto / candidate / manual）：机械修复能力，决定能否被 `fix` 命令自动改写。`fix` 只应用 `auto` 桶（零宽字符、连续符号去重）；`check` 永远不改写。
+- `review`（agent / human / none）：审查受众，决定默认进入哪个审查出口。`check` 默认只展示 `review: agent` 的命中，把破折号、比喻、泛词形副词等更偏作者偏好的命中归到 `human`，把零宽字符和省略号/破折号尾部清理等机械命中归到 `none`。
+- `fixability`（auto / candidate / manual）：机械修复能力，决定能否被 `fix` 命令自动改写。`fix` 只应用 `auto` 桶（零宽字符、省略号/破折号尾部清理）；`check` 永远不改写。
 
-默认规则集的实际分布约为 `auto=3 / candidate=0 / 其余 manual`。`action.type: "replace"` 与 `action.replacement` 只说明规则带有替换模板，不代表模板可直接执行；应用权限由规则经过 ruleset、namespace、rule 配置覆盖后得到的最终 `fixability` 决定。用户可显式把指定 regex replace 规则提升为 `candidate`，供逐条人工确认。
+默认规则集的实际分布约为 `auto=2 / candidate=0 / 其余 manual`。`action.type: "replace"` 与 `action.replacement` 只说明规则带有替换模板，不代表模板可直接执行；应用权限由规则经过 ruleset、namespace、rule 配置覆盖后得到的最终 `fixability` 决定。用户可显式把指定 regex replace 规则提升为 `candidate`，供逐条人工确认。
 
 默认输出先按 high / medium / low 分段，再按规则分组。每条命中显示位置范围和命中文本，不重复打印完整原文行：
 
@@ -353,7 +353,7 @@ stylish 输出在交互式终端（TTY）下按语义着色：级别 high 红、
 
 ### CLI 工具可以自动修复吗？
 
-只有 `fixability: auto` 的机械规则（零宽字符、连续符号去重）可由 `fix` 命令确定性修复（见上文「fix」节：默认 dry-run，`--write` 才落盘）。删填充词、改写句式等语义修复不在此列，仍由 Agent 读上下文、经用户审批后执行。`check` 本身永不改写正文。
+只有 `fixability: auto` 的机械规则（零宽字符、省略号/破折号尾部清理）可由 `fix` 命令确定性修复（见上文「fix」节：默认 dry-run，`--write` 才落盘）。删填充词、改写句式等语义修复不在此列，仍由 Agent 读上下文、经用户审批后执行。`check` 本身永不改写正文。
 
 ### 如何配置规则包？
 

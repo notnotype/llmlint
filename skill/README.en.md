@@ -21,7 +21,7 @@ It has two faces that work together:
 | **CLI** (this repo's `bin/llmlint.ts`) | Stable, reproducible **candidate location** via regex detectors. It tells you *where* something might be wrong. |
 | **Agent Skill** (`SKILL.md`) | An LLM/agent reads the candidates **in context**, scores the text, drafts a fix plan, and rewrites *only after you approve*. |
 
-The guiding principle: **a hit is a candidate, not a verdict.** The CLI never auto-rewrites your prose. Mechanical, judgment-free cleanups (invisible characters, duplicated punctuation) are the only thing `fix` touches; everything semantic stays with the human/agent.
+The guiding principle: **a hit is a candidate, not a verdict.** The CLI never auto-rewrites your prose. Mechanical, judgment-free cleanups (invisible characters, ellipsis/em-dash tails) are the only thing `fix` touches; everything semantic stays with the human/agent.
 
 ## Why
 
@@ -78,7 +78,7 @@ bun bin/llmlint.ts check chapter.md --show-lines
 # List the LLM rules that need an agent's whole-text review
 bun bin/llmlint.ts show-llm-rules
 
-# Deterministic mechanical fix (zero-width chars, duplicated symbols) — dry-run by default
+# Deterministic mechanical fix (zero-width chars, ellipsis/em-dash tails) — dry-run by default
 bun bin/llmlint.ts fix manuscript/             # preview only (exit code 1 if anything pending)
 bun bin/llmlint.ts fix manuscript/ --write     # write back to source files
 
@@ -96,7 +96,7 @@ Every rule carries three orthogonal axes — don't conflate them:
 - **`review`** — `agent` / `human` / `none`. *Audience*: who should look at a hit. `check` defaults to `--review agent`, so author-preference noise (dashes, similes, generic adverbs) is parked in the `human` bucket and mechanical hits in `none`. Use `--review human` / `--review all` to see the rest.
 - **`fixability`** — `auto` / `candidate` / `manual`. Mechanical fix capability. `fix` only applies `auto` rules.
 
-The default ruleset has only three context-free mechanical `auto` rules, no default `candidate` rules, and treats everything else as `manual`. A user config may still promote explicitly chosen regex `replace` rules to `candidate` for one-by-one confirmation. An `action.replace` value is only a replacement template; **it does not grant permission to apply the edit**. The final authority always comes from the materialized `fixability` value.
+The default ruleset has only two context-free mechanical `auto` rules, no default `candidate` rules, and treats everything else as `manual`. A user config may still promote explicitly chosen regex `replace` rules to `candidate` for one-by-one confirmation. An `action.replace` value is only a replacement template; **it does not grant permission to apply the edit**. The final authority always comes from the materialized `fixability` value.
 
 `review` (audience) is **not** the same as `detector` (detection method):
 
@@ -138,7 +138,7 @@ The official recommended ruleset — ~340 rule records across 40+ namespaces, me
 
 - **agent bucket (shown by default):** `filler`, `opening.cliche`, `inflation.significance`, `transition.summary`, `attribution.vague`, `cliche.uplift`, `sycophantic`, `jargon.business`, …
 - **human bucket (high false-positive / author preference):** `punctuation.dash`, `metaphor`, `modifier`, `jargon.engineer`, `jargon.social`, `translationese`, `structure.fragment`, …
-- **none bucket (mechanical):** `punctuation.dedup`, `mechanical.zero-width`.
+- **none bucket (mechanical):** `mechanical.zero-width` and the ellipsis/em-dash-tail subset of `punctuation.dedup`. Repeated exclamation/question marks are human-review only.
 - **`mechanical.*` (language-agnostic, high precision):** zero-width characters, homoglyphs, leftover `{{placeholders}}`, chatbot copy-paste artifacts (`:contentReference`, `oaicite`, …).
 
 It ships with R18 / adult-vocabulary rules; general projects can disable them with `namespaces: {"vocabulary.r18": "off"}` rather than editing rule files.

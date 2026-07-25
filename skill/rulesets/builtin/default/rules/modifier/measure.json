@@ -103,15 +103,16 @@
     "title": "删除主语的量词",
     "level": "medium",
     "enabled": true,
-    "note": "删除主语的量词",
+    "note": "默认收窄：保留标点后“一股”这类强判别量词壳；移除“这具/那具”，避免误删换身、转生题材中有实际指代功能的“这具身体”。",
     "source": {
       "canonicalKey": "modifier.measure\t\t(?<=^|[,，。])(?:一股(?!脑)子?|[这那]具)",
-      "importedFrom": "curated-cn-rule-samples"
+      "importedFrom": "curated-cn-rule-samples",
+      "version": "rule-curation-v27"
     },
     "detector": {
       "type": "regex",
       "targets": [
-        "(?<=^|[,，。])(?:一股(?!脑)子?|[这那]具)"
+        "(?<=^|[,，。])一股(?!脑)子?"
       ]
     },
     "action": {
