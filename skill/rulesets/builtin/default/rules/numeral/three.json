@@ -97,8 +97,10 @@
     "namespace": "numeral.three",
     "title": "三",
     "level": "medium",
-    "enabled": true,
+    "enabled": false,
+    "note": "默认关闭：裸“三”会命中所有正常数字表达，如“三个夜班/三室一厅/凌晨三点”；保留资产给项目显式开启。",
     "source": {
+      "version": "rule-curation-v22",
       "canonicalKey": "numeral.three\t\t三",
       "importedFrom": "curated-cn-rule-samples"
     },

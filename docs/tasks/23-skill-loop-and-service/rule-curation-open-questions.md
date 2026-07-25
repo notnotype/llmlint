@@ -27,6 +27,7 @@
 - 2026-07-25：语气强度 / 身体紧绷 / 对白回声 / 场域前置壳转 `human`：`cn.cliche.baguwen.irrefutable-tone-colon`、`irresistible-but`、`taut-neck`、`unquestionable-claim`、`cn.sentence.compound.dialogue-echo-after-quote`、`setting-space-preface`。这些规则无校准支撑，且可能服务人物状态、停顿节奏或空间调度。
 - 2026-07-25：`cn.action-expression.rough-manner-modifier` 已转 `human`。旧报告为 strong，但当前命中包含“呼吸粗重”“字体更加粗重”“疯狂码字”“能量疯狂涌入”“心脏疯狂跳动”等真实动作、状态或物性描述；全语料 reference 侧也有“疯狂的大叫 / 疯狂的大声叫道”合法用法，裸词默认 Agent 删除风险过高。
 - 2026-07-25：高频 Agent 规则处理边界已补强：`cn.proliferation.mixed.repeated-de-pairs` 保留强判别入口但 note 要求只压缩装饰性形容词堆叠，`cn.cliche.trailing-sensory-clause` 保留 render-only 尾巴信号但 note 要求保留必要动作、物性和信息细节。
+- 2026-07-25：`cn.numeral.three.numeral-three` 已默认关闭。裸“三”在当前 dataset 命中 119 次，包含大量真人正常数字表达；这是素材转换遗留，不适合作为 active human 规则。
 
 ## 待用户拍板
 

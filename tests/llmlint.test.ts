@@ -745,6 +745,8 @@ describe("llmlint", () => {
             .map((issue) => issue.match)).toEqual(["，带着一点倦意"]);
         expect(scanText("【成为闪耀的魔法少女，让所有人记住你的名字，带着她的那份一起活下去吧。】", [trailingSensoryRule])
             .map((issue) => issue.match)).toEqual([]);
+        expect(scanText("三个夜班，三室一厅，凌晨三点。", loadedRules.regexRules)
+            .some((issue) => issue.rule.id === "cn.numeral.three.numeral-three")).toBe(false);
     });
 
     it("默认 ruleset 只有确定性机械规则可自动修复，语义 replace 全部为 manual", async () => {
@@ -754,7 +756,7 @@ describe("llmlint", () => {
             counts[rule.fixability] += 1;
         }
 
-        expect(counts).toEqual({auto: 3, candidate: 0, manual: 263});
+        expect(counts).toEqual({auto: 3, candidate: 0, manual: 262});
         expect(loadedRules.regexRules
             .filter((rule) => rule.fixability === "auto")
             .every((rule) => rule.action.type === "replace")).toBe(true);

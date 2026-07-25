@@ -524,6 +524,14 @@ function applyCuratedPatch(rule: LintRuleRecord): LintRuleRecord {
             detector: {type: "regex", targets: ["(?<![,，。])一股子?|那股子?"]},
         };
     }
+    if (rule.id === "cn.numeral.three.numeral-three") {
+        return {
+            ...rule,
+            enabled: false,
+            note: "默认关闭：裸“三”会命中所有正常数字表达，如“三个夜班/三室一厅/凌晨三点”；保留资产给项目显式开启。",
+            source: {...(rule.source ?? {}), version: "rule-curation-v22"},
+        };
+    }
     if (
         rule.id === "cn.cliche.chest-rise"
         || rule.id === "cn.cliche.chest-vibration"
