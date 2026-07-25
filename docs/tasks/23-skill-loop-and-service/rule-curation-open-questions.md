@@ -66,3 +66,9 @@
     - 已处理的确定问题：后接“只有/只是/只会”的同 span 场景已排除，避免和 `story-deslop.negation-parade.only-turn` 重复；后接“然而/但/却”的真实转折也已排除。
     - 我没有直接下沉的原因：这是 story-deslop high blocking 校准规则，原校准集 0 人类命中；当前语料支持偏少，但没有形成反证。
     - 待确认：是否继续保持 `high + agent`，还是进一步收窄为只处理否定后转入抽象总结/情绪结论的结构。
+
+10. **强判别规则的人类侧少量命中是否接受**
+    - 当前默认 Agent 桶在 dataset reference 侧仍命中的规则只剩两条：`cn.cliche.baguwen.vague-amount-noun`（reference 2 / render 29）和 `cn.proliferation.mixed.repeated-de-pairs`（reference 1 / render 73）。
+    - `vague-amount-noun` 的 reference 命中是“是一股陌生的摩挲拉拽感”和“藏着一股玩味的笑意”；这类“一股”在真人小说里并非不可用，但在 render 中高频变成情绪/气息/压力的泛化量词。
+    - `repeated-de-pairs` 的 reference 命中是“鲁莽的、缺乏手段的、不考虑后果的”，属于真实排比强化；render 中大量命中是“陌生的、昏暗的 / 冰冷的、混乱的、令人...”式堆叠形容。
+    - 待确认：是否接受这类强判别规则保留少量人类侧命中，交 Agent 读上下文判断；还是把它们转 `human` / 增加更强结构条件，牺牲一部分 AI 文本召回。
