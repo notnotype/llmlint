@@ -661,6 +661,20 @@ describe("llmlint", () => {
         expect(byId.get("inflation-novelty")?.review).toBe("human");
         expect(byId.get("cn.cliche.trailing-sound-clause")?.review).toBe("human");
         expect(byId.get("cn.regex.advanced.few-degree")?.review).toBe("human");
+        expect(byId.get("cn.action-expression.flat-tone-shell")?.review).toBe("human");
+        expect(byId.get("cn.action-expression.force-white-knuckle")?.review).toBe("human");
+        expect(byId.get("cn.action-expression.explicit-teasing-tone")?.review).toBe("human");
+        expect(byId.get("cn.action-expression.teasing-attitude-shell")?.review).toBe("human");
+        expect(byId.get("cn.action-expression.tightly-clenched")?.review).toBe("human");
+        expect(byId.get("cn.cliche.cup-collision")?.review).toBe("human");
+        expect(byId.get("cn.cliche.table-cup-touch")?.review).toBe("human");
+        expect(byId.get("cn.cliche.knuckle-crack")?.review).toBe("human");
+        expect(byId.get("cn.sentence.compound.generic-comparison-tone")?.review).toBe("human");
+        expect(byId.get("cn.sentence.compound.weather-tone-chat")?.review).toBe("human");
+        expect(byId.get("cn.sentence.compound.weather-tone-chat-today")?.review).toBe("human");
+        expect(byId.get("cn.sentence.compound.weather-tone-direct-state")?.review).toBe("human");
+        expect(byId.get("cn.sentence.compound.weather-tone-discuss")?.review).toBe("human");
+        expect(byId.get("cn.sentence.compound.weather-tone-discussion")?.review).toBe("human");
         expect(scanText("过了几分钟，他安心了几分。", [byId.get("cn.regex.advanced.few-degree") as RegexRuleRecord])
             .map((issue) => issue.match)).toEqual(["了几分"]);
         expect(scanText("拿到了近乎成本价的新灯，取而代之的是旧灯。", [byId.get("cn.cliche.vague-transition-phrase") as RegexRuleRecord])

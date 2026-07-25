@@ -55,8 +55,10 @@
     "title": "删泛化类比口气壳",
     "level": "medium",
     "enabled": true,
-    "note": "删泛化类比口气壳",
+    "review": "human",
+    "note": "默认交人工：天气/闲聊类口气比喻可能是人物反差或黑色幽默，替换为“平静地”会抹掉语气；只在固定口气壳重复时修。",
     "source": {
+      "version": "rule-curation-v18",
       "canonicalKey": "sentence.compound\t\t和(?:谈起|聊起|说起)[\\u4e00-\\u9fff]{1,8}一样(?=(?:地)?(?:说|开口|问|回答|讲|提起))",
       "importedFrom": "curated-cn-rule-samples"
     },
@@ -255,8 +257,10 @@
     "title": "天气式口气改直接状态",
     "level": "medium",
     "enabled": true,
-    "note": "天气式口气改直接状态",
+    "review": "human",
+    "note": "默认交人工：天气/闲聊类口气比喻可能是人物反差或黑色幽默，替换为“平静地”会抹掉语气；只在固定口气壳重复时修。",
     "source": {
+      "version": "rule-curation-v18",
       "canonicalKey": "sentence.compound\t\t像在聊天气一样(?=(?:地)?(?:说|开口|问|回答|讲|提起))",
       "importedFrom": "curated-cn-rule-samples"
     },
@@ -279,8 +283,10 @@
     "title": "天气式口气改直接状态",
     "level": "medium",
     "enabled": true,
-    "note": "天气式口气改直接状态",
+    "review": "human",
+    "note": "默认交人工：天气/闲聊类口气比喻可能是人物反差或黑色幽默，替换为“平静地”会抹掉语气；只在固定口气壳重复时修。",
     "source": {
+      "version": "rule-curation-v18",
       "canonicalKey": "sentence.compound\t\t像聊今天天气一样(?=(?:地)?(?:说|开口|问|回答|讲|提起))",
       "importedFrom": "curated-cn-rule-samples"
     },
@@ -303,8 +309,10 @@
     "title": "改成直接说话状态",
     "level": "medium",
     "enabled": true,
-    "note": "改成直接说话状态",
+    "review": "human",
+    "note": "默认交人工：天气/闲聊类口气比喻可能是人物反差或黑色幽默，替换为“平静地”会抹掉语气；只在固定口气壳重复时修。",
     "source": {
+      "version": "rule-curation-v18",
       "canonicalKey": "sentence.compound\t\t用聊天气的口气",
       "importedFrom": "curated-cn-rule-samples"
     },
@@ -327,8 +335,10 @@
     "title": "天气式口气改直接状态",
     "level": "medium",
     "enabled": true,
-    "note": "天气式口气改直接状态",
+    "review": "human",
+    "note": "默认交人工：天气/闲聊类口气比喻可能是人物反差或黑色幽默，替换为“平静地”会抹掉语气；只在固定口气壳重复时修。",
     "source": {
+      "version": "rule-curation-v18",
       "canonicalKey": "sentence.compound\t\t像在讨论天气一样(?=(?:地)?(?:说|开口|问|回答|讲|提起))",
       "importedFrom": "curated-cn-rule-samples"
     },
@@ -351,8 +361,10 @@
     "title": "天气式口气改直接状态",
     "level": "medium",
     "enabled": true,
-    "note": "天气式口气改直接状态",
+    "review": "human",
+    "note": "默认交人工：天气/闲聊类口气比喻可能是人物反差或黑色幽默，替换为“平静地”会抹掉语气；只在固定口气壳重复时修。",
     "source": {
+      "version": "rule-curation-v18",
       "canonicalKey": "sentence.compound\t\t跟讨论天气一样(?=(?:地)?(?:说|开口|问|回答|讲|提起))",
       "importedFrom": "curated-cn-rule-samples"
     },

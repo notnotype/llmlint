@@ -21,6 +21,7 @@
 - 2026-07-25：`cn.modifier.measure.physiological-label` 与 `cn.vocabulary.academic-anatomy.physiological-academic-label` 已互斥分工。前者只处理“生理眼泪/生理快感”的前缀；后者只处理“生理性的/生理层面/生理本能”这类分析腔标签，避免“生理性快感”同 span 双报。
 - 2026-07-25：当前 dataset 的剩余 active 同 span overlap 已归零。已处理分工：`adverb-intensifier` 移除“极其/本质上”，交给更具体规则；`cn.modifier.sensory-atmosphere-modifier` 移除“戏谑的/地”，交给 `cn.action-expression.teasing-modifier`；`cn.sentence.compound.single-negative-contrast` 排除“并不是…而是”，交给 `cn.sentence.compound.contrastive-turn-preface`。
 - 2026-07-25：`story-deslop.negation-parade.repeated-none` 继续收窄，排除后接“然而/但/却”的真实转折句。当前 reference 误杀“没有混杂木屑，没有太多麸质，然而……”已覆盖，两个 render 典型命中仍保留。
+- 2026-07-25：当前 dataset 无命中、旧报告无 verdict、且删除/替换会损失人物语气或普通动作细节的规则转 `human`：`cn.action-expression.explicit-teasing-tone`、`flat-tone-shell`、`force-white-knuckle`、`teasing-attitude-shell`、`tightly-clenched`、`cn.cliche.cup-collision`、`table-cup-touch`、`knuckle-crack`、`cn.sentence.compound.generic-comparison-tone` 和 5 条 weather-tone 口气比喻。保留规则资产，但不再默认要求 Agent 强修。
 
 ## 待用户拍板
 

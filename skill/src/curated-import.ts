@@ -407,6 +407,46 @@ function applyCuratedPatch(rule: LintRuleRecord): LintRuleRecord {
             source: {...(rule.source ?? {}), version: "rule-curation-v5"},
         };
     }
+    if (rule.id === "cn.action-expression.explicit-teasing-tone") {
+        return {
+            ...rule,
+            review: "human",
+            note: "默认交人工：“明显的戏谑”仍需判断人物关系、叙述距离和对白口吻；与戏谑修饰词同族，不作为默认 Agent 强提示。",
+            source: {...(rule.source ?? {}), version: "rule-curation-v18"},
+        };
+    }
+    if (rule.id === "cn.action-expression.flat-tone-shell") {
+        return {
+            ...rule,
+            review: "human",
+            note: "默认交人工：“用平淡的语气/语气平淡地”是常见对白状态提示，删除会改变叙述信息；只在它成为反复口气壳时修。",
+            source: {...(rule.source ?? {}), version: "rule-curation-v18"},
+        };
+    }
+    if (rule.id === "cn.action-expression.force-white-knuckle") {
+        return {
+            ...rule,
+            review: "human",
+            note: "默认交人工：用力导致泛白可能是有效动作细节，且手部颜色 canonical 已覆盖更典型分句；只在模板化手部特写时修。",
+            source: {...(rule.source ?? {}), version: "rule-curation-v18"},
+        };
+    }
+    if (rule.id === "cn.action-expression.teasing-attitude-shell") {
+        return {
+            ...rule,
+            review: "human",
+            note: "默认交人工：“戏谑的态度”依赖人物关系和叙述视角；与戏谑修饰词同族，不作为默认 Agent 强提示。",
+            source: {...(rule.source ?? {}), version: "rule-curation-v18"},
+        };
+    }
+    if (rule.id === "cn.action-expression.tightly-clenched") {
+        return {
+            ...rule,
+            review: "human",
+            note: "默认交人工：“绞得紧紧的”可能是手指、衣料或动作状态，替换为“绞紧”容易改语义；只在重复身体模板时修。",
+            source: {...(rule.source ?? {}), version: "rule-curation-v18"},
+        };
+    }
     if (rule.id === "cn.cliche.baguwen.death-grip-adverb") {
         return {
             ...rule,
@@ -635,6 +675,14 @@ function applyCuratedPatch(rule: LintRuleRecord): LintRuleRecord {
             source: {...(rule.source ?? {}), version: "rule-curation-v13"},
         };
     }
+    if (rule.id === "cn.cliche.cup-collision" || rule.id === "cn.cliche.table-cup-touch" || rule.id === "cn.cliche.knuckle-crack") {
+        return {
+            ...rule,
+            review: "human",
+            note: "默认交人工：杯子/杯底/骨节的接触音效可能是正常动作细节；与 trailing-sound-clause 同类，只在无功能音效模板重复时删。",
+            source: {...(rule.source ?? {}), version: "rule-curation-v18"},
+        };
+    }
     if (rule.id === "cn.action-expression.mouth-corner-arc") {
         return {
             ...rule,
@@ -690,6 +738,21 @@ function applyCuratedPatch(rule: LintRuleRecord): LintRuleRecord {
             review: "human",
             note: "默认交人工：泛“不是/并非/没有…而是/反而”会命中合法对白、设定解释和事实辨析；默认 Agent 只保留 story-deslop 的高信号否定对比规则。",
             source: {...(rule.source ?? {}), version: "rule-curation-v11"},
+        };
+    }
+    if (
+        rule.id === "cn.sentence.compound.generic-comparison-tone"
+        || rule.id === "cn.sentence.compound.weather-tone-chat"
+        || rule.id === "cn.sentence.compound.weather-tone-chat-today"
+        || rule.id === "cn.sentence.compound.weather-tone-direct-state"
+        || rule.id === "cn.sentence.compound.weather-tone-discuss"
+        || rule.id === "cn.sentence.compound.weather-tone-discussion"
+    ) {
+        return {
+            ...rule,
+            review: "human",
+            note: "默认交人工：天气/闲聊类口气比喻可能是人物反差或黑色幽默，替换为“平静地”会抹掉语气；只在固定口气壳重复时修。",
+            source: {...(rule.source ?? {}), version: "rule-curation-v18"},
         };
     }
     if (rule.id === "cn.cliche.body-reaction.controlling-gaze") {

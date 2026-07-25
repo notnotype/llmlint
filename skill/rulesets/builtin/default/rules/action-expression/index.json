@@ -31,7 +31,10 @@
     "title": "动作与神态",
     "level": "medium",
     "enabled": true,
+    "review": "human",
+    "note": "默认交人工：“明显的戏谑”仍需判断人物关系、叙述距离和对白口吻；与戏谑修饰词同族，不作为默认 Agent 强提示。",
     "source": {
+      "version": "rule-curation-v18",
       "canonicalKey": "action-expression\t\t却?带有?明显的?戏谑",
       "importedFrom": "curated-cn-rule-samples"
     },
@@ -54,7 +57,10 @@
     "title": "动作与神态",
     "level": "medium",
     "enabled": true,
+    "review": "human",
+    "note": "默认交人工：“用平淡的语气/语气平淡地”是常见对白状态提示，删除会改变叙述信息；只在它成为反复口气壳时修。",
     "source": {
+      "version": "rule-curation-v18",
       "canonicalKey": "action-expression\t\t(?:用平淡的语气|语气平淡地)",
       "importedFrom": "curated-cn-rule-samples"
     },
@@ -77,7 +83,10 @@
     "title": "动作与神态",
     "level": "medium",
     "enabled": true,
+    "review": "human",
+    "note": "默认交人工：用力导致泛白可能是有效动作细节，且手部颜色 canonical 已覆盖更典型分句；只在模板化手部特写时修。",
     "source": {
+      "version": "rule-curation-v18",
       "canonicalKey": "action-expression\t\t因为用力而泛白",
       "importedFrom": "curated-cn-rule-samples"
     },
@@ -200,7 +209,10 @@
     "title": "动作与神态",
     "level": "medium",
     "enabled": true,
+    "review": "human",
+    "note": "默认交人工：“戏谑的态度”依赖人物关系和叙述视角；与戏谑修饰词同族，不作为默认 Agent 强提示。",
     "source": {
+      "version": "rule-curation-v18",
       "canonicalKey": "action-expression\t\t(?:以|用)?戏谑的态度",
       "importedFrom": "curated-cn-rule-samples"
     },
@@ -249,7 +261,10 @@
     "title": "动作与神态",
     "level": "medium",
     "enabled": true,
+    "review": "human",
+    "note": "默认交人工：“绞得紧紧的”可能是手指、衣料或动作状态，替换为“绞紧”容易改语义；只在重复身体模板时修。",
     "source": {
+      "version": "rule-curation-v18",
       "canonicalKey": "action-expression\t\t绞得紧紧的",
       "importedFrom": "curated-cn-rule-samples"
     },
