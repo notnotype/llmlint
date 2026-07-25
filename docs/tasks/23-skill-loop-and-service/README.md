@@ -26,7 +26,7 @@
 
 ## Current State
 
-- `skill/` 已是 v2.0.0 自包含包：`check`（regex 候选定位 + markdown 遮罩）/ `fix`（仅 auto 桶）/ `show-llm-rules`；当前默认规则为 360 rules / 286 active；`llmlint.config.ts` 三层覆盖（rule id > namespace > ruleset）。
+- `skill/` 已是 v2.0.0 自包含包：`check`（regex 候选定位 + markdown 遮罩）/ `fix`（仅 auto 桶）/ `show-llm-rules`；当前默认规则为 360 rules / 284 active；`llmlint.config.ts` 三层覆盖（rule id > namespace > ruleset）。
 - 神经检测：`evals/detector/hf-client.ts`（客户端直连 HF yuchuantian gradio、句界分块、P(AI) 归一、长度加权 mean+max、content-hash sidecar 缓存）；web 端 `detect.ts` 同算法 + 代理 + `chunksJson` 热力图落库。
 - web 鉴权：nuxt-auth-utils 自有账号，未接 Passport。
 - skill 无用户级状态层、无神经检测命令、无上传通道。
@@ -104,13 +104,16 @@
 - 默认关闭补充：`cn.numeral.three.numeral-three` 默认关闭。该规则来自“numeral.three 三→几”素材，裸匹配“三”会在 `--review all` 中命中“三个夜班 / 三室一厅 / 凌晨三点”等正常数字表达；保留资产给项目显式开启，默认不再污染规则清单。
 - overlap 收窄补充：`cn.cliche.baguwen.unquestionable-claim` 排除后接“的/地”，避免和 `cn.modifier.absolute-claim-modifier` 对同一修饰 span 重复；`cn.cliche.trailing-sensory-clause` 限制到叙述层，避免对白/系统面板里的尾句误报；`story-deslop.negation-parade.repeated-none` 排除后接“只有/只是/只会”的同 span 场景，交给 `story-deslop.negation-parade.only-turn`，并排除后接“然而/但/却”的真实转折。
 - overlap 收窄补充（二）：`cn.cliche.baguwen.vague-amount-noun` 排除标点后的“一股”，该位置交给 strong canonical `cn.modifier.measure.subject-measure-word`；保留句中“一股”和“那股”，避免量词规则对同一 span 双报。
-- overlap 收窄补充（三）：`cn.modifier.measure.specific-measure-word` 移除“股”分支，避免与 `vague-amount-noun` 继续重复；`cn.modifier.heavy-degree-shell` 只保留裸“沉甸甸”，带“的/地”的场景交给 `cn.modifier.sensory-atmosphere-modifier`。
+- overlap 收窄补充（三）：`cn.modifier.measure.specific-measure-word` 移除“股”分支，避免与 `vague-amount-noun` 继续重复，并移除普通指示代词“这种/那种”；`cn.modifier.heavy-degree-shell` 只保留裸“沉甸甸”，带“的/地”的场景交给 `cn.modifier.sensory-atmosphere-modifier`。
 - overlap 收窄补充（四）：`cn.modifier.measure.physiological-label` 只保留“生理眼泪/生理快感”的前缀命中；`cn.vocabulary.academic-anatomy.physiological-academic-label` 排除“生理性眼泪/快感”，只保留“生理性的/生理层面/生理本能”这类分析腔标签。
 - overlap 收窄补充（五）：基础 `adverb-intensifier` 移除“极其/本质上”，交给更具体的 `cn.modifier.stacked-degree-adverbs` / `transition-summary-essence`；`cn.modifier.sensory-atmosphere-modifier` 移除“戏谑的/地”，交给 `cn.action-expression.teasing-modifier`；`cn.sentence.compound.single-negative-contrast` 排除“并不是…而是”，交给 `contrastive-turn-preface`。当前 dataset 复扫 active 同 span overlap 为 0。
+- 高频 human 收窄补充：`cn.modifier.stacked-degree-adverbs` 移除逐次提示价值低的“突然/忽然/稍微/略微/稍稍”，以及会半截命中“凶猛的/迅猛的”的“猛的”；`下意识/无意识/不自觉/习惯性` 只保留 adverbial “...地”。当前 dataset 该规则从 reference 60 / render 305 降到 reference 25 / render 234。
+- 半截误报修复：基础 `adverb-intensifier` 的“十分”改为 `十分(?!钟)`，避免命中“十分钟 / 二十分钟”；“十分清楚”等程度副词仍保留。
 - 高频 Agent 规则边界补强：`cn.proliferation.mixed.repeated-de-pairs` 和 `cn.cliche.trailing-sensory-clause` 保持默认 Agent，但 note 明确它们不是逐条机械删除规则；前者只压缩装饰性形容词堆叠，后者只处理无功能感官/语气尾巴，具体物性、动作条件、信息量排比应保留。
+- 高频 human 噪声关闭/收窄：`cn.proliferation.mixed.extra-punctuation` 默认关闭（当前 dataset reference 命中 172 次，主要是正常逗号/顿号/句号/省略号）；`cn.punctuation.dash.dash-alone-to-comma` 默认关闭（破折号常承担插入解释、悬念、拖长音和节奏停顿，替逗号会改语气）；`business-jargon` 从裸词表收窄为业务语境，避免误伤“落地镜/轻巧落地/灵魂链路/这种打法/情绪沉淀”。
 - story-deslop 继续吸收：新增 `story-deslop.quote-emphasis` handler 规则，统计叙述层 1-4 字短词引号强调，全文 ≥3 处只报一条 human advisory；极短对白、系统面板、纯对白行和低于阈值的零散强调豁免。
 - 闭环遗漏修复：web registry 现在预烘 active density/handler 规则，engineVersion hash 覆盖 regex+density+handler；web 本地扫描、服务端 MachineScan 与 Agent `RevisionTextWorkspace.lint_check` 均消费 regex+handler，Agent 报告额外带 density 指纹段。story-deslop high 校准 blocking 规则即使未入 eval verdict，也在 Agent 修复门中按必修强判别处理。
-- 当前默认 materialize：360 total / 286 active；265 regex / 8 density / 5 handler / 8 LLM；review = agent 57 / human 226 / none 3；regex fixability = auto 3 / candidate 0 / manual 262。临时内存复算当前语料：active 同 span overlap = 0、overlap duplicate rate = 0；默认 Agent 桶 reference 侧仍只剩 `vague-amount-noun` 2 处和 `repeated-de-pairs` 1 处少量强判别权衡（未改写 `evals/report/report.json`）。
+- 当前默认 materialize：360 total / 284 active；263 regex / 8 density / 5 handler / 8 LLM；review = agent 57 / human 224 / none 3；regex fixability = auto 3 / candidate 0 / manual 260。临时内存复算当前语料：active regex raw hits 1167；active 同 span overlap = 0、overlap duplicate rate = 0；默认 Agent 桶 reference 侧仍只剩 `vague-amount-noun` 2 处和 `repeated-de-pairs` 1 处少量强判别权衡（未改写 `evals/report/report.json`）。
 - 拿不准的规则族和许可边界集中记录在 `rule-curation-open-questions.md`，等待用户一次性拍板。
 
 ## TODO / Follow-ups

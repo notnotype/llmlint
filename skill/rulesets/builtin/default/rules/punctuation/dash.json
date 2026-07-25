@@ -50,8 +50,10 @@
     "namespace": "punctuation.dash",
     "title": "破折号",
     "level": "medium",
-    "enabled": true,
+    "enabled": false,
+    "note": "默认关闭：裸破折号在中文小说中常用于插入解释、悬念、拖长音和节奏停顿；替换成逗号会改变语气，当前 dataset reference 命中 21 次。",
     "source": {
+      "version": "rule-curation-v23",
       "canonicalKey": "punctuation.dash\t\t——",
       "importedFrom": "curated-cn-rule-samples"
     },

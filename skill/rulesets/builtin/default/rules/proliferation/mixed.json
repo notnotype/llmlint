@@ -52,9 +52,10 @@
     "namespace": "proliferation.mixed",
     "title": "删增殖标点",
     "level": "medium",
-    "enabled": true,
-    "note": "删增殖标点",
+    "enabled": false,
+    "note": "默认关闭：素材规则会把短前文后的普通逗号、顿号、句号和省略号都当增殖标点，当前 dataset reference 命中 172 次；保留资产给项目显式开启。",
     "source": {
+      "version": "rule-curation-v23",
       "canonicalKey": "proliferation.mixed\t\t(?<=(?:^|[、。,，…~～])[\\u4e00-\\u9fff]{1,4})(?:[、，,。~～]|…{1,2}(?!…))(?=[\\u4e00-\\u9fff])",
       "importedFrom": "curated-cn-rule-samples"
     },

@@ -17,7 +17,7 @@
 - 2026-07-24：撤回 `cn.modifier.absolute-claim-modifier` 与 `cn.modifier.optional-mood-modifiers` 的旧 strong rule override。当前正式 `report.json` 两条均为 weak，且它们属于已整体下沉的 modifier 桶；默认回到 `human`，避免把“难以言喻的 / 低沉的 / 精准地”等语境敏感修饰词硬塞进 Agent 入口。
 - 2026-07-24：`cn.cliche.trailing-sound-clause` 已转 `human`。当前样例多为踩枯枝、碰撞、洗牌等正常动作音效，旧报告仅 weak；保留扫描资产，但不再默认要求 Agent 删除“发出…声/响”尾部分句。
 - 2026-07-25：`cn.cliche.baguwen.vague-amount-noun` 已收窄。标点后的“一股”交给 strong canonical `cn.modifier.measure.subject-measure-word`，baguwen 规则只保留句中“一股”和“那股”，避免同 span 量词重复提示。
-- 2026-07-25：`cn.modifier.measure.specific-measure-word` 已移除“股”分支，`cn.modifier.heavy-degree-shell` 已收窄为只匹配裸“沉甸甸”。这两处都按“保留 canonical，窄规则只留独有覆盖”的策略降低 `--review all` 重复。
+- 2026-07-25：`cn.modifier.measure.specific-measure-word` 已移除“股”分支，并继续移除“这种/那种”指示代词分支；`cn.modifier.heavy-degree-shell` 已收窄为只匹配裸“沉甸甸”。这些都按“保留 canonical 或高信号分支，窄规则只留独有覆盖”的策略降低 `--review all` 噪声。
 - 2026-07-25：`cn.modifier.measure.physiological-label` 与 `cn.vocabulary.academic-anatomy.physiological-academic-label` 已互斥分工。前者只处理“生理眼泪/生理快感”的前缀；后者只处理“生理性的/生理层面/生理本能”这类分析腔标签，避免“生理性快感”同 span 双报。
 - 2026-07-25：当前 dataset 的剩余 active 同 span overlap 已归零。已处理分工：`adverb-intensifier` 移除“极其/本质上”，交给更具体规则；`cn.modifier.sensory-atmosphere-modifier` 移除“戏谑的/地”，交给 `cn.action-expression.teasing-modifier`；`cn.sentence.compound.single-negative-contrast` 排除“并不是…而是”，交给 `cn.sentence.compound.contrastive-turn-preface`。
 - 2026-07-25：`story-deslop.negation-parade.repeated-none` 继续收窄，排除后接“然而/但/却”的真实转折句。当前 reference 误杀“没有混杂木屑，没有太多麸质，然而……”已覆盖，两个 render 典型命中仍保留。
@@ -28,6 +28,10 @@
 - 2026-07-25：`cn.action-expression.rough-manner-modifier` 已转 `human`。旧报告为 strong，但当前命中包含“呼吸粗重”“字体更加粗重”“疯狂码字”“能量疯狂涌入”“心脏疯狂跳动”等真实动作、状态或物性描述；全语料 reference 侧也有“疯狂的大叫 / 疯狂的大声叫道”合法用法，裸词默认 Agent 删除风险过高。
 - 2026-07-25：高频 Agent 规则处理边界已补强：`cn.proliferation.mixed.repeated-de-pairs` 保留强判别入口但 note 要求只压缩装饰性形容词堆叠，`cn.cliche.trailing-sensory-clause` 保留 render-only 尾巴信号但 note 要求保留必要动作、物性和信息细节。
 - 2026-07-25：`cn.numeral.three.numeral-three` 已默认关闭。裸“三”在当前 dataset 命中 119 次，包含大量真人正常数字表达；这是素材转换遗留，不适合作为 active human 规则。
+- 2026-07-25：`cn.proliferation.mixed.extra-punctuation` 与 `cn.punctuation.dash.dash-alone-to-comma` 已默认关闭。前者把普通逗号、顿号、句号、省略号当“增殖标点”，当前 dataset reference 命中 172 次；后者把裸破折号机械替逗号，reference 命中 21 次且多为悬念、插入解释、拖长音和节奏停顿。
+- 2026-07-25：`business-jargon` 已从裸词表收窄为业务语境 detector。`落地/链路/打法/沉淀/心智` 不再裸命中“落地镜”“轻巧落地”“灵魂链路”“这种打法”“情绪沉淀”，当前 fiction dataset 命中归零；业务文里的“对齐/业务链路/方案落地/增长打法”等仍保留 human advisory。
+- 2026-07-25：`cn.modifier.stacked-degree-adverbs` 已收窄。移除逐次提示价值低的“突然/忽然/稍微/略微/稍稍”，以及会半截命中“凶猛的/迅猛的”的“猛的”；`下意识/无意识/不自觉/习惯性` 只保留 adverbial “...地”。当前 dataset 从 reference 60 / render 305 降到 reference 25 / render 234。
+- 2026-07-25：`adverb-intensifier` 的“十分”改为 `十分(?!钟)`，避免半截命中“十分钟 / 二十分钟”；“十分清楚”这类程度副词仍保留 human advisory。
 
 ## 待用户拍板
 
@@ -79,3 +83,9 @@
     - `vague-amount-noun` 的 reference 命中是“是一股陌生的摩挲拉拽感”和“藏着一股玩味的笑意”；这类“一股”在真人小说里并非不可用，但在 render 中高频变成情绪/气息/压力的泛化量词。
     - `repeated-de-pairs` 的 reference 命中是“鲁莽的、缺乏手段的、不考虑后果的”，属于真实排比强化；render 中大量命中是“陌生的、昏暗的 / 冰冷的、混乱的、令人...”式堆叠形容。
     - 待确认：是否接受这类强判别规则保留少量人类侧命中，交 Agent 读上下文判断；还是把它们转 `human` / 增加更强结构条件，牺牲一部分 AI 文本召回。
+
+11. **剩余高频 human 桶是否继续激进收窄**
+    - 本轮已把 `extra-punctuation`、裸破折号替逗号、商业黑话裸词、`stacked-degree-adverbs` 的低信号分支和 `specific-measure-word` 的“这种/那种”处理掉。
+    - 剩余高频 human 规则仍包括：`cn.modifier.stacked-degree-adverbs`（reference 25 / render 234）、`cn.modifier.measure.specific-measure-word`（reference 9 / render 158）、`cn.metaphor.trailing-simile-clause`（reference 8 / render 51）、`cn.metaphor.simile-modifier-shell`（reference 4 / render 44）、`adverb-intensifier`（reference 10 / render 20）、`lazy-extremes`（reference 7 / render 19）。
+    - 我没有继续硬改的原因：这些规则的 render 偏高仍有价值，但 reference 命中多是正常小说表达，例如“一道轨迹/一层光/一点细节”、有效比喻、普通“非常/所有人”；继续收窄需要更明确的产品取舍。
+    - 待确认：`--review all` 是否要偏“干净列表”（继续默认关闭/大幅收窄这些 human 规则），还是偏“素材雷达”（保留 high-recall human advisory，让编辑器和人工判断承担噪声）。

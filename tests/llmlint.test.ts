@@ -708,7 +708,7 @@ describe("llmlint", () => {
             .map((issue) => issue.match)).toEqual(["一股", "那股"]);
         expect(scanText("她停下，一股寒意涌来，心里有一股火，那股压力还在。", [byId.get("cn.modifier.measure.subject-measure-word") as RegexRuleRecord])
             .map((issue) => issue.match)).toEqual(["一股"]);
-        expect(scanText("心里有一股火，那股压力还在，语气带着几分冷意。", [byId.get("cn.modifier.measure.specific-measure-word") as RegexRuleRecord])
+        expect(scanText("这种场面、那种职业、心里有一股火，那股压力还在，语气带着几分冷意。", [byId.get("cn.modifier.measure.specific-measure-word") as RegexRuleRecord])
             .map((issue) => issue.match)).toEqual(["几分"]);
         expect(scanText("这句话沉甸甸的，落下来时沉甸甸。", [byId.get("cn.modifier.heavy-degree-shell") as RegexRuleRecord])
             .map((issue) => issue.match)).toEqual(["沉甸甸"]);
@@ -724,8 +724,14 @@ describe("llmlint", () => {
             .map((issue) => issue.match)).toEqual(["生理性的", "生理层面的", "生理本能的"]);
         expect(scanText("非常清楚，极其细微，本质上来说如此，根本上不同。", [byId.get("adverb-intensifier") as RegexRuleRecord])
             .map((issue) => issue.match)).toEqual(["非常", "根本上"]);
+        expect(scanText("十分清楚，过了十分钟，又卡了二十分钟。", [byId.get("adverb-intensifier") as RegexRuleRecord])
+            .map((issue) => issue.match)).toEqual(["十分"]);
         expect(scanText("非常清楚，极其细微，本质上来说如此。", [byId.get("cn.modifier.stacked-degree-adverbs") as RegexRuleRecord])
             .map((issue) => issue.match)).toEqual(["极其"]);
+        expect(scanText("他突然回头，忽然笑了，稍微停顿，略微弯腰，凶猛的怪兽，下意识抬手。", [byId.get("cn.modifier.stacked-degree-adverbs") as RegexRuleRecord])
+            .map((issue) => issue.match)).toEqual([]);
+        expect(scanText("他下意识地回头，微微一笑，完全陌生，死死盯着。", [byId.get("cn.modifier.stacked-degree-adverbs") as RegexRuleRecord])
+            .map((issue) => issue.match)).toEqual(["下意识地", "微微", "完全", "死死"]);
         expect(scanText("非常清楚，极其细微，本质上来说如此。", [byId.get("transition-summary-essence") as RegexRuleRecord])
             .map((issue) => issue.match)).toEqual(["本质上来说"]);
         expect(scanText("并不是这个地方，而是另一处。这里不是终点，而是新的开始。", [byId.get("cn.sentence.compound.single-negative-contrast") as RegexRuleRecord])
@@ -747,6 +753,19 @@ describe("llmlint", () => {
             .map((issue) => issue.match)).toEqual([]);
         expect(scanText("三个夜班，三室一厅，凌晨三点。", loadedRules.regexRules)
             .some((issue) => issue.rule.id === "cn.numeral.three.numeral-three")).toBe(false);
+        expect(byId.get("cn.proliferation.mixed.extra-punctuation")).toBeUndefined();
+        expect(byId.get("cn.punctuation.dash.dash-alone-to-comma")).toBeUndefined();
+
+        const catalog = await loadRuleCatalog(emptyConfig(["builtin/default"]));
+        const catalogById = new Map(catalog.catalog.map((item) => [item.rule.id, item.rule]));
+        expect(catalogById.get("cn.proliferation.mixed.extra-punctuation")).toMatchObject({enabled: false});
+        expect(catalogById.get("cn.punctuation.dash.dash-alone-to-comma")).toMatchObject({enabled: false});
+
+        const businessRule = byId.get("business-jargon") as RegexRuleRecord;
+        expect(scanText("眼珠一转，飞快地理清思绪。她轻巧落地，走到落地镜前。", [businessRule])).toHaveLength(0);
+        expect(scanText("灵魂链路锁定，这种打法太暴力，情绪最终沉淀下来。", [businessRule])).toHaveLength(0);
+        expect(scanText("团队需要对齐业务链路，推动方案落地，并沉淀增长打法。", [businessRule]).map((issue) => issue.match))
+            .toEqual(["对齐", "业务链路", "方案落地", "增长打法"]);
     });
 
     it("默认 ruleset 只有确定性机械规则可自动修复，语义 replace 全部为 manual", async () => {
@@ -756,7 +775,7 @@ describe("llmlint", () => {
             counts[rule.fixability] += 1;
         }
 
-        expect(counts).toEqual({auto: 3, candidate: 0, manual: 262});
+        expect(counts).toEqual({auto: 3, candidate: 0, manual: 260});
         expect(loadedRules.regexRules
             .filter((rule) => rule.fixability === "auto")
             .every((rule) => rule.action.type === "replace")).toBe(true);

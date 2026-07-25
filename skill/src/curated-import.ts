@@ -524,6 +524,14 @@ function applyCuratedPatch(rule: LintRuleRecord): LintRuleRecord {
             detector: {type: "regex", targets: ["(?<![,，。])一股子?|那股子?"]},
         };
     }
+    if (rule.id === "cn.proliferation.mixed.extra-punctuation") {
+        return {
+            ...rule,
+            enabled: false,
+            note: "默认关闭：素材规则会把短前文后的普通逗号、顿号、句号和省略号都当增殖标点，当前 dataset reference 命中 172 次；保留资产给项目显式开启。",
+            source: {...(rule.source ?? {}), version: "rule-curation-v23"},
+        };
+    }
     if (rule.id === "cn.numeral.three.numeral-three") {
         return {
             ...rule,
@@ -598,11 +606,11 @@ function applyCuratedPatch(rule: LintRuleRecord): LintRuleRecord {
     if (rule.id === "cn.modifier.measure.specific-measure-word") {
         return {
             ...rule,
-            note: "默认收窄：“一股/那股”已由 baguwen.vague-amount-noun 与 subject-measure-word 覆盖；specific-measure 不再重复消费“股”。",
-            source: {...(rule.source ?? {}), version: "rule-curation-v14"},
+            note: "默认收窄：“一股/那股”已由 baguwen.vague-amount-noun 与 subject-measure-word 覆盖；“这种/那种”是普通指示代词，不再作为量词候选。",
+            source: {...(rule.source ?? {}), version: "rule-curation-v24"},
             detector: {
                 type: "regex",
-                targets: ["一丝丝|一丝(?!不[挂苟])|(?<=[这那着被是以用有了和出起到过成为])(?:几分(?!钟)|[这那]种|[一某][种缕抹点道层声])(?=[\\u4e00-\\u9fff])"],
+                targets: ["一丝丝|一丝(?!不[挂苟])|(?<=[这那着被是以用有了和出起到过成为])(?:几分(?!钟)|[一某][种缕抹点道层声])(?=[\\u4e00-\\u9fff])"],
             },
         };
     }
@@ -641,12 +649,31 @@ function applyCuratedPatch(rule: LintRuleRecord): LintRuleRecord {
             },
         };
     }
+    if (rule.id === "cn.modifier.stacked-degree-adverbs") {
+        return {
+            ...rule,
+            note: "默认收窄：移除裸“突然/忽然”和“稍微/略微/稍稍”等低信号普通副词，并移除会半截命中“凶猛的/迅猛的”的“猛的”；保留更像装饰性堆叠或 AI 高频动作模板的分支。",
+            source: {...(rule.source ?? {}), version: "rule-curation-v25"},
+            detector: {
+                type: "regex",
+                targets: ["(?:一丝丝|极其|极度|极致|死死|紧紧|深深|浅浅|浓浓|极轻微|轻微|微微|完全|彻底|格外|分外|乃至|全然|猛地|勐地|近乎于|近乎|无意识地|下意识地|不自觉地|习惯性地)(?:的|地)?"],
+            },
+        };
+    }
     if (rule.id === "cn.tone.tone-placeholder") {
         return {
             ...rule,
             enabled: false,
             note: "默认关闭：素材里的 * 通配符被转换为字面量星号，当前规则只会命中“语气*”这类异常文本；保留资产等待重新建模。",
             source: {...(rule.source ?? {}), version: "rule-curation-v6"},
+        };
+    }
+    if (rule.id === "cn.punctuation.dash.dash-alone-to-comma") {
+        return {
+            ...rule,
+            enabled: false,
+            note: "默认关闭：裸破折号在中文小说中常用于插入解释、悬念、拖长音和节奏停顿；替换成逗号会改变语气，当前 dataset reference 命中 21 次。",
+            source: {...(rule.source ?? {}), version: "rule-curation-v23"},
         };
     }
     if (
