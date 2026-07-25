@@ -522,6 +522,7 @@ function applyCuratedPatch(rule: LintRuleRecord): LintRuleRecord {
         || rule.id === "cn.cliche.tongue-roll"
         || rule.id === "cn.cliche.warm-palm-touch"
         || rule.id === "cn.cliche.words-chewing"
+        || rule.id === "cn.cliche.body-reaction.physiological-tears"
     ) {
         return {
             ...rule,
@@ -705,6 +706,22 @@ function applyCuratedPatch(rule: LintRuleRecord): LintRuleRecord {
             review: "human",
             note: "默认交人工：“发出…声/响”常是正常动作音效，当前 eval 仅 weak；只在它成为无功能尾部分句或音效模板重复时删。",
             source: {...(rule.source ?? {}), version: "rule-curation-v13"},
+        };
+    }
+    if (rule.id === "cn.cliche.hand-color-clause") {
+        return {
+            ...rule,
+            review: "human",
+            note: "默认交人工：手指/骨节泛白可能是具体动作压力或身体反应，旧报告 support 不足；只在重复身体模板时删。",
+            source: {...(rule.source ?? {}), version: "rule-curation-v20"},
+        };
+    }
+    if (rule.id === "cn.cliche.direct-mouth-arc" || rule.id === "cn.cliche.trailing-mouth-arc-clause") {
+        return {
+            ...rule,
+            review: "human",
+            note: "默认交人工：嘴角弧度家族旧报告 support 不足，且 direct/trailing 形态会同 span 重复；只在嘴角弧度成为模板化表情时修。",
+            source: {...(rule.source ?? {}), version: "rule-curation-v20"},
         };
     }
     if (rule.id === "cn.cliche.cup-collision" || rule.id === "cn.cliche.table-cup-touch" || rule.id === "cn.cliche.knuckle-crack") {

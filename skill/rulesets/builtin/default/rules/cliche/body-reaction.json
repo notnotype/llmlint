@@ -93,7 +93,10 @@
     "title": "嘴角与生理泪水",
     "level": "medium",
     "enabled": true,
+    "review": "human",
+    "note": "默认交人工：身体/触感微细节可能是角色能直接感知的具体画面；只在它变成重复装饰性模板时删。",
     "source": {
+      "version": "rule-curation-v19",
       "canonicalKey": "cliche.body-reaction\t\t生理泪水",
       "importedFrom": "curated-cn-rule-samples"
     },

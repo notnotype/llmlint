@@ -660,6 +660,10 @@ describe("llmlint", () => {
         expect(byId.get("opening-cliche-era")?.review).toBe("human");
         expect(byId.get("inflation-novelty")?.review).toBe("human");
         expect(byId.get("cn.cliche.trailing-sound-clause")?.review).toBe("human");
+        expect(byId.get("cn.cliche.direct-mouth-arc")?.review).toBe("human");
+        expect(byId.get("cn.cliche.trailing-mouth-arc-clause")?.review).toBe("human");
+        expect(byId.get("cn.cliche.hand-color-clause")?.review).toBe("human");
+        expect(byId.get("cn.cliche.body-reaction.physiological-tears")?.review).toBe("human");
         expect(byId.get("cn.regex.advanced.few-degree")?.review).toBe("human");
         expect(byId.get("cn.action-expression.flat-tone-shell")?.review).toBe("human");
         expect(byId.get("cn.action-expression.force-white-knuckle")?.review).toBe("human");

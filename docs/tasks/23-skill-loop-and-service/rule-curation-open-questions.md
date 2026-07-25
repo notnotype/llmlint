@@ -23,6 +23,7 @@
 - 2026-07-25：`story-deslop.negation-parade.repeated-none` 继续收窄，排除后接“然而/但/却”的真实转折句。当前 reference 误杀“没有混杂木屑，没有太多麸质，然而……”已覆盖，两个 render 典型命中仍保留。
 - 2026-07-25：当前 dataset 无命中、旧报告无 verdict、且删除/替换会损失人物语气或普通动作细节的规则转 `human`：`cn.action-expression.explicit-teasing-tone`、`flat-tone-shell`、`force-white-knuckle`、`teasing-attitude-shell`、`tightly-clenched`、`cn.cliche.cup-collision`、`table-cup-touch`、`knuckle-crack`、`cn.sentence.compound.generic-comparison-tone` 和 5 条 weather-tone 口气比喻。保留规则资产，但不再默认要求 Agent 强修。
 - 2026-07-25：无校准支撑的身体/触感/声音微细节转 `human`：胸腔/胸膛、冰凉触感、面色、骨节外观、指腹/掌心触感、喉咙/舌尖/咀嚼字句、从齿间挤出、声音突兀/清晰/回荡/传来。处理理由：它们可能是角色可感知的具体画面或人物声音，默认 Agent 不应无上下文删除。
+- 2026-07-25：`cn.cliche.direct-mouth-arc`、`cn.cliche.trailing-mouth-arc-clause`、`cn.cliche.hand-color-clause` 和 `cn.cliche.body-reaction.physiological-tears` 已转 `human`。嘴角弧度 direct/trailing 形态在普通输入上可同 span 重叠，手部泛白/生理泪水也属于低支撑身体反应细节，默认交人工上下文判断。
 
 ## 待用户拍板
 
@@ -54,8 +55,8 @@
     - 待确认：LLM 版金句感是否继续作为默认 Agent 审查项，还是也转为 `human`。
 
 7. **剩余 Agent 桶 insufficient 规则是否按策略统一下沉**
-    - 当前仍保留在 `agent` 且旧报告 verdict 为 `weak` / `insufficient` 的规则主要包括：`cn.cliche.hand-color-clause`、`cn.cliche.trailing-mouth-arc-clause`、`cn.cliche.trailing-sensory-clause`、`cn.cliche.baguwen.unquestionable-claim`，以及 story-deslop 的少量 high blocking 校准规则；其中 `trailing-sensory-clause` 和 `unquestionable-claim` 已先按明确 overlap 收窄，`mouth-corner-arc`、`opening-cliche-era`、`inflation-novelty`、`trailing-sound-clause`、两个 modifier 旧 strong override 已转 `human`。
-    - 我没有继续硬改的原因：story-deslop blocking 有独立真人校准来源；嘴角/手部/尾部分句规则虽 support 低，但和 repair-guide 的“身体模板、总结帽子”原则一致，仍像 Agent 可处理的 AI 味候选。
+    - 当前仍保留在 `agent` 且旧报告 verdict 为 `weak` / `insufficient` 的规则主要包括：`cn.cliche.trailing-sensory-clause`、`cn.cliche.baguwen.unquestionable-claim`，以及 story-deslop 的少量 high blocking 校准规则；其中 `trailing-sensory-clause` 和 `unquestionable-claim` 已先按明确 overlap 收窄，`mouth-corner-arc`、嘴角 direct/trailing、手部泛白、`opening-cliche-era`、`inflation-novelty`、`trailing-sound-clause`、两个 modifier 旧 strong override 已转 `human`。
+    - 我没有继续硬改的原因：story-deslop blocking 有独立真人校准来源；`trailing-sensory-clause` 当前 render 24 / reference 0，仍像默认 Agent 可处理的尾部总结帽子；`unquestionable-claim` 已收窄到裸断言，等待更多语料确认。
     - 待确认：后续是否采用机械策略“verdict=insufficient 且无 blocking 校准来源 → 默认 `human`”，还是继续允许少量语义明确但样本支持不足的规则留在 `agent`。
 
 8. **canonical 分工是否作为长期整理策略**

@@ -185,8 +185,10 @@
     "title": "嘴角弧度改成直接动作",
     "level": "medium",
     "enabled": true,
-    "note": "嘴角弧度改成直接动作",
+    "review": "human",
+    "note": "默认交人工：嘴角弧度家族旧报告 support 不足，且 direct/trailing 形态会同 span 重复；只在嘴角弧度成为模板化表情时修。",
     "source": {
+      "version": "rule-curation-v20",
       "canonicalKey": "cliche\t\t(?:^|[，,])(?:嘴角|唇角)(?:轻轻|微微|缓缓)?(?:勾起|扬起|牵起)(?:一抹|一点|些微)?弧度(?=。)",
       "importedFrom": "curated-cn-rule-samples"
     },
@@ -287,8 +289,10 @@
     "title": "删除句子中各处分句",
     "level": "medium",
     "enabled": true,
-    "note": "删除句子中各处分句",
+    "review": "human",
+    "note": "默认交人工：手指/骨节泛白可能是具体动作压力或身体反应，旧报告 support 不足；只在重复身体模板时删。",
     "source": {
+      "version": "rule-curation-v20",
       "canonicalKey": "cliche\t\t[,，。](?:手指|骨节|指[尖节甲骨]|指关节)[\\u4e00-\\u9fff、]+(?:白了?|[白青血颜]色)(?=[,，。]|[,，:：][“「\"])",
       "importedFrom": "curated-cn-rule-samples"
     },
@@ -720,8 +724,10 @@
     "title": "只删末尾或对话前置分句",
     "level": "medium",
     "enabled": true,
-    "note": "只删末尾或对话前置分句",
+    "review": "human",
+    "note": "默认交人工：嘴角弧度家族旧报告 support 不足，且 direct/trailing 形态会同 span 重复；只在嘴角弧度成为模板化表情时修。",
     "source": {
+      "version": "rule-curation-v20",
       "canonicalKey": "cliche\t\t[,，](?:嘴角|勾)[\\u4e00-\\u9fff、]+弧度(?=。|[,，:：][“「\"])",
       "importedFrom": "curated-cn-rule-samples"
     },
