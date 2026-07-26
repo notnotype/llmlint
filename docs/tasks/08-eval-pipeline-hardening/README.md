@@ -90,6 +90,15 @@
 - **基线发布冻结**：Task 08 M3 外部检测器对照和 M4 小验证轮完成前不发布新基线。当前观测 `0.530` 只是扩量过程中 reference 已增加、render 尚未补齐的中间语料状态，不能用于评价规则质量，也不写入 METHODOLOGY 基线快照。
 - **与原计划的出入**：本轮只完成可信度前置守门，没有把 M3/M4 冒充完成，也没有为通过新校验而猜测旧 render 的 prompt 版本；外部检测器批量对照、4–6 模型补齐和首次正式配对 holdout 仍按后续里程碑执行。
 
+### 2026-07-26 基线解冻：历史 render 的 promptVersion 有据回填（已完成）
+
+- **回填依据（确认而非猜测，满足 07-14「版本来源被确认」条件）**：① 各组 `meta.json` 组级 `promptVersion: {brief:"brief-v2", render:"render-v1"}` 是 `generate.ts` 生成当时自己写入的运行记录；② `generator/prompts.ts` 注册表中 render 提示词自始至终只存在 `render-v1` 一个版本（注册表注释亦明写「历史语料（round-04/05 生成）即按 brief-v2/render-v1 生成」），无歧义空间。
+- **执行**：一次性脚本（scratchpad，不进仓）遍历 5 组 meta，给全部 **100 个 render 样本**回填样本级 `promptVersion:"render-v1"`；带双重安全阀（组级记录缺失/≠render-v1、已有样本级版本≠render-v1 均直接中止）。键序对齐 generator 新写形态（file/role/model/difficulty/promptVersion/pairRef/charCount）。git diff 恰好 5 文件 +100 行、零删除。
+- **重跑 score**：守门通过、`renderPromptVersion:"render-v1"` 审计字段落报、warnings 空。语料 5 题组 / 26 reference / 100 render / 5 repair。corpus 合同聚焦测试 20/20 绿。
+- **新报告要点（round-06 混面板；口径详见 METHODOLOGY §8）**：llmlint AUC **0.966**、docScore 中位 人类 2.47 / AI 8.86、人类误杀 0.00/千字、强判别 5、holdout train 0.949 / test 1.000（2 组小样本）、外部检测器 AUC 0.870（缓存复用，未重新请求）。
+- ⚠ **与 round-05 不可比**：这是 Task 23 规则大整理（360 total / 266 active / 245 regex、消重 + 关噪声）后的第一份正式报告——docScore 量级整体下降约 8 倍、重复率 32.9%→0.0%、强判别 15→5 全部是**规则面变化**所致，不是语料或判别力退化。任何引用旧中位数做阈值/校准的消费方（web 报告校准文案等）随 registry 重烘自动更新，勿手抄旧数。
+- 07-14 记录的「28 个旧 render」是当时 PR 分支上的语料状态；本轮解冻时主干实际为 100 个（round-05 均衡 77 + 补充轮 5 CLI 探针 23），全部回填。
+
 ## 验收
 
 1. `bun test` 过（budget/限流/transport/分块聚合的纯函数部分按需加测，勿过度测试）。

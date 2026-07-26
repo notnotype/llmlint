@@ -27,7 +27,7 @@
 
 ## Current State
 
-- `skill/` 已是 v2.0.0 自包含包：`check`（regex 候选定位 + markdown 遮罩）/ `fix`（仅 auto 桶）/ `show-llm-rules`；当前默认规则为 360 rules / 284 active；`llmlint.config.ts` 三层覆盖（rule id > namespace > ruleset）。
+- `skill/` 已是 v2.0.1 自包含 runnable Skill package：`check`（regex 候选定位 + markdown 遮罩）/ `fix`（仅 auto 桶）/ `show-llm-rules`；当前默认规则为 360 rules / 266 active；`llmlint.config.ts` 三层覆盖（rule id > namespace > ruleset）。
 - 神经检测：`evals/detector/hf-client.ts`（客户端直连 HF yuchuantian gradio、句界分块、P(AI) 归一、长度加权 mean+max、content-hash sidecar 缓存）；web 端 `detect.ts` 同算法 + 代理 + `chunksJson` 热力图落库。
 - web 鉴权：nuxt-auth-utils 自有账号，未接 Passport。
 - skill 无用户级状态层、无神经检测命令、无上传通道。
@@ -56,7 +56,9 @@
 - 2026-07-26 提示词与依赖门验证：文档中的 `bun install --cwd skill --frozen-lockfile` 真跑成功且 lockfile 无变化；`tests/llmlint.test.ts` 67 passed，根 `tsc --noEmit` 通过，完整 Vitest 29 files / 275 tests 通过。首次同步 llmlint skill copied 6 / unchanged 111，user assets updatedAssets 6；原文边界措辞收紧后最终复同步 copied 1 / unchanged 116，user runtime 已一致所以 updatedAssets 0。NeuroBook 同步聚焦测试 1 passed / 83 skipped；6 个提示词/runtime 文件在真相源、vendored snapshot、当前 user runtime 的 SHA-256 全部一致。
 
 - 2026-07-26 验收发现修复轮：每个 Phase 提交前跑 `bun run typecheck`、`bun run test`、`cd web && bun run typecheck`，最终态 root tsc 通过、web vue-tsc 通过（仅既有 Volar 插件告警）、vitest **30 files / 282 tests**、bun test **11 files / 69 tests** 全绿。**注意：本轮起 `bun run test` 会先跑 `registry:build`**，所以测试结果不再可能建立在过期的 `web/app/data/registry.json` 快照上（此前正是这个假绿掩盖了一处规则漂移，见下方 Phase 1 记录）。真跑验证：紧凑/完整 JSON 体积对照、`--rule-detail` 逐字节回归、`detect` 三条分支（多 chunk 相对排序 / 单 chunk 守门 / 缓存命中仍带派生字段）、`show-llm-rules` 行数、全语料比喻家族复算、对白层 32 次 detect 与全语料形态量化。同步验收：`sync:neuro-book` copied=10 / unchanged=108，`sync-user-assets` copied=17；10 个改动文件在真相源、vendored snapshot、当前 user runtime 三处 SHA-256 一致。**NeuroBook 侧 `server/workspace-files/workspace-files.test.ts` 本轮未跑完**——单跑超过 9 分钟无输出后被我终止，未声明通过；本轮没有改动同步 harness，三处哈希一致是同步正确性的实质判据。
+- 2026-07-26 第二轮流程测试修复轮：root `tsc --noEmit` 通过；`bun run test:vitest` **31 files / 285 tests，284 passed / 1 failed**（失败项为既有问题，见 TODO，已用 stash + 原始规则重烘 registry 双重确认与本轮无关）；`bun run test:bun` **69 pass / 0 fail**；`cd web && bun run typecheck` 通过（仅既有 `vue-router/volar/sfc-route-blocks` 插件告警），且 registry 重烘显示 density 8→7、handler 5→6，确认 `long-paragraph` 迁移在 web 侧同样生效。真跑验证：同一样本 `densityIssues` 3→1、新增 2 条 `long-paragraph` 逐处命中且 `detail` 为「本段叙述 261 字，超过 200 字」、`match` 12 字；`detect` 三个真实 spread（0.167 带内提示 / 0.203 刚出带 / 0.707 无提示，全走缓存）；标题守卫故意注入重复后确认会失败；11 条涉及规则的标题人工确认可独立读懂。
 - 2026-07-26 端到端验收轮：提交前复跑 `bun run typecheck` 通过、`cd web && bun run typecheck` 通过（仅既有 `vue-router/volar/sfc-route-blocks` 插件告警）、`bun run test` 全绿（vitest 29 files / 275 tests + bun test 11 files / 69 tests）。skill CLI 真跑：依赖门 `bun install --cwd skill --frozen-lockfile` 无变化、`status --format json`、`check`、`check --review all`、`detect`（HF 真跑两次，修前 `cached:false`、修后新内容 `cached:false`）、`show-llm-rules` 全部成功。
+- 2026-07-26 package contract 收尾：首次 CLI 前统一运行 `bun install --cwd "<skill-root>" --frozen-lockfile`；SkillCatalog 有绝对 `root` 时直接使用，只有 `SKILL.md` locator 时才取父目录，不再假定 `.nbook` / `.claude` / `.codex`。版本真相源收敛到 `skill/package.json.version=2.0.1`，`SKILL.md` frontmatter 只保留 `name` / `description`。最终 `skill-creator` validator、根 TypeScript、30 files / 282 Vitest、69 Bun tests、CLI `--version` 与 source → NeuroBook vendored/runtime 三层一致性全部通过。
 
 ## Implementation Walkthrough
 
@@ -223,6 +225,32 @@ Phase 3 给两条比喻规则加了带证据的 `note` 之后绝对值上移：�
 
 体积数字随之修正：Phase 3 加的规则 `note` 让绝对值上移，压缩比不变。
 
+### 第二轮用户流程测试与修复（2026-07-26）
+
+刻意换题材换模型再走一遍五步流程：`evals/corpus/gongdou/zhenhuan-zhuan/render-0002-elysiver-gemini-gemini-3.1-pro.md`（7287 字，宫斗 + gemini-3.1-pro；上一轮是轻小说 + deepseek）。流程全通，复测判据满足（静态命中 26 → 21，规则集合为真子集、无新命中；`docPAi` 0.936 → 0.919）。
+
+换样本是有效的：这一篇的画像与上一篇差异极大（agent 桶只有 1 条命中 vs 上篇 5 条；`spread` 0.167 vs 0.707；密度指纹 3 条 vs 1 条），正是这些差异把上一轮无法触发的问题顶出来。
+
+**四象限首次给出真正可用的信号**：rank 1（P(AI) 0.996，全篇最高）静态密度只有 5.7/千字，落在「规则静默 × 文内高位」格；读那一段确认是 256 字单段、由五个同构并列回忆拼成的蒙太奇，规则库零覆盖。设计意图成立，缺的是语料证据不是规则。
+
+**发现 ①：`long-paragraph` 滥用 density detector**（已修，ADR-1 迁 handler）。pattern `[\p{L}\p{N}]` 逐字计数 + `minHits: 200`，导致 `perKilo` 恒为 1000（零信息）、`samples` 是段落头 8 个单字。而 SKILL.md 步骤 3 要求按 `hits`/`perKilo`/`samples` 汇报密度指纹，照做就是废话。8 条 density 规则里其余 7 条 pattern 都是具体词组、字段语义正常；`granularity: paragraph` 本身也没问题（`notice-formality`、`action-list` 同样用它）。`PLAN-A-rules-and-prompts.md:19` 记录原始 story-deslop 形态是 `regex [^\n]{200,}`，改回 regex 会让 `match` 变成整段 261 字——正是上一轮刚修掉的 JSON 膨胀。结论是这条规则本来就不属于声明式 detector，迁到已有的 handler 机制：`findLongParagraph` 复用 `narrativeOfLine` 保持「纯对白段不触发」，锚定 12 字，`detail` 写「本段叙述 261 字，超过 200 字」。`calibration.test.ts` 的两条断言从 `densityIds` 改为 issue id 并加锁 `detail` 与锚定长度。**连带影响**：web `useLlmlint.ts:63` 只跑 regex + handler、从不跑 density，所以 playground 现在会开始报「单段过长」（此前不报），属能力增益。
+
+**发现 ②：规则标题体系性失效**（已修，ADR-2 全改唯一）。初判只是一条命名不准，量化后是 266 条 active 里 **143 条（54%）与别的规则共用 title**，24 个重复组（19 条「R18词汇」、14 条「人体词汇转换」、14 条「人体词汇」、11 条「八股句式/短语删除」、10 条「动作与神态」…），另有 6 条 title 是正则作者笔记「必带"的/地"防误伤」、24 条 title 与 `note` 逐字相同。
+
+这个问题**是上一轮紧凑化改动放大的**：`CompactRuleEntry` 只保留 `namespace`/`title`/`action`/`note`，Agent 再也拿不到 `detector.targets` 和 `examples`；压缩前它能从正则推断规则意图，压缩后遇到 14 条都叫「人体词汇」就只能瞎猜。`namespace` 也共享，两者一起塌缩。
+
+143 条标题按三个家族逐条重写：70 条替换类用「命中词→替换词」、43 条纯删除类描述被删对象、30 条混合组逐条看 detector 定。**同时加 `tests/rule-titles.test.ts` 三条硬不变量**——只重写不加守卫等于把一致性债留给下一次改正则的人：title 全局唯一（封死「退化成分类名」整类问题）、不含正则作者术语黑名单（`防误伤|收窄|canonical|overlap|dataset|半截|[可选]|[选开]`）、≤20 码点（保住紧凑 JSON 体积收益）。守卫本身也验证过：故意把两条标题改成相同，它会失败并精确指出冲突的两个 id。守卫还多抓出一条不在工作单里的 `[选开]` 状态标记。
+
+**不改 rule id**：`cn.modifier.stacked-degree-adverbs` 的 id 声称「堆叠」而正则匹配单个程度副词（死死|紧紧|微微|猛地…），13 处命中里只有 1 处是真堆叠。但该 id 被 `rule-profile.test.ts`（作为 `canonicalRuleId`）、`llmlint.test.ts`、`revision-text-workspace.test.ts` 和 `evals/report/report.json` 基线引用，改 id 成本远高于收益。id 是标识符、title 是标签，只把 title 改成「删程度副词」。
+
+**发现 ③：`spread` 边界带无提示**（已修）。本篇 `spread` 0.167，距 0.15 门槛仅 0.017——正是上一轮自审指出「从未被测试过」的边界带，第二篇真实样本就撞上了。CLI 手里有这个数却把 0.167 和 0.707 呈现成同一回事。新增 `DETECT_SPREAD_MARGIN = 0.05`，带内多输出一行「位次是弱证据」；三个真实 spread 验证过（0.167 带内有提示、0.203 刚出带无提示、0.707 无提示，全走缓存）。
+
+**发现 ④：`.agent/` 三个产物单槽会静默覆盖**（已修）。本轮开跑时上一轮三个文件都还在（旧台账里还是 Phase 2 之前的 `hotChunks`），照 SKILL.md 执行就会毁掉上一轮记录。关键区分是计划与输出属过程产物、被覆盖无损失，台账属沉淀、`decisions` 与 `localConfigSuggestions` 正是分片 2 contributions 的原料。台账 schema 改 `{version: 2, rounds: [...]}`，提示词明确「先读再追加，不要整体覆写」；计划/输出显式声明为单槽过程产物。代码里无人读取该文件（纯提示词驱动），所以无需迁移。
+
+**本轮不做**：不新增规则覆盖并列回忆蒙太奇与跨段自重复（「排山倒海般」2 次都作喻体、「沉溺」×3、「冰冷」×4）。这是 Phase 4 对白层调研的教训——单篇读出的形态在全语料上经常不成立，硬造规则只会往 `--review all` 加噪声。作为待验证候选记录，前置条件是判别 harness 可用。也不改 `initialized` 软门（未经确认就写用户级配置才是错的）。
+
+**顺带发现，未处理**：`cn.vocabulary.r18` 下 `flesh-blade`(肉刃)、`male-stalk`(肉茎)、`male-organ-compound`(肉刃|肉茎) 三条 target 互相重叠；本轮纪律是只改 `title`/`note`，detector 改动另开一轮。
+
 ## TODO / Follow-ups
 
 - [x] story-deslop 规则吸收分析与导入方案（`rules-absorption-analysis.md` + `rule-model-v3-design.md`）
@@ -236,7 +264,11 @@ Phase 3 给两条比喻规则加了带证据的 `note` 之后绝对值上移：�
 - [x] 验收发现 ⑤：「热力绿 ⇒ 规则误报」改为「规则与检测器分歧，需人工裁决」；stylish 弃用红绿措辞
 - [x] 验收发现 ⑥：对白层调研完成（`dialogue-layer-research.md`）——检测器无偏、缺口是真的，但 7 个候选特征全部不成立，本轮**不新增** dialogue 层规则
 - [x] 验收发现 ⑦：`sharing.tier` 口径统一（保留代码默认 `fragments`，文档改为读 `status` 实际值 + 解释四档）
+- [x] 第二轮用户流程测试（2026-07-26，宫斗 + gemini 样本）及其 4 项发现全部修完（见上节）
+- [ ] **既有失败待处理**：`tests/revision-text-workspace.test.ts` 的「统一返回指定 Revision 的 regex、LLM 与 AIGC 持久化记录」硬编码 `not-but-structure` 的 `repairPolicy.verdict` 为 `strong`，但当前 `evals/report/report.json` 的 99 条规则里没有这条，实际得到 `verdict: null` / `reason: "contextual"`。已用 stash + 按原始规则重烘 registry 双重确认与第二轮改动无关。根因与本轮早先记录的假绿同类：`evals/report/report.json` 被 gitignore（`.gitignore:27`），测试依赖一个本地可再生、跨机器不可复现的产物。两条路——让该用例不依赖 eval report，或把报告纳入 git——都超出本轮计划范围，待拍板
 - [ ] 后续：把「对白-only」做成语料正式视图，让判别 harness 在该层拟合（前置 Task 08 M3/M4 完成、`renderPromptVersion` 守门放行）
+- [ ] 规则缺口候选（第二轮流程测试记录，需语料验证后才可导入）：并列回忆蒙太奇；跨段词汇/喻体自重复
+- [ ] `cn.vocabulary.r18` 三条 target 重叠（`flesh-blade` / `male-stalk` / `male-organ-compound`）待消重
 - [ ] 分片 2 实施
 - [ ] 分片 3 实施（开工前先定跨站信任链：Passport 签发的 Bearer 如何被 llmlint web 校验；nb-workshop spec §7 已留 `contribution:submit` 保留 scope，但两侧都没写 introspection 或密钥分发）
 - [ ] contributions 数据模型对 Task 12 统一模型的映射设计
