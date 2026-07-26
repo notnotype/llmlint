@@ -32,7 +32,7 @@ const props = withDefaults(defineProps<{
     selected: false,
 });
 const emit = defineEmits<{
-    (e: "open-rule", rule: RegexRuleRecord): void;
+    (e: "open-rule", rule: Issue["rule"]): void;
     (e: "locate-issue", issue: Issue): void;
     (e: "apply-issue", issue: Issue): void;
     /** 7a：应用该规则的全部可自动替换命中（宿主转 TextPanel 批量并入，坐标从后往前）。 */

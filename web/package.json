@@ -29,6 +29,8 @@
         "@tiptap/vue-3": "3.23.1",
         "@vueuse/core": "^14.3.0",
         "diff-match-patch": "^1.0.5",
+        "dompurify": "^3.4.12",
+        "marked": "^18.0.6",
         "nuxt-auth-utils": "^0.5.29",
         "zod": "^4.4.3"
     },

@@ -30,7 +30,7 @@ import type {MachineLlmReviewProjector} from "./review-observer";
 const PROFILE_KEY = "llmlint.review" as const;
 
 export interface NeuroAgentHarnessAdapterOptions {
-    readonly core: NeuroAgentHarness<string, LlmlintHostContext, {modelKey: string; maxTokensPerTurn: number}>;
+    readonly core: NeuroAgentHarness<string, LlmlintHostContext, {modelKey: string; maxTokensCap: number}>;
     readonly store: PrismaSessionStore;
     readonly projector: MachineLlmReviewProjector;
     readonly client?: PrismaClient;
@@ -38,10 +38,12 @@ export interface NeuroAgentHarnessAdapterOptions {
 
 /** 把 Core 的 durable snapshot 与事件直接投影成 llmlint AgentHarnessPort。 */
 export class NeuroAgentHarnessAdapter implements AgentHarnessPort {
-    private readonly core: NeuroAgentHarness<string, LlmlintHostContext, {modelKey: string; maxTokensPerTurn: number}>;
+    private readonly core: NeuroAgentHarness<string, LlmlintHostContext, {modelKey: string; maxTokensCap: number}>;
     private readonly store: PrismaSessionStore;
     private readonly projector: MachineLlmReviewProjector;
     private readonly client: PrismaClient;
+    private reconciliationTask?: Promise<void>;
+    private readonly commandQueues = new Map<string, Promise<void>>();
 
     constructor(options: NeuroAgentHarnessAdapterOptions) {
         this.core = options.core;
@@ -65,14 +67,21 @@ export class NeuroAgentHarnessAdapter implements AgentHarnessPort {
         const owned = await ownedSession(sessionId, userId, this.client);
         await this.projector.reconcileSession(sessionId);
         const snapshot = await this.core.snapshot(sessionId);
-        const review = await this.client.machineLlmReview.findFirst({where: {sessionId}, orderBy: {judgedAt: "desc"}});
+        const review = await this.client.machineLlmReview.findFirst({where: {sessionId, revisionId: owned.revisionId}, orderBy: {judgedAt: "desc"}});
         const activeInvocation = snapshot.session.invocations.findLast((item) => item.status === "running" || item.status === "waiting");
+        const activeWorkspaceEntry = activeInvocation?.input && requestFrom(activeInvocation.input).phase === "optimize"
+            ? snapshot.session.entries.findLast((entry) => entry.invocationId === activeInvocation.id && entry.kind === "llmlint.workspace")
+            : undefined;
+        const activeWorkspacePayload = activeWorkspaceEntry ? asObject(activeWorkspaceEntry.payload) : {};
         return {
             sessionId,
             revisionId: owned.revisionId,
             profileKey: PROFILE_KEY,
             status: mapSessionStatus(snapshot.session.status),
             activeInvocation: activeInvocation ? mapInvocation(activeInvocation) : null,
+            activeWorkspace: activeInvocation && typeof activeWorkspacePayload.body === "string"
+                ? {invocationId: activeInvocation.id, body: activeWorkspacePayload.body}
+                : null,
             invocations: snapshot.session.invocations.map(mapInvocation),
             entries: snapshot.session.entries.map(mapEntry).filter((entry): entry is AgentTimelineEntry => entry !== null),
             report: review ? JSON.parse(review.reportJson) as AgentSessionSnapshot["report"] : null,
@@ -83,22 +92,75 @@ export class NeuroAgentHarnessAdapter implements AgentHarnessPort {
 
     /** 启动一次 Core Invocation；并发冲突稳定映射为 HTTP 409。 */
     async invoke(sessionId: string, userId: number, request: AgentInvokeRequest): Promise<AgentInvokeResponse> {
-        await ownedSession(sessionId, userId, this.client);
-        try {
-            const handle = await this.core.invoke({sessionId, payload: requestPayload(request), caller: {kind: "user"}});
-            return {sessionId, invocationId: handle.invocationId, status: "accepted"};
-        } catch (error) {
-            throw mapConflict(error);
-        }
+        return this.runCommand(sessionId, async () => {
+            const owned = await ownedSession(sessionId, userId, this.client);
+            await invocationRevision(owned.revisionId, request.revisionId, request.phase, this.client);
+            try {
+                const handle = await this.core.invoke({sessionId, payload: requestPayload(request), caller: {kind: "user"}});
+                return {sessionId, invocationId: handle.invocationId, status: "accepted"};
+            } catch (error) {
+                throw mapConflict(error);
+            }
+        });
+    }
+
+    /** 推进 Session 当前 Revision，并在同一命令临界区启动新版本 analysis。 */
+    async advanceRevision(sessionId: string, userId: number, revisionId: string): Promise<AgentInvokeResponse> {
+        return this.runCommand(sessionId, async () => {
+            const owned = await ownedSession(sessionId, userId, this.client);
+            const existing = await this.client.agentInvocation.findFirst({
+                where: {sessionId, revisionId, phase: "analysis"},
+                orderBy: {createdAt: "desc"},
+                select: {id: true},
+            });
+            if (existing) return {sessionId, invocationId: existing.id, status: "accepted"};
+            const [current, target] = await Promise.all([
+                this.client.revision.findUnique({where: {id: owned.revisionId}, select: {id: true, textId: true}}),
+                this.client.revision.findUnique({where: {id: revisionId}, select: {id: true, textId: true, parentId: true, revealedAt: true}}),
+            ]);
+            if (!current || !target || target.textId !== current.textId) {
+                throw createError({statusCode: 409, message: "目标 Revision 不属于当前 Session Text"});
+            }
+            const alreadyAdvanced = current.id === target.id;
+            if (!alreadyAdvanced && target.parentId !== current.id) {
+                throw createError({statusCode: 409, message: "目标 Revision 不是当前 Session 的直接下一版"});
+            }
+            if (!target.revealedAt) throw createError({statusCode: 409, message: "目标 Revision 尚未揭示，不能推进 Agent Session"});
+            const before = await this.core.snapshot(sessionId);
+            if (before.session.activeInvocationId) throw createError({statusCode: 409, message: "Agent 正在运行，不能推进 Revision"});
+            const advanced = alreadyAdvanced ? null : await this.core.write({
+                target: sessionId,
+                expectedVersion: before.session.version,
+                cause: "llmlint.session.advanceRevision",
+                operations: [{type: "setHostContext", hostContext: {revisionId, userId}}],
+            });
+            try {
+                const handle = await this.core.invoke({sessionId, payload: requestPayload({mode: "prompt", phase: "analysis", revisionId}), caller: {kind: "system", name: "revision.reveal"}});
+                return {sessionId, invocationId: handle.invocationId, status: "accepted"};
+            } catch (error) {
+                if (advanced) {
+                    await this.core.write({
+                        target: sessionId,
+                        expectedVersion: advanced.session.version,
+                        cause: "llmlint.session.advanceRevision.rollback",
+                        operations: [{type: "setHostContext", hostContext: before.session.metadata.hostContext}],
+                    });
+                }
+                throw mapConflict(error);
+            }
+        });
     }
 
     /** 中止当前 active Invocation；没有 active work 时保持幂等 idle。 */
-    async abort(sessionId: string, userId: number): Promise<{status: "idle" | "aborted"}> {
+    async abort(sessionId: string, userId: number, invocationId: string): Promise<{status: "idle" | "aborting"}> {
         await ownedSession(sessionId, userId, this.client);
         const snapshot = await this.core.snapshot(sessionId);
         if (!snapshot.session.activeInvocationId) return {status: "idle"};
+        if (snapshot.session.activeInvocationId !== invocationId) {
+            throw createError({statusCode: 409, message: "目标 Invocation 已不是当前活动调用"});
+        }
         await this.core.abort(sessionId);
-        return {status: "aborted"};
+        return {status: "aborting"};
     }
 
     /** 只允许 failed/aborted/interrupted Invocation 创建 retry，completed 永不重跑。 */
@@ -143,8 +205,18 @@ export class NeuroAgentHarnessAdapter implements AgentHarnessPort {
 
     /** 启动恢复只处理 Core running facts，并修复业务物化视图。 */
     async reconcileInterrupted(): Promise<void> {
-        await this.store.reconcileInterrupted();
-        await this.projector.reconcileAll();
+        const pending = this.reconciliationTask;
+        if (pending) return pending;
+        const task = (async () => {
+            await this.store.reconcileInterrupted();
+            await this.projector.reconcileAll();
+        })();
+        this.reconciliationTask = task;
+        try {
+            await task;
+        } finally {
+            if (this.reconciliationTask === task) this.reconciliationTask = undefined;
+        }
     }
 
     /** 将一个 Core 事件映射成 llmlint SSE envelope。 */
@@ -152,6 +224,12 @@ export class NeuroAgentHarnessAdapter implements AgentHarnessPort {
         const invocation = event.invocationId ? {invocationId: event.invocationId} : {};
         if (event.kind === "session") {
             if (event.event.type === "session_entry") {
+                if (event.event.entry.kind === "llmlint.workspace") {
+                    const payload = asObject(event.event.entry.payload);
+                    return event.invocationId && typeof payload.body === "string"
+                        ? {...eventBase(event), invocationId: event.invocationId, kind: "session", event: {type: "workspace", invocationId: event.invocationId, body: payload.body}}
+                        : null;
+                }
                 const entry = mapEntry(event.event.entry);
                 return entry ? {...eventBase(event), ...invocation, kind: "session", event: {type: "entry", entry}} : null;
             }
@@ -181,6 +259,22 @@ export class NeuroAgentHarnessAdapter implements AgentHarnessPort {
         const invocation = snapshot.invocations.find((item) => item.id === invocationId);
         return requestFrom(invocation?.input).phase;
     }
+
+    /** 串行化同一 Session 的 invoke/advance 命令，关闭检查后竞态窗口。 */
+    private async runCommand<TResult>(sessionId: string, task: () => Promise<TResult>): Promise<TResult> {
+        const previous = this.commandQueues.get(sessionId) ?? Promise.resolve();
+        let release!: () => void;
+        const current = new Promise<void>((resolve) => { release = resolve; });
+        const tail = previous.catch(() => undefined).then(() => current);
+        this.commandQueues.set(sessionId, tail);
+        await previous.catch(() => undefined);
+        try {
+            return await task();
+        } finally {
+            release();
+            if (this.commandQueues.get(sessionId) === tail) this.commandQueues.delete(sessionId);
+        }
+    }
 }
 
 /** 校验 Session 所有权；权限始终留在宿主 Adapter。 */
@@ -188,6 +282,16 @@ async function ownedSession(sessionId: string, userId: number, client: PrismaCli
     const session = await client.agentSession.findFirst({where: {id: sessionId, userId}, select: {revisionId: true}});
     if (!session) throw createError({statusCode: 404, message: "Agent session 不存在"});
     return session;
+}
+
+/** 校验 Invocation 目标属于 Session 当前 Text；optimize 只能操作当前 Revision。 */
+async function invocationRevision(currentRevisionId: string, targetRevisionId: string, phase: AgentInvokeRequest["phase"], client: PrismaClient): Promise<void> {
+    const [current, target] = await Promise.all([
+        client.revision.findUnique({where: {id: currentRevisionId}, select: {textId: true}}),
+        client.revision.findUnique({where: {id: targetRevisionId}, select: {textId: true}}),
+    ]);
+    if (!current || !target || current.textId !== target.textId) throw createError({statusCode: 404, message: "Invocation Revision 不属于当前 Session Text"});
+    if (phase === "optimize" && currentRevisionId !== targetRevisionId) throw createError({statusCode: 409, message: "Optimize 只能修改 Session 当前 Revision"});
 }
 
 function mapSessionStatus(status: string): AgentSessionSnapshot["status"] {
@@ -223,7 +327,11 @@ function mapEntry(entry: {id: string; invocationId?: string | null; kind: string
     const createdAt = new Date(entry.timestamp ?? Date.now()).toISOString();
     if (entry.kind === "llmlint.request") {
         const payload = asObject(entry.payload);
-        return typeof payload.text === "string" ? {id: entry.id, invocationId, kind: "user", payload: {text: payload.text}, createdAt} : null;
+        return typeof payload.text === "string" ? {id: entry.id, invocationId, kind: "user", payload: {text: payload.text, source: "host_request"}, createdAt} : null;
+    }
+    if (entry.kind === "llmlint.system") {
+        const payload = asObject(entry.payload);
+        return typeof payload.text === "string" ? {id: entry.id, invocationId, kind: "system", payload: {text: payload.text, source: "system"}, createdAt} : null;
     }
     if (entry.kind === "llmlint.edit") {
         const edit = parseEdit(entry.payload);
@@ -237,7 +345,9 @@ function mapEntry(entry: {id: string; invocationId?: string | null; kind: string
     if (entry.kind !== "agent.message") return null;
     const payload = asObject(entry.payload);
     const message = asObject(payload.message);
-    if (message.role === "user") return null;
+    if (message.role === "user") {
+        return {id: entry.id, invocationId, kind: "user", payload: {text: typeof message.content === "string" ? message.content : "", source: "model_input"}, createdAt};
+    }
     if (message.role === "assistant") {
         const projected = projectAssistant(message.content);
         return {id: entry.id, invocationId, kind: "assistant", payload: {...projected, ...(typeof payload.turn === "number" ? {turns: payload.turn} : {})}, createdAt};
@@ -353,14 +463,18 @@ function parseEdit(value: JsonValue): AgentEdit {
 
 function requestFrom(value: JsonValue | undefined): AgentInvokeRequest {
     const object = asObject(value);
-    if ((object.mode !== "prompt" && object.mode !== "continue") || (object.phase !== "analysis" && object.phase !== "optimize") || typeof object.body !== "string") {
+    if ((object.mode !== "prompt" && object.mode !== "continue") || (object.phase !== "analysis" && object.phase !== "optimize") || typeof object.revisionId !== "string") {
         throw new Error("Agent Invocation input 无效");
     }
+    if (object.phase === "analysis") return {mode: object.mode, phase: object.phase, revisionId: object.revisionId};
+    if (typeof object.body !== "string") throw new Error("Optimize Invocation input 缺少 body");
     const selection = asObject(object.selection);
     return {
         mode: object.mode,
         phase: object.phase,
+        revisionId: object.revisionId,
         body: object.body,
+        ...(object.objective === "polish_ai_risk" ? {objective: object.objective} : {}),
         ...(typeof object.message === "string" ? {message: object.message} : {}),
         ...(typeof selection.from === "number" && typeof selection.to === "number" && typeof selection.text === "string"
             ? {selection: {from: selection.from, to: selection.to, text: selection.text}}
@@ -373,10 +487,13 @@ function asObject(value: JsonValue | undefined): JsonObject {
 }
 
 function requestPayload(request: AgentInvokeRequest): JsonObject {
+    if (request.phase === "analysis") return {mode: request.mode, phase: request.phase, revisionId: request.revisionId};
     return {
         mode: request.mode,
         phase: request.phase,
+        revisionId: request.revisionId,
         body: request.body,
+        ...(request.objective ? {objective: request.objective} : {}),
         ...(request.message !== undefined ? {message: request.message} : {}),
         ...(request.selection ? {selection: {from: request.selection.from, to: request.selection.to, text: request.selection.text}} : {}),
     };

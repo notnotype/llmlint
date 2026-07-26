@@ -91,6 +91,16 @@ describe("hydrateWorkspace", () => {
         expect(hydrated.submittedScores).toBeNull();
         expect(hydrated.revisions[1]?.judgment).toBeNull();
     });
+
+    it("历史恢复保留每个 Revision 自己的揭示状态", () => {
+        const hydrated = hydrateWorkspace(makePayload([
+            makeRevision({revisionId: "r0", ordinal: 0}),
+            makeRevision({revisionId: "r1", ordinal: 1, revealedAt: null, scan: null}),
+        ]));
+
+        expect(hydrated.revisions[0]?.revealedAt).toBe("2026-07-09T00:00:01.000Z");
+        expect(hydrated.revisions[1]?.revealedAt).toBeNull();
+    });
 });
 
 // summarizeScanHits 是报告 tab 汇总卡（Task 16 R8）的统计核心：逐 hit join 规则元数据。

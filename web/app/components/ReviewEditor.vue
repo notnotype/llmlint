@@ -46,6 +46,8 @@ const props = withDefaults(defineProps<{
     heat?: ProjectedHeatChunk[] | null;
     /** Task 17 A3：源码选区菜单「保存标注」入口开关（宿主接了 save-annotation 落库链才置真）。 */
     annotateEnabled?: boolean;
+    /** Agent 运行期间禁止用户修改正文，保留浏览、选择和复制。 */
+    readonly?: boolean;
 }>(), {
     locateOffset: null,
     activeIssueMark: null,
@@ -54,6 +56,7 @@ const props = withDefaults(defineProps<{
     forceDiffs: false,
     heat: null,
     annotateEnabled: false,
+    readonly: false,
 });
 
 // Task 17 拍板①：预览视图禁用待删除（代码保留）。工具栏隐藏「源码/预览」切换、Ctrl/Cmd+Alt+T
@@ -737,6 +740,7 @@ function handleDocumentKeyDown(event: KeyboardEvent): void {
     const target = event.target instanceof HTMLElement ? event.target : null;
     const diffShortcut = diffReviewShortcut(event);
     if (diffShortcut && !isReviewTextInput(target)) {
+        if (props.readonly && diffShortcut === "clear") return;
         if ((diffShortcut === "clear" && !activeDiffId.value) || (diffShortcut !== "clear" && diffCount.value === 0)) {
             return;
         }
@@ -820,12 +824,12 @@ function handleDocumentKeyDown(event: KeyboardEvent): void {
             return;
         }
     }
-    if (isActiveReplacementShortcut(event) && activeReplacement.value && !isReviewTextInput(target)) {
+    if (!props.readonly && isActiveReplacementShortcut(event) && activeReplacement.value && !isReviewTextInput(target)) {
         event.preventDefault();
         acceptReplacement(activeReplacement.value);
         return;
     }
-    if (isSelectionClipboardReplaceShortcut(event) && selected.value?.mappable && !isReviewTextInput(target)) {
+    if (!props.readonly && isSelectionClipboardReplaceShortcut(event) && selected.value?.mappable && !isReviewTextInput(target)) {
         event.preventDefault();
         void replaceSelectionWithClipboard();
         return;
@@ -839,13 +843,13 @@ function handleDocumentKeyDown(event: KeyboardEvent): void {
         updateMode(props.mode === "source" ? "preview" : "source");
         return;
     }
-    if (isLinkShortcut(event) && selected.value?.mappable && !isReviewTextInput(target)) {
+    if (!props.readonly && isLinkShortcut(event) && selected.value?.mappable && !isReviewTextInput(target)) {
         event.preventDefault();
         linkShortcutToken.value += 1;
         return;
     }
     const formatCommand = formatCommandFromShortcut(event);
-    if (formatCommand && selected.value?.mappable && !isReviewTextInput(target)) {
+    if (!props.readonly && formatCommand && selected.value?.mappable && !isReviewTextInput(target)) {
         event.preventDefault();
         formatSelection(formatCommand);
         return;
@@ -2430,7 +2434,7 @@ defineExpose({
                     <button
                         type="button"
                         class="review-editor-toolbar__diff-button"
-                        :disabled="!activeDiffId"
+                        :disabled="readonly || !activeDiffId"
                         :aria-label="clearCurrentDiffTitle"
                         :title="clearCurrentDiffTitle"
                         @click="clearActiveDiff"
@@ -2450,6 +2454,7 @@ defineExpose({
                     <button
                         type="button"
                         class="review-editor-toolbar__diff-clear"
+                        :disabled="readonly"
                         :aria-label="t('review.clearDiffsTitle')"
                         :title="t('review.clearDiffsTitle')"
                         @click="emit('clear-diffs')"
@@ -2543,7 +2548,7 @@ defineExpose({
                 <span class="sr-only">{{ t("review.copyIssuePrompt") }}</span>
             </button>
             <button
-                v-if="activeReplacement"
+                v-if="activeReplacement && !readonly"
                 type="button"
                 class="inline-flex h-8 items-center gap-1.5 rounded-md px-3 text-xs font-medium"
                 :class="activeReplacement.fixability === 'candidate' ? 'bg-amber-500/10 text-amber-700 hover:bg-amber-500/20 dark:text-amber-300' : 'bg-emerald-500/10 text-emerald-700 hover:bg-emerald-500/20 dark:text-emerald-300'"
@@ -2604,13 +2609,14 @@ defineExpose({
                         :diff-ranges="sourceDiffRanges"
                         :locate-offset="locateOffset"
                         :heat="heatActive ? heat : null"
+                        :readonly="readonly"
                         @update:model-value="updateSource"
                         @caret-click="handleSourceCaretClick"
                         @selection-change="handleSourceSelection"
                         @source-format-command="handleSourceFormatCommand"
                     />
                     <ReviewSourceSelectionMenu
-                        v-if="selected?.source === 'source' && selected.mappable"
+                        v-if="!readonly && selected?.source === 'source' && selected.mappable"
                         :selection="selected"
                         :issue-mark="selectionIssueMark"
                         :replacement-mark="selectionReplacement"
@@ -2632,7 +2638,7 @@ defineExpose({
                 <div v-else class="llmlint-review-editor h-full min-h-0 overflow-auto bg-[var(--bg-input)] px-5 py-4 text-[var(--text-main)]" :class="[proofreadEnabled ? 'is-proofread' : '', heatActive ? 'is-heat' : '']">
                     <EditorContent :editor="editor" @vue:mounted="void refreshPreviewDecorationsAfterMount()" />
                     <ReviewSelectionMenu
-                        v-if="editor && selected"
+                        v-if="!readonly && editor && selected"
                         :editor="editor"
                         :selection="selected"
                         :issue-mark="selectionIssueMark"
@@ -2655,7 +2661,7 @@ defineExpose({
 
             <!-- inline 规则菜单（R2 + Task 17 A2）：preview 点命中装饰 / source 点命中段（虚拟锚点）共用；Teleport 到主题宿主 -->
             <RuleInlineMenu
-                v-if="inlineMenuMark && inlineMenuAnchor"
+                v-if="!readonly && inlineMenuMark && inlineMenuAnchor"
                 :mark="inlineMenuMark"
                 :anchor="inlineMenuAnchor"
                 @apply="handleRuleMenuApply"

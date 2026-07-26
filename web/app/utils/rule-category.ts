@@ -11,6 +11,10 @@ export type RuleCategory = "llm" | "replace" | "suggest";
 
 /** 判定规则分类（llm 优先于 action 判断：LLM 规则的 action 不参与静态替换语义）。 */
 export function ruleCategory(rule: ActiveRuleRecord): RuleCategory {
+    // handler 规则无 detector，action 恒为 suggest。
+    if (!("detector" in rule)) {
+        return "suggest";
+    }
     if (rule.detector.type === "llm") {
         return "llm";
     }

@@ -20,6 +20,9 @@ type GlobalPrisma = {
     prismaClient?: PrismaClient;
 };
 
+/** 单 Node + SQLite 下允许短暂写锁自然释放的等待窗口。 */
+const SQLITE_BUSY_TIMEOUT_MS = 15_000;
+
 const globalForPrisma = globalThis as typeof globalThis & GlobalPrisma;
 
 /**
@@ -37,7 +40,7 @@ function resolveDatabaseUrl(): string {
  * 创建 libSQL 适配器 PrismaClient。
  */
 export function createPrismaClient(url = resolveDatabaseUrl()): PrismaClient {
-    const adapter = new PrismaLibSql({url});
+    const adapter = new PrismaLibSql({url, timeout: url.startsWith("file:") ? SQLITE_BUSY_TIMEOUT_MS : undefined});
     return new PrismaClient({adapter});
 }
 

@@ -1,6 +1,6 @@
 {
     "name": "llmlint-dev",
-    "version": "2.0.0",
+    "version": "2.0.1",
     "private": true,
     "type": "module",
     "description": "Development workspace for llmlint. The installable Agent Skill package lives in ./skill.",
@@ -10,7 +10,9 @@
         "url": "git@github.com:notnotype/llmlint.git"
     },
     "scripts": {
-        "test": "vitest run",
+        "test": "bun run test:vitest && bun run test:bun",
+        "test:vitest": "vitest run --exclude tests/agent-invocation-revision-migration.test.ts",
+        "test:bun": "bun test tests/agent-invocation-revision-migration.test.ts web/tests/nuxt/use-agent-chat.test.ts evals",
         "typecheck": "tsc --noEmit --pretty false",
         "verify": "bun run typecheck && bun test && bun skill/bin/llmlint.ts --version && bun skill/bin/llmlint.ts show-llm-rules --format json",
         "eval:fixture": "bun evals/score.ts --corpus evals/fixtures/corpus --out .agent/evals/fixture-report --min-support 1",
@@ -33,6 +35,7 @@
     "devDependencies": {
         "@types/node": "^25.6.0",
         "bun-types": "^1.3.4",
+        "happy-dom": "^20.10.6",
         "typescript": "^5.9.3",
         "vitest": "^4.1.2"
     }

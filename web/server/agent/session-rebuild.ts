@@ -125,7 +125,7 @@ export class AgentSessionRebuilder {
             if (!row.newSessionId) throw new Error(`revision ${revisionId} 缺少 newSessionId`);
             const revision = await this.client.revision.findUnique({where: {id: revisionId}, select: {body: true}});
             if (!revision) throw new Error(`revision ${revisionId} 不存在`);
-            const accepted = await this.harness.invoke(row.newSessionId, row.userId, {mode: "prompt", phase: "analysis", body: revision.body});
+            const accepted = await this.harness.invoke(row.newSessionId, row.userId, {mode: "prompt", phase: "analysis", revisionId});
             await this.update(revisionId, "analysis_started", {invocationId: accepted.invocationId});
             row = await this.row(revisionId);
         }

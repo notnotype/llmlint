@@ -1500,6 +1500,7 @@ export type AgentSessionEntryScalarFieldEnum = (typeof AgentSessionEntryScalarFi
 export const AgentInvocationScalarFieldEnum = {
   id: 'id',
   sessionId: 'sessionId',
+  revisionId: 'revisionId',
   profileKey: 'profileKey',
   mode: 'mode',
   phase: 'phase',

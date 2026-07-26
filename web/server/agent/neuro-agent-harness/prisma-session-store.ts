@@ -146,10 +146,12 @@ export class PrismaSessionStore implements SessionStore<string, LlmlintHostConte
             const invocation = snapshot.invocations.find((item) => item.id === operation.invocation.id);
             if (!invocation) throw new Error(`Invocation ${operation.invocation.id} 写入后不存在`);
             const input = asObject(invocation.input);
+            const revisionId = this.stringField(input, "revisionId");
             await tx.agentInvocation.create({
                 data: {
                     id: invocation.id,
                     sessionId,
+                    revisionId,
                     profileKey: invocation.profileKey,
                     mode: stringOr(input.mode, "prompt"),
                     phase: stringOr(input.phase, "optimize"),
@@ -179,6 +181,13 @@ export class PrismaSessionStore implements SessionStore<string, LlmlintHostConte
                     finishedAt: invocation.finishedAt === undefined ? null : new Date(invocation.finishedAt),
                 },
             });
+            return;
+        }
+
+        if (operation.type === "setHostContext") {
+            const revisionId = this.stringField(operation.hostContext, "revisionId");
+            const userId = this.numberField(operation.hostContext, "userId");
+            await tx.agentSession.update({where: {id: sessionId}, data: {revisionId, userId}});
         }
     }
 

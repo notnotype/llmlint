@@ -46,6 +46,8 @@ const props = defineProps<{
     heat?: HeatChunk[] | null;
     /** Task 17 A3：源码选区菜单「保存标注」入口开关（contribute 接了 save-annotation 落库链才置真；playground 不接则隐藏）。 */
     annotate?: boolean;
+    /** Agent 运行期间锁定所有用户正文修改入口。 */
+    readonly?: boolean;
 }>();
 // 选区 AI 改写请求（W7 F2）：draft 坐标 + 选中文本 + 前后文窗，由 ReviewEditor 组装、本组件原样上抛。
 type LlmSelectionRewriteRequest = {from: number; to: number; text: string; contextBefore: string; contextAfter: string};
@@ -183,6 +185,7 @@ function clearText(): void {
 
 // 自由打字：整串回传折算成一次 user splice 并入 plan（mirror watch 会把 draft 推回 text）。
 function updateText(value: string): void {
+    if (props.readonly) return;
     repair.setDraft(value, "user", "");
 }
 
@@ -461,6 +464,18 @@ function applyLlmRewrite(rewritten: string, title: string): number {
     return hunks.length;
 }
 
+/**
+ * 实时应用 Agent durable workspace。与终态改写使用同一逐 hunk diff 语义，但不逐次通知；
+ * readonly 只约束用户输入，程序化 workspace 同步始终允许。
+ */
+function applyAgentWorkspace(body: string, title: string): number {
+    const hunks = computeLlmHunks(repair.draft.value, body);
+    for (const hunk of [...hunks].reverse()) {
+        repair.spliceDraft(hunk.from, hunk.to, hunk.replacement, "llm", title);
+    }
+    return hunks.length;
+}
+
 /** 当前 llm diff 列表（id + 草稿坐标 + 标题）。在宿主 computed 内调用即可响应式追踪。 */
 function getLlmDiffs(): LlmDiffView[] {
     return llmDiffQueue.value.map((diff) => ({...diff}));
@@ -661,6 +676,7 @@ defineExpose({
     replaceSelection,
     // W7 F1：AI 整篇改写并入 + llm diff 审阅横幅所需的导航 / 拒绝 / 列表能力。
     applyLlmRewrite,
+    applyAgentWorkspace,
     getLlmDiffs,
     getActiveDiffId,
     navigateLlmDiff,
@@ -681,8 +697,8 @@ defineExpose({
              toolbar-leading：宿主注入主操作（工作台的机械修复/一键修到底），状态留在宿主免搬迁 -->
         <div class="flex flex-wrap items-center gap-2 border-b border-[var(--border-color)] px-3 py-1.5 text-xs">
             <slot name="toolbar-leading" />
-            <button v-if="!embedded" class="rounded bg-[var(--bg-subtle)] px-2 py-1 hover:bg-[var(--bg-hover)]" @click="loadSample">{{ t("text.sample") }}</button>
-            <button v-if="!embedded" class="inline-flex items-center gap-1 rounded bg-[var(--bg-subtle)] px-2 py-1 hover:bg-[var(--bg-hover)]" @click="clearText">
+            <button v-if="!embedded" class="rounded bg-[var(--bg-subtle)] px-2 py-1 hover:bg-[var(--bg-hover)] disabled:opacity-60" :disabled="readonly" @click="loadSample">{{ t("text.sample") }}</button>
+            <button v-if="!embedded" class="inline-flex items-center gap-1 rounded bg-[var(--bg-subtle)] px-2 py-1 hover:bg-[var(--bg-hover)] disabled:opacity-60" :disabled="readonly" @click="clearText">
                 <span class="i-lucide-trash-2" /> {{ t("text.clear") }}
             </button>
             <!-- 旧「一键清理」（D-D strong 口径）：工作台（embedded）已由宿主注入的「机械修复」取代（口径更全），
@@ -691,6 +707,7 @@ defineExpose({
                 v-if="autoFixCount && !embedded"
                 class="inline-flex items-center gap-1 rounded bg-emerald-500/10 px-2 py-1 text-emerald-700 hover:bg-emerald-500/20 dark:text-emerald-300"
                 :title="t('text.cleanMechanicalTitle')"
+                :disabled="readonly"
                 @click="cleanMechanical"
             >
                 <span class="i-lucide-sparkles" /> {{ t("text.cleanMechanical") }} ({{ autoFixCount }})
@@ -703,7 +720,7 @@ defineExpose({
                 <span>{{ t("repair.originalBaseline", {count: originalText?.length ?? 0}) }}</span>
                 <span :class="repairDraftChanged ? 'text-emerald-700 dark:text-emerald-300' : 'text-[var(--text-muted)]'">{{ repairDeltaLabel }}</span>
                 <button
-                    v-if="repairDraftChanged"
+                    v-if="repairDraftChanged && !readonly"
                     type="button"
                     class="repair-draft-status__reset"
                     :aria-label="t('repair.resetToOriginal')"
@@ -786,6 +803,7 @@ defineExpose({
                 :force-diffs="forceDiffs"
                 :heat="projectedHeat"
                 :annotate-enabled="annotate"
+                :readonly="readonly"
                 @caret-click="(offset) => emit('caret-click', offset)"
                 @add-comment="addComment"
                 @update-comment="updateComment"

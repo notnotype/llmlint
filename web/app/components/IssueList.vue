@@ -16,7 +16,7 @@ const props = withDefaults(defineProps<{groups: RuleGroup[]; hasText: boolean; h
     selectedRuleIds: () => [],
 });
 const emit = defineEmits<{
-    (e: "open-rule", rule: RegexRuleRecord): void;
+    (e: "open-rule", rule: Issue["rule"]): void;
     (e: "locate-issue", issue: Issue): void;
     (e: "apply-issue", issue: Issue): void;
     (e: "apply-group", issues: Issue[]): void;

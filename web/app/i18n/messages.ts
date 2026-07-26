@@ -215,6 +215,10 @@ export type MessageKey =
     | "contribute.versionDraftTitle"
     | "contribute.recheckButton"
     | "contribute.recheckTitle"
+    | "contribute.detectionPendingChip"
+    | "contribute.continueDetectionButton"
+    | "contribute.continueDetectionTitle"
+    | "contribute.continueDetectionSuccess"
     | "contribute.tabReport"
     | "contribute.tabIssues"
     | "contribute.tabAiFix"
@@ -225,6 +229,8 @@ export type MessageKey =
     | "contribute.agentChatHint"
     | "contribute.agentChatLoading"
     | "contribute.agentChatYou"
+    | "contribute.agentChatSystem"
+    | "contribute.agentChatModelInput"
     | "contribute.agentChatEdit"
     | "contribute.agentChatReport"
     | "contribute.agentChatSelection"
@@ -242,6 +248,43 @@ export type MessageKey =
     | "contribute.agentPhaseStreaming"
     | "contribute.agentPhaseTool"
     | "contribute.agentPhaseFinishing"
+    | "contribute.agentUnavailableTitle"
+    | "contribute.agentEmptyTitle"
+    | "contribute.agentEmptyDescription"
+    | "contribute.agentInvocationAnalysis"
+    | "contribute.agentInvocationOptimize"
+    | "contribute.agentInvocationTurns"
+    | "contribute.agentInvocationRunning"
+    | "contribute.agentInvocationWaiting"
+    | "contribute.agentInvocationCompleted"
+    | "contribute.agentInvocationPartial"
+    | "contribute.agentInvocationFailed"
+    | "contribute.agentInvocationAborted"
+    | "contribute.agentInvocationInterrupted"
+    | "contribute.agentEditsCount"
+    | "contribute.agentReportScore"
+    | "contribute.agentReportConfidence"
+    | "contribute.agentReportSuggestions"
+    | "contribute.agentToolReplace"
+    | "contribute.agentToolRead"
+    | "contribute.agentToolEdit"
+    | "contribute.agentToolLintCheck"
+    | "contribute.agentToolLintFix"
+    | "contribute.agentToolDetections"
+    | "contribute.agentToolFinish"
+    | "contribute.agentToolContext"
+    | "contribute.agentToolReadChunk"
+    | "contribute.agentToolRecordHit"
+    | "contribute.agentToolReport"
+    | "contribute.agentToolRunning"
+    | "contribute.agentToolSuccess"
+    | "contribute.agentToolError"
+    | "contribute.agentToolArgs"
+    | "contribute.agentToolResult"
+    | "contribute.agentToolChunkSummary"
+    | "contribute.agentSelectionChars"
+    | "contribute.agentComposerExpand"
+    | "contribute.agentComposerCollapse"
     | "contribute.reportSummaryTitle"
     | "contribute.summaryHitsLine"
     | "contribute.summaryStrongLine"
@@ -1162,6 +1205,10 @@ const zhCN: Record<MessageKey, string> = {
     "contribute.versionDraftTitle": "编辑器里有未提交的草稿改动：点「再次检测」保存为新版本并重新检测",
     "contribute.recheckButton": "再次检测",
     "contribute.recheckTitle": "保存当前草稿为新版本并重新检测（版本条追加、报告刷新）",
+    "contribute.detectionPendingChip": "检测未完成",
+    "contribute.continueDetectionButton": "继续检测",
+    "contribute.continueDetectionTitle": "该版本尚未完成检测；点击后继续揭示机器结果并启动分析",
+    "contribute.continueDetectionSuccess": "已继续该版本的检测",
     "contribute.tabReport": "检测报告",
     "contribute.tabIssues": "命中列表",
     "contribute.tabAiFix": "Agent",
@@ -1169,9 +1216,11 @@ const zhCN: Record<MessageKey, string> = {
     "contribute.aiFixSelectionHint": "只想改一段？在左侧编辑器选中文字，用选区菜单里的「AI 改写选区」（长文时这是唯一整段 AI 路径）。",
     "contribute.aiFixNeedEditor": "请先回到最新版编辑视图（点版本条最后一个版本），改写结果需要并入编辑器草稿",
     "contribute.agentChatTitle": "Agent",
-    "contribute.agentChatHint": "检测与改写共享同一个持久化 Agent session；每次最多 64 轮、64 处修改。",
+    "contribute.agentChatHint": "检测与改写共享同一个持久化 Agent session；每次最多 64 轮。",
     "contribute.agentChatLoading": "正在恢复 Agent 会话…",
     "contribute.agentChatYou": "你",
+    "contribute.agentChatSystem": "System Prompt",
+    "contribute.agentChatModelInput": "模型输入",
     "contribute.agentChatEdit": "已完成一处修改",
     "contribute.agentChatReport": "分析报告",
     "contribute.agentChatSelection": "引用选区",
@@ -1189,6 +1238,43 @@ const zhCN: Record<MessageKey, string> = {
     "contribute.agentPhaseStreaming": "Agent 正在输出",
     "contribute.agentPhaseTool": "正在执行工具",
     "contribute.agentPhaseFinishing": "正在整理下一步",
+    "contribute.agentUnavailableTitle": "Agent 暂不可用",
+    "contribute.agentEmptyTitle": "开始优化当前草稿",
+    "contribute.agentEmptyDescription": "描述你想改善的地方，或在左侧选中一段文字后带着引用发送。Agent 的修改会作为 diff 进入编辑器，由你逐处审阅。",
+    "contribute.agentInvocationAnalysis": "文本分析",
+    "contribute.agentInvocationOptimize": "文本改写",
+    "contribute.agentInvocationTurns": "{count} 轮",
+    "contribute.agentInvocationRunning": "运行中",
+    "contribute.agentInvocationWaiting": "等待确认",
+    "contribute.agentInvocationCompleted": "已完成",
+    "contribute.agentInvocationPartial": "保留部分修改",
+    "contribute.agentInvocationFailed": "失败",
+    "contribute.agentInvocationAborted": "已取消",
+    "contribute.agentInvocationInterrupted": "已中断",
+    "contribute.agentEditsCount": "已修改 {count} 处",
+    "contribute.agentReportScore": "风险分 {score}",
+    "contribute.agentReportConfidence": "置信度 {value}",
+    "contribute.agentReportSuggestions": "建议",
+    "contribute.agentToolReplace": "修改文本",
+    "contribute.agentToolRead": "读取正文",
+    "contribute.agentToolEdit": "编辑正文",
+    "contribute.agentToolLintCheck": "运行 llmlint 检查",
+    "contribute.agentToolLintFix": "应用安全机械修复",
+    "contribute.agentToolDetections": "读取版本检测记录",
+    "contribute.agentToolFinish": "完成改写",
+    "contribute.agentToolContext": "读取检测上下文",
+    "contribute.agentToolReadChunk": "读取正文",
+    "contribute.agentToolRecordHit": "记录规则命中",
+    "contribute.agentToolReport": "提交分析报告",
+    "contribute.agentToolRunning": "执行中",
+    "contribute.agentToolSuccess": "完成",
+    "contribute.agentToolError": "出错",
+    "contribute.agentToolArgs": "参数",
+    "contribute.agentToolResult": "结果",
+    "contribute.agentToolChunkSummary": "第 {index} 块",
+    "contribute.agentSelectionChars": "{count} 字",
+    "contribute.agentComposerExpand": "展开输入框",
+    "contribute.agentComposerCollapse": "收起输入框",
     "contribute.reportSummaryTitle": "一句话摘要",
     "contribute.summaryHitsLine": "规则引擎共找到 {total} 处疑似 AI 味表达（高危 {high} · 中危 {medium} · 低危 {low}）。",
     "contribute.summaryStrongLine": "其中 {count} 处命中「强判别」规则——评测中被证实最能区分 AI 与人类文本的规则。",
@@ -1230,7 +1316,7 @@ const zhCN: Record<MessageKey, string> = {
     "contribute.staticFixButton": "机械修复（{count}）",
     "contribute.staticFixTitle": "应用全部确定性机械修复（逐条可撤销）",
     "contribute.oneClickFixButton": "一键修到底",
-    "contribute.oneClickFixTitle": "先应用确定性机械修复，再把候选问题交给 LLM 整篇逐处改写——结果并入编辑器后逐处审阅",
+    "contribute.oneClickFixTitle": "先应用安全机械修复，再让 Agent 理解全文并润色 AI 风险高的句段",
     "contribute.strongFixDegraded": "只处理无需语境判断的机械规则；候选替换不会批量应用",
     "contribute.blindCardTitle": "盲评：先凭直觉打分，再揭示机器结果",
     "contribute.scoreCardTitle": "AI 味指数（AI-flavor index）",
@@ -1816,6 +1902,10 @@ const enUS: Record<MessageKey, string> = {
     "contribute.versionDraftTitle": "The editor has uncommitted draft changes: click \"Re-check\" to save them as a new version and re-run detection",
     "contribute.recheckButton": "Re-check",
     "contribute.recheckTitle": "Save the current draft as a new version and re-run detection (appends to the version bar, refreshes the report)",
+    "contribute.detectionPendingChip": "detection pending",
+    "contribute.continueDetectionButton": "Continue detection",
+    "contribute.continueDetectionTitle": "This revision has not finished detection; continue only when you choose to reveal results and start analysis",
+    "contribute.continueDetectionSuccess": "Detection resumed for this revision",
     "contribute.tabReport": "Report",
     "contribute.tabIssues": "Hits",
     "contribute.tabAiFix": "Agent",
@@ -1823,9 +1913,11 @@ const enUS: Record<MessageKey, string> = {
     "contribute.aiFixSelectionHint": "Only want one passage changed? Select text in the editor and use \"AI rewrite selection\" in the selection menu (for long texts this is the only whole-passage AI path).",
     "contribute.aiFixNeedEditor": "Return to the latest-version edit view first (click the last chip on the version bar) — rewrite results merge into the editor draft",
     "contribute.agentChatTitle": "Agent",
-    "contribute.agentChatHint": "Analysis and rewriting share one persistent Agent session; each invocation allows up to 64 turns and 64 edits.",
+    "contribute.agentChatHint": "Analysis and rewriting share one persistent Agent session; each invocation allows up to 64 turns.",
     "contribute.agentChatLoading": "Restoring Agent session…",
     "contribute.agentChatYou": "You",
+    "contribute.agentChatSystem": "System Prompt",
+    "contribute.agentChatModelInput": "Model input",
     "contribute.agentChatEdit": "One edit completed",
     "contribute.agentChatReport": "Analysis report",
     "contribute.agentChatSelection": "Quoted selection",
@@ -1843,6 +1935,43 @@ const enUS: Record<MessageKey, string> = {
     "contribute.agentPhaseStreaming": "Agent is responding",
     "contribute.agentPhaseTool": "Running tool",
     "contribute.agentPhaseFinishing": "Preparing next step",
+    "contribute.agentUnavailableTitle": "Agent unavailable",
+    "contribute.agentEmptyTitle": "Start improving this draft",
+    "contribute.agentEmptyDescription": "Describe what you want improved, or select a passage in the editor and send it as a quote. Agent edits enter the editor as reviewable diffs.",
+    "contribute.agentInvocationAnalysis": "Text analysis",
+    "contribute.agentInvocationOptimize": "Rewrite",
+    "contribute.agentInvocationTurns": "{count} turns",
+    "contribute.agentInvocationRunning": "Running",
+    "contribute.agentInvocationWaiting": "Waiting for approval",
+    "contribute.agentInvocationCompleted": "Completed",
+    "contribute.agentInvocationPartial": "Partial edits kept",
+    "contribute.agentInvocationFailed": "Failed",
+    "contribute.agentInvocationAborted": "Cancelled",
+    "contribute.agentInvocationInterrupted": "Interrupted",
+    "contribute.agentEditsCount": "{count} edits applied",
+    "contribute.agentReportScore": "Risk score {score}",
+    "contribute.agentReportConfidence": "Confidence {value}",
+    "contribute.agentReportSuggestions": "Suggestions",
+    "contribute.agentToolReplace": "Edit text",
+    "contribute.agentToolRead": "Read text",
+    "contribute.agentToolEdit": "Edit text",
+    "contribute.agentToolLintCheck": "Run llmlint check",
+    "contribute.agentToolLintFix": "Apply safe mechanical fixes",
+    "contribute.agentToolDetections": "Read revision detections",
+    "contribute.agentToolFinish": "Finish rewrite",
+    "contribute.agentToolContext": "Read lint context",
+    "contribute.agentToolReadChunk": "Read document",
+    "contribute.agentToolRecordHit": "Record rule hit",
+    "contribute.agentToolReport": "Submit analysis report",
+    "contribute.agentToolRunning": "Running",
+    "contribute.agentToolSuccess": "Done",
+    "contribute.agentToolError": "Error",
+    "contribute.agentToolArgs": "Arguments",
+    "contribute.agentToolResult": "Result",
+    "contribute.agentToolChunkSummary": "Chunk {index}",
+    "contribute.agentSelectionChars": "{count} chars",
+    "contribute.agentComposerExpand": "Expand composer",
+    "contribute.agentComposerCollapse": "Collapse composer",
     "contribute.reportSummaryTitle": "Plain-language summary",
     "contribute.summaryHitsLine": "The rule engine found {total} AI-flavored expressions ({high} high · {medium} medium · {low} low).",
     "contribute.summaryStrongLine": "{count} of them hit \"strong\" rules — the ones proven in evals to best separate AI from human text.",
@@ -1883,8 +2012,8 @@ const enUS: Record<MessageKey, string> = {
     "contribute.strongFixScope": "Only applies context-free mechanical fixes; candidate replacements remain for you or the AI to review",
     "contribute.staticFixButton": "Quick fix ({count})",
     "contribute.staticFixTitle": "Apply all deterministic mechanical fixes (each undoable)",
-    "contribute.oneClickFixButton": "Fix everything",
-    "contribute.oneClickFixTitle": "Apply deterministic mechanical fixes, then let the LLM handle contextual candidates edit by edit for review",
+    "contribute.oneClickFixButton": "Polish AI-risk areas",
+    "contribute.oneClickFixTitle": "Apply deterministic safe fixes first, then let the Agent understand the text and polish high-risk passages",
     "contribute.strongFixDegraded": "Only context-free mechanical rules are applied; candidate replacements are never batched",
     "contribute.blindCardTitle": "Blind review: score by first impression before the reveal",
     "contribute.scoreCardTitle": "AI-flavor index",

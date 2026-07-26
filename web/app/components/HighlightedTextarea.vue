@@ -17,6 +17,8 @@ const props = defineProps<{
     locateOffset?: number | null;
     /** Task 17 A2 热力层（draft 坐标）：非空时背板铺 P(AI) 梯度底色，命中高亮转下划线（W1 约定）。null/空 = 关。 */
     heat?: Array<{from: number; to: number; pAi: number}> | null;
+    /** 只锁定用户输入；滚动、选择和复制仍然可用。 */
+    readonly?: boolean;
 }>();
 const emit = defineEmits<{
     (e: "caret-click", offset: number, meta?: {origin: "pointer" | "keyboard"; collapsed: boolean}): void;
@@ -409,6 +411,7 @@ const boxClass = "border-0 p-3 font-mono text-sm leading-relaxed whitespace-pre-
             class="absolute inset-0 h-full w-full resize-none bg-transparent text-[var(--text-main)] caret-[var(--accent-main)] outline-none placeholder:text-[var(--text-muted)]"
             :class="boxClass"
             :placeholder="t('text.placeholder')"
+            :readonly="readonly"
             spellcheck="false"
             @scroll="syncScroll"
             @click="emitCaret('pointer')"

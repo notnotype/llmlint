@@ -58,6 +58,6 @@ export default defineEventHandler(async (event): Promise<CreateTextResponseDto> 
     // HF 慢/不稳，失败只记日志不落行，与分类通道互不影响）。
     event.waitUntil(recordMachineDetect(rev0.id, body.text));
     // Task 17 工单 C：LLM 规则评审同模式异步跑（8 条 llmRules 一次调用；失败/未配置在 util 内静默降级）。
-    event.waitUntil(startMachineLlmReview(rev0.id, user.id, body.text));
+    event.waitUntil(startMachineLlmReview(rev0.id, user.id));
     return {textId: text.id, revisionId: rev0.id, charCount: rev0.charCount};
 });

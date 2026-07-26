@@ -3,6 +3,7 @@ import {resolveOwnedRevision} from "../../../utils/ownership";
 import type {RevisionMachineDto} from "../../../utils/scan";
 import {revisionMachineDto} from "../../../utils/scan";
 import {prisma} from "../../../database/prisma";
+import {advanceMachineLlmReview, startMachineLlmReview} from "../../../utils/llm-review";
 
 export type RevealResponseDto = RevisionMachineDto & {
     revisionId: string;
@@ -24,6 +25,13 @@ export default defineEventHandler(async (event): Promise<RevealResponseDto> => {
         revealedAt = new Date();
         await prisma.revision.update({where: {id: revision.id}, data: {revealedAt}});
     }
+
+    const analysis = revision.parentId
+        ? advanceMachineLlmReview(revision.id, revision.parentId, user.id)
+        : startMachineLlmReview(revision.id, user.id);
+    event.waitUntil(analysis.catch((error: unknown) => {
+        console.error(`[revision.reveal] revision=${revision.id} LLM analysis 启动失败：${error instanceof Error ? error.message : String(error)}`);
+    }));
 
     const machine = await revisionMachineDto(revision.id);
     return {revisionId: revision.id, revealedAt: revealedAt.toISOString(), ...machine};

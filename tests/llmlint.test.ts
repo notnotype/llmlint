@@ -504,6 +504,31 @@ describe("llmlint", () => {
         expect(stdout).not.toContain("llmlint [options] [file]");
     });
 
+    it("Skill 首次使用先安装依赖再进入 status 初始化门", async () => {
+        const skill = await readFile(join(SKILL_ROOT, "SKILL.md"), "utf-8");
+        const workflow = await readFile(join(SKILL_ROOT, "references", "workflow.md"), "utf-8");
+        const cliUsage = await readFile(join(SKILL_ROOT, "references", "cli-usage.md"), "utf-8");
+        const repairGuide = await readFile(join(SKILL_ROOT, "references", "repair-guide.md"), "utf-8");
+        const packageJson = JSON.parse(await readFile(join(SKILL_ROOT, "package.json"), "utf-8")) as {version: string};
+        const installGate = skill.indexOf("### 0. install 依赖门");
+        const statusGate = skill.indexOf("### 1. status 初始化门");
+        const promptSource = [skill, workflow, cliUsage].join("\n");
+
+        expect(installGate).toBeGreaterThan(-1);
+        expect(statusGate).toBeGreaterThan(installGate);
+        expect(skill).toContain('bun install --cwd "<skill-root>" --frozen-lockfile');
+        expect(skill).toContain('bun "<skill-root>/bin/llmlint.ts" status --format json');
+        expect(promptSource).not.toContain(".nbook/agent/skills/llmlint");
+        expect(skill).not.toContain("metadata:");
+        expect(skill).not.toContain("when_to_use:");
+        expect(packageJson.version).toBe("2.0.1");
+        expect(skill).toContain("安装命令成功后才能进入 `status` 初始化门");
+        expect(repairGuide).toContain("候选不是判决");
+        expect(repairGuide).toContain("修 / 留 / 问");
+        expect(repairGuide).toContain("删 / 压 / 换");
+        expect(repairGuide).toContain("禁止机械去味");
+    });
+
     it("CLI 不再支持 llmlint <file> 旧 positional 用法", async () => {
         const result = await runFailedCommand([
             LLMLINT_BIN,
@@ -658,8 +683,6 @@ describe("llmlint", () => {
         expect(byId.get("cn.sentence.compound.contrastive-turn-preface")?.review).toBe("human");
         expect(byId.get("cn.action-expression.mouth-corner-arc")?.review).toBe("human");
         expect(byId.get("opening-cliche-era")?.review).toBe("human");
-        expect(byId.get("transition-summary-restate")?.review).toBe("human");
-        expect(byId.get("inflation-superlative")?.review).toBe("human");
         expect(byId.get("inflation-novelty")?.review).toBe("human");
         expect(byId.get("story-deslop.action-list")?.review).toBe("human");
         expect(byId.get("cn.cliche.trailing-sound-clause")?.review).toBe("human");
@@ -667,7 +690,6 @@ describe("llmlint", () => {
         expect(byId.get("cn.cliche.trailing-mouth-arc-clause")?.review).toBe("human");
         expect(byId.get("cn.cliche.hand-color-clause")?.review).toBe("human");
         expect(byId.get("cn.cliche.body-reaction.physiological-tears")?.review).toBe("human");
-        expect(byId.get("cn.punctuation.dedup.repeated-symbols")).toMatchObject({review: "human", fixability: "manual"});
         expect(byId.get("cn.cliche.baguwen.irrefutable-tone-colon")?.review).toBe("human");
         expect(byId.get("cn.cliche.baguwen.irresistible-but")?.review).toBe("human");
         expect(byId.get("cn.cliche.baguwen.taut-neck")?.review).toBe("human");
@@ -738,8 +760,6 @@ describe("llmlint", () => {
             .map((issue) => issue.match)).toEqual(["高度", "完全地", "显著地"]);
         expect(scanText("接下来就该上场了。接下来我们将介绍规则。", [byId.get("meta-announcement") as RegexRuleRecord])
             .map((issue) => issue.match)).toEqual(["接下来我们将介绍"]);
-        expect(scanText("“嘎噢噢！！”她问：“真的？？？”", [byId.get("cn.punctuation.dedup.repeated-symbols") as RegexRuleRecord])
-            .map((issue) => issue.match)).toEqual(["！！", "？？？"]);
         expect(scanText("非常清楚，极其细微，本质上来说如此。", [byId.get("cn.modifier.stacked-degree-adverbs") as RegexRuleRecord])
             .map((issue) => issue.match)).toEqual(["极其"]);
         expect(scanText("他突然回头，忽然笑了，稍微停顿，略微弯腰，凶猛的怪兽，下意识抬手。", [byId.get("cn.modifier.stacked-degree-adverbs") as RegexRuleRecord])
@@ -783,6 +803,16 @@ describe("llmlint", () => {
         expect(byId.get("comprehensive-listing")).toBeUndefined();
         expect(byId.get("cn.cliche.baguwen.sudden-moment")).toBeUndefined();
         expect(byId.get("cn.cliche.baguwen.even-is")).toBeUndefined();
+        expect(byId.get("filler-lets")).toBeUndefined();
+        expect(byId.get("lazy-extremes")).toBeUndefined();
+        expect(byId.get("transition-summary-conclude")).toBeUndefined();
+        expect(byId.get("transition-summary-restate")).toBeUndefined();
+        expect(byId.get("inflation-superlative")).toBeUndefined();
+        expect(byId.get("inflation-marvel")).toBeUndefined();
+        expect(byId.get("cn.punctuation.dedup.repeated-symbols")).toBeUndefined();
+        expect(byId.get("cn.regex.advanced.momentary-reaction")).toBeUndefined();
+        expect(byId.get("cn.sentence.compound.unrealized-subject-preface")).toBeUndefined();
+        expect(byId.get("cn.vocabulary.body.muscle-texture")).toBeUndefined();
 
         const catalog = await loadRuleCatalog(emptyConfig(["builtin/default"]));
         const catalogById = new Map(catalog.catalog.map((item) => [item.rule.id, item.rule]));
@@ -796,6 +826,16 @@ describe("llmlint", () => {
         expect(catalogById.get("comprehensive-listing")).toMatchObject({enabled: false});
         expect(catalogById.get("cn.cliche.baguwen.sudden-moment")).toMatchObject({enabled: false});
         expect(catalogById.get("cn.cliche.baguwen.even-is")).toMatchObject({enabled: false});
+        expect(catalogById.get("filler-lets")).toMatchObject({enabled: false});
+        expect(catalogById.get("lazy-extremes")).toMatchObject({enabled: false});
+        expect(catalogById.get("transition-summary-conclude")).toMatchObject({enabled: false});
+        expect(catalogById.get("transition-summary-restate")).toMatchObject({enabled: false});
+        expect(catalogById.get("inflation-superlative")).toMatchObject({enabled: false});
+        expect(catalogById.get("inflation-marvel")).toMatchObject({enabled: false});
+        expect(catalogById.get("cn.punctuation.dedup.repeated-symbols")).toMatchObject({enabled: false, fixability: "manual"});
+        expect(catalogById.get("cn.regex.advanced.momentary-reaction")).toMatchObject({enabled: false});
+        expect(catalogById.get("cn.sentence.compound.unrealized-subject-preface")).toMatchObject({enabled: false});
+        expect(catalogById.get("cn.vocabulary.body.muscle-texture")).toMatchObject({enabled: false});
 
         const businessRule = byId.get("business-jargon") as RegexRuleRecord;
         expect(scanText("眼珠一转，飞快地理清思绪。她轻巧落地，走到落地镜前。", [businessRule])).toHaveLength(0);
@@ -803,16 +843,20 @@ describe("llmlint", () => {
         expect(scanText("团队需要对齐业务链路，推动方案落地，并沉淀增长打法。", [businessRule]).map((issue) => issue.match))
             .toEqual(["对齐", "业务链路", "方案落地", "增长打法"]);
 
-        const lazyExtremesRule = byId.get("lazy-extremes") as RegexRuleRecord;
-        expect(scanText("所有人都会死，包括我。她一定会回来，那只猫永远没货。", [lazyExtremesRule]))
-            .toHaveLength(0);
-        expect(scanText("没有人能例外，任何人都必然如此。", [lazyExtremesRule]).map((issue) => issue.match))
-            .toEqual(["没有人", "任何人都", "必然"]);
-
         const engineerRule = byId.get("jargon-engineer-debug") as RegexRuleRecord;
         expect(scanText("动作慢慢收敛，门锁住了。", [engineerRule])).toHaveLength(0);
         expect(scanText("这轮要收口，统一口径，再把结果落盘。", [engineerRule]).map((issue) => issue.match))
             .toEqual(["收口", "口径", "落盘"]);
+
+        const assistantComfortRule = byId.get("assistant-comfort-pose") as RegexRuleRecord;
+        expect(scanText("她稳稳接住杯子，我就在这里。", [assistantComfortRule])).toHaveLength(0);
+        expect(scanText("我会稳稳接住你，我就在这里陪你，不用向我解释。", [assistantComfortRule]).map((issue) => issue.match))
+            .toEqual(["稳稳接住你", "我就在这里陪你", "不用向我解释"]);
+
+        const socialRule = byId.get("jargon-social-extra") as RegexRuleRecord;
+        expect(scanText("他狠狠地踢了一脚。", [socialRule])).toHaveLength(0);
+        expect(scanText("这套写法拿捏得死死的，直接封神。", [socialRule]).map((issue) => issue.match))
+            .toEqual(["拿捏得死死的", "直接封神"]);
     });
 
     it("默认 ruleset 只有确定性机械规则可自动修复，语义 replace 全部为 manual", async () => {
@@ -822,7 +866,7 @@ describe("llmlint", () => {
             counts[rule.fixability] += 1;
         }
 
-        expect(counts).toEqual({auto: 2, candidate: 0, manual: 253});
+        expect(counts).toEqual({auto: 2, candidate: 0, manual: 243});
         expect(loadedRules.regexRules
             .filter((rule) => rule.fixability === "auto")
             .every((rule) => rule.action.type === "replace")).toBe(true);

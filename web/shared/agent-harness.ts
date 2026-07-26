@@ -33,7 +33,7 @@ export type AgentTimelineTool = {
 export type AgentTimelineEntry = {
     id: string;
     invocationId: string | null;
-    kind: "user" | "assistant" | "tool_result" | "edit" | "report" | "lifecycle" | "error";
+    kind: "system" | "user" | "assistant" | "tool_result" | "edit" | "report" | "lifecycle" | "error";
     payload: {
         text?: string;
         thinking?: string;
@@ -50,6 +50,8 @@ export type AgentTimelineEntry = {
         phase?: AgentInvocationPhase;
         turns?: number;
         message?: string;
+        /** user 节点来源：host_request=用户原始要求；model_input=实际送入模型的用户消息。 */
+        source?: "host_request" | "model_input" | "system";
     };
     createdAt: string;
 };
@@ -76,6 +78,8 @@ export type AgentSessionSnapshot = {
     profileKey: "llmlint.review";
     status: AgentSessionStatus;
     activeInvocation: AgentInvocationSnapshot | null;
+    /** active optimize 最近一次 durable 工作副本；用于实时编辑与 SSE gap 恢复。 */
+    activeWorkspace: {invocationId: string; body: string} | null;
     invocations: AgentInvocationSnapshot[];
     entries: AgentTimelineEntry[];
     report: LlmAnalysisReport | null;
@@ -83,13 +87,22 @@ export type AgentSessionSnapshot = {
     eventCursor: {eventEpoch: string; after: number};
 };
 
-export type AgentInvokeRequest = {
+type AgentInvokeBase = {
     mode: "prompt" | "continue";
-    phase: AgentInvocationPhase;
+    /** 每个 Invocation 自己的目标 Revision；Session.revisionId 只是当前工作版本。 */
+    revisionId: string;
+};
+
+export type AgentInvokeRequest = AgentInvokeBase & ({
+    phase: "analysis";
+} | {
+    phase: "optimize";
+    /** polish_ai_risk 约束风险分层润色结果，不规定工具调用顺序。 */
+    objective?: "polish_ai_risk";
     message?: string;
     body: string;
     selection?: {from: number; to: number; text: string};
-};
+});
 
 export type AgentInvokeResponse = {sessionId: string; invocationId: string; status: "accepted"};
 
@@ -106,6 +119,7 @@ export type AgentRuntimeEvent =
 
 export type AgentSessionControlEvent =
     | {type: "entry"; entry: AgentTimelineEntry}
+    | {type: "workspace"; invocationId: string; body: string}
     | {type: "status"; status: AgentSessionStatus; invocationId?: string};
 
 export type AgentSessionEvent = {

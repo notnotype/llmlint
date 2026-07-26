@@ -10,7 +10,8 @@ export type LlmlintAnalysisContext = {
 };
 
 export interface LlmlintAnalysisContextLoader {
-    load(): Promise<LlmlintAnalysisContext>;
+    /** 加载指定且属于当前 Session Text 的 Revision 分析上下文。 */
+    load(revisionId: string): Promise<LlmlintAnalysisContext>;
 }
 
 /** Analysis Profile 需要的 invocation-scoped 宿主能力。 */

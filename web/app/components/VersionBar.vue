@@ -14,6 +14,8 @@ const props = defineProps<{
     activeOrdinal: number;
     /** 草稿 ≠ head 正文：显示未提交草稿指示 +「再次检测」可用。 */
     draftDirty: boolean;
+    /** 历史恢复到尚未揭示的 head：等待用户显式继续检测。 */
+    resumePending?: boolean;
     /** 提交中（「再次检测」loading 态）。 */
     committing: boolean;
     /** 宿主追加的提交禁用条件（AI 改写等待期等，防跨态竞态）。 */
@@ -36,8 +38,9 @@ const {t} = useLlmlintI18n();
         <LineageStrip :entries="props.entries" :head-ordinal="props.headOrdinal" :active-ordinal="props.activeOrdinal" clickable @select="(ordinal) => emit('select', ordinal)" />
         <!-- 未提交草稿指示：head 之上有未保存改动（warning 色） -->
         <span v-if="props.draftDirty" class="rounded-full border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-xs text-amber-700 dark:text-amber-300" :title="t('contribute.versionDraftTitle')">{{ t("contribute.versionDraftChip") }}</span>
-        <button type="button" class="ml-auto inline-flex h-7 items-center gap-1 rounded-md bg-[var(--accent-main)] px-3 text-xs font-medium text-white hover:brightness-105 disabled:opacity-60" :title="t('contribute.recheckTitle')" :disabled="!props.draftDirty || props.committing || props.commitDisabled" @click="emit('commit')">
-            <span class="i-lucide-refresh-cw" /> {{ props.committing ? t("contribute.committing") : t("contribute.recheckButton") }}
+        <span v-if="props.resumePending" class="rounded-full border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-xs text-amber-700 dark:text-amber-300" :title="t('contribute.continueDetectionTitle')">{{ t("contribute.detectionPendingChip") }}</span>
+        <button type="button" class="ml-auto inline-flex h-7 items-center gap-1 rounded-md bg-[var(--accent-main)] px-3 text-xs font-medium text-white hover:brightness-105 disabled:opacity-60" :title="t(props.resumePending ? 'contribute.continueDetectionTitle' : 'contribute.recheckTitle')" :disabled="(!props.draftDirty && !props.resumePending) || props.committing || props.commitDisabled" @click="emit('commit')">
+            <span class="i-lucide-refresh-cw" /> {{ props.committing ? t("contribute.committing") : t(props.resumePending ? "contribute.continueDetectionButton" : "contribute.recheckButton") }}
         </button>
     </div>
 </template>

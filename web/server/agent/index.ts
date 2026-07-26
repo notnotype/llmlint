@@ -6,7 +6,7 @@ import {createLlmlintProfile} from "./neuro-agent-harness/profile";
 import {PrismaSessionStore, type LlmlintHostContext} from "./neuro-agent-harness/prisma-session-store";
 import type {LlmlintSessionInitial} from "./neuro-agent-harness/profile";
 import {readEvalConfig, resolveChannelModel} from "../utils/eval-channel";
-import {createLlmlintAnalysisContextProvider} from "./neuro-agent-harness/analysis-capability";
+import {createLlmlintAnalysisContextProvider, createLlmlintRevisionTextSourceProvider} from "./neuro-agent-harness/analysis-capability";
 import {MachineLlmReviewProjector} from "./neuro-agent-harness/review-observer";
 
 export interface LlmlintAgentHarness extends AgentHarnessPort {
@@ -28,7 +28,7 @@ function createHarness(): LlmlintAgentHarness {
         store,
         profiles,
         model: new LlmlintPiModelRuntime({resolveModel: resolveLlmlintModel}),
-        capabilities: [createLlmlintAnalysisContextProvider()],
+        capabilities: [createLlmlintAnalysisContextProvider(), createLlmlintRevisionTextSourceProvider()],
         commitObservers: [projector],
         onObserverError(observerName, error) {
             console.error(`[agent-harness] observer=${observerName} 投影失败：${error.message}`);

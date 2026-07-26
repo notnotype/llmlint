@@ -11,6 +11,8 @@ export default defineConfig({
     },
     resolve: {
         alias: {
+            "llmlint": fileURLToPath(new URL("./skill/src", import.meta.url)),
+            "evals": fileURLToPath(new URL("./evals/lib", import.meta.url)),
             "evals-generator": fileURLToPath(new URL("./evals/generator", import.meta.url)),
             "#shared": fileURLToPath(new URL("./web/shared", import.meta.url)),
         },

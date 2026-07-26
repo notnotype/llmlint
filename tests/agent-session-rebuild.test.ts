@@ -10,6 +10,7 @@ import {NeuroAgentHarnessAdapter} from "../web/server/agent/neuro-agent-harness/
 import {PrismaSessionStore} from "../web/server/agent/neuro-agent-harness/prisma-session-store";
 import {createLlmlintProfile, type LlmlintSessionInitial} from "../web/server/agent/neuro-agent-harness/profile";
 import {llmlintAnalysisContext} from "../web/server/agent/neuro-agent-harness/analysis-context";
+import {llmlintRevisionTextSource} from "../web/server/agent/neuro-agent-harness/revision-text-workspace";
 import {MachineLlmReviewProjector} from "../web/server/agent/neuro-agent-harness/review-observer";
 import type {LlmlintModelConfig} from "../web/server/agent/neuro-agent-harness/pi-runtime";
 import {createHarnessTables} from "./helpers/agent-harness-db";
@@ -67,14 +68,18 @@ describe("AgentSessionRebuilder", () => {
 async function setup(suffix: string): Promise<{client: PrismaClient; revisionId: string; body: string}> {
     directory = await mkdtemp(join(tmpdir(), `llmlint-agent-rebuild-${suffix}-`));
     client = createPrismaClient(`file:${join(directory, "rebuild.db")}`);
-    await client.$executeRawUnsafe(`CREATE TABLE Revision (id TEXT PRIMARY KEY NOT NULL, body TEXT NOT NULL)`);
     await createHarnessTables(client);
     const revisionId = `revision-${suffix}`;
     const body = "正文没有明显命中。";
-    await client.$executeRawUnsafe(`INSERT INTO Revision (id, body) VALUES (?, ?)`, revisionId, body);
+    await client.$executeRawUnsafe(
+        `INSERT INTO Revision (id, textId, ordinal, body, revealedAt) VALUES (?, ?, 0, ?, CURRENT_TIMESTAMP)`,
+        revisionId,
+        `text-${suffix}`,
+        body,
+    );
     await client.agentSession.create({data: {id: "old-session", revisionId, userId: 7, profileKey: "llmlint.review", initialJson: "{}", hostContextJson: "{}"}});
     await client.agentSessionEntry.create({data: {id: "old-entry", sessionId: "old-session", kind: "user", payloadJson: "{}"}});
-    await client.agentInvocation.create({data: {id: "old-invocation", sessionId: "old-session", mode: "prompt", phase: "analysis", status: "completed", inputJson: "{}"}});
+    await client.agentInvocation.create({data: {id: "old-invocation", sessionId: "old-session", revisionId, mode: "prompt", phase: "analysis", status: "completed", inputJson: JSON.stringify({mode: "prompt", phase: "analysis", revisionId})}});
     await client.machineLlmReview.create({data: {id: "old-review", revisionId, sessionId: "old-session", invocationId: "old-invocation", model: "old", promptVersion: "old", score: 0, confidence: 0, hitsJson: "[]", reportJson: "{}"}});
     return {client, revisionId, body};
 }
@@ -90,17 +95,24 @@ function createAdapter(clientValue: PrismaClient, scripts: readonly ScriptedTurn
         store,
         profiles,
         model,
-        capabilities: [{capability: llmlintAnalysisContext, open: () => ({load: async () => ({body, chunks: [{start: 0, end: body.length, text: body}], scanStats: {hitCount: 0, docScore: 0}, ruleIds: new Set<string>(), ruleLevels: new Map(), rulesText: "无"})})}],
+        capabilities: [{capability: llmlintAnalysisContext, open: () => ({load: async () => ({body, chunks: [{start: 0, end: body.length, text: body}], scanStats: {hitCount: 0, docScore: 0}, ruleIds: new Set<string>(), ruleLevels: new Map(), rulesText: "无"})})}, {
+            capability: llmlintRevisionTextSource,
+            open: () => ({forRevision: async (revisionId: string) => ({
+                current: async () => ({revisionId, ordinal: 0, body}),
+                revision: async () => { throw new Error("重建测试没有历史 Revision"); },
+                detections: async () => ({status: {scan: "waiting", llmReview: "waiting", detectors: "waiting"}, scan: null, llmReview: null, detectors: []}),
+            })}),
+        }],
         commitObservers: [projector],
     });
     return {adapter: new NeuroAgentHarnessAdapter({core, store, projector, client: clientValue}), model};
 }
 
-/** 一次成功 analysis 所需的 context/chunk/report 三轮。 */
+/** 一次成功 analysis 所需的 lint/read/report 三轮。 */
 function analysisScripts(): ScriptedTurn<LlmlintModelConfig>[] {
     return [
-        {message: {role: "assistant", content: [{type: "toolCall", call: {id: "context", name: "get_lint_context", arguments: {}}}], timestamp: 1}},
-        {message: {role: "assistant", content: [{type: "toolCall", call: {id: "chunk", name: "read_document_chunk", arguments: {index: 0}}}], timestamp: 2}},
+        {message: {role: "assistant", content: [{type: "toolCall", call: {id: "lint", name: "lint_check", arguments: {review: "all"}}}], timestamp: 1}},
+        {message: {role: "assistant", content: [{type: "toolCall", call: {id: "read", name: "read", arguments: {lineNumbers: true}}}], timestamp: 2}},
         {message: {role: "assistant", content: [{type: "toolCall", call: {id: "report", name: "report_result", arguments: {confidence: 0.8, conclusion: "未发现明确命中", suggestions: []}}}], timestamp: 3}},
     ];
 }

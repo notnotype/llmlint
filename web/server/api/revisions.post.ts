@@ -1,6 +1,5 @@
 import {requireCurrentUser} from "../utils/auth";
 import {recordMachineDetect} from "../utils/detect";
-import {startMachineLlmReview} from "../utils/llm-review";
 import {CreateRevisionDtoSchema, validateBody, visibleCharCount} from "../utils/dto";
 import {recordMachineScan} from "../utils/scan";
 import {prisma} from "../database/prisma";
@@ -46,7 +45,6 @@ export default defineEventHandler(async (event): Promise<CreateRevisionResponseD
     await recordMachineScan(revision.id, body.body);
     // W3：外部检测器挂响应后异步跑（先算后藏；失败只记日志不落行，不阻塞提交）。
     event.waitUntil(recordMachineDetect(revision.id, body.body));
-    // Task 17 工单 C：LLM 规则评审同模式异步跑（失败/未配置在 util 内静默降级）。
-    event.waitUntil(startMachineLlmReview(revision.id, user.id, body.body));
+    // LLM analysis 在首次 reveal 后推进父 Revision 的同一 Session，避免已有 SSE 在揭示前看到新版本事件。
     return {revisionId: revision.id, ordinal: revision.ordinal};
 });

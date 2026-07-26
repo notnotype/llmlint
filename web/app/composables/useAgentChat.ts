@@ -7,6 +7,9 @@ import {resolveApiErrorMessage} from "../utils/api-error";
 import {useLlmlintI18n} from "./useLlmlintI18n";
 import {useNotification} from "./useNotification";
 import {applyAgentEvent, messagesFromSnapshot, type AgentChatMessage} from "../utils/agent-chat-projection";
+import {latestRetryableInvocation} from "../utils/agent-chat-flow";
+import {ONE_CLICK_FIX_INSTRUCTION} from "../utils/agent-one-click-fix";
+import {abortNeedsRecovery, type AgentAbortResponse} from "../utils/agent-abort-state";
 
 type TextPanelInstance = InstanceType<typeof TextPanel>;
 
@@ -16,7 +19,12 @@ export type AgentChatOptions = {
     panel: Ref<TextPanelInstance | null>;
     editDraft: Ref<string>;
     sessionId: Ref<string | null>;
+    revisionId: Ref<string | null>;
     editorActive: () => boolean;
+    /** 一键风险润色启动前，由宿主同步应用当前 fixability:auto 静态修复。 */
+    applyOneClickAutoFixes: () => void;
+    /** terminal 或 snapshot 恢复终态时通知宿主刷新业务投影。 */
+    onTerminal?: (invocation: AgentInvocationSnapshot) => Promise<void>;
 };
 
 /**
@@ -41,17 +49,23 @@ export function useAgentChat(options: AgentChatOptions) {
     const handledInvocations = new Set<string>();
     const initializedSessions = new Set<string>();
     const invocationPlans = new Map<string, RepairPlan>();
+    const workspaceBodies = new Map<string, string>();
+    const liveAppliedInvocations = new Set<string>();
+    const staleInvocations = new Set<string>();
+    const observedTerminalInvocations = new Set<string>();
     let source: EventSource | null = null;
     let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
     let eventEpoch: string | null = null;
     let lastSeq = 0;
     const liveInvocationId = ref<string | null>(null);
+    const abortRequested = ref(false);
     let refreshGeneration = 0;
 
-    const running = computed(() => liveInvocationId.value !== null || snapshot.value?.status === "aborting");
+    const running = computed(() => liveInvocationId.value !== null || abortRequested.value || snapshot.value?.status === "aborting");
+    const aborting = computed(() => abortRequested.value);
     const llmDiffs = computed(() => options.panel.value?.getLlmDiffs() ?? []);
     const llmVisitedCount = computed(() => llmDiffs.value.filter((diff) => llmVisitedIds.value.has(diff.id)).length);
-    const latestRetryable = computed(() => snapshot.value?.invocations.findLast((item) => ["failed", "aborted", "interrupted"].includes(item.status)) ?? null);
+    const latestRetryable = computed(() => latestRetryableInvocation(snapshot.value?.invocations ?? []));
 
     watch(() => options.panel.value?.getActiveDiffId() ?? null, (id) => {
         if (id && llmDiffs.value.some((diff) => diff.id === id) && !llmVisitedIds.value.has(id)) {
@@ -78,6 +92,7 @@ export function useAgentChat(options: AgentChatOptions) {
             eventEpoch = next.eventCursor.eventEpoch;
             lastSeq = next.eventCursor.after;
             liveInvocationId.value = next.activeInvocation?.id ?? null;
+            if (!liveInvocationId.value) abortRequested.value = false;
             runPhase.value = liveInvocationId.value ? "model_pending" : "idle";
             unavailable.value = null;
             // 页面刷新恢复只展示历史，不把已完成的旧改写再次并入当前草稿。
@@ -87,7 +102,9 @@ export function useAgentChat(options: AgentChatOptions) {
                 }
                 initializedSessions.add(id);
             }
+            if (next.activeWorkspace) applyWorkspace(next.activeWorkspace.invocationId, next.activeWorkspace.body, next);
             await absorbResults(next.invocations);
+            await notifyTerminals(next.invocations);
         } catch (error) {
             if (generation === refreshGeneration) unavailable.value = resolveApiErrorMessage(error, "Agent session 加载失败");
         }
@@ -96,17 +113,64 @@ export function useAgentChat(options: AgentChatOptions) {
     /** terminal optimize 的完整/部分结果只吸收一次；草稿已变化时进入既有 stale 决策。 */
     async function absorbResults(invocations: AgentInvocationSnapshot[]): Promise<void> {
         for (const invocation of invocations) {
-            if (invocation.phase !== "optimize" || !invocation.result || handledInvocations.has(invocation.id)) continue;
+            if (invocation.phase !== "optimize" || invocation.input.phase !== "optimize" || !invocation.result || handledInvocations.has(invocation.id)) continue;
             handledInvocations.add(invocation.id);
             const panel = options.panel.value;
             if (!panel || invocation.result.edits.length === 0) continue;
+            if (liveAppliedInvocations.has(invocation.id)) {
+                invocationPlans.delete(invocation.id);
+                workspaceBodies.delete(invocation.id);
+                notifyOptimizeTerminal(invocation);
+                continue;
+            }
             if (options.editDraft.value === invocation.input.body) {
                 mergeRewrite(invocation.result.body);
             } else {
                 stale.value = {rewritten: invocation.result.body, planSnapshot: invocationPlans.get(invocation.id) ?? panel.getRepairPlan()};
             }
             invocationPlans.delete(invocation.id);
-            if (invocation.status === "aborted") notification.info("Agent 已取消，已完成的修改已进入 diff 审阅");
+            notifyOptimizeTerminal(invocation);
+        }
+    }
+
+    /** 每个 optimize 终态只随 absorbResults 反馈一次，不随每条 workspace 刷屏。 */
+    function notifyOptimizeTerminal(invocation: AgentInvocationSnapshot): void {
+        if (invocation.status === "completed") {
+            notification.success(invocation.result?.partial ? "Agent 已部分完成，修改已进入 diff 审阅" : "Agent 已完成，修改已进入 diff 审阅");
+        } else if (invocation.status === "aborted") {
+            notification.info("Agent 已取消，已完成的修改已保留在 diff 审阅中");
+        } else if (invocation.status === "failed") {
+            notification.notify({message: "Agent 运行失败，已完成的修改已保留在 diff 审阅中", tone: "warning"});
+        }
+    }
+
+    /** durable workspace 必须严格衔接上一份正文；发现草稿漂移即停止覆盖并进入 stale。 */
+    function applyWorkspace(invocationId: string, body: string, currentSnapshot = snapshot.value): void {
+        if (staleInvocations.has(invocationId)) return;
+        const invocation = currentSnapshot?.invocations.find((item) => item.id === invocationId)
+            ?? (currentSnapshot?.activeInvocation?.id === invocationId ? currentSnapshot.activeInvocation : null);
+        if (!invocation || invocation.phase !== "optimize" || invocation.input.phase !== "optimize") return;
+        const panel = options.panel.value;
+        if (!panel) return;
+        const expected = workspaceBodies.get(invocationId) ?? invocation.input.body;
+        if (options.editDraft.value !== expected) {
+            staleInvocations.add(invocationId);
+            stale.value = {rewritten: body, planSnapshot: invocationPlans.get(invocationId) ?? panel.getRepairPlan()};
+            return;
+        }
+        panel.applyAgentWorkspace(body, t("contribute.llmFixDiffTitle"));
+        workspaceBodies.set(invocationId, body);
+        liveAppliedInvocations.add(invocationId);
+        llmVisitedIds.value = new Set<string>();
+        llmReviewOpen.value = panel.getLlmDiffs().length > 0;
+    }
+
+    /** invocation ID 级幂等 terminal 通知，覆盖 live SSE 丢失后的 snapshot 恢复。 */
+    async function notifyTerminals(invocations: AgentInvocationSnapshot[]): Promise<void> {
+        for (const invocation of invocations) {
+            if (!invocation.finishedAt || observedTerminalInvocations.has(invocation.id)) continue;
+            observedTerminalInvocations.add(invocation.id);
+            await options.onTerminal?.(invocation);
         }
     }
 
@@ -135,6 +199,9 @@ export function useAgentChat(options: AgentChatOptions) {
             }
             lastSeq = event.seq;
             messages.value = applyAgentEvent(messages.value, event);
+            if (event.kind === "session" && event.event.type === "workspace") {
+                applyWorkspace(event.event.invocationId, event.event.body);
+            }
             projectRunState(event);
         });
         source.onerror = () => {
@@ -171,6 +238,7 @@ export function useAgentChat(options: AgentChatOptions) {
         else if (event.type === "tool_execution_end" || event.type === "turn_end") runPhase.value = "finishing";
         else if (event.type === "agent_end") {
             liveInvocationId.value = null;
+            abortRequested.value = false;
             runPhase.value = "idle";
             void refresh(); // terminal result/diff 只在此处补一次 snapshot
         }
@@ -182,9 +250,13 @@ export function useAgentChat(options: AgentChatOptions) {
         eventEpoch = null;
         lastSeq = 0;
         liveInvocationId.value = null;
+        abortRequested.value = false;
         snapshot.value = null;
         messages.value = [];
         selection.value = null;
+        workspaceBodies.clear();
+        liveAppliedInvocations.clear();
+        staleInvocations.clear();
         composerPrefill.value = "";
         void (async () => {
             await refresh();
@@ -196,23 +268,27 @@ export function useAgentChat(options: AgentChatOptions) {
         if (reconnectTimer) clearTimeout(reconnectTimer);
     });
 
-    /** 发送整篇或选区改写要求；运行中由前后端共同拒绝。 */
-    async function send(message: string): Promise<void> {
+    /** 按显式 scope 发送 optimize，避免全文动作意外继承 Composer 残留选区。 */
+    async function invokeOptimize(message: string, intent: {objective?: "polish_ai_risk"; selection: AgentSelection | null; applyAutoFixes: boolean}): Promise<void> {
         const id = options.sessionId.value;
+        const revisionId = options.revisionId.value;
         const panel = options.panel.value;
-        if (!id || !panel || !options.editorActive() || running.value || !message.trim()) return;
+        if (!id || !revisionId || !panel || !options.editorActive() || running.value || !message.trim()) return;
         loading.value = true;
         try {
-            const attached = selection.value;
+            const attached = intent.selection;
+            if (intent.applyAutoFixes) options.applyOneClickAutoFixes();
             const planSnapshot = panel.getRepairPlan();
             const response = await $fetch<{invocationId: string}>(`/api/agent/sessions/${id}/invoke`, {
                 method: "POST",
                 body: {
                     mode: "prompt",
                     phase: "optimize",
+                    revisionId,
+                    ...(intent.objective ? {objective: intent.objective} : {}),
                     message: message.trim(),
                     body: options.editDraft.value,
-                    selection: attached ? {from: attached.from, to: attached.to, text: attached.text} : undefined,
+                    ...(attached ? {selection: {from: attached.from, to: attached.to, text: attached.text}} : {}),
                 },
             });
             invocationPlans.set(response.invocationId, planSnapshot);
@@ -226,9 +302,14 @@ export function useAgentChat(options: AgentChatOptions) {
         }
     }
 
-    /** 工具栏“一键修到底”仍可直接发起一个默认 Chat invocation。 */
+    /** 发送普通整篇或选区改写要求；运行中由前后端共同拒绝。 */
+    async function send(message: string): Promise<void> {
+        await invokeOptimize(message, {selection: selection.value, applyAutoFixes: false});
+    }
+
+    /** 工具栏“一键修到底”声明全文风险润色目标，绝不携带 Composer 残留选区。 */
     async function startFull(): Promise<void> {
-        await send("优化全文，降低明显的 AI 写作痕迹，保持原意、叙事信息和人物语气。逐处修改并说明理由。");
+        await invokeOptimize(ONE_CLICK_FIX_INSTRUCTION, {objective: "polish_ai_risk", selection: null, applyAutoFixes: true});
     }
 
     /** 选区入口只切入 Chat 并预填，不自动发送。 */
@@ -238,28 +319,73 @@ export function useAgentChat(options: AgentChatOptions) {
         composerVersion.value += 1;
     }
 
-    async function abort(): Promise<void> {
+    /** 在当前 head Session 中为指定 Revision 启动新的 Analysis Invocation。 */
+    async function startAnalysis(revisionId: string): Promise<void> {
         const id = options.sessionId.value;
-        if (!id || !running.value) return;
+        if (!id || !revisionId || running.value) return;
+        loading.value = true;
         try {
-            await $fetch(`/api/agent/sessions/${id}/abort`, {method: "POST"});
+            await $fetch(`/api/agent/sessions/${id}/invoke`, {method: "POST", body: {mode: "prompt", phase: "analysis", revisionId}});
             await refresh();
         } catch (error) {
+            notification.error(resolveApiErrorMessage(error, "LLM Agent 重试失败"));
+        } finally {
+            loading.value = false;
+        }
+    }
+
+    /** 发送绑定 Invocation ID 的幂等取消请求。 */
+    async function requestAbort(id: string, invocationId: string): Promise<void> {
+        if (abortRequested.value) return;
+        abortRequested.value = true;
+        runPhase.value = "finishing";
+        try {
+            const response = await $fetch<AgentAbortResponse>(`/api/agent/sessions/${id}/abort`, {method: "POST", body: {invocationId}});
+            if (abortNeedsRecovery(response)) await refresh();
+        } catch (error) {
+            abortRequested.value = false;
             notification.error(resolveApiErrorMessage(error, "取消 Agent 失败"));
         }
+    }
+
+    async function abort(): Promise<void> {
+        const id = options.sessionId.value;
+        const invocationId = liveInvocationId.value ?? snapshot.value?.activeInvocation?.id ?? null;
+        if (!id || !invocationId) return;
+        await requestAbort(id, invocationId);
+    }
+
+    /** 历史恢复时重新读取 durable 状态，并主动终止该 Session 当前运行。 */
+    async function abortRestored(): Promise<void> {
+        const id = options.sessionId.value;
+        if (!id) return;
+        await refresh();
+        const active = snapshot.value?.activeInvocation;
+        if (!active) return;
+        await requestAbort(id, active.id);
+    }
+
+    /** 只取消与报告卡 Revision 匹配的 Analysis，绝不误伤当前 Optimize。 */
+    async function abortAnalysis(revisionId: string): Promise<void> {
+        const id = options.sessionId.value;
+        if (!id || !revisionId) return;
+        await refresh();
+        const active = snapshot.value?.activeInvocation;
+        if (!active || active.phase !== "analysis" || active.input.phase !== "analysis" || active.input.revisionId !== revisionId) return;
+        await requestAbort(id, active.id);
     }
 
     async function retry(): Promise<void> {
         const id = options.sessionId.value;
         const retryable = latestRetryable.value;
         if (!id || running.value || !retryable) return;
-        if (retryable.phase === "optimize" && options.editDraft.value !== retryable.input.body) {
+        if (retryable.input.phase === "optimize" && options.editDraft.value !== retryable.input.body) {
             notification.error("当前草稿已不同于失败 invocation 的输入快照，请直接发送一条新消息重新校准正文。");
             return;
         }
         try {
             const response = await $fetch<{invocationId: string}>(`/api/agent/sessions/${id}/retry`, {method: "POST"});
-            if (retryable.phase === "optimize" && options.panel.value) invocationPlans.set(response.invocationId, options.panel.value.getRepairPlan());
+            if (retryable.input.phase === "optimize" && options.panel.value) invocationPlans.set(response.invocationId, options.panel.value.getRepairPlan());
             await refresh();
         } catch (error) {
             notification.error(resolveApiErrorMessage(error, "重试 Agent 失败"));
@@ -311,16 +437,22 @@ export function useAgentChat(options: AgentChatOptions) {
         source?.close();
         source = null;
         if (reconnectTimer) clearTimeout(reconnectTimer);
+        liveInvocationId.value = null;
+        abortRequested.value = false;
+        runPhase.value = "idle";
         snapshot.value = null;
         messages.value = [];
         selection.value = null;
+        workspaceBodies.clear();
+        liveAppliedInvocations.clear();
+        staleInvocations.clear();
         resetReviewState();
     }
 
     return {
-        snapshot, messages, running, loading, unavailable, selection, composerPrefill, composerVersion, latestRetryable, connectionStatus, runPhase,
+        snapshot, messages, running, aborting, loading, unavailable, selection, composerPrefill, composerVersion, latestRetryable, connectionStatus, runPhase,
         stale, llmReviewOpen, llmDiffs, llmVisitedCount,
-        refresh, send, startFull, prepareSelection, abort, retry, applyStale, discardStale,
+        refresh, send, startFull, prepareSelection, startAnalysis, abort, abortRestored, abortAnalysis, retry, applyStale, discardStale,
         onLlmReviewNavigate, onLlmReviewReject, resetReviewState, abandonAll,
     };
 }

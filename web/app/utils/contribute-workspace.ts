@@ -45,6 +45,8 @@ export type WorkspaceRevision = {
     ordinal: number;
     transitionKind: WorkspaceTransitionKind;
     body: string;
+    /** null 表示该版本仍待用户显式继续检测；历史恢复不得自动推进。 */
+    revealedAt: string | null;
     scan: ServerScan | null;
     detects: ServerDetect[];
     /** LLM 规则评审（Task 17 工单 C）；null = 未 reveal / 异步未到 / 通道未配置（展示由工单 D 接） */
@@ -279,6 +281,7 @@ export function hydrateWorkspace(payload: WorkspacePayload): HydratedWorkspace {
             ordinal: revision.ordinal,
             transitionKind: revision.transitionKind,
             body: revision.body,
+            revealedAt: revision.revealedAt,
             scan: revision.scan,
             detects: revision.detects,
             llmReview: revision.llmReview,

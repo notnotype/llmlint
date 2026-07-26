@@ -11,9 +11,11 @@ export interface AgentEventSubscription extends AsyncIterable<AgentSessionEvent>
  */
 export interface AgentHarnessPort {
     createSession(revisionId: string, userId: number): Promise<{sessionId: string}>;
+    /** 幂等确保线性 Revision 已推进，并在同一 Session 中存在目标版本的 analysis Invocation。 */
+    advanceRevision(sessionId: string, userId: number, revisionId: string): Promise<AgentInvokeResponse>;
     getSnapshot(sessionId: string, userId: number): Promise<AgentSessionSnapshot>;
     invoke(sessionId: string, userId: number, request: AgentInvokeRequest): Promise<AgentInvokeResponse>;
-    abort(sessionId: string, userId: number): Promise<{status: "idle" | "aborted"}>;
+    abort(sessionId: string, userId: number, invocationId: string): Promise<{status: "idle" | "aborting"}>;
     retry(sessionId: string, userId: number): Promise<AgentInvokeResponse>;
     subscribeEvents(sessionId: string, cursor: {eventEpoch?: string; after: number}): AgentEventSubscription;
 }

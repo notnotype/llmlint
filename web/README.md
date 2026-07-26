@@ -5,7 +5,7 @@ llmlint 的 web 站：**浏览器本地 AI 味检测** + **判定数据（catego
 - 支持配置式鉴权（见下「鉴权」节）：开发环境默认关闭登录，生产默认开启；`/` 重定向到 `/contribute`——唯一「检测」入口；`/rules`（规则数据页，Task 15）、`/report`、`/dataset` 照旧；playground 编辑器迁至 `/playground`（调试用，不进导航）。检测逻辑只在浏览器跑（`ssr:false` + 复用 `../skill/src` 引擎）。
 - `/contribute` 免登录承载**版本化检测工作台**（[Task 15](../docs/tasks/15-detection-workbench/README.md)；采集语义与数据模型仍以 [METHODOLOGY §2.3](../evals/METHODOLOGY.md) 五步权威流程与 [Task 13](../docs/tasks/13-web-five-step-flow/README.md) 为准，落位见 Task 15「采集点落位表」）——`draft → workspace → done` 三态：
   - **draft**：上传 + 自报（题材/体裁/作品名，全可选）+ 「我的检测历史」列表（点开恢复到工作台继续）。
-  - **workspace**：左=head 编辑器（规则命中高亮、机械修复、diff 审阅）或旧版只读正文；右=三维检测报告、命中列表、持久化 Agent。报告顶部并列规则引擎/外部检测/LLM Agent 三张“AI 痕迹风险”卡，越高越可疑、颜色越偏红；外部与 LLM 可真实取消、失败重试。综合风险按 30%/45%/25% 作为次级参考，缺失通道重新归一。检测 session 直接延续为 Agent 改写对话，选区以引用附件进入 composer，每个 invocation 最多 64 轮/64 次 replace。
+  - **workspace**：左=head 编辑器（规则命中高亮、机械修复、diff 审阅）或旧版只读正文；右=三维检测报告、命中列表、持久化 Agent。报告顶部并列规则引擎/外部检测/LLM Agent 三张“AI 痕迹风险”卡，越高越可疑、颜色越偏红；外部与 LLM 可真实取消、失败重试。综合风险按 30%/45%/25% 作为次级参考，缺失通道重新归一。同一线性 Revision lineage 复用一个 Agent Session，选区以引用附件进入 composer，每个 invocation 最多 64 轮，编辑次数没有业务上限。
   - **done**：总结卡。
 - 机器信号**一律服务器计算写入**（上传/建修订即扫、先算后藏）；浏览器本地扫描只作行内高亮展示层。
 - Agent Harness 通过 `AgentHarnessPort` 接入，唯一实现是公开包 `@notnotype/neuro-agent-harness@0.1.0`。llmlint 提供 Prisma SessionStore、Pi ModelRuntime、Profile、MachineLlmReviewProjector 和 SSE Adapter；Core 不认识 Prisma、Pi 或业务表。
@@ -67,8 +67,10 @@ DTO 校验见 `server/utils/dto.ts`：客户端不可提交 `id`/时间戳/`char
   - `POST /api/revisions` — 建 rev_k（parent 校验同文档 + 归属）+ 同步扫描 + 异步 detect；可带 `provenanceJson`（逐 hunk 规范见 `shared/revision-provenance.ts`）。
   - `POST /api/revisions/:id/reveal` — 显式揭示（`revealedAt` 幂等落时刻），返回 `{scan, detects}`。
   - `GET /api/revisions/:id/machine` — 未揭示 403（D2 服务器强制）；已揭示返回 scan + detects（detect 异步未到为空数组，前端轮询本端点）。
-  - Agent Harness：`GET /api/agent/sessions/:id`（snapshot）、`POST .../invoke`、`POST .../abort`、`POST .../retry`、`GET .../events`（SSE 增量）。session/entry/invocation 全部持久化；运行中再次发送返回 409；服务重启把悬空 invocation 标为 interrupted。SSE 使用 `eventEpoch + seq` 游标、500 条 session replay buffer 和 `connected.snapshotRequired` 恢复协议，直接投影 Pi 的 text/thinking/tool/turn 生命周期；只有游标缺口或 terminal 补结果时才刷新 snapshot。分析与改写共用同一 `llmlint.review` session，改写结果不直接落 Revision，只进入前端 diff 审阅。
-  - LLM 评审使用版本化 `llm-rules-agent-v4`：Agent 必须查询规则并读完全部正文块，只通过 `record_rule_hit` 提交命中；最终 evidence 与 0–100 AI 痕迹风险由服务器从已校验 hits 生成，避免小模型在 `report_result` 中重复抄写 quote/ruleId 导致死循环。
+  - Agent Harness：`GET /api/agent/sessions/:id`（snapshot）、`POST .../invoke`、`POST .../abort`、`POST .../retry`、`GET .../events`（SSE 增量）。session/entry/invocation 全部持久化；运行中再次发送返回 409；服务重启把悬空 invocation 标为 interrupted。SSE 使用 `eventEpoch + seq` 游标、500 条 session replay buffer 和 `connected.snapshotRequired` 恢复协议，直接投影 Pi 的 text/thinking/tool/turn 生命周期；只有游标缺口或 terminal 补结果时才刷新 snapshot。同一 Text 的线性 Revision 通过幂等 advance 复用 Session；`AgentSession.revisionId` 是当前指针，每次运行的版本归属以 `AgentInvocation.revisionId` 为准。改写结果不直接落 Revision，只进入前端 diff 审阅。
+  - LLM 评审使用版本化 `llm-rules-agent-v6`：规则描述是权威判定标准，Agent 通过 `lint_check/read` 完整检查正文，只通过 `record_rule_hit` 提交高召回命中；最终 evidence 与风险分由服务器从已校验 hits 生成。
+  - Optimize 使用 `repair-agent-v5`。普通消息可自由选择 `read`、`get_revision_detections`、`lint_check`、`lint_fix`、`edit`；一键修到底先由宿主把当前 `fixability:auto` 命中作为 static provenance 应用到草稿，再以更新后的正文发送 `objective=polish_ai_risk`，该 Invocation 不向模型暴露 `lint_fix`。`lint_check` 为命中附加判别力策略：strong 与当前启用的 `vocabulary.*` 必修，weak 和 LLM Review 结合语境处理；eval report 缺失时非词汇规则降级为 contextual，敏感词必修合同不变。`finish` 只守必修集合，不再要求所有规则清零。高风险句段允许句子/段落级小范围润色。
+  - 从检测历史恢复工作台不会隐式 reveal 或启动 Agent；跨篇恢复先清空上一 Session 的本地 aborting 状态，再按新 Session active Invocation ID abort。未揭示 head 保持只读，并在版本条显示“继续检测”显式入口。
   - 外部检测 run：`POST /api/revisions/:id/detector-runs` 创建新 attempt；`DELETE /api/detector-runs/:id` 通过 AbortSignal 真正取消 HTTP/SSE 请求。旧 attempt 保留为历史事实。
   - `POST /api/judgments` — 四轴可选判定，blind 按 revealedAt 重算。
   - `POST /api/annotations` — span 标注。

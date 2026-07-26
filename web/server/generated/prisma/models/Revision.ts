@@ -267,6 +267,7 @@ export type RevisionWhereInput = {
   machineDetects?: Prisma.MachineDetectListRelationFilter
   machineLlmReviews?: Prisma.MachineLlmReviewListRelationFilter
   agentSessions?: Prisma.AgentSessionListRelationFilter
+  agentInvocations?: Prisma.AgentInvocationListRelationFilter
   machineDetectRuns?: Prisma.MachineDetectRunListRelationFilter
 }
 
@@ -288,6 +289,7 @@ export type RevisionOrderByWithRelationInput = {
   machineDetects?: Prisma.MachineDetectOrderByRelationAggregateInput
   machineLlmReviews?: Prisma.MachineLlmReviewOrderByRelationAggregateInput
   agentSessions?: Prisma.AgentSessionOrderByRelationAggregateInput
+  agentInvocations?: Prisma.AgentInvocationOrderByRelationAggregateInput
   machineDetectRuns?: Prisma.MachineDetectRunOrderByRelationAggregateInput
 }
 
@@ -313,6 +315,7 @@ export type RevisionWhereUniqueInput = Prisma.AtLeast<{
   machineDetects?: Prisma.MachineDetectListRelationFilter
   machineLlmReviews?: Prisma.MachineLlmReviewListRelationFilter
   agentSessions?: Prisma.AgentSessionListRelationFilter
+  agentInvocations?: Prisma.AgentInvocationListRelationFilter
   machineDetectRuns?: Prisma.MachineDetectRunListRelationFilter
 }, "id" | "textId_ordinal">
 
@@ -367,6 +370,7 @@ export type RevisionCreateInput = {
   machineDetects?: Prisma.MachineDetectCreateNestedManyWithoutRevisionInput
   machineLlmReviews?: Prisma.MachineLlmReviewCreateNestedManyWithoutRevisionInput
   agentSessions?: Prisma.AgentSessionCreateNestedManyWithoutRevisionInput
+  agentInvocations?: Prisma.AgentInvocationCreateNestedManyWithoutRevisionInput
   machineDetectRuns?: Prisma.MachineDetectRunCreateNestedManyWithoutRevisionInput
 }
 
@@ -387,6 +391,7 @@ export type RevisionUncheckedCreateInput = {
   machineDetects?: Prisma.MachineDetectUncheckedCreateNestedManyWithoutRevisionInput
   machineLlmReviews?: Prisma.MachineLlmReviewUncheckedCreateNestedManyWithoutRevisionInput
   agentSessions?: Prisma.AgentSessionUncheckedCreateNestedManyWithoutRevisionInput
+  agentInvocations?: Prisma.AgentInvocationUncheckedCreateNestedManyWithoutRevisionInput
   machineDetectRuns?: Prisma.MachineDetectRunUncheckedCreateNestedManyWithoutRevisionInput
 }
 
@@ -407,6 +412,7 @@ export type RevisionUpdateInput = {
   machineDetects?: Prisma.MachineDetectUpdateManyWithoutRevisionNestedInput
   machineLlmReviews?: Prisma.MachineLlmReviewUpdateManyWithoutRevisionNestedInput
   agentSessions?: Prisma.AgentSessionUpdateManyWithoutRevisionNestedInput
+  agentInvocations?: Prisma.AgentInvocationUpdateManyWithoutRevisionNestedInput
   machineDetectRuns?: Prisma.MachineDetectRunUpdateManyWithoutRevisionNestedInput
 }
 
@@ -427,6 +433,7 @@ export type RevisionUncheckedUpdateInput = {
   machineDetects?: Prisma.MachineDetectUncheckedUpdateManyWithoutRevisionNestedInput
   machineLlmReviews?: Prisma.MachineLlmReviewUncheckedUpdateManyWithoutRevisionNestedInput
   agentSessions?: Prisma.AgentSessionUncheckedUpdateManyWithoutRevisionNestedInput
+  agentInvocations?: Prisma.AgentInvocationUncheckedUpdateManyWithoutRevisionNestedInput
   machineDetectRuns?: Prisma.MachineDetectRunUncheckedUpdateManyWithoutRevisionNestedInput
 }
 
@@ -667,6 +674,20 @@ export type RevisionUpdateOneRequiredWithoutAgentSessionsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.RevisionUpdateToOneWithWhereWithoutAgentSessionsInput, Prisma.RevisionUpdateWithoutAgentSessionsInput>, Prisma.RevisionUncheckedUpdateWithoutAgentSessionsInput>
 }
 
+export type RevisionCreateNestedOneWithoutAgentInvocationsInput = {
+  create?: Prisma.XOR<Prisma.RevisionCreateWithoutAgentInvocationsInput, Prisma.RevisionUncheckedCreateWithoutAgentInvocationsInput>
+  connectOrCreate?: Prisma.RevisionCreateOrConnectWithoutAgentInvocationsInput
+  connect?: Prisma.RevisionWhereUniqueInput
+}
+
+export type RevisionUpdateOneRequiredWithoutAgentInvocationsNestedInput = {
+  create?: Prisma.XOR<Prisma.RevisionCreateWithoutAgentInvocationsInput, Prisma.RevisionUncheckedCreateWithoutAgentInvocationsInput>
+  connectOrCreate?: Prisma.RevisionCreateOrConnectWithoutAgentInvocationsInput
+  upsert?: Prisma.RevisionUpsertWithoutAgentInvocationsInput
+  connect?: Prisma.RevisionWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.RevisionUpdateToOneWithWhereWithoutAgentInvocationsInput, Prisma.RevisionUpdateWithoutAgentInvocationsInput>, Prisma.RevisionUncheckedUpdateWithoutAgentInvocationsInput>
+}
+
 export type RevisionCreateNestedOneWithoutMachineDetectRunsInput = {
   create?: Prisma.XOR<Prisma.RevisionCreateWithoutMachineDetectRunsInput, Prisma.RevisionUncheckedCreateWithoutMachineDetectRunsInput>
   connectOrCreate?: Prisma.RevisionCreateOrConnectWithoutMachineDetectRunsInput
@@ -697,6 +718,7 @@ export type RevisionCreateWithoutTextInput = {
   machineDetects?: Prisma.MachineDetectCreateNestedManyWithoutRevisionInput
   machineLlmReviews?: Prisma.MachineLlmReviewCreateNestedManyWithoutRevisionInput
   agentSessions?: Prisma.AgentSessionCreateNestedManyWithoutRevisionInput
+  agentInvocations?: Prisma.AgentInvocationCreateNestedManyWithoutRevisionInput
   machineDetectRuns?: Prisma.MachineDetectRunCreateNestedManyWithoutRevisionInput
 }
 
@@ -716,6 +738,7 @@ export type RevisionUncheckedCreateWithoutTextInput = {
   machineDetects?: Prisma.MachineDetectUncheckedCreateNestedManyWithoutRevisionInput
   machineLlmReviews?: Prisma.MachineLlmReviewUncheckedCreateNestedManyWithoutRevisionInput
   agentSessions?: Prisma.AgentSessionUncheckedCreateNestedManyWithoutRevisionInput
+  agentInvocations?: Prisma.AgentInvocationUncheckedCreateNestedManyWithoutRevisionInput
   machineDetectRuns?: Prisma.MachineDetectRunUncheckedCreateNestedManyWithoutRevisionInput
 }
 
@@ -776,6 +799,7 @@ export type RevisionCreateWithoutJudgmentsInput = {
   machineDetects?: Prisma.MachineDetectCreateNestedManyWithoutRevisionInput
   machineLlmReviews?: Prisma.MachineLlmReviewCreateNestedManyWithoutRevisionInput
   agentSessions?: Prisma.AgentSessionCreateNestedManyWithoutRevisionInput
+  agentInvocations?: Prisma.AgentInvocationCreateNestedManyWithoutRevisionInput
   machineDetectRuns?: Prisma.MachineDetectRunCreateNestedManyWithoutRevisionInput
 }
 
@@ -795,6 +819,7 @@ export type RevisionUncheckedCreateWithoutJudgmentsInput = {
   machineDetects?: Prisma.MachineDetectUncheckedCreateNestedManyWithoutRevisionInput
   machineLlmReviews?: Prisma.MachineLlmReviewUncheckedCreateNestedManyWithoutRevisionInput
   agentSessions?: Prisma.AgentSessionUncheckedCreateNestedManyWithoutRevisionInput
+  agentInvocations?: Prisma.AgentInvocationUncheckedCreateNestedManyWithoutRevisionInput
   machineDetectRuns?: Prisma.MachineDetectRunUncheckedCreateNestedManyWithoutRevisionInput
 }
 
@@ -830,6 +855,7 @@ export type RevisionUpdateWithoutJudgmentsInput = {
   machineDetects?: Prisma.MachineDetectUpdateManyWithoutRevisionNestedInput
   machineLlmReviews?: Prisma.MachineLlmReviewUpdateManyWithoutRevisionNestedInput
   agentSessions?: Prisma.AgentSessionUpdateManyWithoutRevisionNestedInput
+  agentInvocations?: Prisma.AgentInvocationUpdateManyWithoutRevisionNestedInput
   machineDetectRuns?: Prisma.MachineDetectRunUpdateManyWithoutRevisionNestedInput
 }
 
@@ -849,6 +875,7 @@ export type RevisionUncheckedUpdateWithoutJudgmentsInput = {
   machineDetects?: Prisma.MachineDetectUncheckedUpdateManyWithoutRevisionNestedInput
   machineLlmReviews?: Prisma.MachineLlmReviewUncheckedUpdateManyWithoutRevisionNestedInput
   agentSessions?: Prisma.AgentSessionUncheckedUpdateManyWithoutRevisionNestedInput
+  agentInvocations?: Prisma.AgentInvocationUncheckedUpdateManyWithoutRevisionNestedInput
   machineDetectRuns?: Prisma.MachineDetectRunUncheckedUpdateManyWithoutRevisionNestedInput
 }
 
@@ -868,6 +895,7 @@ export type RevisionCreateWithoutAnnotationsInput = {
   machineDetects?: Prisma.MachineDetectCreateNestedManyWithoutRevisionInput
   machineLlmReviews?: Prisma.MachineLlmReviewCreateNestedManyWithoutRevisionInput
   agentSessions?: Prisma.AgentSessionCreateNestedManyWithoutRevisionInput
+  agentInvocations?: Prisma.AgentInvocationCreateNestedManyWithoutRevisionInput
   machineDetectRuns?: Prisma.MachineDetectRunCreateNestedManyWithoutRevisionInput
 }
 
@@ -887,6 +915,7 @@ export type RevisionUncheckedCreateWithoutAnnotationsInput = {
   machineDetects?: Prisma.MachineDetectUncheckedCreateNestedManyWithoutRevisionInput
   machineLlmReviews?: Prisma.MachineLlmReviewUncheckedCreateNestedManyWithoutRevisionInput
   agentSessions?: Prisma.AgentSessionUncheckedCreateNestedManyWithoutRevisionInput
+  agentInvocations?: Prisma.AgentInvocationUncheckedCreateNestedManyWithoutRevisionInput
   machineDetectRuns?: Prisma.MachineDetectRunUncheckedCreateNestedManyWithoutRevisionInput
 }
 
@@ -922,6 +951,7 @@ export type RevisionUpdateWithoutAnnotationsInput = {
   machineDetects?: Prisma.MachineDetectUpdateManyWithoutRevisionNestedInput
   machineLlmReviews?: Prisma.MachineLlmReviewUpdateManyWithoutRevisionNestedInput
   agentSessions?: Prisma.AgentSessionUpdateManyWithoutRevisionNestedInput
+  agentInvocations?: Prisma.AgentInvocationUpdateManyWithoutRevisionNestedInput
   machineDetectRuns?: Prisma.MachineDetectRunUpdateManyWithoutRevisionNestedInput
 }
 
@@ -941,6 +971,7 @@ export type RevisionUncheckedUpdateWithoutAnnotationsInput = {
   machineDetects?: Prisma.MachineDetectUncheckedUpdateManyWithoutRevisionNestedInput
   machineLlmReviews?: Prisma.MachineLlmReviewUncheckedUpdateManyWithoutRevisionNestedInput
   agentSessions?: Prisma.AgentSessionUncheckedUpdateManyWithoutRevisionNestedInput
+  agentInvocations?: Prisma.AgentInvocationUncheckedUpdateManyWithoutRevisionNestedInput
   machineDetectRuns?: Prisma.MachineDetectRunUncheckedUpdateManyWithoutRevisionNestedInput
 }
 
@@ -960,6 +991,7 @@ export type RevisionCreateWithoutMachineScansInput = {
   machineDetects?: Prisma.MachineDetectCreateNestedManyWithoutRevisionInput
   machineLlmReviews?: Prisma.MachineLlmReviewCreateNestedManyWithoutRevisionInput
   agentSessions?: Prisma.AgentSessionCreateNestedManyWithoutRevisionInput
+  agentInvocations?: Prisma.AgentInvocationCreateNestedManyWithoutRevisionInput
   machineDetectRuns?: Prisma.MachineDetectRunCreateNestedManyWithoutRevisionInput
 }
 
@@ -979,6 +1011,7 @@ export type RevisionUncheckedCreateWithoutMachineScansInput = {
   machineDetects?: Prisma.MachineDetectUncheckedCreateNestedManyWithoutRevisionInput
   machineLlmReviews?: Prisma.MachineLlmReviewUncheckedCreateNestedManyWithoutRevisionInput
   agentSessions?: Prisma.AgentSessionUncheckedCreateNestedManyWithoutRevisionInput
+  agentInvocations?: Prisma.AgentInvocationUncheckedCreateNestedManyWithoutRevisionInput
   machineDetectRuns?: Prisma.MachineDetectRunUncheckedCreateNestedManyWithoutRevisionInput
 }
 
@@ -1014,6 +1047,7 @@ export type RevisionUpdateWithoutMachineScansInput = {
   machineDetects?: Prisma.MachineDetectUpdateManyWithoutRevisionNestedInput
   machineLlmReviews?: Prisma.MachineLlmReviewUpdateManyWithoutRevisionNestedInput
   agentSessions?: Prisma.AgentSessionUpdateManyWithoutRevisionNestedInput
+  agentInvocations?: Prisma.AgentInvocationUpdateManyWithoutRevisionNestedInput
   machineDetectRuns?: Prisma.MachineDetectRunUpdateManyWithoutRevisionNestedInput
 }
 
@@ -1033,6 +1067,7 @@ export type RevisionUncheckedUpdateWithoutMachineScansInput = {
   machineDetects?: Prisma.MachineDetectUncheckedUpdateManyWithoutRevisionNestedInput
   machineLlmReviews?: Prisma.MachineLlmReviewUncheckedUpdateManyWithoutRevisionNestedInput
   agentSessions?: Prisma.AgentSessionUncheckedUpdateManyWithoutRevisionNestedInput
+  agentInvocations?: Prisma.AgentInvocationUncheckedUpdateManyWithoutRevisionNestedInput
   machineDetectRuns?: Prisma.MachineDetectRunUncheckedUpdateManyWithoutRevisionNestedInput
 }
 
@@ -1052,6 +1087,7 @@ export type RevisionCreateWithoutMachineDetectsInput = {
   machineScans?: Prisma.MachineScanCreateNestedManyWithoutRevisionInput
   machineLlmReviews?: Prisma.MachineLlmReviewCreateNestedManyWithoutRevisionInput
   agentSessions?: Prisma.AgentSessionCreateNestedManyWithoutRevisionInput
+  agentInvocations?: Prisma.AgentInvocationCreateNestedManyWithoutRevisionInput
   machineDetectRuns?: Prisma.MachineDetectRunCreateNestedManyWithoutRevisionInput
 }
 
@@ -1071,6 +1107,7 @@ export type RevisionUncheckedCreateWithoutMachineDetectsInput = {
   machineScans?: Prisma.MachineScanUncheckedCreateNestedManyWithoutRevisionInput
   machineLlmReviews?: Prisma.MachineLlmReviewUncheckedCreateNestedManyWithoutRevisionInput
   agentSessions?: Prisma.AgentSessionUncheckedCreateNestedManyWithoutRevisionInput
+  agentInvocations?: Prisma.AgentInvocationUncheckedCreateNestedManyWithoutRevisionInput
   machineDetectRuns?: Prisma.MachineDetectRunUncheckedCreateNestedManyWithoutRevisionInput
 }
 
@@ -1106,6 +1143,7 @@ export type RevisionUpdateWithoutMachineDetectsInput = {
   machineScans?: Prisma.MachineScanUpdateManyWithoutRevisionNestedInput
   machineLlmReviews?: Prisma.MachineLlmReviewUpdateManyWithoutRevisionNestedInput
   agentSessions?: Prisma.AgentSessionUpdateManyWithoutRevisionNestedInput
+  agentInvocations?: Prisma.AgentInvocationUpdateManyWithoutRevisionNestedInput
   machineDetectRuns?: Prisma.MachineDetectRunUpdateManyWithoutRevisionNestedInput
 }
 
@@ -1125,6 +1163,7 @@ export type RevisionUncheckedUpdateWithoutMachineDetectsInput = {
   machineScans?: Prisma.MachineScanUncheckedUpdateManyWithoutRevisionNestedInput
   machineLlmReviews?: Prisma.MachineLlmReviewUncheckedUpdateManyWithoutRevisionNestedInput
   agentSessions?: Prisma.AgentSessionUncheckedUpdateManyWithoutRevisionNestedInput
+  agentInvocations?: Prisma.AgentInvocationUncheckedUpdateManyWithoutRevisionNestedInput
   machineDetectRuns?: Prisma.MachineDetectRunUncheckedUpdateManyWithoutRevisionNestedInput
 }
 
@@ -1144,6 +1183,7 @@ export type RevisionCreateWithoutMachineLlmReviewsInput = {
   machineScans?: Prisma.MachineScanCreateNestedManyWithoutRevisionInput
   machineDetects?: Prisma.MachineDetectCreateNestedManyWithoutRevisionInput
   agentSessions?: Prisma.AgentSessionCreateNestedManyWithoutRevisionInput
+  agentInvocations?: Prisma.AgentInvocationCreateNestedManyWithoutRevisionInput
   machineDetectRuns?: Prisma.MachineDetectRunCreateNestedManyWithoutRevisionInput
 }
 
@@ -1163,6 +1203,7 @@ export type RevisionUncheckedCreateWithoutMachineLlmReviewsInput = {
   machineScans?: Prisma.MachineScanUncheckedCreateNestedManyWithoutRevisionInput
   machineDetects?: Prisma.MachineDetectUncheckedCreateNestedManyWithoutRevisionInput
   agentSessions?: Prisma.AgentSessionUncheckedCreateNestedManyWithoutRevisionInput
+  agentInvocations?: Prisma.AgentInvocationUncheckedCreateNestedManyWithoutRevisionInput
   machineDetectRuns?: Prisma.MachineDetectRunUncheckedCreateNestedManyWithoutRevisionInput
 }
 
@@ -1198,6 +1239,7 @@ export type RevisionUpdateWithoutMachineLlmReviewsInput = {
   machineScans?: Prisma.MachineScanUpdateManyWithoutRevisionNestedInput
   machineDetects?: Prisma.MachineDetectUpdateManyWithoutRevisionNestedInput
   agentSessions?: Prisma.AgentSessionUpdateManyWithoutRevisionNestedInput
+  agentInvocations?: Prisma.AgentInvocationUpdateManyWithoutRevisionNestedInput
   machineDetectRuns?: Prisma.MachineDetectRunUpdateManyWithoutRevisionNestedInput
 }
 
@@ -1217,6 +1259,7 @@ export type RevisionUncheckedUpdateWithoutMachineLlmReviewsInput = {
   machineScans?: Prisma.MachineScanUncheckedUpdateManyWithoutRevisionNestedInput
   machineDetects?: Prisma.MachineDetectUncheckedUpdateManyWithoutRevisionNestedInput
   agentSessions?: Prisma.AgentSessionUncheckedUpdateManyWithoutRevisionNestedInput
+  agentInvocations?: Prisma.AgentInvocationUncheckedUpdateManyWithoutRevisionNestedInput
   machineDetectRuns?: Prisma.MachineDetectRunUncheckedUpdateManyWithoutRevisionNestedInput
 }
 
@@ -1236,6 +1279,7 @@ export type RevisionCreateWithoutAgentSessionsInput = {
   machineScans?: Prisma.MachineScanCreateNestedManyWithoutRevisionInput
   machineDetects?: Prisma.MachineDetectCreateNestedManyWithoutRevisionInput
   machineLlmReviews?: Prisma.MachineLlmReviewCreateNestedManyWithoutRevisionInput
+  agentInvocations?: Prisma.AgentInvocationCreateNestedManyWithoutRevisionInput
   machineDetectRuns?: Prisma.MachineDetectRunCreateNestedManyWithoutRevisionInput
 }
 
@@ -1255,6 +1299,7 @@ export type RevisionUncheckedCreateWithoutAgentSessionsInput = {
   machineScans?: Prisma.MachineScanUncheckedCreateNestedManyWithoutRevisionInput
   machineDetects?: Prisma.MachineDetectUncheckedCreateNestedManyWithoutRevisionInput
   machineLlmReviews?: Prisma.MachineLlmReviewUncheckedCreateNestedManyWithoutRevisionInput
+  agentInvocations?: Prisma.AgentInvocationUncheckedCreateNestedManyWithoutRevisionInput
   machineDetectRuns?: Prisma.MachineDetectRunUncheckedCreateNestedManyWithoutRevisionInput
 }
 
@@ -1290,6 +1335,7 @@ export type RevisionUpdateWithoutAgentSessionsInput = {
   machineScans?: Prisma.MachineScanUpdateManyWithoutRevisionNestedInput
   machineDetects?: Prisma.MachineDetectUpdateManyWithoutRevisionNestedInput
   machineLlmReviews?: Prisma.MachineLlmReviewUpdateManyWithoutRevisionNestedInput
+  agentInvocations?: Prisma.AgentInvocationUpdateManyWithoutRevisionNestedInput
   machineDetectRuns?: Prisma.MachineDetectRunUpdateManyWithoutRevisionNestedInput
 }
 
@@ -1309,6 +1355,103 @@ export type RevisionUncheckedUpdateWithoutAgentSessionsInput = {
   machineScans?: Prisma.MachineScanUncheckedUpdateManyWithoutRevisionNestedInput
   machineDetects?: Prisma.MachineDetectUncheckedUpdateManyWithoutRevisionNestedInput
   machineLlmReviews?: Prisma.MachineLlmReviewUncheckedUpdateManyWithoutRevisionNestedInput
+  agentInvocations?: Prisma.AgentInvocationUncheckedUpdateManyWithoutRevisionNestedInput
+  machineDetectRuns?: Prisma.MachineDetectRunUncheckedUpdateManyWithoutRevisionNestedInput
+}
+
+export type RevisionCreateWithoutAgentInvocationsInput = {
+  id?: string
+  ordinal: number
+  parentId?: string | null
+  body: string
+  charCount: number
+  transitionKind?: $Enums.TransitionKind
+  provenanceJson?: string | null
+  revealedAt?: Date | string | null
+  createdAt?: Date | string
+  text: Prisma.TextCreateNestedOneWithoutRevisionsInput
+  judgments?: Prisma.DocJudgmentCreateNestedManyWithoutRevisionInput
+  annotations?: Prisma.SpanAnnotationCreateNestedManyWithoutRevisionInput
+  machineScans?: Prisma.MachineScanCreateNestedManyWithoutRevisionInput
+  machineDetects?: Prisma.MachineDetectCreateNestedManyWithoutRevisionInput
+  machineLlmReviews?: Prisma.MachineLlmReviewCreateNestedManyWithoutRevisionInput
+  agentSessions?: Prisma.AgentSessionCreateNestedManyWithoutRevisionInput
+  machineDetectRuns?: Prisma.MachineDetectRunCreateNestedManyWithoutRevisionInput
+}
+
+export type RevisionUncheckedCreateWithoutAgentInvocationsInput = {
+  id?: string
+  textId: string
+  ordinal: number
+  parentId?: string | null
+  body: string
+  charCount: number
+  transitionKind?: $Enums.TransitionKind
+  provenanceJson?: string | null
+  revealedAt?: Date | string | null
+  createdAt?: Date | string
+  judgments?: Prisma.DocJudgmentUncheckedCreateNestedManyWithoutRevisionInput
+  annotations?: Prisma.SpanAnnotationUncheckedCreateNestedManyWithoutRevisionInput
+  machineScans?: Prisma.MachineScanUncheckedCreateNestedManyWithoutRevisionInput
+  machineDetects?: Prisma.MachineDetectUncheckedCreateNestedManyWithoutRevisionInput
+  machineLlmReviews?: Prisma.MachineLlmReviewUncheckedCreateNestedManyWithoutRevisionInput
+  agentSessions?: Prisma.AgentSessionUncheckedCreateNestedManyWithoutRevisionInput
+  machineDetectRuns?: Prisma.MachineDetectRunUncheckedCreateNestedManyWithoutRevisionInput
+}
+
+export type RevisionCreateOrConnectWithoutAgentInvocationsInput = {
+  where: Prisma.RevisionWhereUniqueInput
+  create: Prisma.XOR<Prisma.RevisionCreateWithoutAgentInvocationsInput, Prisma.RevisionUncheckedCreateWithoutAgentInvocationsInput>
+}
+
+export type RevisionUpsertWithoutAgentInvocationsInput = {
+  update: Prisma.XOR<Prisma.RevisionUpdateWithoutAgentInvocationsInput, Prisma.RevisionUncheckedUpdateWithoutAgentInvocationsInput>
+  create: Prisma.XOR<Prisma.RevisionCreateWithoutAgentInvocationsInput, Prisma.RevisionUncheckedCreateWithoutAgentInvocationsInput>
+  where?: Prisma.RevisionWhereInput
+}
+
+export type RevisionUpdateToOneWithWhereWithoutAgentInvocationsInput = {
+  where?: Prisma.RevisionWhereInput
+  data: Prisma.XOR<Prisma.RevisionUpdateWithoutAgentInvocationsInput, Prisma.RevisionUncheckedUpdateWithoutAgentInvocationsInput>
+}
+
+export type RevisionUpdateWithoutAgentInvocationsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  ordinal?: Prisma.IntFieldUpdateOperationsInput | number
+  parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  body?: Prisma.StringFieldUpdateOperationsInput | string
+  charCount?: Prisma.IntFieldUpdateOperationsInput | number
+  transitionKind?: Prisma.EnumTransitionKindFieldUpdateOperationsInput | $Enums.TransitionKind
+  provenanceJson?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revealedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  text?: Prisma.TextUpdateOneRequiredWithoutRevisionsNestedInput
+  judgments?: Prisma.DocJudgmentUpdateManyWithoutRevisionNestedInput
+  annotations?: Prisma.SpanAnnotationUpdateManyWithoutRevisionNestedInput
+  machineScans?: Prisma.MachineScanUpdateManyWithoutRevisionNestedInput
+  machineDetects?: Prisma.MachineDetectUpdateManyWithoutRevisionNestedInput
+  machineLlmReviews?: Prisma.MachineLlmReviewUpdateManyWithoutRevisionNestedInput
+  agentSessions?: Prisma.AgentSessionUpdateManyWithoutRevisionNestedInput
+  machineDetectRuns?: Prisma.MachineDetectRunUpdateManyWithoutRevisionNestedInput
+}
+
+export type RevisionUncheckedUpdateWithoutAgentInvocationsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  textId?: Prisma.StringFieldUpdateOperationsInput | string
+  ordinal?: Prisma.IntFieldUpdateOperationsInput | number
+  parentId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  body?: Prisma.StringFieldUpdateOperationsInput | string
+  charCount?: Prisma.IntFieldUpdateOperationsInput | number
+  transitionKind?: Prisma.EnumTransitionKindFieldUpdateOperationsInput | $Enums.TransitionKind
+  provenanceJson?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  revealedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  judgments?: Prisma.DocJudgmentUncheckedUpdateManyWithoutRevisionNestedInput
+  annotations?: Prisma.SpanAnnotationUncheckedUpdateManyWithoutRevisionNestedInput
+  machineScans?: Prisma.MachineScanUncheckedUpdateManyWithoutRevisionNestedInput
+  machineDetects?: Prisma.MachineDetectUncheckedUpdateManyWithoutRevisionNestedInput
+  machineLlmReviews?: Prisma.MachineLlmReviewUncheckedUpdateManyWithoutRevisionNestedInput
+  agentSessions?: Prisma.AgentSessionUncheckedUpdateManyWithoutRevisionNestedInput
   machineDetectRuns?: Prisma.MachineDetectRunUncheckedUpdateManyWithoutRevisionNestedInput
 }
 
@@ -1329,6 +1472,7 @@ export type RevisionCreateWithoutMachineDetectRunsInput = {
   machineDetects?: Prisma.MachineDetectCreateNestedManyWithoutRevisionInput
   machineLlmReviews?: Prisma.MachineLlmReviewCreateNestedManyWithoutRevisionInput
   agentSessions?: Prisma.AgentSessionCreateNestedManyWithoutRevisionInput
+  agentInvocations?: Prisma.AgentInvocationCreateNestedManyWithoutRevisionInput
 }
 
 export type RevisionUncheckedCreateWithoutMachineDetectRunsInput = {
@@ -1348,6 +1492,7 @@ export type RevisionUncheckedCreateWithoutMachineDetectRunsInput = {
   machineDetects?: Prisma.MachineDetectUncheckedCreateNestedManyWithoutRevisionInput
   machineLlmReviews?: Prisma.MachineLlmReviewUncheckedCreateNestedManyWithoutRevisionInput
   agentSessions?: Prisma.AgentSessionUncheckedCreateNestedManyWithoutRevisionInput
+  agentInvocations?: Prisma.AgentInvocationUncheckedCreateNestedManyWithoutRevisionInput
 }
 
 export type RevisionCreateOrConnectWithoutMachineDetectRunsInput = {
@@ -1383,6 +1528,7 @@ export type RevisionUpdateWithoutMachineDetectRunsInput = {
   machineDetects?: Prisma.MachineDetectUpdateManyWithoutRevisionNestedInput
   machineLlmReviews?: Prisma.MachineLlmReviewUpdateManyWithoutRevisionNestedInput
   agentSessions?: Prisma.AgentSessionUpdateManyWithoutRevisionNestedInput
+  agentInvocations?: Prisma.AgentInvocationUpdateManyWithoutRevisionNestedInput
 }
 
 export type RevisionUncheckedUpdateWithoutMachineDetectRunsInput = {
@@ -1402,6 +1548,7 @@ export type RevisionUncheckedUpdateWithoutMachineDetectRunsInput = {
   machineDetects?: Prisma.MachineDetectUncheckedUpdateManyWithoutRevisionNestedInput
   machineLlmReviews?: Prisma.MachineLlmReviewUncheckedUpdateManyWithoutRevisionNestedInput
   agentSessions?: Prisma.AgentSessionUncheckedUpdateManyWithoutRevisionNestedInput
+  agentInvocations?: Prisma.AgentInvocationUncheckedUpdateManyWithoutRevisionNestedInput
 }
 
 export type RevisionCreateManyTextInput = {
@@ -1432,6 +1579,7 @@ export type RevisionUpdateWithoutTextInput = {
   machineDetects?: Prisma.MachineDetectUpdateManyWithoutRevisionNestedInput
   machineLlmReviews?: Prisma.MachineLlmReviewUpdateManyWithoutRevisionNestedInput
   agentSessions?: Prisma.AgentSessionUpdateManyWithoutRevisionNestedInput
+  agentInvocations?: Prisma.AgentInvocationUpdateManyWithoutRevisionNestedInput
   machineDetectRuns?: Prisma.MachineDetectRunUpdateManyWithoutRevisionNestedInput
 }
 
@@ -1451,6 +1599,7 @@ export type RevisionUncheckedUpdateWithoutTextInput = {
   machineDetects?: Prisma.MachineDetectUncheckedUpdateManyWithoutRevisionNestedInput
   machineLlmReviews?: Prisma.MachineLlmReviewUncheckedUpdateManyWithoutRevisionNestedInput
   agentSessions?: Prisma.AgentSessionUncheckedUpdateManyWithoutRevisionNestedInput
+  agentInvocations?: Prisma.AgentInvocationUncheckedUpdateManyWithoutRevisionNestedInput
   machineDetectRuns?: Prisma.MachineDetectRunUncheckedUpdateManyWithoutRevisionNestedInput
 }
 
@@ -1478,6 +1627,7 @@ export type RevisionCountOutputType = {
   machineDetects: number
   machineLlmReviews: number
   agentSessions: number
+  agentInvocations: number
   machineDetectRuns: number
 }
 
@@ -1488,6 +1638,7 @@ export type RevisionCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensio
   machineDetects?: boolean | RevisionCountOutputTypeCountMachineDetectsArgs
   machineLlmReviews?: boolean | RevisionCountOutputTypeCountMachineLlmReviewsArgs
   agentSessions?: boolean | RevisionCountOutputTypeCountAgentSessionsArgs
+  agentInvocations?: boolean | RevisionCountOutputTypeCountAgentInvocationsArgs
   machineDetectRuns?: boolean | RevisionCountOutputTypeCountMachineDetectRunsArgs
 }
 
@@ -1546,6 +1697,13 @@ export type RevisionCountOutputTypeCountAgentSessionsArgs<ExtArgs extends runtim
 /**
  * RevisionCountOutputType without action
  */
+export type RevisionCountOutputTypeCountAgentInvocationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.AgentInvocationWhereInput
+}
+
+/**
+ * RevisionCountOutputType without action
+ */
 export type RevisionCountOutputTypeCountMachineDetectRunsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.MachineDetectRunWhereInput
 }
@@ -1569,6 +1727,7 @@ export type RevisionSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   machineDetects?: boolean | Prisma.Revision$machineDetectsArgs<ExtArgs>
   machineLlmReviews?: boolean | Prisma.Revision$machineLlmReviewsArgs<ExtArgs>
   agentSessions?: boolean | Prisma.Revision$agentSessionsArgs<ExtArgs>
+  agentInvocations?: boolean | Prisma.Revision$agentInvocationsArgs<ExtArgs>
   machineDetectRuns?: boolean | Prisma.Revision$machineDetectRunsArgs<ExtArgs>
   _count?: boolean | Prisma.RevisionCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["revision"]>
@@ -1623,6 +1782,7 @@ export type RevisionInclude<ExtArgs extends runtime.Types.Extensions.InternalArg
   machineDetects?: boolean | Prisma.Revision$machineDetectsArgs<ExtArgs>
   machineLlmReviews?: boolean | Prisma.Revision$machineLlmReviewsArgs<ExtArgs>
   agentSessions?: boolean | Prisma.Revision$agentSessionsArgs<ExtArgs>
+  agentInvocations?: boolean | Prisma.Revision$agentInvocationsArgs<ExtArgs>
   machineDetectRuns?: boolean | Prisma.Revision$machineDetectRunsArgs<ExtArgs>
   _count?: boolean | Prisma.RevisionCountOutputTypeDefaultArgs<ExtArgs>
 }
@@ -1643,6 +1803,7 @@ export type $RevisionPayload<ExtArgs extends runtime.Types.Extensions.InternalAr
     machineDetects: Prisma.$MachineDetectPayload<ExtArgs>[]
     machineLlmReviews: Prisma.$MachineLlmReviewPayload<ExtArgs>[]
     agentSessions: Prisma.$AgentSessionPayload<ExtArgs>[]
+    agentInvocations: Prisma.$AgentInvocationPayload<ExtArgs>[]
     machineDetectRuns: Prisma.$MachineDetectRunPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
@@ -2057,6 +2218,7 @@ export interface Prisma__RevisionClient<T, Null = never, ExtArgs extends runtime
   machineDetects<T extends Prisma.Revision$machineDetectsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Revision$machineDetectsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MachineDetectPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   machineLlmReviews<T extends Prisma.Revision$machineLlmReviewsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Revision$machineLlmReviewsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MachineLlmReviewPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   agentSessions<T extends Prisma.Revision$agentSessionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Revision$agentSessionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AgentSessionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  agentInvocations<T extends Prisma.Revision$agentInvocationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Revision$agentInvocationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AgentInvocationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   machineDetectRuns<T extends Prisma.Revision$machineDetectRunsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Revision$machineDetectRunsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$MachineDetectRunPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -2637,6 +2799,30 @@ export type Revision$agentSessionsArgs<ExtArgs extends runtime.Types.Extensions.
   take?: number
   skip?: number
   distinct?: Prisma.AgentSessionScalarFieldEnum | Prisma.AgentSessionScalarFieldEnum[]
+}
+
+/**
+ * Revision.agentInvocations
+ */
+export type Revision$agentInvocationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the AgentInvocation
+   */
+  select?: Prisma.AgentInvocationSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the AgentInvocation
+   */
+  omit?: Prisma.AgentInvocationOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.AgentInvocationInclude<ExtArgs> | null
+  where?: Prisma.AgentInvocationWhereInput
+  orderBy?: Prisma.AgentInvocationOrderByWithRelationInput | Prisma.AgentInvocationOrderByWithRelationInput[]
+  cursor?: Prisma.AgentInvocationWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.AgentInvocationScalarFieldEnum | Prisma.AgentInvocationScalarFieldEnum[]
 }
 
 /**

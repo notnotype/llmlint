@@ -17,6 +17,20 @@ export type RevisionAnalysis = {
     composite: {score: number | null; complete: boolean; available: Array<"rules" | "detector" | "llm">};
 };
 
+/** 以最新 Analysis Invocation 为状态真相；旧 Review 只作为可展示的历史物化结果。 */
+export function llmReviewStatus(input: {
+    reviewExists: boolean;
+    invocationStatus?: string;
+    sessionStatus?: string;
+    error?: string | null;
+}): AnalysisStatus {
+    if (input.invocationStatus === "running" || input.invocationStatus === "waiting") return "running";
+    if (input.invocationStatus === "failed") return input.error?.includes("通道未配置") ? "unavailable" : "failed";
+    if (input.invocationStatus === "aborted") return "cancelled";
+    if (input.invocationStatus === "interrupted" || (input.invocationStatus === undefined && input.sessionStatus === "interrupted")) return "interrupted";
+    return input.reviewExists ? "completed" : "waiting";
+}
+
 export const DOC_SCORE_BASELINE = {humanMedian: 19.5, aiMedian: 25.2} as const;
 const SIGMOID_MID = (DOC_SCORE_BASELINE.humanMedian + DOC_SCORE_BASELINE.aiMedian) / 2;
 const SIGMOID_HALF_GAP = (DOC_SCORE_BASELINE.aiMedian - DOC_SCORE_BASELINE.humanMedian) / 2;

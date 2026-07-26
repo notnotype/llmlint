@@ -2,19 +2,26 @@ import {z} from "zod";
 import {requireCurrentUser} from "../../../../utils/auth";
 import {agentHarness} from "../../../../agent";
 import {validateBody} from "../../../../utils/dto";
-import {requireOwnedRevealedAgentSession} from "../../../../utils/ownership";
+import {requireOwnedRevealedAgentSession, resolveOwnedRevision} from "../../../../utils/ownership";
 
-const InvokeSchema = z.object({
+const BaseInvokeSchema = z.object({
     mode: z.enum(["prompt", "continue"]),
-    phase: z.enum(["analysis", "optimize"]),
+    revisionId: z.string().min(1),
+});
+
+const InvokeSchema = z.discriminatedUnion("phase", [BaseInvokeSchema.extend({
+    phase: z.literal("analysis"),
+}), BaseInvokeSchema.extend({
+    phase: z.literal("optimize"),
+    objective: z.literal("polish_ai_risk").optional(),
     message: z.string().max(4000).optional(),
     body: z.string().min(1).max(60_000),
     selection: z.object({from: z.number().int().min(0), to: z.number().int().positive(), text: z.string().min(1)}).optional(),
-}).superRefine((value, ctx) => {
+})]).superRefine((value, ctx) => {
     if (value.phase === "optimize" && value.mode === "prompt" && !value.message?.trim()) {
         ctx.addIssue({code: "custom", path: ["message"], message: "改写 prompt 必须提供用户要求"});
     }
-    if (value.selection && (value.selection.to <= value.selection.from || value.body.slice(value.selection.from, value.selection.to) !== value.selection.text)) {
+    if (value.phase === "optimize" && value.selection && (value.selection.to <= value.selection.from || value.body.slice(value.selection.from, value.selection.to) !== value.selection.text)) {
         ctx.addIssue({code: "custom", path: ["selection"], message: "选区坐标与当前正文不一致"});
     }
 });
@@ -25,5 +32,7 @@ export default defineEventHandler(async (event) => {
     const body = await validateBody(event, InvokeSchema);
     const sessionId = getRouterParam(event, "id") ?? "";
     await requireOwnedRevealedAgentSession(sessionId, user.id);
+    const revision = await resolveOwnedRevision(body.revisionId, user.id);
+    if (!revision.revealedAt) throw createError({statusCode: 403, message: "Invocation Revision 尚未揭示"});
     return agentHarness.invoke(sessionId, user.id, body);
 });

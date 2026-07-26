@@ -51,7 +51,7 @@ describe("llmlint Prisma SessionStore Adapter", () => {
                     sessionId: "session-1",
                     profileKey: "llmlint.review",
                     caller: {kind: "user"},
-                    input: {mode: "prompt", phase: "optimize", body: "原文"},
+                    input: {mode: "prompt", phase: "optimize", revisionId: "revision-1", body: "原文"},
                     createdAt: 1,
                 },
             }],
@@ -74,6 +74,8 @@ describe("llmlint Prisma SessionStore Adapter", () => {
         expect(restored.status).toBe("idle");
         expect(restored.entries).toHaveLength(1);
         expect(restored.invocations[0]).toMatchObject({status: "completed", turnCount: 2, output: {body: "新文"}});
+        expect(await client.agentInvocation.findUnique({where: {id: "invocation-1"}, select: {revisionId: true}}))
+            .toEqual({revisionId: "revision-1"});
 
         await expect(store.commit({target: "session-1", expectedVersion: 0, cause: "test.conflict", operations: []}))
             .rejects.toBeInstanceOf(SessionConflictError);
@@ -92,6 +94,25 @@ describe("llmlint Prisma SessionStore Adapter", () => {
 
         expect(first.metadata.sessionId).toBe(second.metadata.sessionId);
         expect(await client.agentSession.count()).toBe(1);
+    });
+
+    it("setHostContext 同步推进 Session 当前 Revision 列", async () => {
+        directory = await mkdtemp(join(tmpdir(), "llmlint-harness-retarget-"));
+        client = createPrismaClient(`file:${join(directory, "store.db")}`);
+        await createHarnessTables(client);
+        const store = new PrismaSessionStore(client);
+        await store.create({sessionId: "session-retarget", profileKey: "llmlint.review", initial: {revisionId: "revision-1", userId: 1}, hostContext: {revisionId: "revision-1", userId: 1}});
+
+        await store.commit({
+            target: "session-retarget",
+            expectedVersion: 0,
+            cause: "test.advanceRevision",
+            operations: [{type: "setHostContext", hostContext: {revisionId: "revision-2", userId: 1}}],
+        });
+
+        expect((await store.read("session-retarget")).metadata.hostContext).toEqual({revisionId: "revision-2", userId: 1});
+        expect(await client.agentSession.findUnique({where: {id: "session-retarget"}, select: {revisionId: true}}))
+            .toEqual({revisionId: "revision-2"});
     });
 
     it("两个 Prisma client 并发提交同一 Session 时串行化为一次成功和一次版本冲突", async () => {
@@ -130,7 +151,7 @@ describe("llmlint Prisma SessionStore Adapter", () => {
             target: "session-waiting",
             expectedVersion: 0,
             cause: "test.waiting.start",
-            operations: [{type: "startInvocation", invocation: {id: "invocation-waiting", sessionId: "session-waiting", profileKey: "llmlint.review", caller: {kind: "user"}, input: {mode: "prompt", phase: "optimize", body: "正文"}, createdAt: 1}}],
+            operations: [{type: "startInvocation", invocation: {id: "invocation-waiting", sessionId: "session-waiting", profileKey: "llmlint.review", caller: {kind: "user"}, input: {mode: "prompt", phase: "optimize", revisionId: "revision-waiting", body: "正文"}, createdAt: 1}}],
         });
         await store.commit({
             target: "session-waiting",
@@ -143,7 +164,7 @@ describe("llmlint Prisma SessionStore Adapter", () => {
             target: "session-running",
             expectedVersion: 0,
             cause: "test.running.start",
-            operations: [{type: "startInvocation", invocation: {id: "invocation-running", sessionId: "session-running", profileKey: "llmlint.review", caller: {kind: "user"}, input: {mode: "prompt", phase: "analysis", body: "正文"}, createdAt: 1}}],
+            operations: [{type: "startInvocation", invocation: {id: "invocation-running", sessionId: "session-running", profileKey: "llmlint.review", caller: {kind: "user"}, input: {mode: "prompt", phase: "analysis", revisionId: "revision-running"}, createdAt: 1}}],
         });
 
         await store.reconcileInterrupted();

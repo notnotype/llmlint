@@ -1,36 +1,33 @@
 import type {AssistantMessage} from "@earendil-works/pi-ai";
-import type {AgentSessionEvent, AgentSessionSnapshot, AgentTimelineEntry} from "#shared/agent-harness";
+import type {AgentSessionEvent, AgentSessionSnapshot, AgentTimelineEntry, LlmAnalysisReport} from "#shared/agent-harness";
 
 export type AgentChatTool = {id: string; name: string; args: string; status: "streaming" | "running" | "success" | "error"; result?: string};
 export type AgentChatMessage = {
     id: string;
-    type: "user" | "assistant" | "system" | "edit" | "report";
+    type: "system" | "user" | "assistant" | "edit" | "report";
     content: string;
     thinking?: string;
     status: "streaming" | "done" | "stopped";
     invocationId?: string;
     tools?: AgentChatTool[];
     edit?: {oldText: string; newText: string; reason: string | null};
+    report?: LlmAnalysisReport;
+    /** 区分真实用户输入与 Profile 构造的模型输入，避免两者都伪装成“你”。 */
+    source?: "system" | "host_request" | "model_input";
 };
 
 /** snapshot 的 append-only entries 投影为稳定聊天历史。 */
 export function messagesFromSnapshot(snapshot: AgentSessionSnapshot): AgentChatMessage[] {
-    return snapshot.entries.flatMap(entryMessage);
+    let messages: AgentChatMessage[] = [];
+    for (const entry of snapshot.entries) messages = applyTimelineEntry(messages, entry);
+    return messages;
 }
 
 /** NeuroBook 核心 reducer 的 llmlint 子集：正常运行只消费 SSE，不重复 GET snapshot。 */
 export function applyAgentEvent(previous: AgentChatMessage[], envelope: AgentSessionEvent): AgentChatMessage[] {
     if (envelope.kind === "session") {
         if (envelope.event.type !== "entry") return previous;
-        const entry = envelope.event.entry;
-        if (entry.kind === "assistant" && entry.invocationId && entry.payload.turns) {
-            const liveId = `${entry.invocationId}:turn:${entry.payload.turns}`;
-            if (previous.some((message) => message.id === liveId)) {
-                return previous.map((message) => message.id === liveId ? {...message, content: entry.payload.text ?? message.content, status: "done"} : message);
-            }
-        }
-        const additions = entryMessage(entry).filter((item) => !previous.some((message) => message.id === item.id));
-        return additions.length > 0 ? [...previous, ...additions] : previous;
+        return applyTimelineEntry(previous, envelope.event.entry);
     }
     const event = envelope.event;
     const messageId = `${envelope.invocationId ?? "run"}:turn:${"turn" in event ? event.turn : 0}`;
@@ -59,7 +56,15 @@ export function applyAgentEvent(previous: AgentChatMessage[], envelope: AgentSes
 }
 
 function entryMessage(entry: AgentTimelineEntry): AgentChatMessage[] {
-    if (entry.kind === "user") return [{id: entry.id, type: "user", content: entry.payload.text ?? "", status: "done", invocationId: entry.invocationId ?? undefined}];
+    if (entry.kind === "system") return [{id: entry.id, type: "system", content: entry.payload.text ?? "", status: "done", invocationId: entry.invocationId ?? undefined, source: "system"}];
+    if (entry.kind === "user") return [{
+        id: entry.id,
+        type: "user",
+        content: entry.payload.text ?? "",
+        status: "done",
+        invocationId: entry.invocationId ?? undefined,
+        source: entry.payload.source === "model_input" ? "model_input" : "host_request",
+    }];
     if (entry.kind === "assistant") return [{
         id: entry.id,
         type: "assistant",
@@ -78,15 +83,39 @@ function entryMessage(entry: AgentTimelineEntry): AgentChatMessage[] {
         tools: [{
             id: entry.payload.toolCallId,
             name: entry.payload.toolName,
-            args: JSON.stringify(entry.payload.toolArgs ?? {}, null, 2),
+            args: entry.payload.toolArgs ? JSON.stringify(entry.payload.toolArgs, null, 2) : "",
             status: entry.payload.isError ? "error" : "success",
             result: entry.payload.text,
         }],
     }];
     if (entry.kind === "edit") return [{id: entry.id, type: "edit", content: "", status: "done", invocationId: entry.invocationId ?? undefined, edit: {oldText: entry.payload.oldText ?? "", newText: entry.payload.newText ?? "", reason: entry.payload.reason ?? null}}];
-    if (entry.kind === "report" && entry.payload.report) return [{id: entry.id, type: "report", content: entry.payload.report.conclusion, status: "done", invocationId: entry.invocationId ?? undefined}];
-    if (entry.kind === "error") return [{id: entry.id, type: "system", content: entry.payload.message ?? "Agent 运行失败", status: "done", invocationId: entry.invocationId ?? undefined}];
+    if (entry.kind === "report" && entry.payload.report) return [{id: entry.id, type: "report", content: entry.payload.report.conclusion, status: "done", invocationId: entry.invocationId ?? undefined, report: entry.payload.report}];
+    if (entry.kind === "error") return [];
     return [];
+}
+
+/** 将 durable entry 合并到现有 live 投影；Tool Result 必须更新原 Tool Call 而非新增重复卡片。 */
+function applyTimelineEntry(previous: AgentChatMessage[], entry: AgentTimelineEntry): AgentChatMessage[] {
+    if (entry.kind === "tool_result" && entry.payload.toolCallId && entry.payload.toolName) {
+        const tool: AgentChatTool = {
+            id: entry.payload.toolCallId,
+            name: entry.payload.toolName,
+            args: entry.payload.toolArgs ? JSON.stringify(entry.payload.toolArgs, null, 2) : "",
+            status: entry.payload.isError ? "error" : "success",
+            result: entry.payload.text,
+        };
+        const owner = previous.findLast(message => message.type === "assistant" && (message.tools?.some(item => item.id === tool.id) || message.invocationId === entry.invocationId));
+        if (owner) return previous.map(message => message.id === owner.id ? {...message, tools: mergeTools([tool], message.tools)} : message);
+    }
+    if (entry.kind === "assistant" && entry.invocationId && entry.payload.turns) {
+        const liveId = `${entry.invocationId}:turn:${entry.payload.turns}`;
+        const projected = entryMessage(entry)[0];
+        if (projected && previous.some(message => message.id === liveId)) {
+            return previous.map(message => message.id === liveId ? {...message, ...projected, id: liveId, tools: mergeTools(projected.tools, message.tools)} : message);
+        }
+    }
+    const additions = entryMessage(entry).filter(item => !previous.some(message => message.id === item.id));
+    return additions.length > 0 ? [...previous, ...additions] : previous;
 }
 
 function assistantMessage(id: string, message: AssistantMessage, status: AgentChatMessage["status"], invocationId?: string): AgentChatMessage {

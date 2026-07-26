@@ -325,11 +325,10 @@ export type AgentTurnContext = {
  * - toolUse / stop 都是合法结束（stop+纯文本在多轮语境是自然收尾，成功与否由业务层按已应用编辑数裁决）——
  *   与 callModelForTool 的单轮 no-tool-call 重试语义**有意不同**；
  * - 传输层错误（429/5xx/超时/网络）重发同一轮（messages 不变）；auth/溢出/拒答/length 终态抛出，终止整个 loop。
- * 仅 HTTP 通道（CLI 无工具协议）。单轮墙钟 min(timeoutMs, 120s)——多轮循环不该有单轮长思考，
- * 挂起要快速止损（推理模型单轮超 120s 时再考虑配置化）。
+ * 仅 HTTP 通道（CLI 无工具协议）。Agent turn 不设置本地墙钟；用户取消由 Harness signal 负责，
+ * provider timeout/aborted 作为 terminal 交给用户决定是否重试。
  */
 export async function callModelTurn(resolved: ResolvedModel, context: AgentTurnContext, maxTokens: number, signal?: AbortSignal): Promise<AssistantMessage> {
-    const capMs = Math.min(resolved.timeoutMs, 120_000);
     const attempt = (): Promise<AssistantMessage> => {
         const model = buildPiModel(resolved);
         const completion = (async (): Promise<AssistantMessage> => {
@@ -339,8 +338,7 @@ export async function callModelTurn(resolved: ResolvedModel, context: AgentTurnC
                 tools: context.tools,
             } as never, {
                 apiKey: resolved.apiKey,
-                timeoutMs: capMs,
-                signal: signal ? AbortSignal.any([signal, AbortSignal.timeout(capMs)]) : AbortSignal.timeout(capMs),
+                signal,
                 maxRetries: PI_MAX_RETRIES,
                 maxRetryDelayMs: PI_MAX_RETRY_DELAY_MS,
                 maxTokens,
@@ -352,7 +350,7 @@ export async function callModelTurn(resolved: ResolvedModel, context: AgentTurnC
             }
             return await stream.result();
         })();
-        return withTimeout(completion, capMs, resolved.modelKey);
+        return completion;
     };
     return providerGate.run(resolved.providerId, async () => {
         let last = "";
@@ -361,6 +359,7 @@ export async function callModelTurn(resolved: ResolvedModel, context: AgentTurnC
             try {
                 outcome = classifyTurnOutcome({assistant: await attempt()});
             } catch (error) {
+                if (signal?.aborted) throw error;
                 outcome = classifyTurnOutcome({error});
             }
             if (outcome.kind === "ok") {
@@ -388,11 +387,19 @@ export type TurnOutcome =
 /** 纯分类（无 I/O 可单测）：多轮语境下 toolUse/stop 都是 ok；length 终态（半截工具调用不可回填）；error/aborted 走消息分类。 */
 export function classifyTurnOutcome(result: {assistant?: AssistantMessage; error?: unknown}): TurnOutcome {
     if (result.error !== undefined) {
-        return classifyMessage(result.error instanceof Error ? result.error.message : String(result.error));
+        const message = result.error instanceof Error ? result.error.message : String(result.error);
+        if (/\babort(?:ed)?\b|timeout|timed out|超时/i.test(message)) {
+            return {kind: "terminal", reason: "provider-timeout/aborted", detail: message};
+        }
+        return classifyMessage(message);
     }
     const assistant = result.assistant!;
     if (assistant.stopReason === "error" || assistant.stopReason === "aborted") {
-        return classifyMessage(assistant.errorMessage ?? assistant.stopReason ?? "unknown error");
+        const message = assistant.errorMessage ?? assistant.stopReason ?? "unknown error";
+        if (assistant.stopReason === "aborted" || /\babort(?:ed)?\b|timeout|timed out|超时/i.test(message)) {
+            return {kind: "terminal", reason: "provider-timeout/aborted", detail: message};
+        }
+        return classifyMessage(message);
     }
     if (assistant.stopReason === "length") {
         return {kind: "terminal", reason: "length（token 预算内没完成本轮；调大 maxTokensPerTurn）", detail: `text=${extractText(assistant).slice(0, 80)}`};

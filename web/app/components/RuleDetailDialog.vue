@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import {computed} from "vue";
-import type {RegexRuleRecord} from "../types";
+import type {Issue} from "../types";
 import {useLlmlintI18n} from "../composables/useLlmlintI18n";
 import Dialog from "./common/Dialog.vue";
 
-const props = defineProps<{rule: RegexRuleRecord | null}>();
+const props = defineProps<{rule: Issue["rule"] | null}>();
 const emit = defineEmits<{(e: "close"): void}>();
 const {t} = useLlmlintI18n();
 
@@ -29,11 +29,16 @@ const open = computed({
             <DimensionBadges :rule="rule" />
             <p v-if="rule.note" class="rounded-md bg-[var(--bg-subtle)] p-2 text-sm text-[var(--text-secondary)]">{{ rule.note }}</p>
 
-            <section>
+            <!-- handler 规则无 regex 模式列表，只展示 builtin 名 -->
+            <section v-if="'detector' in rule">
                 <h3 class="text-sm font-medium text-[var(--text-muted)]">{{ t("ruleDetail.pattern") }}</h3>
                 <ul class="mt-1 space-y-1">
                     <li v-for="(target, index) in rule.detector.targets" :key="index" class="overflow-x-auto rounded bg-[var(--bg-subtle)] p-1.5 font-mono text-xs">{{ target }}</li>
                 </ul>
+            </section>
+            <section v-else>
+                <h3 class="text-sm font-medium text-[var(--text-muted)]">{{ t("ruleDetail.pattern") }}</h3>
+                <p class="mt-1 rounded bg-[var(--bg-subtle)] p-1.5 font-mono text-xs">builtin: {{ rule.handler.name }}</p>
             </section>
 
             <section>

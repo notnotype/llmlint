@@ -1,7 +1,7 @@
 // model-client 可靠性守门(bun:test)。只测纯分类 classifyOutcome + 重试循环 callWithRetry,
 // 不碰网络(callWithRetry 注入假 attempt + 无操作 sleepFn 免等待)。
 import {test, expect} from "bun:test";
-import {classifyOutcome, callWithRetry} from "./model-client";
+import {classifyOutcome, classifyTurnOutcome, callWithRetry} from "./model-client";
 
 // 造假 AssistantMessage(最小形态,结构匹配 model-client 内部类型)。
 type Msg = {content: Array<{type: string; text?: string}>; stopReason?: string; errorMessage?: string; usage?: {output?: number}};
@@ -53,6 +53,21 @@ test("classifyOutcome：context 溢出 → terminal", () => {
     const o = classifyOutcome({assistant: errored("maximum context length is 128000 tokens")});
     expect(o.kind).toBe("terminal");
     expect(o.kind !== "ok" && o.reason).toBe("context-overflow");
+});
+
+test("classifyTurnOutcome：provider timeout/aborted 立即 terminal，不自动重试", () => {
+    for (const message of ["Request was aborted", "request timeout after 360000ms"]) {
+        const outcome = classifyTurnOutcome({error: new Error(message)});
+        expect(outcome.kind).toBe("terminal");
+        expect(outcome.kind !== "ok" && outcome.reason).toBe("provider-timeout/aborted");
+    }
+});
+
+test("classifyTurnOutcome：429/5xx/连接瞬断仍可重试", () => {
+    for (const message of ["429 rate limit", "HTTP 503", "ECONNRESET"]) {
+        const outcome = classifyTurnOutcome({error: new Error(message)});
+        expect(outcome.kind).toBe("retry");
+    }
 });
 
 test("callWithRetry：空一次 → 成功，只重试一次(attempt 调 2 次)", async () => {

@@ -14,7 +14,8 @@ import type {ResolvedModel} from "../../../../evals/generator/config";
 /** llmlint 侧仅传 provider-neutral 的模型选择，不把 Pi 类型泄露进 Core。 */
 export interface LlmlintModelConfig extends JsonObject {
     modelKey: string;
-    maxTokensPerTurn: number;
+    /** 单轮输出安全上限；实际值还会受模型声明 maxTokens 约束。 */
+    maxTokensCap: number;
 }
 
 export interface LlmlintPiRuntimeOptions {
@@ -43,7 +44,7 @@ export class LlmlintPiModelRuntime implements ModelRuntime<LlmlintModelConfig> {
                 if (mapped) await request.onEvent?.(mapped);
             },
         };
-        const assistant = await this.run(model, context, request.modelConfig.maxTokensPerTurn, request.signal);
+        const assistant = await this.run(model, context, Math.min(model.maxTokens, request.modelConfig.maxTokensCap), request.signal);
         return {message: fromPiAssistant(assistant)};
     }
 }

@@ -1,5 +1,5 @@
 import {describe, expect, it} from "vitest";
-import {compositeScore, DOC_SCORE_BASELINE, ruleFaceScore} from "../web/shared/analysis";
+import {compositeScore, DOC_SCORE_BASELINE, llmReviewStatus, ruleFaceScore} from "../web/shared/analysis";
 
 describe("三维综合评分", () => {
     it("规则面基线保持 S 型锚点", () => {
@@ -23,5 +23,13 @@ describe("三维综合评分", () => {
 
     it("无完成通道返回空分", () => {
         expect(compositeScore({})).toEqual({score: null, complete: false, available: []});
+    });
+
+    it("LLM Review 状态以最新 Invocation 为准，旧物化结果不能掩盖重试状态", () => {
+        expect(llmReviewStatus({reviewExists: true, invocationStatus: "running"})).toBe("running");
+        expect(llmReviewStatus({reviewExists: true, invocationStatus: "failed", error: "provider failed"})).toBe("failed");
+        expect(llmReviewStatus({reviewExists: true, invocationStatus: "aborted"})).toBe("cancelled");
+        expect(llmReviewStatus({reviewExists: true, invocationStatus: "completed"})).toBe("completed");
+        expect(llmReviewStatus({reviewExists: false, invocationStatus: "completed"})).toBe("waiting");
     });
 });

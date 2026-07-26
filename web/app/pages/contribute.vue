@@ -7,6 +7,7 @@ import {clampResizablePanelSize, useResizablePanel} from "../composables/useResi
 import {GENRES, TEXT_TYPES} from "evals/taxonomy";
 // provenanceJson 逐 hunk 规范（W4）：与服务端 llm_fix 写入共用同一份类型。
 import {aggregateProvenanceEdits, type RevisionProvenance} from "#shared/revision-provenance";
+import type {RevisionAnalysis} from "#shared/analysis";
 // transitionKind 分类（W7 纯函数：user > llm > static）。
 import {classifyTransitionKind} from "../utils/repair-draft";
 import {useLlmlint} from "../composables/useLlmlint";
@@ -111,12 +112,15 @@ const headOrdinal = computed(() => head.value?.ordinal ?? 0);
 const headBody = computed(() => head.value?.body ?? "");
 const active = computed(() => revisions.value.find((entry) => entry.ordinal === activeOrdinal.value) ?? null);
 const isHeadView = computed(() => activeOrdinal.value === headOrdinal.value);
+// 每个 Revision 独立揭示；历史恢复不能用 rev0 状态代替 head 状态并自动启动检测。
+const headRevealed = computed(() => head.value !== null && head.value.revealedAt !== null);
+const headDetectionPending = computed(() => revealed.value && !headRevealed.value);
 // head 只读标注模式已取消（Task 17 A3）：标注融合进编辑器——源码选区菜单「保存标注」，
 // 坐标经 TextPanel.mapDraftSpanToSource 锚回 head.body 落库；旧版只读视图（AnnotatableRevisionText）保留。
 // 编辑器只在「已揭示 + 查看 head」时可见（拍板②：编辑恒基于最新版；揭示前不进入编辑）。
-const editorVisible = computed(() => revealed.value && isHeadView.value);
+const editorVisible = computed(() => revealed.value && headRevealed.value && isHeadView.value);
 // 未提交草稿改动（版本条指示 +「再次检测」可用条件）。
-const draftDirty = computed(() => revealed.value && editDraft.value !== headBody.value);
+const draftDirty = computed(() => revealed.value && headRevealed.value && editDraft.value !== headBody.value);
 // 版本条数据源（LineageStrip 条目形状）。
 const lineage = computed<LineageEntry[]>(() => revisions.value.map((entry) => ({ordinal: entry.ordinal, transitionKind: entry.transitionKind})));
 // 引导条语境：draft=上传屏；blind=工作台未揭示（盲评）；workspace=head 编辑；viewing=只读正文（查看旧版）。
@@ -139,7 +143,7 @@ const filters = reactive<UiFilters>({
     scanAll: true,
 });
 const nsOptions = namespaceOptions();
-const activeRule = ref<RegexRuleRecord | null>(null);
+const activeRule = ref<Issue["rule"] | null>(null);
 
 /** 更新过滤状态，并同步到本地设置中。 */
 function updateFilters(next: UiFilters): void {
@@ -324,7 +328,7 @@ const DETECT_POLL_MAX = 30;
 // 全局代数：resetFlow 推进一次即令全部在途轮询过期（每个版本只轮询一次，无需逐版本代数）。
 let detectEpoch = 0;
 
-/** 轮询某版本的机器结果直到 detects 非空或超限（fire-and-forget，用 void 调用）。 */
+/** 机器轮询只等待外部检测器收口并发现 Agent Session；LLM 终态由 Session SSE/snapshot 收口。 */
 async function pollDetects(revisionId: string): Promise<void> {
     const epoch = detectEpoch;
     const entry = revisions.value.find((item) => item.revisionId === revisionId);
@@ -345,17 +349,16 @@ async function pollDetects(revisionId: string): Promise<void> {
             if (epoch !== detectEpoch) {
                 return;
             }
-            // LLM 规则评审与 detect 同为异步落库：轮询顺带补拉；detect 先到时不提前退出，
-            // 继续等 llmReview（约 2 分钟）直到两路都到或上限（Task 17 工单 C 申报的轮询缺口修复）。
+            // machine 端点顺带暴露异步创建的 Session；一旦发现 Session，后续 LLM 状态只走 Agent 生命周期。
             entry.llmReview = machine.llmReview;
             entry.analysis = machine.analysis;
             if (machine.detects.length > 0) {
                 entry.detects = machine.detects;
-                entry.detectState = "idle";
             }
-            const detectorSettled = ["completed", "failed", "cancelled", "interrupted", "unavailable"].includes(machine.analysis.detector.status);
-            const llmSettled = ["completed", "failed", "cancelled", "interrupted", "unavailable"].includes(machine.analysis.llm.status);
-            if (detectorSettled && llmSettled) {
+            const detectorSettled = !["waiting", "running"].includes(machine.analysis.detector.status);
+            entry.detectState = detectorSettled ? "idle" : "polling";
+            const llmSessionSettled = !!machine.analysis.llm.sessionId || !["waiting", "running"].includes(machine.analysis.llm.status);
+            if (detectorSettled && llmSessionSettled) {
                 return;
             }
         } catch {
@@ -407,31 +410,24 @@ async function cancelDetector(): Promise<void> {
 
 async function retryLlmAnalysis(): Promise<void> {
     const target = active.value;
-    const sessionId = target?.analysis?.llm.sessionId;
-    if (!target || !sessionId) return;
-    try {
-        if (target.analysis?.llm.status === "completed") {
-            await $fetch(`/api/agent/sessions/${sessionId}/invoke`, {method: "POST", body: {mode: "prompt", phase: "analysis", body: target.body}});
-        } else {
-            await $fetch(`/api/agent/sessions/${sessionId}/retry`, {method: "POST"});
-        }
-        await refreshMachine(target.revisionId);
-        void pollDetects(target.revisionId);
-    } catch (error) {
-        notification.error(resolveApiErrorMessage(error, "LLM Agent 重试失败"));
-    }
+    if (!target) return;
+    await startAgentAnalysis(target.revisionId);
+    await refreshMachine(target.revisionId);
+}
+
+/** 是否仍需使用有限 machine 轮询等待 detector 或 Agent Session 建立。 */
+function needsMachinePolling(analysis: RevisionAnalysis | null): boolean {
+    if (!analysis) return true;
+    const detectorPending = ["waiting", "running"].includes(analysis.detector.status);
+    const llmSessionPending = !analysis.llm.sessionId && ["waiting", "running"].includes(analysis.llm.status);
+    return detectorPending || llmSessionPending;
 }
 
 async function cancelLlmAnalysis(): Promise<void> {
     const target = active.value;
-    const sessionId = target?.analysis?.llm.sessionId;
-    if (!target || !sessionId) return;
-    try {
-        await $fetch(`/api/agent/sessions/${sessionId}/abort`, {method: "POST"});
-        await refreshMachine(target.revisionId);
-    } catch (error) {
-        notification.error(resolveApiErrorMessage(error, "取消 LLM Agent 失败"));
-    }
+    if (!target) return;
+    await abortAgentAnalysis(target.revisionId);
+    await refreshMachine(target.revisionId);
 }
 
 // ═══════════════ 上传 → 进工作台（盲评卡）→ 揭示 ═══════════════
@@ -460,7 +456,7 @@ async function submitDraft(): Promise<void> {
             },
         });
         textId.value = created.textId;
-        revisions.value = [{revisionId: created.revisionId, ordinal: 0, transitionKind: "upload", body: text.value, scan: null, detects: [], llmReview: null, analysis: null, detectState: "idle", judgment: null}];
+        revisions.value = [{revisionId: created.revisionId, ordinal: 0, transitionKind: "upload", body: text.value, revealedAt: null, scan: null, detects: [], llmReview: null, analysis: null, detectState: "idle", judgment: null}];
         revealed.value = false;
         activeOrdinal.value = 0;
         rightTab.value = "report";
@@ -486,9 +482,10 @@ async function revealRev0(): Promise<void> {
     target.detects = response.detects;
     target.llmReview = response.llmReview;
     target.analysis = response.analysis;
+    target.revealedAt = response.revealedAt;
     revealed.value = true;
-    // W3：外部检测/LLM 评审均异步落库，reveal 时多半未到 → 轮询 machine 端点补拉（超限=暂不可用）。
-    if (response.detects.length === 0 || response.llmReview === null) {
+    // W3：有限轮询只负责外部检测器和 Agent Session 发现，LLM 运行不受 120 秒上限约束。
+    if (needsMachinePolling(response.analysis)) {
         void pollDetects(target.revisionId);
     }
 }
@@ -569,11 +566,24 @@ function buildProvenanceJson(): string | undefined {
  */
 async function commitRevision(): Promise<void> {
     const parent = head.value;
-    if (!parent || committing.value || !editDraft.value.trim() || editDraft.value === parent.body) {
+    if (!parent || committing.value || !editDraft.value.trim()) {
         return;
     }
     committing.value = true;
     try {
+        // 历史恢复到未完成 head 时只继续该版本检测，不创建重复 Revision；必须由用户显式点击。
+        if (parent.revealedAt === null) {
+            const response = await $fetch<RevealResponse>(`/api/revisions/${parent.revisionId}/reveal`, {method: "POST"});
+            parent.revealedAt = response.revealedAt;
+            parent.scan = response.scan;
+            parent.detects = response.detects;
+            parent.llmReview = response.llmReview;
+            parent.analysis = response.analysis;
+            if (needsMachinePolling(response.analysis)) void pollDetects(parent.revisionId);
+            notification.success(t("contribute.continueDetectionSuccess"));
+            return;
+        }
+        if (editDraft.value === parent.body) return;
         // transitionKind 先取出：POST 成功后还要写进版本条目（内容来源口径 user > llm > static）。
         const transitionKind = classifyTransitionKind(editTextPanel.value?.getRepairEdits().map((edit) => edit.kind) ?? null);
         const created = await $fetch<{revisionId: string; ordinal: number}>("/api/revisions", {
@@ -581,19 +591,19 @@ async function commitRevision(): Promise<void> {
             body: {textId: textId.value, parentId: parent.revisionId, body: editDraft.value, transitionKind, provenanceJson: buildProvenanceJson()},
         });
         const response = await $fetch<RevealResponse>(`/api/revisions/${created.revisionId}/reveal`, {method: "POST"});
-        revisions.value = [...revisions.value, {revisionId: created.revisionId, ordinal: created.ordinal, transitionKind, body: editDraft.value, scan: response.scan, detects: response.detects, llmReview: response.llmReview, analysis: response.analysis, detectState: "idle", judgment: null}];
+        revisions.value = [...revisions.value, {revisionId: created.revisionId, ordinal: created.ordinal, transitionKind, body: editDraft.value, revealedAt: response.revealedAt, scan: response.scan, detects: response.detects, llmReview: response.llmReview, analysis: response.analysis, detectState: "idle", judgment: null}];
         // 查看指针推进到新 head（报告 tab 刷新为新版；编辑器随 :key 换代重挂、基底=新 head）。
         activeOrdinal.value = created.ordinal;
         rightTab.value = "report";
         // 审阅横幅/stale 状态清场（TextPanel 已随 :key 重挂，diff 队列清零）；批量多选随草稿换代清空。
         resetReviewState();
         selectedBatchRuleIds.value = new Set();
-        // 新版检测轮询（detect / llmReview 任一缺即发起）；rev0 端若仍无数据顺带补拉（避开在途轮询重复发起）。
-        if (response.detects.length === 0 || response.llmReview === null) {
+        // 新版只为 detector / Agent Session 发现启动有限轮询；LLM terminal 由同一 Session SSE 收口。
+        if (needsMachinePolling(response.analysis)) {
             void pollDetects(created.revisionId);
         }
         const base = rev0.value;
-        if (base && (base.detects.length === 0 || base.llmReview === null) && base.detectState !== "polling") {
+        if (base && needsMachinePolling(base.analysis) && base.detectState !== "polling") {
             void pollDetects(base.revisionId);
         }
     } catch (caught) {
@@ -635,27 +645,36 @@ async function onJudgmentSubmit(payload: PostJudgment): Promise<void> {
 
 // ═══════════════ AI 改写：分析 session 复用于持久化 Chat Flow ═══════════════
 
-const agentSessionId = computed(() => head.value?.analysis?.llm.sessionId ?? null);
+// 静态修复口径 = 真正无需上下文判断的 auto 命中；一键入口会先应用它们，再把新草稿交给 Agent。
+const staticFixIssues = computed(() => editAllIssues.value.filter(isIssueAutoApplicable));
+
+// 未揭示 head 尚无 analysis，但父版本已经拥有这条 lineage 的稳定 Session；恢复时仍必须能找到并 abort。
+const agentSessionId = computed(() => revisions.value.findLast((revision) => revision.analysis?.llm.sessionId)?.analysis?.llm.sessionId ?? null);
 const {
-    snapshot: agentSnapshot, messages: agentMessages, running: llmFixRunning, loading: agentChatLoading, unavailable: llmFixUnavailable,
+    snapshot: agentSnapshot, messages: agentMessages, running: llmFixRunning, aborting: llmFixAborting, loading: agentChatLoading, unavailable: llmFixUnavailable,
     selection: agentSelection, composerPrefill, composerVersion, latestRetryable,
     stale: llmFixStale, connectionStatus: agentConnectionStatus, runPhase: agentRunPhase,
     llmReviewOpen, llmDiffs, llmVisitedCount,
-    send: sendAgentMessage, startFull: startLlmFix, prepareSelection, abort: cancelLlmFix, retry: retryAgent,
+    send: sendAgentMessage, startFull: startLlmFix, prepareSelection, startAnalysis: startAgentAnalysis,
+    abort: cancelLlmFix, abortRestored: abortRestoredAgent, abortAnalysis: abortAgentAnalysis, retry: retryAgent,
     applyStale: applyStaleLlmFix, discardStale: discardStaleLlmFix,
     onLlmReviewNavigate, onLlmReviewReject, resetReviewState, abandonAll,
 } = useAgentChat({
     panel: editTextPanel,
     editDraft,
     sessionId: agentSessionId,
+    revisionId: computed(() => head.value?.revisionId ?? null),
     // 编辑器在场 = 工作台已揭示（旧版只读期间编辑器 v-show 保活，实例恒在，重试结果并入草稿不丢）。
     editorActive: () => step.value === "workspace" && revealed.value,
+    applyOneClickAutoFixes: () => {
+        editTextPanel.value?.acceptIssueReplacements(staticFixIssues.value);
+    },
+    onTerminal: async (invocation) => {
+        await refreshMachine(invocation.input.revisionId);
+    },
 });
 
 // ═══════════════ 静态修复 / 一键修复（Task 17 需求 5，编辑工具行） ═══════════════
-
-// 静态修复口径 = 真正无需上下文判断的 auto 命中；candidate 留给命中列表或 LLM 逐条判断。
-const staticFixIssues = computed(() => editAllIssues.value.filter(isIssueAutoApplicable));
 
 /** 「静态修复」：一次应用全部可自动替换命中（坐标从后往前、逐条溯源、单撤销）。 */
 function runStaticFix(): void {
@@ -665,23 +684,15 @@ function runStaticFix(): void {
     }
 }
 
-/**
- * 「一键修复」= 静态修复 → 随即发起 LLM 整篇改写：
- * 先同步 splice 全部静态替换，等草稿 v-model 回流一拍后再捕获快照发起（startLlmFix 用当前草稿
- * 快照——不等回流会把静态修复前的旧稿送给模型）。改写结果照旧以 diff 并入、审阅横幅逐处巡检。
- */
+/** “一键修到底”先应用 auto 静态修复，再以更新后的全文启动风险分层润色。 */
 async function runOneClickFix(): Promise<void> {
     if (llmFixRunning.value || llmFixUnavailable.value || !agentSessionId.value) {
         return;
     }
-    if (staticFixIssues.value.length > 0) {
-        editTextPanel.value?.acceptIssueReplacements(staticFixIssues.value);
-        await nextTick();
-    }
     startLlmFix();
 }
 
-// 一键修复按钮 title：session 尚未建立/加载失败时给出原因，常态说明完整流程。
+// 一键修复按钮 title：session 尚未建立/加载失败时给出原因，常态说明静态预处理与 Agent 润色。
 const oneClickFixTitle = computed(() => llmFixUnavailable.value ?? (!agentSessionId.value ? t("contribute.processLlmJudgeNote") : t("contribute.oneClickFixTitle")));
 
 /** 选区改写改为 Chat 引用附件：切换 tab、预填要求，等待用户确认发送。 */
@@ -726,18 +737,11 @@ async function openHistoryText(historyTextId: string): Promise<void> {
         viewLocateOffset.value = null;
         selectedBatchRuleIds.value = new Set();
         step.value = "workspace";
-        // 残局兜底：head 已建但未揭示（上次「再次检测」在 reveal 前中断）→ reveal 幂等补拉该版扫描。
-        const headEntry = head.value;
-        if (revealed.value && headEntry && headEntry.scan === null) {
-            const response = await $fetch<RevealResponse>(`/api/revisions/${headEntry.revisionId}/reveal`, {method: "POST"});
-            headEntry.scan = response.scan;
-            headEntry.detects = response.detects;
-            headEntry.llmReview = response.llmReview;
-            headEntry.analysis = response.analysis;
-        }
-        // 外部检测/LLM 评审异步落库可能未到：head 与 rev0 任一缺数据时补轮询（其余旧版早已尘埃落定，不轮询）。
+        // 历史恢复是显式终止边界：不创建新运行；若 Session 原本仍在运行，则绑定 active Invocation abort。
+        await abortRestoredAgent();
+        // head 与 rev0 只在 detector / Agent Session 未收口时补有限轮询；其余旧版不轮询。
         for (const entry of [head.value, rev0.value]) {
-            if (revealed.value && entry && (entry.detects.length === 0 || entry.llmReview === null) && entry.detectState !== "polling") {
+            if (revealed.value && entry && needsMachinePolling(entry.analysis) && entry.detectState !== "polling") {
                 void pollDetects(entry.revisionId);
             }
         }
@@ -958,7 +962,7 @@ function handleReportResizeKeydown(event: KeyboardEvent): void {
         <!-- 顶栏单行（Task 19 C 压缩）：阶段指示 + 版本条 + 引导条（内联，默认折叠成罗盘按钮） -->
         <div class="flex flex-wrap items-center gap-x-6 gap-y-1.5 border-b border-[var(--border-color)] px-4 py-2">
             <FlowStepper :current="step" />
-            <VersionBar v-if="step === 'workspace' && revealed" class="min-w-0 flex-1" :entries="lineage" :head-ordinal="headOrdinal" :active-ordinal="activeOrdinal" :draft-dirty="draftDirty" :committing="committing" :commit-disabled="llmFixRunning" @select="selectVersion" @commit="commitRevision" />
+            <VersionBar v-if="step === 'workspace' && revealed" class="min-w-0 flex-1" :entries="lineage" :head-ordinal="headOrdinal" :active-ordinal="activeOrdinal" :draft-dirty="draftDirty" :resume-pending="headDetectionPending" :committing="committing" :commit-disabled="llmFixRunning" @select="selectVersion" @commit="commitRevision" />
             <!-- 引导条（完成态不渲染）：draft / blind / workspace / viewing 四语境 -->
             <StepGuideBar v-if="step !== 'done'" class="min-w-0 basis-full md:ml-auto md:basis-auto md:max-w-[40%]" :screen="guideScreen" />
         </div>
@@ -1023,16 +1027,17 @@ function handleReportResizeKeydown(event: KeyboardEvent): void {
                         :llm-rewrite="!!agentSessionId"
                         :heat="editorHeat"
                         :force-diffs="llmReviewOpen"
+                        :readonly="llmFixRunning"
                         annotate
                         embedded
                         @llm-rewrite-selection="startLlmFixSelection"
                         @save-annotation="saveEditorAnnotation"
                     >
                         <!-- 主操作注入 TextPanel 工具行（Task 19 A：原独立按钮行删除，状态仍在宿主）：
-                             「机械修复」= 应用全部可自动替换命中（口径白话进 title）；
-                             「一键修到底」= 机械修复 → 随即发起 LLM 整篇改写（diff 审阅照旧） -->
+                             「静态修复」= 应用全部可自动替换命中；
+                             「一键修到底」= 先应用 auto 修复，再由 Agent 理解全文、润色高风险句段并实时生成可审阅 diff。 -->
                         <template #toolbar-leading>
-                            <button type="button" class="inline-flex h-7 items-center gap-1 rounded-md border border-[var(--border-color)] px-2.5 hover:bg-[var(--bg-hover)] disabled:opacity-60" :disabled="staticFixIssues.length === 0" :title="`${t('contribute.staticFixTitle')}\n${t('contribute.strongFixScope')}`" @click="runStaticFix">
+                            <button type="button" class="inline-flex h-7 items-center gap-1 rounded-md border border-[var(--border-color)] px-2.5 hover:bg-[var(--bg-hover)] disabled:opacity-60" :disabled="llmFixRunning || staticFixIssues.length === 0" :title="`${t('contribute.staticFixTitle')}\n${t('contribute.strongFixScope')}`" @click="runStaticFix">
                                 <span class="i-lucide-eraser" /> {{ t("contribute.staticFixButton", {count: staticFixIssues.length}) }}
                             </button>
                             <button type="button" class="inline-flex h-7 items-center gap-1 rounded-md bg-[var(--accent-main)] px-2.5 font-medium text-white hover:brightness-105 disabled:opacity-60" :disabled="llmFixRunning || !!llmFixUnavailable || !agentSessionId" :title="oneClickFixTitle" @click="runOneClickFix">
@@ -1090,7 +1095,7 @@ function handleReportResizeKeydown(event: KeyboardEvent): void {
                 <!-- ① 报告 tab：盲评卡（未揭示）→ 白话汇总 + 检测进程 + 多维卡 +（rev_k）对比/复评/D5 + 完成出口（AI 改写等待期锁 finish，W7 离场纪律） -->
                 <ReportPanel v-if="rightTab === 'report'" :revealed="revealed" :active="active" :rev0="rev0" :blind-scores="submittedScores" :scan-summary="activeScanSummary" :submitting="submitting" :llm-fix-running="llmFixRunning" @blind-submit="onBlindSubmit" @blind-skip="onBlindSkip" @judgment-submit="onJudgmentSubmit" @detector-retry="retryDetector" @detector-cancel="cancelDetector" @llm-retry="retryLlmAnalysis" @llm-cancel="cancelLlmAnalysis" @finish="step = 'done'" />
                 <!-- ③ AI 改写 tab（R7 自编辑工具行迁入）：整篇发起/取消/外部 LLM 菜单/流式预览；审阅横幅与 diff 仍在左侧编辑器 -->
-                <AiFixPanel v-else-if="rightTab === 'aiFix'" :snapshot="agentSnapshot" :messages="agentMessages" :running="llmFixRunning" :loading="agentChatLoading" :unavailable="llmFixUnavailable" :selection="agentSelection" :prefill="composerPrefill" :prefill-version="composerVersion" :editor-active="editorVisible" :retryable="latestRetryable !== null" :connection-status="agentConnectionStatus" :run-phase="agentRunPhase" @send="sendAgentMessage" @cancel="cancelLlmFix" @retry="retryAgent" @clear-selection="agentSelection = null" @external-select="onExternalLlmSelect" />
+                <AiFixPanel v-else-if="rightTab === 'aiFix'" :snapshot="agentSnapshot" :messages="agentMessages" :running="llmFixRunning" :aborting="llmFixAborting" :loading="agentChatLoading" :unavailable="llmFixUnavailable" :selection="agentSelection" :prefill="composerPrefill" :prefill-version="composerVersion" :editor-active="editorVisible" :retryable="latestRetryable !== null" :connection-status="agentConnectionStatus" :run-phase="agentRunPhase" @send="sendAgentMessage" @cancel="cancelLlmFix" @retry="retryAgent" @clear-selection="agentSelection = null" @external-select="onExternalLlmSelect" />
                 <!-- ② 命中 tab：FilterControls + IssueList 迁入（head 编辑视图可应用替换；只读视图——旧版或 head 只读标注——仅定位） -->
                 <template v-else>
                     <div v-if="editorVisible" class="flex flex-wrap items-center gap-2 border-b border-[var(--border-color)] px-4 py-2 text-xs">

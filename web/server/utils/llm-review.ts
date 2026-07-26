@@ -20,12 +20,34 @@ export type MachineLlmReviewDto = {
 /**
  * 为新 revision 建立持久化分析 session，并异步启动首个 analysis invocation。
  */
-export async function startMachineLlmReview(revisionId: string, userId: number, body: string): Promise<string> {
+export async function startMachineLlmReview(revisionId: string, userId: number): Promise<string> {
+    const existing = await prisma.agentInvocation.findFirst({where: {revisionId, phase: "analysis"}, select: {sessionId: true}});
+    if (existing) return existing.sessionId;
     const {sessionId} = await agentHarness.createSession(revisionId, userId);
-    const existing = await prisma.machineLlmReview.findFirst({where: {revisionId}, select: {id: true}});
-    if (!existing) {
-        await agentHarness.invoke(sessionId, userId, {mode: "prompt", phase: "analysis", body});
+    try {
+        await agentHarness.invoke(sessionId, userId, {mode: "prompt", phase: "analysis", revisionId});
+    } catch (error) {
+        const raced = await prisma.agentInvocation.findFirst({where: {sessionId, revisionId, phase: "analysis"}, select: {id: true}});
+        if (!raced) throw error;
     }
+    return sessionId;
+}
+
+/** 首次揭示新 Revision 时沿父版本推进同一 Session，不创建备用 Session。 */
+export async function advanceMachineLlmReview(revisionId: string, parentRevisionId: string, userId: number): Promise<string> {
+    const existing = await prisma.agentInvocation.findFirst({where: {revisionId, phase: "analysis"}, select: {sessionId: true}});
+    if (existing) return existing.sessionId;
+    const parentInvocation = await prisma.agentInvocation.findFirst({
+        where: {revisionId: parentRevisionId, phase: "analysis", session: {userId, profileKey: "llmlint.review"}},
+        orderBy: {createdAt: "desc"},
+        select: {sessionId: true},
+    });
+    const sessionId = parentInvocation?.sessionId ?? (await prisma.agentSession.findFirst({
+        where: {revisionId: parentRevisionId, userId, profileKey: "llmlint.review"},
+        select: {id: true},
+    }))?.id;
+    if (!sessionId) throw new Error(`父 Revision ${parentRevisionId} 缺少可推进的 Agent Session`);
+    await agentHarness.advanceRevision(sessionId, userId, revisionId);
     return sessionId;
 }
 

@@ -44,7 +44,7 @@ const hiddenByRuleSettings = computed(() => hasRuleOverrides.value ? Math.max(0,
 // 行内高亮跟随「过滤后命中」，与右侧列表一致。
 const highlightRanges = computed(() => issueRanges(text.value, filteredIssues.value));
 
-const activeRule = ref<RegexRuleRecord | null>(null);
+const activeRule = ref<Issue["rule"] | null>(null);
 
 // 双向定位：locateOffset 驱动左侧滚动+闪烁；activeRuleId 驱动右侧卡片高亮+滚动。
 const locateOffset = ref<number | null>(null);
