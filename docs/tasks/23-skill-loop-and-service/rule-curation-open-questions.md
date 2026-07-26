@@ -42,6 +42,20 @@
 - 2026-07-26：低信号 human 规则继续默认关闭：`filler-lets`、`lazy-extremes`、`transition-summary-conclude`、`transition-summary-restate`、`inflation-superlative`、`inflation-marvel`、`cn.punctuation.dedup.repeated-symbols`、`cn.regex.advanced.momentary-reaction`。`assistant-comfort-pose` 与 `jargon-social-extra` 保持 active，但收窄到明确第二人称安抚和爆款文风词。
 - 2026-07-26：`cn.sentence.compound.unrealized-subject-preface` 因职责被 `contrastive-turn-preface` 覆盖且旧替换会删真实对比，已默认关闭；`cn.vocabulary.body.muscle-texture` 因“肌理→肌肉”并非无损替换，已默认关闭。当前 active exact regex target 重复为 0；低信号 human（reference 命中不低于 render）只剩 `story-deslop.action-list` 1 / 0，留作产品取舍。
 
+- 2026-07-26：**比喻家族路由已裁决，结论是保持 `human`**（第 10 条的一个具体切片，不构成对第 10 条整体的拍板）。复算全语料 26 篇 reference / 100 篇 render（可见字 78,971 / 355,756，体量比 4.50），用池化每千字率与富集比取代中位 fireRate（稀疏规则上中位退化为 0）：
+
+  | 规则 | 富集 | 真人侧命中文档 | prevLift |
+  | --- | --- | --- | --- |
+  | `cn.metaphor.trailing-simile-clause` | 5.3x | **23%** | 2.54 |
+  | `cn.metaphor.simile-modifier-shell` | 2.8x | **35%** | 1.91 |
+  | `story-deslop.metaphor-density` | 2.8x（原始标记 4.2x） | 12% | 2.51 |
+  | 对照：`repeated-de-pairs`（agent） | 20.7x | 4% | 3.90 |
+  | 对照：`vague-amount-noun`（agent） | 10.2x | 8% | 4.01 |
+  | 对照：`not-is-comparison`（agent） | 4.5x | 8% | 2.71 |
+
+  定量上 `trailing-simile-clause` 的富集（5.3x）高于两条已在 agent 桶的规则，但真人侧文档命中率 23% / 35% 是当前 agent 桶全部规则（0–8%）的 3–9 倍。定性证据更决定性：真人侧命中几乎全是出版小说里承担信息的有效比喻——「犹如拗口令一般」「如是玩物一般」（天龙八部）、「仿佛是西瓜爆炸一般」（无限恐怖）、「仿佛在看讲述维多利亚时期故事的英剧」（诡秘之主，承担时代设定）。决策口径要求「真人命中形态可辨为装饰性」，此条不成立，因此不提回 `agent`。
+- 2026-07-26：复算顺带发现并修掉一处**规则越界**：`cn.metaphor.trailing-simile-clause` 的 detector 用无上界 `[一-鿿、]+`，会把「，像自己这样坐两个小时地铁到市中心已经能算是她半年以来出过最远的一次远门了」这类 40 字解释性长从句当成「尾部比喻壳」。加 `{2,20}` 上界后真人命中 8→7、真人侧文档 23%→19%、富集 5.3x→5.8x，AI 召回只降 3%（207→201）。规则仍留在 `human`，但 `--review all` 的信号质量提升——这在本轮把 `--review all` 定为创作类主路径后更重要。三条规则的 `note` 都已写入本轮证据与处理边界。
+
 ## 待用户拍板
 
 1. **story-oracle 来源与许可边界**
