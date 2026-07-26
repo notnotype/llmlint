@@ -136,8 +136,15 @@ describe("story-deslop calibration rules", () => {
         const longDialogue = `「${"你".repeat(210)}」`;
         const longNarrative = `${"风继续吹".repeat(70)}。`;
 
-        expect(densityIds(longDialogue, loaded)).not.toContain("story-deslop.long-paragraph");
-        expect(densityIds(longNarrative, loaded)).toContain("story-deslop.long-paragraph");
+        // handler 形态（原为 density）：命中进逐处 issue 流，不再出现在 densityIssues 里。
+        expect(densityIds(longNarrative, loaded)).not.toContain("story-deslop.long-paragraph");
+        expect(issueIds(longDialogue, loaded)).not.toContain("story-deslop.long-paragraph");
+        expect(issueIds(longNarrative, loaded)).toContain("story-deslop.long-paragraph");
+
+        // detail 带真实字数，且锚定片段要短——迁移的目的就是不再输出 perKilo 恒 1000 与单字样本。
+        const issue = scanAll(longNarrative, loaded).issues.find((entry) => entry.rule.id === "story-deslop.long-paragraph");
+        expect(issue?.detail).toBe("本段叙述 280 字，超过 200 字");
+        expect([...(issue?.match ?? "")].length).toBeLessThanOrEqual(12);
     });
 
     it("引号强调规则作为 human advisory 进入默认 ruleset", async () => {

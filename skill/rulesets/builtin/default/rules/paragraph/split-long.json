@@ -29,7 +29,7 @@
     "level": "low",
     "review": "human",
     "fixability": "manual",
-    "note": "移植自 story-deslop 的 long-paragraph advisory；叙述层单段原始字符数超过 200 时提示按镜头断段。手机阅读保守阈值，默认人工复核。",
+    "note": "移植自 story-deslop 的 long-paragraph advisory；叙述层单段可见字数超过 200 时提示按镜头断段，实际字数在命中的 detail 里。手机阅读保守阈值，默认人工复核；意识流或刻意长镜头段落可以保留。",
     "source": {
       "canonicalKey": "LONG_PARAGRAPH_CHARS",
       "importedFrom": "oh-story-claudecode/story-deslop"
@@ -37,16 +37,9 @@
     "scope": {
       "layer": "narrative"
     },
-    "detector": {
-      "type": "density",
-      "patterns": [
-        {
-          "target": "[\\p{L}\\p{N}]",
-          "flags": "u"
-        }
-      ],
-      "minHits": 200,
-      "granularity": "paragraph"
+    "handler": {
+      "type": "builtin",
+      "name": "long-paragraph"
     },
     "action": {
       "type": "suggest",

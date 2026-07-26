@@ -17,6 +17,7 @@ export const HANDLER_REGISTRY: Record<string, RuleHandler> = {
     "overcompressed-prose": findOvercompressedProse,
     "low-connective-density": findLowConnectiveDensity,
     "quote-emphasis": findQuoteEmphasis,
+    "long-paragraph": findLongParagraph,
 };
 
 // ---- 共享常量（移植自 check-ai-patterns.js）----
@@ -356,6 +357,39 @@ function findLowConnectiveDensity(ctx: ScanContext): HandlerFinding[] {
         length: anchor.text.length,
         message: `引号外叙述功能词 ${functionPerKilo.toFixed(1)}/千字、白话连接 ${plainPerKilo.toFixed(1)}/千字，≥${LOW_CONNECTIVE_LONG_SENTENCE_CHARS}字承接句仅 ${(longSentenceRatio * 100).toFixed(0)}%`,
     }];
+}
+
+// ---- long-paragraph（advisory，逐段一条）----
+// 单段过长：叙述层单段可见字数超阈值就提示按镜头断段。手机阅读的保守阈值。
+//
+// 这条规则原本用 density detector 表达（pattern `[\p{L}\p{N}]` 逐字计数 + minHits 200），
+// 但那样 `perKilo` 恒为 1000、`samples` 是段落头几个单字，两个字段都没有信息量，
+// 报告照 density 口径写出来就是废话。段落长度是统计量而不是分布指纹，属于 handler。
+// 用 narrativeOfLine 保持原 density 版「纯对白段不触发」的行为（引号内不计入长度）。
+
+const LONG_PARAGRAPH_CHARS = 200;
+/** 命中锚定长度：只要够定位到段首，不取整段——整段会把 200+ 字塞进 Issue.match 与 context。 */
+const LONG_PARAGRAPH_ANCHOR_CHARS = 12;
+
+function findLongParagraph(ctx: ScanContext): HandlerFinding[] {
+    const findings: HandlerFinding[] = [];
+
+    for (const line of ctx.lines) {
+        if (!line.text.trim() || line.structural || isMasked(line.start, ctx.maskedRanges)) {
+            continue;
+        }
+        const chars = visibleLength(narrativeOfLine(ctx, line).text);
+        if (chars <= LONG_PARAGRAPH_CHARS) {
+            continue;
+        }
+        findings.push({
+            index: line.start,
+            length: Math.min(LONG_PARAGRAPH_ANCHOR_CHARS, line.text.length),
+            message: `本段叙述 ${chars} 字，超过 ${LONG_PARAGRAPH_CHARS} 字`,
+        });
+    }
+
+    return findings;
 }
 
 // ---- quote-emphasis（advisory，全文一条）----
