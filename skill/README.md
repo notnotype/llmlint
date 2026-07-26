@@ -60,7 +60,7 @@ bun bin/llmlint.ts check <文件>     # Node：npx tsx bin/llmlint.ts check <文
 
 或把 `llmlint` 注册到 PATH（`package.json` 已声明 `bin`）：`bun link` 后 `llmlint check <文件>`。
 
-> `SKILL.md` / `references/` 使用 `<skill-root>` 占位符。Agent 从 SkillCatalog 给出的 `SKILL.md` 绝对位置取得父目录，执行前替换占位符；独立使用时当前目录就是 skill 根，可直接运行 `bun bin/llmlint.ts …`。
+> `SKILL.md` / `references/` 使用 `<skill-root>` 占位符。Agent 优先使用 SkillCatalog 给出的绝对 `root`；宿主只提供 `SKILL.md` 的绝对位置时使用其父目录。独立使用时当前目录就是 skill 根，可直接运行 `bun bin/llmlint.ts …`。
 
 ## 快速开始
 

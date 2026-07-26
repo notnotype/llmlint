@@ -40,7 +40,7 @@ cd skill
 bun install --frozen-lockfile
 ```
 
-Agent 实际运行时从 SkillCatalog 提供的 `SKILL.md` 绝对位置推导 skill 根，不依赖 `.nbook`、`.claude`、`.codex` 等固定安装目录。Skill 版本以 `skill/package.json.version` 为准。
+Agent 实际运行时优先使用 SkillCatalog 提供的绝对 skill root；宿主只提供 `SKILL.md` locator 时使用其父目录，不依赖 `.nbook`、`.claude`、`.codex` 等固定安装目录。Skill 版本以 `skill/package.json.version` 为准。
 
 `SKILL.md` 会把这一步作为 `status` 之前的依赖门；同一份安装后续使用无需每轮重复执行。
 

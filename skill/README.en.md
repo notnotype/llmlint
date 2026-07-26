@@ -60,7 +60,7 @@ bun bin/llmlint.ts check <file>     # Node: npx tsx bin/llmlint.ts check <file>
 
 Or expose the `llmlint` command on your PATH (declared in `package.json` `bin`): run `bun link`, then `llmlint check <file>`.
 
-> `SKILL.md` and `references/` use a `<skill-root>` placeholder. The agent takes the parent directory of the absolute `SKILL.md` location supplied by its skill catalog and substitutes it before execution. In standalone use, the current directory is the skill root, so run `bun bin/llmlint.ts …` directly.
+> `SKILL.md` and `references/` use a `<skill-root>` placeholder. The agent prefers the absolute `root` supplied by its skill catalog; if the host only exposes the absolute `SKILL.md` location, it uses that file's parent directory. In standalone use, the current directory is the skill root, so run `bun bin/llmlint.ts …` directly.
 
 ## Quick start
 

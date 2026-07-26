@@ -38,7 +38,7 @@ cd skill
 bun install --frozen-lockfile
 ```
 
-At runtime, the agent derives the skill root from the absolute `SKILL.md` location supplied by its skill catalog; it does not depend on a fixed `.nbook`, `.claude`, or `.codex` install path. `skill/package.json.version` is the skill version source of truth.
+At runtime, the agent prefers the absolute skill root supplied by its catalog; if the host only exposes a `SKILL.md` locator, it uses that file's parent directory. It does not depend on a fixed `.nbook`, `.claude`, or `.codex` install path. `skill/package.json.version` is the skill version source of truth.
 
 `SKILL.md` treats this as a dependency gate before `status`; later uses of the same installation do not repeat it on every review.
 
