@@ -179,12 +179,13 @@ describe("story-deslop calibration rules", () => {
         const human = await runCheck(humanPath);
         expect(human.code).toBe(0);
         const humanReport = JSON.parse(human.stdout) as CheckJsonReport;
-        expect(humanReport.issues.filter((issue) => issue.rule.level === "high" && STORY_DESLOP_BLOCKING_IDS.has(issue.rule.id))).toHaveLength(0);
+        // 紧凑报告：命中只带 ruleId，规则元数据在顶层 rules 字典。
+        expect(humanReport.issues.filter((issue) => humanReport.rules[issue.ruleId]?.level === "high" && STORY_DESLOP_BLOCKING_IDS.has(issue.ruleId))).toHaveLength(0);
 
         const leak = await runCheck(aiPath);
         expect(leak.code).toBe(1);
         const leakReport = JSON.parse(leak.stdout) as CheckJsonReport;
-        const ids = leakReport.issues.map((issue) => issue.rule.id);
+        const ids = leakReport.issues.map((issue) => issue.ruleId);
         expect(ids).toEqual(expect.arrayContaining([
             "story-deslop.not-is-comparison",
             "story-deslop.voice-contrast",
@@ -192,6 +193,6 @@ describe("story-deslop calibration rules", () => {
             "story-deslop.reverse-not-is",
             "story-deslop.trailer-ending",
         ]));
-        expect(leakReport.issues.find((issue) => issue.rule.id === "story-deslop.stage-leak.tier2")?.rule.review).toBe("human");
+        expect(leakReport.rules["story-deslop.stage-leak.tier2"]?.review).toBe("human");
     });
 });

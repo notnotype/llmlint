@@ -4,6 +4,7 @@ import {prepareScanContext} from "llmlint/scan-context";
 import {scanHandlerRules, scanText, scanWithContext} from "llmlint/scanner";
 import {applyAutoFixWithChanges, type AutoFixChange} from "llmlint/fix";
 import {materializeRules} from "llmlint/rule-registry";
+import {projectCheckIssues} from "llmlint/check-report";
 import registryData from "../data/registry.json";
 import {useWebSettings} from "./useWebSettings";
 import type {CheckJsonReport, CheckSummary, HighlightRange, Issue, LlmlintRegistry, RuleGroup, RuleLevel, UiFilters} from "../types";
@@ -204,15 +205,19 @@ export function useLlmlint() {
         const issues = filters.namespaces.length > 0
             ? afterLevel.filter((issue) => filters.namespaces.includes(issue.rule.namespace))
             : afterLevel;
+        // 与 CLI 同一份投影：规则元数据去重到顶层 rules，registry 去掉逐 namespace 明细。
+        const projected = projectCheckIssues(issues);
+        const {namespaces: _namespaces, ...compactRegistry} = registry.value.summary;
         return {
             kind: "check",
             filePath: "(web input)",
             configPath: null,
             summary: summarize(issues),
             filter: {review: filters.review, hiddenByReview, minLevel: filters.minLevel, hiddenByLevel},
-            registry: registry.value.summary,
+            registry: compactRegistry,
             diagnostics: registry.value.diagnostics,
-            issues,
+            rules: projected.rules,
+            issues: projected.issues,
         };
     }
 

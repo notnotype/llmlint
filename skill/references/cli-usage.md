@@ -164,7 +164,7 @@ handler 命中可能带 `detail`，用于说明动态计数，例如连续短句
 
 `--min-level` 会隐藏低于指定级别的候选，并在 stylish / JSON 输出中记录被隐藏数量。默认值是 `low`，即显示全部级别。
 `--review` 会按审查受众过滤候选，默认 `agent`。`--review` 与 `--min-level` 是两个独立过滤器，被隐藏数量分别统计为“按审查受众隐藏”和“按级别隐藏”。
-`--show-lines` 只影响 stylish 输出；JSON 始终保留完整 `context`。
+`--show-lines` 只影响 stylish 输出。JSON 的 `context` 默认裁到命中前后各 24 个码点；要完整整行前后文用 `--rule-detail`。
 
 ## show-llm-rules 输出格式
 
@@ -204,7 +204,7 @@ namespace: abstraction.hollow
 
 ## JSON 输出格式
 
-`check --format json` 输出：
+`check --format json` 默认输出**紧凑形态**：规则元数据按 id 去重到顶层 `rules`，逐处命中只引用 `ruleId`。JSON 不缩进（消费者是 Agent，缩进是纯上下文开销）。
 
 ```json
 {
@@ -213,19 +213,47 @@ namespace: abstraction.hollow
   "configPath": "llmlint.config.ts",
   "summary": {"total": 2, "high": 0, "medium": 2, "low": 0},
   "filter": {"review": "agent", "hiddenByReview": 78, "minLevel": "low", "hiddenByLevel": 0},
-  "registry": {"rulesets": [], "totalRules": 0, "activeRules": 0, "disabledRules": 0, "namespaces": []},
+  "registry": {"rulesets": ["builtin/default"], "totalRules": 360, "activeRules": 266, "disabledRules": 94},
   "diagnostics": [],
-  "issues": []
+  "rules": {
+    "cn.cliche.vague-transition-phrase": {
+      "namespace": "cliche",
+      "title": "删特定词汇或短语",
+      "level": "medium",
+      "review": "agent",
+      "fixability": "manual",
+      "action": {"type": "replace", "replacements": [""]},
+      "note": "默认收窄：Agent 默认只保留「取而代之的是」和更明确的「近乎于」。"
+    }
+  },
+  "issues": [
+    {
+      "ruleId": "cn.cliche.vague-transition-phrase",
+      "line": 3, "column": 52, "endLine": 3, "endColumn": 57,
+      "match": "取而代之的是",
+      "context": {"before": "…深黑色的封面上没有书名，", "current": "取而代之的是", "after": "一道道诡异的发光纹路，像某种失传已久的…"}
+    }
+  ]
 }
 ```
 
-检查多个文件时 `kind` 为 `"check-multi"`：顶层 `registry` / `diagnostics` / `filter` 为全局，`files[]` 给逐文件 `{filePath, summary, issues}`，`summary` 为聚合统计。`fix --format json` 输出 `kind: "fix"`，含 `write`、逐文件 `ruleCounts` 与 `totalOccurrences`。
+不变量：`issues[]` 与 `densityIssues[]` 的每个 `ruleId` 都能在顶层 `rules` 里查到；`rules` 只含本次报告实际涉及的规则。
 
-有 density 命中时，`check` 和 `check-multi` 会额外输出 `densityIssues`：
+`context.before` / `context.after` 各裁到 24 个码点，被裁一侧带 `…` 标记（scanner 内部给的是整行，中文长段落一行常有 150+ 字）。需要完整段落时直接读原文。
+
+`--rule-detail` 恢复完整形态：命中内联完整规则对象（含 `detector.targets`、`source.canonicalKey`、`scope`）、`registry` 带逐 namespace 明细、无顶层 `rules`、缩进 2 空格。写规则、核对 canonicalKey、排查 overlap 时用它；日常审稿不要用——同一篇正文上它比紧凑形态大 4 倍以上。
+
+```bash
+bun "<skill-root>/bin/llmlint.ts" check chapter.md --review all --rule-detail --format json
+```
+
+检查多个文件时 `kind` 为 `"check-multi"`：顶层 `registry` / `diagnostics` / `filter` / `rules` 为全局（`rules` 跨全部文件共享，所以多文件的去重收益比单文件更大），`files[]` 给逐文件 `{filePath, summary, issues}`，`summary` 为聚合统计。`fix --format json` 输出 `kind: "fix"`，含 `write`、逐文件 `ruleCounts` 与 `totalOccurrences`。
+
+有 density 命中时，`check` 和 `check-multi` 会额外输出 `densityIssues`（同样只带 `ruleId`）：
 
 ```json
 {
-  "rule": {"id": "story-deslop.explanation-chain"},
+  "ruleId": "story-deslop.explanation-chain",
   "line": 1,
   "column": 1,
   "hits": 8,

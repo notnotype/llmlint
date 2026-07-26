@@ -975,7 +975,7 @@ describe("llmlint", () => {
         expect(humanOutput).not.toContain("test.review.agent");
     });
 
-    it("JSON check filter 暴露 review 过滤与隐藏统计，issues[].rule 带 review/fixability", async () => {
+    it("JSON check filter 暴露 review 过滤与隐藏统计，rules[ruleId] 带 review/fixability", async () => {
         const rulesetId = `test/${randomUUID()}`;
         const root = await mkdtemp(join(tmpdir(), "llmlint-review-json-"));
         tempRoots.push(root, join(RULESETS_ROOT, "test"));
@@ -992,11 +992,40 @@ describe("llmlint", () => {
         await runCli(["bun", "llmlint", "--config", configPath, "check", textPath]);
         const report = JSON.parse(String(log.mock.calls[0]?.[0])) as {
             filter: {review: string; hiddenByReview: number; minLevel: string; hiddenByLevel: number};
-            issues: Array<{rule: {review: string; fixability: string}}>;
+            registry: {totalRules: number; namespaces?: unknown};
+            rules: Record<string, {review: string; fixability: string}>;
+            issues: Array<{ruleId: string; rule?: unknown}>;
         };
         expect(report.filter).toMatchObject({review: "agent", hiddenByReview: 1, minLevel: "low", hiddenByLevel: 0});
         expect(report.issues).toHaveLength(1);
-        expect(report.issues[0]?.rule).toMatchObject({review: "agent", fixability: "manual"});
+        // 紧凑形态：命中只引用 ruleId，规则元数据在顶层 rules；registry 不带逐 namespace 明细。
+        expect(report.issues[0]?.ruleId).toBe("test.json.agent");
+        expect(report.issues[0]?.rule).toBeUndefined();
+        expect(report.rules["test.json.agent"]).toMatchObject({review: "agent", fixability: "manual"});
+        expect(report.registry.namespaces).toBeUndefined();
+    });
+
+    it("--rule-detail 恢复完整内联规则对象与逐 namespace 明细", async () => {
+        const rulesetId = `test/${randomUUID()}`;
+        const root = await mkdtemp(join(tmpdir(), "llmlint-rule-detail-"));
+        tempRoots.push(root, join(RULESETS_ROOT, "test"));
+        await writeRuleset(rulesetId, [regexRule("test.detail.agent", "test.plain", "Agent 桶", "甲词")]);
+        const configPath = join(root, "llmlint.config.ts");
+        const textPath = join(root, "input.md");
+        await writeFile(configPath, `export default {\n    rulesets: ["${rulesetId}"],\n    output: "json",\n};\n`, "utf-8");
+        await writeFile(textPath, "甲词", "utf-8");
+        const log = vi.spyOn(console, "log").mockImplementation(() => undefined);
+
+        await runCli(["bun", "llmlint", "--config", configPath, "check", textPath, "--rule-detail"]);
+        const report = JSON.parse(String(log.mock.calls[0]?.[0])) as {
+            registry: {namespaces?: Array<{namespace: string}>};
+            rules?: unknown;
+            issues: Array<{ruleId?: string; rule: {id: string; detector: {type: string; targets: string[]}}}>;
+        };
+        expect(report.rules).toBeUndefined();
+        expect(report.issues[0]?.rule.id).toBe("test.detail.agent");
+        expect(report.issues[0]?.rule.detector.targets).toEqual(["甲词"]);
+        expect(report.registry.namespaces?.length).toBeGreaterThan(0);
     });
 
     it("candidate 只允许显式应用，不能进入一键机械修复", () => {

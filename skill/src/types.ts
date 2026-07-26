@@ -339,6 +339,65 @@ export type CheckSummary = {
     low: number;
 };
 
+/**
+ * 紧凑报告里的规则元数据：按 rule id 去重提到报告顶层，Agent 做「修 / 留 / 问」判断要用的字段全在这里。
+ *
+ * 剔除的是规则作者才需要的字段：`detector`（长正则）、`source.canonicalKey`、`scope`、`examples`、
+ * `enabled`、`ruleset`。它们在逐处内联时是 JSON 体积的主要来源，而对单轮审稿判断没有作用。
+ * 需要完整形态时用 `check --rule-detail`。
+ */
+export type CompactRuleEntry = {
+    namespace: string;
+    title: string;
+    level: RuleLevel;
+    review: Review;
+    fixability: Fixability;
+    action: DeclarativeRuleRecord["action"];
+    /** 规则整理留下的处理边界说明；缺省 = 该规则没有额外说明。 */
+    note?: string;
+};
+
+/** 紧凑报告里的单处命中：规则元数据在顶层 `rules[ruleId]`，此处只留位置与文本证据。 */
+export type CompactIssue = {
+    ruleId: string;
+    line: number;
+    column: number;
+    endLine: number;
+    endColumn: number;
+    match: string;
+    /** handler 输出的动态补充说明（如具体计数）；regex 命中无此字段。 */
+    detail?: string;
+    /**
+     * 命中前后文。`before`/`after` 已按码点裁到上限，被裁掉时带省略号标记；
+     * 完整整行前后文在 `--rule-detail` 形态里。
+     */
+    context: {
+        before: string;
+        current: string;
+        after: string;
+    };
+};
+
+/** 紧凑报告里的密度指纹：同样把规则元数据挪到顶层 `rules`。 */
+export type CompactDensityIssue = {
+    ruleId: string;
+    line: number;
+    column: number;
+    /** 总命中次数。 */
+    hits: number;
+    /** 每千可见字命中数。 */
+    perKilo: number;
+    /** 去重样本（≤8 条）。 */
+    samples: string[];
+};
+
+/** 紧凑报告的 registry 概览：去掉逐 namespace 明细（70 条 × 3 字段），只留总数与规则包列表。 */
+export type CompactRegistrySummary = Omit<RegistrySummary, "namespaces">;
+
+/**
+ * 单文件 check 的默认 JSON 报告（紧凑形态）。
+ * 规则元数据去重到 `rules`，命中只引用 `ruleId`；`--rule-detail` 输出 CheckDetailJsonReport。
+ */
 export type CheckJsonReport = {
     kind: "check";
     filePath: string;
@@ -346,10 +405,25 @@ export type CheckJsonReport = {
     summary: CheckSummary;
     /** CLI 级别 / 审查受众过滤信息；check 默认按 review 过滤，故一定存在。 */
     filter: CheckFilterInfo;
+    registry: CompactRegistrySummary;
+    diagnostics: RegistryDiagnostic[];
+    /** 本次报告涉及的规则元数据，按 rule id 去重。issues/densityIssues 的 ruleId 一定能在这里查到。 */
+    rules: Record<string, CompactRuleEntry>;
+    issues: CompactIssue[];
+    /** density 规则命中；缺省 = 未跑 density 扫描。 */
+    densityIssues?: CompactDensityIssue[];
+};
+
+/** 单文件 check 的完整 JSON 报告（`--rule-detail`）：命中内联完整规则对象，registry 带逐 namespace 明细。 */
+export type CheckDetailJsonReport = {
+    kind: "check";
+    filePath: string;
+    configPath: string | null;
+    summary: CheckSummary;
+    filter: CheckFilterInfo;
     registry: RegistrySummary;
     diagnostics: RegistryDiagnostic[];
     issues: Issue[];
-    /** density 规则命中；缺省 = 未跑 density 扫描（旧消费端无感）。 */
     densityIssues?: DensityIssue[];
 };
 
@@ -378,8 +452,32 @@ export type CheckFileEntry = {
     densityIssues?: DensityIssue[];
 };
 
-/** 多文件 check 报告；registry/diagnostics/filter 为全局，files 为逐文件结果，summary 为聚合。 */
+/** 多文件紧凑报告的单文件条目；规则元数据在报告顶层共享，逐文件不重复。 */
+export type CompactCheckFileEntry = {
+    filePath: string;
+    summary: CheckSummary;
+    issues: CompactIssue[];
+    densityIssues?: CompactDensityIssue[];
+};
+
+/**
+ * 多文件 check 的默认报告（紧凑形态）；registry/diagnostics/filter/rules 为全局，files 为逐文件结果。
+ * `rules` 跨全部文件共享，所以多文件场景的去重收益比单文件更大。
+ */
 export type CheckMultiJsonReport = {
+    kind: "check-multi";
+    configPath: string | null;
+    filter: CheckFilterInfo;
+    registry: CompactRegistrySummary;
+    diagnostics: RegistryDiagnostic[];
+    /** 全部文件涉及的规则元数据，按 rule id 去重。 */
+    rules: Record<string, CompactRuleEntry>;
+    files: CompactCheckFileEntry[];
+    summary: CheckSummary;
+};
+
+/** 多文件 check 的完整报告（`--rule-detail`）。 */
+export type CheckMultiDetailJsonReport = {
     kind: "check-multi";
     configPath: string | null;
     filter: CheckFilterInfo;

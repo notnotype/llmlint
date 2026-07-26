@@ -1,5 +1,6 @@
 import {createColors} from "picocolors";
-import type {CheckFileEntry, CheckFilterInfo, CheckJsonReport, CheckMultiJsonReport, CheckSummary, DensityIssue, FixFileEntry, FixFileResult, FixReport, FixRuleCount, Issue, LLMRuleRecord, LLMRulesJsonReport, LoadedRules, RegistryDiagnostic, Review, RuleLevel} from "./types";
+import {mergeCompactRules, projectCheckIssues} from "./check-report";
+import type {CheckDetailJsonReport, CheckFileEntry, CheckFilterInfo, CheckJsonReport, CheckMultiDetailJsonReport, CheckMultiJsonReport, CheckSummary, DensityIssue, FixFileEntry, FixFileResult, FixReport, FixRuleCount, Issue, LLMRuleRecord, LLMRulesJsonReport, LoadedRules, RegistryDiagnostic, Review, RuleLevel} from "./types";
 
 /** picocolors 着色器；createColors(false) 时所有方法为恒等，输出纯文本。 */
 type Painter = ReturnType<typeof createColors>;
@@ -22,6 +23,8 @@ export type CheckReportOptions = {
     color?: boolean;
     /** density 规则命中；缺省 = 未跑 density 扫描。 */
     densityIssues?: DensityIssue[];
+    /** JSON 输出是否内联完整规则对象（`--rule-detail`）；缺省 = 紧凑形态。只影响 JSON，stylish 不看这个字段。 */
+    ruleDetail?: boolean;
 };
 
 export function formatCheckReport(filePath: string, issues: Issue[], loadedRules: LoadedRules, options: CheckReportOptions = {}): string {
@@ -154,22 +157,39 @@ function formatHiddenNote(hiddenByReview: number, hiddenByLevel: number): string
     return parts.length > 0 ? ` 已隐藏：${parts.join("，")}。` : "";
 }
 
-export function createCheckJsonReport(filePath: string, configPath: string | null, issues: Issue[], loadedRules: LoadedRules, options: CheckReportOptions = {}): CheckJsonReport {
+export function createCheckJsonReport(filePath: string, configPath: string | null, issues: Issue[], loadedRules: LoadedRules, options: CheckReportOptions = {}): CheckJsonReport | CheckDetailJsonReport {
+    const filter: CheckFilterInfo = {
+        review: options.review ?? "agent",
+        hiddenByReview: options.hiddenByReview ?? 0,
+        minLevel: options.minLevel ?? "low",
+        hiddenByLevel: options.hiddenByLevel ?? 0,
+    };
+    if (options.ruleDetail) {
+        return {
+            kind: "check",
+            filePath,
+            configPath,
+            summary: summarizeIssues(issues),
+            filter,
+            registry: loadedRules.summary,
+            diagnostics: loadedRules.diagnostics,
+            issues,
+            ...(options.densityIssues ? {densityIssues: options.densityIssues} : {}),
+        };
+    }
+    const {namespaces, ...registry} = loadedRules.summary;
+    const projected = projectCheckIssues(issues, options.densityIssues);
     return {
         kind: "check",
         filePath,
         configPath,
         summary: summarizeIssues(issues),
-        filter: {
-            review: options.review ?? "agent",
-            hiddenByReview: options.hiddenByReview ?? 0,
-            minLevel: options.minLevel ?? "low",
-            hiddenByLevel: options.hiddenByLevel ?? 0,
-        },
-        registry: loadedRules.summary,
+        filter,
+        registry,
         diagnostics: loadedRules.diagnostics,
-        issues,
-        ...(options.densityIssues ? {densityIssues: options.densityIssues} : {}),
+        rules: projected.rules,
+        issues: projected.issues,
+        ...(projected.densityIssues ? {densityIssues: projected.densityIssues} : {}),
     };
 }
 
@@ -188,18 +208,37 @@ export function formatCheckAggregate(files: CheckFileEntry[], color = false): st
     return pc.bold(`═══ 汇总：${files.length} 个文件，${filesWithIssues} 个有命中，共 ${summary.total} problem${summary.total === 1 ? "" : "s"}${detail}${densityNote} ═══`);
 }
 
-export function createMultiCheckJsonReport(configPath: string | null, files: CheckFileEntry[], loadedRules: LoadedRules, filter: CheckFilterInfo): CheckMultiJsonReport {
+export function createMultiCheckJsonReport(configPath: string | null, files: CheckFileEntry[], loadedRules: LoadedRules, filter: CheckFilterInfo, ruleDetail = false): CheckMultiJsonReport | CheckMultiDetailJsonReport {
+    if (ruleDetail) {
+        return {
+            kind: "check-multi",
+            configPath,
+            filter,
+            registry: loadedRules.summary,
+            diagnostics: loadedRules.diagnostics,
+            files: files.map((file) => ({
+                filePath: file.filePath,
+                summary: file.summary,
+                issues: file.issues,
+                ...(file.densityIssues ? {densityIssues: file.densityIssues} : {}),
+            })),
+            summary: aggregateSummary(files),
+        };
+    }
+    const {namespaces, ...registry} = loadedRules.summary;
+    const projected = files.map((file) => ({file, compact: projectCheckIssues(file.issues, file.densityIssues)}));
     return {
         kind: "check-multi",
         configPath,
         filter,
-        registry: loadedRules.summary,
+        registry,
         diagnostics: loadedRules.diagnostics,
-        files: files.map((file) => ({
+        rules: mergeCompactRules(projected.map((entry) => entry.compact.rules)),
+        files: projected.map(({file, compact}) => ({
             filePath: file.filePath,
             summary: file.summary,
-            issues: file.issues,
-            ...(file.densityIssues ? {densityIssues: file.densityIssues} : {}),
+            issues: compact.issues,
+            ...(compact.densityIssues ? {densityIssues: compact.densityIssues} : {}),
         })),
         summary: aggregateSummary(files),
     };
@@ -227,8 +266,14 @@ export function createLLMRulesJsonReport(configPath: string | null, loadedRules:
     };
 }
 
-export function formatJsonReport(report: CheckJsonReport | CheckMultiJsonReport | FixReport | LLMRulesJsonReport): string {
-    return JSON.stringify(report, null, 2);
+/**
+ * 序列化 JSON 报告。
+ *
+ * @param pretty 是否缩进。缺省缩进，便于人工与 diff 阅读；紧凑 check 报告传 false——
+ *   它的消费者是 Agent，缩进在长清单上纯属上下文开销（本仓样本上占 25%）。
+ */
+export function formatJsonReport(report: CheckJsonReport | CheckDetailJsonReport | CheckMultiJsonReport | CheckMultiDetailJsonReport | FixReport | LLMRulesJsonReport, pretty = true): string {
+    return pretty ? JSON.stringify(report, null, 2) : JSON.stringify(report);
 }
 
 /** fix 命令的 stylish 输出：逐文件规则计数 + 变更行预览，末尾汇总。 */
@@ -330,44 +375,35 @@ export function formatLLMRules(rules: LLMRuleRecord[], diagnostics: RegistryDiag
         if (!rule) {
             continue;
         }
+        // 元数据压成一行、示例压成一行：这段是 Agent 每轮都要读的参考材料，
+        // 逐字段插空行会让 8 条规则膨胀到 300 行以上，纯属上下文浪费。
         lines.push(`规则 ${ruleIndex + 1}: ${pc.cyan(rule.id)} - ${rule.title}`);
-        lines.push("");
-        lines.push(`namespace: ${rule.namespace}`);
-        lines.push("");
-        lines.push(`来源: ${rule.ruleset}`);
-        lines.push("");
-        lines.push(`级别: ${rule.level}`);
-        lines.push("");
+        lines.push(pc.dim(`  namespace: ${rule.namespace}；来源: ${rule.ruleset}；级别: ${rule.level}`));
         if (rule.note) {
-            lines.push(`说明: ${rule.note}`);
-            lines.push("");
+            lines.push(pc.dim(`  说明: ${rule.note}`));
         }
-        lines.push("判断标准:");
         lines.push("");
+        lines.push("判断标准:");
         lines.push(rule.detector.prompt);
         lines.push("");
 
         if (rule.examples && rule.examples.length > 0) {
             lines.push("判断示例:");
-            lines.push("");
             for (let i = 0; i < rule.examples.length; i++) {
                 const example = rule.examples[i];
                 if (!example) {
                     continue;
                 }
-                lines.push(`示例 ${i + 1}:`);
-                lines.push("");
-                lines.push(`坏例: ${example.bad}`);
+                const parts = [`坏例: ${example.bad}`];
                 if (example.good) {
-                    lines.push("");
-                    lines.push(`好例: ${example.good}`);
+                    parts.push(`好例: ${example.good}`);
                 }
                 if (example.reason) {
-                    lines.push("");
-                    lines.push(`理由: ${example.reason}`);
+                    parts.push(`理由: ${example.reason}`);
                 }
-                lines.push("");
+                lines.push(`  ${i + 1}. ${parts.join("｜")}`);
             }
+            lines.push("");
         }
 
         lines.push("----");

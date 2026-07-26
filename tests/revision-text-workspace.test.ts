@@ -62,18 +62,19 @@ describe("RevisionTextWorkspace", () => {
 
     it("返回 CLI 同构带行号报告，并只应用 auto 机械修复", async () => {
         const workspace = new RevisionTextWorkspace({
-            current: {revisionId: "r2", ordinal: 2, body: "第一行正常。\n这里！！重复，尾巴……...。"},
+            current: {revisionId: "r2", ordinal: 2, body: "第一行正常。\n这里猛地重复，尾巴……...。"},
             source: fakeSource(),
         });
 
         const checked = await workspace.lintCheck({review: "all", showLines: true});
         expect(checked.report).toContain("2:");
-        expect(checked.report).toContain("cn.punctuation.dedup.repeated-symbols");
-        expect(checked.issues.find((issue) => issue.rule.id === "cn.punctuation.dedup.repeated-symbols"))
-            .toMatchObject({line: 2, match: "！！", rule: {review: "human", fixability: "manual"}});
+        // 人工桶命中要带行号与 review/fixability；auto 桶命中才进 lint_fix。
+        expect(checked.report).toContain("cn.modifier.stacked-degree-adverbs");
+        expect(checked.issues.find((issue) => issue.rule.id === "cn.modifier.stacked-degree-adverbs"))
+            .toMatchObject({line: 2, match: "猛地", rule: {review: "human", fixability: "manual"}});
 
         const fixed = await workspace.lintFix();
-        expect(fixed.body).toBe("第一行正常。\n这里！！重复，尾巴……。");
+        expect(fixed.body).toBe("第一行正常。\n这里猛地重复，尾巴……。");
         expect(fixed.changes).toMatchObject([{ruleId: "cn.punctuation.dedup.ellipsis-dash-tail"}]);
     });
 
@@ -111,14 +112,21 @@ describe("RevisionTextWorkspace", () => {
     });
 
     it("lint_check 截断时明确报告总命中、展示数和省略数", async () => {
-        const body = Array.from({length: 60}, (_, index) => `第${index + 1}行！！`).join("\n");
+        const body = Array.from({length: 60}, (_, index) => `第${index + 1}行猛地。`).join("\n");
         const workspace = new RevisionTextWorkspace({current: {revisionId: "r2", ordinal: 2, body}, source: fakeSource()});
 
         const result = await workspace.lintCheck({review: "all", showLines: true});
 
         expect(result.issues).toHaveLength(50);
         expect(result.truncated).toBe(true);
-        expect(result.report).toContain("总命中 61 条，当前展示 50 条，省略 11 条");
+        // 断言预算合同本身（总命中 = 展示 + 省略），不锁死具体总数——
+        // 总数会随每轮规则整理漂移，硬编码它会让这个用例在规则改动时假失败。
+        const budget = result.report.match(/总命中 (\d+) 条，当前展示 (\d+) 条，省略 (\d+) 条/);
+        expect(budget).not.toBeNull();
+        const [total, shown, omitted] = budget!.slice(1).map(Number) as [number, number, number];
+        expect(shown).toBe(50);
+        expect(total).toBeGreaterThan(50);
+        expect(omitted).toBe(total - shown);
     });
 
     it("逐检测器返回原始热力图行号，并标记脏工作副本结果过期", async () => {

@@ -10,9 +10,10 @@
         "url": "git@github.com:notnotype/llmlint.git"
     },
     "scripts": {
-        "test": "bun run test:vitest && bun run test:bun",
+        "test": "bun run registry:build && bun run test:vitest && bun run test:bun",
         "test:vitest": "vitest run --exclude tests/agent-invocation-revision-migration.test.ts",
         "test:bun": "bun test tests/agent-invocation-revision-migration.test.ts web/tests/nuxt/use-agent-chat.test.ts evals",
+        "registry:build": "cd web && bun scripts/build-registry.ts",
         "typecheck": "tsc --noEmit --pretty false",
         "verify": "bun run typecheck && bun test && bun skill/bin/llmlint.ts --version && bun skill/bin/llmlint.ts show-llm-rules --format json",
         "eval:fixture": "bun evals/score.ts --corpus evals/fixtures/corpus --out .agent/evals/fixture-report --min-support 1",

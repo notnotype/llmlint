@@ -25,6 +25,8 @@ type GlobalOptions = {
     review?: string;
     scanAll?: boolean;
     showLines?: boolean;
+    /** JSON 输出内联完整规则对象；缺省为紧凑形态（规则元数据去重到顶层 rules）。 */
+    ruleDetail?: boolean;
     write?: boolean;
     /** commander 的 --no-cache 会落成 cache:false。 */
     cache?: boolean;
@@ -133,6 +135,7 @@ export async function runCli(argv: string[]): Promise<void> {
         .option("--review <scope>", "按审查受众过滤：agent（默认）、human、none 或 all")
         .option("--scan-all", "关闭 Markdown 区域遮罩，扫描代码块 / 链接等全部内容")
         .option("--show-lines", "在 stylish 输出中显示完整命中行")
+        .option("--rule-detail", "JSON 输出内联完整规则对象（detector / source / scope）与逐 namespace 明细；缺省为紧凑形态")
         .action(async (files: string[], commandOptions: GlobalOptions | Command) => {
             try {
                 const options = mergeOptions(program, commandOptions);
@@ -393,10 +396,11 @@ async function checkFiles(inputs: string[], options: GlobalOptions): Promise<voi
     });
 
     const color = resolveColor(output);
+    const printOptions: PrintOptions = {review, minLevel, showLines: options.showLines === true, ruleDetail: options.ruleDetail === true, color};
     if (results.length === 1) {
-        printSingle(results[0]!, configPath, loadedRules, output, {review, minLevel, showLines: options.showLines === true, color});
+        printSingle(results[0]!, configPath, loadedRules, output, printOptions);
     } else {
-        printMulti(results, configPath, loadedRules, output, {review, minLevel, showLines: options.showLines === true, color});
+        printMulti(results, configPath, loadedRules, output, printOptions);
     }
     // 退出码跟随可见视图：任一文件存在未被过滤掉的 high 命中（含密度指纹）即置 1。
     if (results.some((result) => hasHighLevelIssue(result.issues) || hasHighLevelDensity(result.densityIssues))) {
@@ -409,7 +413,7 @@ function hasHighLevelDensity(densityIssues: DensityIssue[] | undefined): boolean
     return (densityIssues ?? []).some((issue) => issue.rule.level === "high");
 }
 
-type PrintOptions = {review: Review | "all"; minLevel: RuleLevel; showLines: boolean; color: boolean};
+type PrintOptions = {review: Review | "all"; minLevel: RuleLevel; showLines: boolean; ruleDetail: boolean; color: boolean};
 
 /** 单文件输出：保持与历史一致的 JSON / stylish 形态。 */
 function printSingle(result: FileResult, configPath: string | null, loadedRules: Awaited<ReturnType<typeof loadRules>>, output: LlmlintOutput, options: PrintOptions): void {
@@ -421,9 +425,10 @@ function printSingle(result: FileResult, configPath: string | null, loadedRules:
         color: options.color,
         densityIssues: result.densityIssues ?? [],
         ...(options.showLines ? {showLines: true} : {}),
+        ...(options.ruleDetail ? {ruleDetail: true} : {}),
     };
     console.log(output === "json"
-        ? formatJsonReport(createCheckJsonReport(result.filePath, configPath, result.issues, loadedRules, reportOptions))
+        ? formatJsonReport(createCheckJsonReport(result.filePath, configPath, result.issues, loadedRules, reportOptions), options.ruleDetail)
         : formatCheckReport(result.filePath, result.issues, loadedRules, reportOptions));
 }
 
@@ -436,7 +441,7 @@ function printMulti(results: FileResult[], configPath: string | null, loadedRule
         hiddenByLevel: results.reduce((sum, result) => sum + result.hiddenByLevel, 0),
     };
     if (output === "json") {
-        console.log(formatJsonReport(createMultiCheckJsonReport(configPath, results, loadedRules, filter)));
+        console.log(formatJsonReport(createMultiCheckJsonReport(configPath, results, loadedRules, filter, options.ruleDetail), options.ruleDetail));
         return;
     }
     const sections = results.map((result, index) => formatCheckReport(result.filePath, result.issues, loadedRules, {
