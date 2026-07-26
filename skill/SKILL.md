@@ -216,6 +216,8 @@ bun "<skill-root>/bin/llmlint.ts" detect .agent/polish-output.md --format json
 
 ## Rule Author Notes
 
+完整的规则数据模型（磁盘形态、三种 detector、loader 不变量、命中类型、紧凑投影）见 [rule-model.md](references/rule-model.md)。下面只列写规则时最容易踩的几条。
+
 - `scope.layer:"narrative"` 扫描的是引号外等长占位视图；引号段呈现为等长 `。`。规则不能依赖“数句号”判断。
 - `scope.layer:"dialogue"` 扫描成对引号和 `【】` 面板内文本，适合公告/系统台词。
 - `density` 表示分布指纹，命中一条代表全文或一段的统计结论，不能机械替换。

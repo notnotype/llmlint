@@ -1,6 +1,8 @@
 # 规则模型 v3 设计：扫描域 / 密度检测器 / 具名 handler / 词级白名单
 
 > Task 23 子设计。目标：让声明式规则模型能收下 story-deslop 的校准检测器，同时保住「规则是可共享数据」与「scanText/materializeRules 是浏览器可用纯函数」两条底线。
+>
+> ⚠ **本文件是设计时的提案与权衡记录，不随实现更新，已知与当前实现有出入**（例如 long-paragraph 已从 density 改为 handler）。当前规则数据模型的活契约是 [../../../skill/references/rule-model.md](../../../skill/references/rule-model.md)；两者冲突以活契约和源码为准。本文件保留是为了记录「当初为什么这样选」。
 
 ## 0. 设计底线
 

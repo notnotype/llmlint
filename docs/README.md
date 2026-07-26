@@ -18,6 +18,7 @@
 - [../README.md](../README.md) / [../README.en.md](../README.en.md)：项目入口（中文 / English）。
 - [tasks/README.md](tasks/README.md)：任务 walkthrough 规则。
 - [tasks/TEMPLATE.md](tasks/TEMPLATE.md)：新任务 walkthrough 模板。
+- [../skill/references/rule-model.md](../skill/references/rule-model.md)：**规则数据模型的活契约**（磁盘形态、detector、loader 不变量、命中类型、报告投影）。写规则或改规则模型前先读；`tests/rule-model-doc.test.ts` 守着它不漂移。
 - [../skill/references/cli-usage.md](../skill/references/cli-usage.md)：CLI 参数、输出格式、JSON schema 稳定参考。
 - [../skill/references/patterns.md](../skill/references/patterns.md)：中文规则模式库。
 - [../skill/references/workflow.md](../skill/references/workflow.md)：6 步润色流程。

@@ -34,7 +34,7 @@
 - `docs/README.md`：文档体系入口，说明 `docs/` 目录分工。
 - `docs/tasks/README.md`：重大任务 walkthrough 规则和维护要求。
 - `docs/tasks/TEMPLATE.md`：新任务 walkthrough 模板。
-- `skill/references/`：稳定实现契约与参考——`cli-usage.md`（CLI 参数/输出/JSON schema）、`patterns.md`（中文规则模式库）、`workflow.md`（6 步润色流程）。
+- `skill/references/`：稳定实现契约与参考——**`rule-model.md`（规则数据模型活契约，写规则/改规则模型前必读）**、`cli-usage.md`（CLI 参数/输出/JSON schema）、`patterns.md`（中文规则模式库）、`workflow.md`（6 步润色流程）。
 - `evals/README.md`：评测 harness 用法（怎么跑）；方法论见 `evals/METHODOLOGY.md`。
 
 ## 文档规范
@@ -44,6 +44,8 @@
 - `docs/tasks/<order>-<task-slug>/README.md` 是 active 重大任务的持续 walkthrough；归档任务在 `docs/tasks/archived/<task-slug>/README.md`。每个重大任务都应有一个任务目录，记录用户需求、目标、执行过程、关键决策、变更文件、验证结果和后续 TODO。
 - 同一功能后续调节时，继续更新原任务 walkthrough，不要每轮新建碎片文档。
 - `docs/` 放文档入口、模块说明、调研、草案、归档和任务 walkthrough。调研资料放 `docs/research/`，未定稿草案放 `docs/drafts/`，过期但仍有参考价值的内容放 `docs/archived/`。
+- **`skill/references/rule-model.md` 是规则数据模型的活契约，必须随实现同步更新**：`src/types.ts` 规则相关类型字段增删或语义变化、新增/移除 detector 类型、新增/移除 `HANDLER_REGISTRY` 条目、loader 补全优先级或不变量变化、紧凑投影字段变化、新增结构性守卫。`tests/rule-model-doc.test.ts` 会双向校验 detector 与 handler 名单，漏更新会失败。任务目录里的 `rule-model-v3-design.md` 是历史设计文档，不随实现更新，冲突时以活契约和源码为准。
+- 规模数字（规则条数、桶分布）只写 `PROJECT-STATUS.md`，不要写进 `skill/references/`——那些会漂移。
 - 移动文档或改名时，必须同步更新交叉链接，避免留下绝对路径链接和旧路径引用。
 - 纯问答、只读探索、无状态变化的失败尝试，不强制更新 `PROJECT-STATUS.md` 或任务 walkthrough。
 
