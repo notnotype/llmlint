@@ -6,6 +6,12 @@ node_modules/
 # Agent polish workflow outputs (.agent/polish-input.md / polish-plan.md / polish-output.md ...)
 .agent/
 
+# 本地开发数据库（web 的 DATABASE_URL=file:./data.db 默认落在仓库根）
+data.db
+data.db-journal
+data.db-wal
+data.db-shm
+
 # 日志 / Logs
 *.log
 
