@@ -11,7 +11,7 @@ llmlint 是面向 LLM 输出的文本 lint skill。CLI 负责稳定、可复现�
 
 ## Runtime
 
-CLI 用 **Bun** 或 **Node + `tsx`** 运行。先从 SkillCatalog 的 `location` 取得当前 `SKILL.md` 绝对路径，并把它的父目录记为 `<skill-root>`。下文尖括号是占位符，执行前必须替换为实际绝对路径：
+CLI 用 **Bun** 或 **Node + `tsx`** 运行。把 SkillCatalog 提供的绝对 `root` 记为 `<skill-root>`；若宿主 catalog 只提供 `SKILL.md` 的绝对 `location` / source locator，则使用其父目录。下文尖括号是占位符，执行前必须替换为实际绝对路径：
 
 ```bash
 bun "<skill-root>/bin/llmlint.ts" <command>
@@ -117,6 +117,7 @@ bun "<skill-root>/bin/llmlint.ts" config set detector.proxy http://127.0.0.1:789
   - **整篇层（绝对）**：`docPAi >= 0.85` 才说「这篇整体可疑」。这是唯一使用绝对阈值的地方。
   - **文内层（相对）**：按 `chunks[].rank`（P(AI) 文内降序位次）取两端，各取 `ceil(chunk 数 / 4)` 个。`relative` 字段是该 chunk 相对本篇均值的偏离。
 - 四象限有效性守门：先看 `spread`（文内 P(AI) 极差）。**`spread < 0.15` 时四象限对这篇不适用**——整篇 AI 生成的文本常常全部 chunk 都在 0.98 以上，此时「高位 / 低位」只是噪声。这种情况直接报告「整篇均匀可疑」，改用规则信号密度排候选优先级，不要硬套象限。
+  - 0.15 这个数是**未校准的起点**：它只在一篇 `spread` 0.707 的样本上定过方向，那篇根本没触及边界。所以不要把它当硬判据——`spread` 落在 0.1–0.2 区间时，两种读法都要在报告里说明，并以规则信号为主。
 - `spread >= 0.15` 时做四象限交叉：
   - 规则密集 × 文内高位：确认疑难，优先读上下文，必要时交用户判定。
   - 规则静默 × 文内高位：漏网新规则候选。记录片段和观察，不直接大改。

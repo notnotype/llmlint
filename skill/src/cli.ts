@@ -38,7 +38,7 @@ type FileResult = CheckFileEntry & {hiddenByReview: number; hiddenByLevel: numbe
 type DetectFileResult = DetectPayload & {filePath: string; cached: boolean; content: string};
 /** 报告层的单个 chunk：在缓存 payload 之外补文内位次与相对偏离。 */
 type DetectChunkReport = DetectPayload["chunks"][number] & {
-    /** 文内 P(AI) 降序位次，1 起。用于取热区/冷区，取代绝对阈值。 */
+    /** 文内 P(AI) 降序位次，1 起。用于取文内两端（最可疑 / 最不可疑），取代绝对阈值。 */
     rank: number;
     /** 相对文档均值的偏离（pAi − docPAi）。正=比本篇平均更可疑。 */
     relative: number;
@@ -56,12 +56,15 @@ type DetectFileReport = {
     chunks: DetectChunkReport[];
 };
 
-/** 整篇层（绝对）判据：docPAi 达到该值即「这篇整体可疑」。只用于整篇结论，不用于挑文内热区。 */
+/** 整篇层（绝对）判据：docPAi 达到该值即「这篇整体可疑」。只用于整篇结论，不用于挑文内段落。 */
 const DETECT_DOC_SUSPICIOUS = 0.85;
 /**
  * 文内 P(AI) 极差下限。低于它说明 chunk 之间没有可分辨的高低差——
- * 整篇 AI 生成的文本常常全部 chunk 都在 0.98 以上，此时「热区 / 冷区」只是噪声，
+ * 整篇 AI 生成的文本常常全部 chunk 都在 0.98 以上，此时文内两端之分只是噪声，
  * 四象限（规则信号 × 检测热力）给不出可执行结论，应改用规则信号密度排优先级。
+ *
+ * 未校准：只在一篇 spread 0.707 的样本上定过方向，那篇没有触及边界。改动前先在多篇实测上校准，
+ * 不要因为单篇观感调这个数。提示词侧已声明它是起点而非定论。
  */
 const DETECT_SPREAD_FLOOR = 0.15;
 
@@ -587,8 +590,12 @@ async function detectFiles(inputs: string[], options: GlobalOptions): Promise<vo
         results.push(payload);
     }
 
-    const report = {kind: "detect" as const, files: results.map(toDetectReport)};
-    console.log(output === "json" ? JSON.stringify(report, null, 2) : formatDetectReport(results));
+    // stylish 分支自己按文件算派生字段（它还要用 result.content 取预览文本），这里不预先算一遍。
+    if (output === "json") {
+        console.log(JSON.stringify({kind: "detect" as const, files: results.map(toDetectReport)}, null, 2));
+        return;
+    }
+    console.log(formatDetectReport(results));
 }
 
 async function detectContent(filePath: string, content: string, detectorOptions: ReturnType<typeof defaultDetectorOptions>, transport: DetectorTransport, noCache: boolean): Promise<DetectFileResult> {
@@ -643,7 +650,7 @@ async function detectContent(filePath: string, content: string, detectorOptions:
  * 文内最可疑 / 最不可疑各取的 chunk 数：`ceil(总数 / 4)`，至少 1。
  * 绝对阈值（如 P(AI) ≥ 0.85）在整体 AI 文本上会把全文标红，四象限失去分辨力；相对排序不会。
  */
-function hotChunkCount(total: number): number {
+function edgeChunkCount(total: number): number {
     return Math.max(1, Math.ceil(total / 4));
 }
 
@@ -696,7 +703,7 @@ function formatDetectReport(results: DetectFileResult[]): string {
             continue;
         }
 
-        const count = hotChunkCount(report.chunks.length);
+        const count = edgeChunkCount(report.chunks.length);
         const byScore = [...report.chunks].sort((left, right) => left.rank - right.rank);
         // 刻意不用「热区 / 冷区」：文内低位不等于检测器认为它像人写（本篇 rank 6 仍有 P(AI)=0.929），
         // 绝对判断只在 mean P(AI) 那一层做。红绿措辞会诱导「低位 ⇒ 规则误报」的错误推论。

@@ -184,7 +184,9 @@ chunk 5（L67–78）几乎全是对白，P(AI) 0.982，规则只 1 条命中。
 
 紧凑投影抽到 `skill/src/check-report.ts`，与 `fix.ts` / `rule-registry.ts` 同一取舍：纯函数、无 `picocolors`，CLI 与 web 共用。规则元数据按 id 去重到顶层 `rules`，命中只留 `ruleId` + 位置 + 证据，`context` 各裁 24 码点并标省略号，`registry` 去掉 `namespaces` 明细，JSON 不缩进。`--rule-detail` 恢复完整形态。
 
-实测：`--review all` 84936 → **19720** 字节（−77%），`--review agent` 17907 → **3951**（−78%），`--rule-detail` 输出 84936 与改动前逐字节一致。`show-llm-rules` stylish 从 322 行压到 165 行。
+实测（Phase 1 当时）：`--review all` 84936 → **19720** 字节（−77%），`--review agent` 17907 → **3951**（−78%），`--rule-detail` 输出 84936 与改动前逐字节一致。`show-llm-rules` stylish 从 322 行压到 165 行。
+
+Phase 3 给两条比喻规则加了带证据的 `note` 之后绝对值上移：同一样本现在紧凑 20856 / detail 88802（detail 涨得多，因为 `note` 在紧凑形态每规则只出现一次，detail 形态逐处内联 8 次以上）。压缩比不变，仍约 −77%。
 
 与计划的出入：① 计划写「投影放 `reporter.ts`」，实施时改为独立模块——web 从 `reporter.ts` 导入会把终端着色库拖进浏览器 bundle。② 计划没提去掉 JSON 缩进；实测缩进占 25% 体积，`--format json` 的消费者是 Agent，所以一并去掉，`--rule-detail` 保留缩进。③ 计划的「两步落地」（先加函数保持旧默认、再翻转）没有分成两个 commit，改为「先写投影 + 单测跑绿、再翻默认值」，省掉一次废弃提交但保留了隔离验证。
 
@@ -207,6 +209,19 @@ chunk 5（L67–78）几乎全是对白，P(AI) 0.982，规则只 1 条命中。
 结论是不新增规则，详见 [dialogue-layer-research.md](dialogue-layer-research.md)。检测器在对白上无系统性偏高（真人对白 P(AI) 中位 0.122 vs AI 0.709），所以缺口是真的；但从单篇高分样本归纳的 5 个形态加轮次分布 2 项，在全语料对白层上全部不成立（富集 0.7–2.4x，3 项方向相反，分布判别 AUC≈0.5）。
 
 与计划的出入：计划预期「若基线给出正向信号则产出候选规则清单」。基线确实给了正向信号（第一问通过），但第二问失败——所以产出的是**反证清单**而不是候选清单。这是「检测器能分、表层规则分不了」的又一实例，与 Task 08 的 AUC gap、Task 14 的 −0.7pp 同源。
+
+### 修复轮自审（2026-07-26）
+
+修完 7 项发现后又走了一遍链路复核，用脚本把提示词里宣称的契约变成断言实跑：`check` 24 项（紧凑形态字段白名单、`ruleId` 全部可查、字典无冗余、前后文裁剪确实发生、`--rule-detail` 往返、`check-multi` 顶层共享字典）、`detect` 15 项（`rank` 是 1..n 的排列且与 `pAi` 降序一致、`spread == max − min`、`relative == pAi − docPAi`、`maxPAi == rank 1`、`cached:true` 时派生字段仍在、`chunks` 保持原文顺序）。全部通过。同时确认 `--review all` 的 human 桶纪律有机制支撑——紧凑投影保留了 `rules[ruleId].review`，Agent 能分辨桶，若当初把 `review` 一起裁掉，「human 桶默认不进修」就是无法执行的空话。
+
+自审又查出 4 项问题，已一并修掉：
+
+1. **7 个文档文件一直没提交**。`<skill-root>` 推导口径（优先用 catalog 的绝对 `root`，宿主只给 `SKILL.md` locator 时退回父目录）改了 7 处文件，从验收轮起就留在工作树里没进任何提交——上一轮「工作树干净」的结论是错的。内容已对着 NeuroBook `server/agent/profiles/profile-dsl.ts:1999-2000` 核实：catalog 确实同时输出 `root:` 和 `location:`，口径成立。
+2. **`cli-usage.md` 的 `detect` JSON 示例是不可能产生的输出**。示例只列 1 个 chunk 却写 `spread: 0.79`，而 `chunkSpread` 在 chunk 少于 2 个时恒返回 0；`docPAi: 0.12` 对上 chunk `pAi: 0.91` 也不可能，因为 `docPAi` 是各 chunk 按可见字数加权的均值（`skill/src/detect/transport.ts:133-155`），单 chunk 时必然等于该 chunk 的 `pAi`。这个示例正是 Agent 学字段语义的地方，它会同时教出「docPAi 与 chunks 无关」和「spread 与 chunk 数无关」，后者刚好抵掉本轮新加的 `spread` 守门。改成自洽的 2-chunk 示例，并补三条可自检的恒等关系。
+3. **0.15 守门阈值缺「未校准」限定**。修复计划的风险节明确要求「文档里要写明它是可调起点而不是定论」，实施时漏了——SKILL.md / workflow.md / cli-usage.md / `cli.ts` 四处都写成硬判据。这个数是从一篇 `spread` 0.707 的样本上拍的，那篇根本没触及边界。四处补上限定，并明确 `spread` 落在 0.1–0.2 时按两种读法都说明、以规则信号为主。
+4. **代码注释里残留「热区 / 冷区」措辞**，正是报告层刻意弃用的说法（`rank` 字段注释、两个常量注释）。私有函数 `hotChunkCount` 同步改名 `edgeChunkCount`。留着它会让错误心智模型从注释爬回提示词。顺带把 `detectFiles` 里无条件预算一遍 `toDetectReport`（stylish 分支用不上）收进 json 分支。
+
+体积数字随之修正：Phase 3 加的规则 `note` 让绝对值上移，压缩比不变。
 
 ## TODO / Follow-ups
 

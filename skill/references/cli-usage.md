@@ -1,6 +1,6 @@
 # CLI 工具使用说明
 
-> 下文命令用 `bun` 演示；CLI 是 TypeScript，参数与运行器无关 —— Bun 原生运行，Node 通过 [`tsx`](https://github.com/privatenumber/tsx) 运行（把 `bun` 换成 `npx tsx`）。裸 `node` 不行：源码用了无扩展名相对导入，需 `tsx` 或 Bun 解析。`<skill-root>` 是 SkillCatalog `location` 所指 `SKILL.md` 的父目录；尖括号只是占位符，执行前替换为实际绝对路径。
+> 下文命令用 `bun` 演示；CLI 是 TypeScript，参数与运行器无关 —— Bun 原生运行，Node 通过 [`tsx`](https://github.com/privatenumber/tsx) 运行（把 `bun` 换成 `npx tsx`）。裸 `node` 不行：源码用了无扩展名相对导入，需 `tsx` 或 Bun 解析。`<skill-root>` 优先取 SkillCatalog 提供的绝对 `root`；宿主只提供 `SKILL.md` 的绝对 `location` / source locator 时，使用其父目录。尖括号只是占位符，执行前替换为实际绝对路径。
 
 ## 首次使用：安装依赖
 
@@ -300,12 +300,13 @@ bun "<skill-root>/bin/llmlint.ts" check chapter.md --review all --rule-detail --
   "files": [
     {
       "filePath": "chapter.md",
-      "docPAi": 0.12,
+      "docPAi": 0.53,
       "maxPAi": 0.91,
-      "spread": 0.79,
+      "spread": 0.71,
       "cached": false,
       "chunks": [
-        {"span": [0, 120], "line": 1, "pAi": 0.91, "rank": 1, "relative": 0.79}
+        {"span": [0, 120], "line": 1, "pAi": 0.91, "rank": 1, "relative": 0.38},
+        {"span": [120, 260], "line": 9, "pAi": 0.2, "rank": 2, "relative": -0.33}
       ]
     }
   ]
@@ -314,7 +315,9 @@ bun "<skill-root>/bin/llmlint.ts" check chapter.md --review all --rule-detail --
 
 `spread`（文内 P(AI) 极差 = max − min）、`rank`（文内 P(AI) 降序位次，1 起）和 `relative`（`pAi − docPAi`）是报告层派生字段，不写进 content-hash 缓存，所以 `cached:true` 时同样存在。
 
-用法：`docPAi` 判整篇是否可疑（绝对阈值 0.85）；挑文内段落用 `rank` 取两端，不要用绝对阈值——整篇 AI 生成的文本常常全部 chunk 都超过任何固定阈值。`spread < 0.15` 说明文内没有可分辨的高低差，此时段落级的「最可疑 / 最不可疑」只是噪声。`chunks` 保持原文顺序，位次单独由 `rank` 表达。
+`docPAi` 是各 chunk 分数按可见字数加权的均值，不是独立打的一次分。由此有两条恒等关系可用来自检：单 chunk 文件的 `docPAi` 必然等于该 chunk 的 `pAi`，且 `spread` 必然为 0（只有一个 chunk 时无极差可言）；`maxPAi` 必然等于 `rank` 为 1 的那个 chunk 的 `pAi`。
+
+用法：`docPAi` 判整篇是否可疑（绝对阈值 0.85）；挑文内段落用 `rank` 取两端，不要用绝对阈值——整篇 AI 生成的文本常常全部 chunk 都超过任何固定阈值。`spread < 0.15` 说明文内没有可分辨的高低差，此时段落级的「最可疑 / 最不可疑」只是噪声（0.15 是未校准的起点，只在一篇 `spread` 0.707 的样本上定过方向，落在 0.1–0.2 区间时不要当二值判据）。`chunks` 保持原文顺序，位次单独由 `rank` 表达。
 
 ## Regex Detector 与 LLM Detector
 

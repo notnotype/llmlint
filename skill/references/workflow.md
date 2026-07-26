@@ -10,7 +10,7 @@
 
 ## 步骤 0：install 依赖门
 
-从 SkillCatalog 的 `location` 取得当前 `SKILL.md` 绝对路径，将父目录记为 `<skill-root>`。尖括号是占位符，执行前必须替换为实际绝对路径。首次使用当前 skill，或依赖合同更新导致 `node_modules` 缺失时，在任何 CLI 命令前运行：
+优先把 SkillCatalog 提供的绝对 `root` 记为 `<skill-root>`；宿主只提供 `SKILL.md` 的绝对 `location` / source locator 时，使用其父目录。尖括号是占位符，执行前必须替换为实际绝对路径。首次使用当前 skill，或依赖合同更新导致 `node_modules` 缺失时，在任何 CLI 命令前运行：
 
 ```bash
 bun install --cwd "<skill-root>" --frozen-lockfile
@@ -113,6 +113,8 @@ bun "<skill-root>/bin/llmlint.ts" config set detector.proxy http://127.0.0.1:789
 
 - **`spread < 0.15`：四象限对这篇不适用**。chunk 之间没有可分辨的高低差，两端之分只是噪声。报告「整篇均匀可疑（或均匀不可疑）」，改用规则信号密度排候选优先级。
 - `spread >= 0.15`：按下表交叉。
+
+0.15 是**未校准的起点**，不是定论：它只在一篇 `spread` 0.707 的样本上定过方向，那篇没有触及边界，后续需要在更多实测篇目上校准。`spread` 落在 0.1–0.2 之间时按两种读法都说明一遍，并以规则信号为主，不要靠这个数做二值切换。
 
 | 规则信号 | 文内位次 | 处理 |
 |---|---|---|
