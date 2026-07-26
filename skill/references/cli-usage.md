@@ -37,7 +37,7 @@ bun "<skill-root>/bin/llmlint.ts" config set sharing.tier stats
 bun "<skill-root>/bin/llmlint.ts" check <文件路径>
 ```
 
-估算文本 P(AI) 并输出热区：
+估算文本 P(AI) 并按文内位次列出最可疑 / 最不可疑段落：
 
 ```bash
 bun "<skill-root>/bin/llmlint.ts" detect <文件路径>
@@ -302,14 +302,19 @@ bun "<skill-root>/bin/llmlint.ts" check chapter.md --review all --rule-detail --
       "filePath": "chapter.md",
       "docPAi": 0.12,
       "maxPAi": 0.91,
+      "spread": 0.79,
       "cached": false,
       "chunks": [
-        {"span": [0, 120], "line": 1, "pAi": 0.91}
+        {"span": [0, 120], "line": 1, "pAi": 0.91, "rank": 1, "relative": 0.79}
       ]
     }
   ]
 }
 ```
+
+`spread`（文内 P(AI) 极差 = max − min）、`rank`（文内 P(AI) 降序位次，1 起）和 `relative`（`pAi − docPAi`）是报告层派生字段，不写进 content-hash 缓存，所以 `cached:true` 时同样存在。
+
+用法：`docPAi` 判整篇是否可疑（绝对阈值 0.85）；挑文内段落用 `rank` 取两端，不要用绝对阈值——整篇 AI 生成的文本常常全部 chunk 都超过任何固定阈值。`spread < 0.15` 说明文内没有可分辨的高低差，此时段落级的「最可疑 / 最不可疑」只是噪声。`chunks` 保持原文顺序，位次单独由 `rank` 表达。
 
 ## Regex Detector 与 LLM Detector
 

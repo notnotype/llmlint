@@ -46,10 +46,17 @@ bun "<skill-root>/bin/llmlint.ts" status --format json
 - `configPath`：项目级 `llmlint.config.ts` 路径；没有则为 `null`。
 - `detector`：神经检测器 space、代理状态、缓存目录。
 
+这是**软门**：`initialized:false` 不阻塞 `check` / `detect`。不要因为没初始化就停下不干活，按下面确认完档位继续本轮审稿即可。
+
 如果 `initialized:false`：
-1. 向用户确认共享档位：`off` / `stats` / `fragments` / `full`。默认建议 `stats` 或按项目约束保守选择 `off`。
-2. 说明本版本没有登录，`login` 会保持 `none`。
-3. 用户同意后用用户级配置命令写入，不修改项目级 `llmlint.config.ts`：
+1. 读 `status` 报的 `sharing` 实际值，向用户说明当前档位以及四档各会上传什么：
+   - `off`：什么都不传。
+   - `stats`：只传规则命中统计与检测分数，不含任何原文。
+   - `fragments`：再加疑难片段的原文 span、用户判定和修复前后 diff。
+   - `full`：再加全文修复谱系。
+2. 说明 `sharing.mode`：`ask` 表示每次上传前都会询问，`auto` 表示不再询问。
+3. 说明本版本没有登录（`login` 恒为 `none`），也还没有任何上传通道，所以档位现在不产生实际传输。
+4. 用户确认后用用户级配置命令写入，不修改项目级 `llmlint.config.ts`。只在用户要求改档位时才写 `sharing.tier`：
 
 ```bash
 bun "<skill-root>/bin/llmlint.ts" config set sharing.tier stats
@@ -67,17 +74,25 @@ bun "<skill-root>/bin/llmlint.ts" config get detector.proxy
 
 ### 2. check + detect 双路检测
 
-先跑静态检查：
+先跑静态检查。**创作类正文（小说、散文、剧本）默认用 `--review all`**：
+
+```bash
+bun "<skill-root>/bin/llmlint.ts" check <files...> --review all --format json
+```
+
+非创作文本（技术文档、公告、说明）用默认的 agent 桶就够：
 
 ```bash
 bun "<skill-root>/bin/llmlint.ts" check <files...> --format json
 ```
 
-需要看全部审查桶时加：
+为什么创作类要 `--review all`：默认 agent 桶只收「低误杀、可直接交 Agent 处理」的规则，规则整理已把大量语境敏感规则下沉到 human 桶。实测一篇 P(AI) 0.88 的轻小说，agent 桶只给 5 条命中，而这篇最强的 AI 味特征（比喻密度 19 处 / 10.25 每千字）整体在 human 桶——只看 agent 桶会漏掉本篇最该讨论的问题。
 
-```bash
-bun "<skill-root>/bin/llmlint.ts" check <files...> --review all --format json
-```
+两个桶的用法不同，不要混：
+- `agent` 桶是默认**可修**入口。
+- `human` 桶参与四象限判断、密度判断和「问 / 留」分流，但默认不进「修」。要修 human 桶命中，必须先向用户说明理由并取得同意。
+
+JSON 默认是紧凑形态：规则元数据在顶层 `rules`，命中只带 `ruleId`，`context` 裁到命中前后各 24 字。要看规则的 `detector.targets` / `source` / `scope` 才加 `--rule-detail`（体积大 4 倍以上，日常审稿别用）。
 
 再跑神经检测：
 
@@ -97,13 +112,16 @@ bun "<skill-root>/bin/llmlint.ts" config set detector.proxy http://127.0.0.1:789
 
 把 `check` 与 `detect` 合成一个面向用户的审稿报告：
 
-- 静态分级表：按 `high / medium / low` 和 `review` 桶列出规则命中、密度指纹、handler detail。
-- 热区表：列出 `pAi >= 0.85` 的 chunk 行号范围、P(AI)、短预览。
-- 四象限交叉：
-  - 规则密集 × 热力红：确认疑难，优先读上下文，必要时交用户判定。
-  - 规则静默 × 热力红：漏网新规则候选，记录片段和观察，不直接大改。
-  - 规则密集 × 热力绿：误报候选，优先保留作者声音或调整规则配置。
-  - 双绿：不打扰。
+- 静态分级表：按 `high / medium / low` 和 `review` 桶列出规则命中。密度指纹单列一段，字段是 `hits`（总命中次数）、`perKilo`（每千可见字）、`samples`（去重样本）；handler 命中的动态计数在 `detail`。密度指纹是分布结论，一条代表全文或一段，不能当逐处替换指令。
+- 检测结论分两层，不要混：
+  - **整篇层（绝对）**：`docPAi >= 0.85` 才说「这篇整体可疑」。这是唯一使用绝对阈值的地方。
+  - **文内层（相对）**：按 `chunks[].rank`（P(AI) 文内降序位次）取两端，各取 `ceil(chunk 数 / 4)` 个。`relative` 字段是该 chunk 相对本篇均值的偏离。
+- 四象限有效性守门：先看 `spread`（文内 P(AI) 极差）。**`spread < 0.15` 时四象限对这篇不适用**——整篇 AI 生成的文本常常全部 chunk 都在 0.98 以上，此时「高位 / 低位」只是噪声。这种情况直接报告「整篇均匀可疑」，改用规则信号密度排候选优先级，不要硬套象限。
+- `spread >= 0.15` 时做四象限交叉：
+  - 规则密集 × 文内高位：确认疑难，优先读上下文，必要时交用户判定。
+  - 规则静默 × 文内高位：漏网新规则候选。记录片段和观察，不直接大改。
+  - 规则密集 × 文内低位：**规则与检测器分歧，需人工裁决**。不要仅凭这一点就判定规则误报或建议关规则——文内低位不等于检测器认为它像人写（实测一篇里 rank 最低第二位的 chunk 仍有 P(AI) 0.929），而且检测器本身会漏报。要建议 `llmlint.config.ts` 覆盖，必须另有独立证据：同一规则在真人文本上反复命中，或按规则替换会损失原文信息。
+  - 规则静默 × 文内低位：不打扰。
 - LLM 语义规则：继续执行 `show-llm-rules`，主动阅读全文审查无法静态定位的问题。
 
 每个候选必须归入三类之一：
@@ -112,12 +130,12 @@ bun "<skill-root>/bin/llmlint.ts" config set detector.proxy http://127.0.0.1:789
 - **留**：命中承担剧情、人物、节奏、题材或载体功能，说明保留理由。
 - **问**：证据不足或修改会改变作者意图，把冲突点交给用户判断。
 
-报告不要输出原始 JSON 给用户。只摘取必要行号、规则、热区和建议。
+报告不要输出原始 JSON 给用户。只摘取必要行号、规则、文内位次和建议。
 
 ### 4. 修复 ↔ 复测一轮
 
 生成 `.agent/polish-plan.md`，内容包括：
-- 统计和四象限摘要。
+- 统计摘要，以及四象限摘要（`spread < 0.15` 时改为说明为何不适用）。
 - 明确建议修复、建议保留、需要用户确认的项目。
 - 每项引用行号、原文片段、修复理由。
 
@@ -125,12 +143,14 @@ bun "<skill-root>/bin/llmlint.ts" config set detector.proxy http://127.0.0.1:789
 
 执行每项修复前先读命中前后文，确认它承担的信息、因果、视角和语气。按 **删 → 压 → 换** 处理：先删无信息负担；删后断裂则压缩重复说明；只有必要语义必须保留时才改写。改动限定到解决问题所需的最小范围，不整段重写无关内容。
 
-修复完成后只复测一轮：
+修复完成后只复测一轮（创作类正文同样用 `--review all`）：
 
 ```bash
-bun "<skill-root>/bin/llmlint.ts" check .agent/polish-output.md --format json
+bun "<skill-root>/bin/llmlint.ts" check .agent/polish-output.md --review all --format json
 bun "<skill-root>/bin/llmlint.ts" detect .agent/polish-output.md --format json
 ```
+
+复测的判据是**静态命中是否减少、且没有引入新命中**。检测分数只作参考，不作目标：实测一轮修复后 `docPAi` 可能不降反升，改动最集中的 chunk 甚至升 6 个百分点——「压缩抽象壳」的改写有时更贴近模型惯用表达。看到分数没降不要再开一轮，也不要为了压分数改写更多句子。
 
 如果复测仍有高风险问题，报告剩余风险，不无限循环。不要为了压低检测分数牺牲语义、角色声音或可读性。
 
@@ -146,20 +166,23 @@ bun "<skill-root>/bin/llmlint.ts" detect .agent/polish-output.md --format json
     "updatedAt": "",
     "status": "completed",
     "settings": {
-        "sharingTier": "stats",
+        "sharingTier": "",
         "login": "none"
     },
     "summary": {
         "staticIssues": 0,
         "densityIssues": 0,
-        "hotChunks": 0
+        "docPAi": 0,
+        "spread": 0
     },
     "decisions": [],
     "localConfigSuggestions": []
 }
 ```
 
-疑难片段判定要记录：文件、行号、规则/热区证据、用户判定、保留或修复理由、建议的本地 config 覆盖。上传能力不在本版本实现；远端学习出口只说明“待后续 contributions 命令”。
+`settings.sharingTier` 写 `status` 报的实际值，不要写死。`summary` 记 `docPAi` 与 `spread` 而不是「热区数」——热区数依赖绝对阈值，跨篇不可比。
+
+疑难片段判定要记录：文件、行号、规则与文内位次证据、用户判定、保留或修复理由、建议的本地 config 覆盖。上传能力不在本版本实现；远端学习出口只说明“待后续 contributions 命令”。
 
 本地学习出口只能给 diff 建议，例如关闭某条误报规则、把某 namespace 移到 human 桶、添加 `ignoreTerms`。未经用户批准，不写 `llmlint.config.ts`。
 

@@ -36,13 +36,34 @@ type GlobalOptions = {
 /** 单文件检查结果（含逐文件隐藏统计，供 stylish 逐文件表头使用）。 */
 type FileResult = CheckFileEntry & {hiddenByReview: number; hiddenByLevel: number};
 type DetectFileResult = DetectPayload & {filePath: string; cached: boolean; content: string};
+/** 报告层的单个 chunk：在缓存 payload 之外补文内位次与相对偏离。 */
+type DetectChunkReport = DetectPayload["chunks"][number] & {
+    /** 文内 P(AI) 降序位次，1 起。用于取热区/冷区，取代绝对阈值。 */
+    rank: number;
+    /** 相对文档均值的偏离（pAi − docPAi）。正=比本篇平均更可疑。 */
+    relative: number;
+};
 type DetectFileReport = {
     filePath: string;
     docPAi: number;
     maxPAi: number;
+    /**
+     * 文内 P(AI) 极差（max − min）。低于 DETECT_SPREAD_FLOOR 时四象限对这篇不适用；
+     * chunk 少于 2 个时为 0。
+     */
+    spread: number;
     cached: boolean;
-    chunks: DetectPayload["chunks"];
+    chunks: DetectChunkReport[];
 };
+
+/** 整篇层（绝对）判据：docPAi 达到该值即「这篇整体可疑」。只用于整篇结论，不用于挑文内热区。 */
+const DETECT_DOC_SUSPICIOUS = 0.85;
+/**
+ * 文内 P(AI) 极差下限。低于它说明 chunk 之间没有可分辨的高低差——
+ * 整篇 AI 生成的文本常常全部 chunk 都在 0.98 以上，此时「热区 / 冷区」只是噪声，
+ * 四象限（规则信号 × 检测热力）给不出可执行结论，应改用规则信号密度排优先级。
+ */
+const DETECT_SPREAD_FLOOR = 0.15;
 
 const OUTPUTS = new Set<LlmlintOutput>(["stylish", "json"]);
 const LEVELS = new Set<RuleLevel>(["high", "medium", "low"]);
@@ -618,34 +639,87 @@ async function detectContent(filePath: string, content: string, detectorOptions:
     return {...payload, filePath, cached: false, content};
 }
 
+/**
+ * 文内最可疑 / 最不可疑各取的 chunk 数：`ceil(总数 / 4)`，至少 1。
+ * 绝对阈值（如 P(AI) ≥ 0.85）在整体 AI 文本上会把全文标红，四象限失去分辨力；相对排序不会。
+ */
+function hotChunkCount(total: number): number {
+    return Math.max(1, Math.ceil(total / 4));
+}
+
+/** 文内 P(AI) 极差；chunk 少于 2 个时无极差可言，返回 0。 */
+function chunkSpread(chunks: DetectPayload["chunks"]): number {
+    if (chunks.length < 2) {
+        return 0;
+    }
+    const scores = chunks.map((chunk) => chunk.pAi);
+    return Math.max(...scores) - Math.min(...scores);
+}
+
 function toDetectReport(result: DetectFileResult): DetectFileReport {
+    // 派生字段（rank / relative / spread）在报告层算，刻意不写进缓存 payload：
+    // 否则每次给报告加字段都要让全部 content-hash 缓存失效。
+    const descending = [...result.chunks].sort((left, right) => right.pAi - left.pAi);
+    const rankByChunk = new Map(descending.map((chunk, index) => [chunk, index + 1]));
     return {
         filePath: result.filePath,
         docPAi: result.docPAi,
         maxPAi: result.maxPAi,
+        spread: chunkSpread(result.chunks),
         cached: result.cached,
-        chunks: result.chunks,
+        // chunks 保持原文顺序，位次单独用 rank 表达。
+        chunks: result.chunks.map((chunk) => ({
+            ...chunk,
+            rank: rankByChunk.get(chunk) ?? 1,
+            relative: chunk.pAi - result.docPAi,
+        })),
     };
 }
 
 function formatDetectReport(results: DetectFileResult[]): string {
     const lines: string[] = [];
     for (const result of results) {
+        const report = toDetectReport(result);
         lines.push(`${result.filePath}`);
-        lines.push(`  mean P(AI): ${formatProbability(result.docPAi)}；max P(AI): ${formatProbability(result.maxPAi)}；cached: ${result.cached}`);
-        const hotChunks = result.chunks.filter((chunk) => chunk.pAi >= 0.85);
-        if (hotChunks.length === 0) {
-            lines.push("  热区：无");
+        // 整篇层用绝对判据回答「这篇整体可疑吗」。
+        const docVerdict = report.docPAi >= DETECT_DOC_SUSPICIOUS ? "整体可疑" : "整体不可疑";
+        lines.push(`  mean P(AI): ${formatProbability(report.docPAi)}（${docVerdict}）；max P(AI): ${formatProbability(report.maxPAi)}；文内极差: ${formatProbability(report.spread)}；cached: ${report.cached}`);
+        if (report.chunks.length === 0) {
+            lines.push("  文内分布：无可检测内容");
             lines.push("");
             continue;
         }
-        lines.push("  热区：");
-        for (const chunk of hotChunks) {
-            lines.push(`    L${chunk.line}-${detectEndLine(result, chunk.span[1])}  P(AI)=${formatProbability(chunk.pAi)}  ${previewChunk(result, chunk.span)}`);
+        if (report.spread < DETECT_SPREAD_FLOOR) {
+            // 全篇均匀：热区/冷区之分是噪声，明确告诉消费者四象限在这篇不适用。
+            lines.push(`  文内分布：极差 < ${DETECT_SPREAD_FLOOR}，全篇均匀，四象限不适用；按规则信号密度排优先级。`);
+            lines.push("");
+            continue;
+        }
+
+        const count = hotChunkCount(report.chunks.length);
+        const byScore = [...report.chunks].sort((left, right) => left.rank - right.rank);
+        // 刻意不用「热区 / 冷区」：文内低位不等于检测器认为它像人写（本篇 rank 6 仍有 P(AI)=0.929），
+        // 绝对判断只在 mean P(AI) 那一层做。红绿措辞会诱导「低位 ⇒ 规则误报」的错误推论。
+        lines.push(`  文内最可疑（rank 1–${count} / ${report.chunks.length}）：`);
+        for (const chunk of byScore.slice(0, count)) {
+            lines.push(`    ${formatDetectChunk(result, chunk)}`);
+        }
+        // chunk 数不足 2×count 时两端会重叠，此时不单列低位段。
+        if (report.chunks.length >= count * 2) {
+            lines.push(`  文内最不可疑（rank ${report.chunks.length - count + 1}–${report.chunks.length}，仍需看绝对 P(AI)）：`);
+            for (const chunk of byScore.slice(-count)) {
+                lines.push(`    ${formatDetectChunk(result, chunk)}`);
+            }
         }
         lines.push("");
     }
     return lines.join("\n").trimEnd();
+}
+
+/** 单个 chunk 的一行呈现：行号范围、P(AI)、文内位次、相对文档均值偏离、短预览。 */
+function formatDetectChunk(result: DetectFileResult, chunk: DetectChunkReport): string {
+    const delta = `${chunk.relative >= 0 ? "+" : "-"}${formatProbability(Math.abs(chunk.relative))}`;
+    return `L${chunk.line}-${detectEndLine(result, chunk.span[1])}  P(AI)=${formatProbability(chunk.pAi)}  rank ${chunk.rank}  Δ${delta}  ${previewChunk(result, chunk.span)}`;
 }
 
 function detectEndLine(result: DetectFileResult, end: number): number {

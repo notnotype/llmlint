@@ -5,7 +5,7 @@
 ## 流程概览
 
 ```
-首次 install 依赖门 → status 初始化门 → check + detect → 静态分级表 + 热区 + 四象限 → 修复并复测一轮 → 台账 + 本地学习建议
+首次 install 依赖门 → status 初始化门 → check + detect → 静态分级表 + 两层检测结论 + 四象限 → 修复并复测一轮 → 台账 + 本地学习建议
 ```
 
 ## 步骤 0：install 依赖门
@@ -28,28 +28,36 @@ bun "<skill-root>/bin/llmlint.ts" status --format json
 
 `status` 会报告版本、本地初始化状态、固定 `login:"none"`、共享设置、项目配置路径、检测器 space、代理状态和缓存目录。
 
-如果 `initialized:false`，先向用户确认共享档位，再用 `config set` 写用户级 `settings.json`：
+这是软门，`initialized:false` 不阻塞 `check` / `detect`。
+
+如果 `initialized:false`，读 `status` 报的实际档位，向用户说明四档各上传什么（`off` 什么都不传 / `stats` 只传命中统计与检测分数 / `fragments` 再加疑难片段原文与判定 / `full` 再加全文修复谱系）与 `sharing.mode` 的含义（`ask` 每次询问、`auto` 不再询问），再用 `config set` 写用户级 `settings.json`。只在用户要求改档位时才写 `sharing.tier`：
 
 ```bash
 bun "<skill-root>/bin/llmlint.ts" config set sharing.tier stats
 bun "<skill-root>/bin/llmlint.ts" config set initialized true
 ```
 
+本版本没有任何上传通道，档位现在不产生实际传输。
+
 `config` 只管理用户级 `settings.json`，不会修改项目级 `llmlint.config.ts`。项目级规则变化必须以 diff 建议形式交用户审批。
 
 ## 步骤 2：check + detect
 
-静态检查：
+静态检查。创作类正文（小说、散文、剧本）默认用 `--review all`：
+
+```bash
+bun "<skill-root>/bin/llmlint.ts" check <files...> --review all --format json
+```
+
+非创作文本（技术文档、公告、说明）用默认 agent 桶：
 
 ```bash
 bun "<skill-root>/bin/llmlint.ts" check <files...> --format json
 ```
 
-查看全部审查桶：
+规则整理已把大量语境敏感规则下沉到 `human` 桶，创作类正文只看 agent 桶会漏掉主要问题（实测一篇 P(AI) 0.88 的轻小说，agent 桶 5 条命中、all 桶 43 条 + 1 条密度指纹，而最强的比喻密度指纹整体在 human 桶）。`agent` 桶是默认可修入口；`human` 桶参与四象限、密度判断和「问 / 留」分流，要修必须先取得用户同意。
 
-```bash
-bun "<skill-root>/bin/llmlint.ts" check <files...> --review all --format json
-```
+`check --format json` 默认输出紧凑形态：规则元数据在顶层 `rules`，命中只带 `ruleId`，`context` 裁到命中前后各 24 字。规则本体（`detector.targets` / `source` / `scope`）用 `--rule-detail`，体积大 4 倍以上，日常审稿不要用。
 
 神经检测：
 
@@ -57,7 +65,7 @@ bun "<skill-root>/bin/llmlint.ts" check <files...> --review all --format json
 bun "<skill-root>/bin/llmlint.ts" detect <files...> --format json
 ```
 
-`check` 会输出 regex、handler 和 density 的结构化命中。`detect` 会输出每个文件的 `docPAi`、`maxPAi`、chunk span、起始行、P(AI) 与 `cached` 状态。
+`check` 会输出 regex、handler 和 density 的结构化命中。`detect` 会输出每个文件的 `docPAi`、`maxPAi`、`spread`、`cached`，以及逐 chunk 的 span、起始行、`pAi`、`rank`（文内 P(AI) 降序位次）和 `relative`（相对本篇均值的偏离）。`rank` / `relative` / `spread` 是报告层派生字段，不进缓存，所以 `cached:true` 时同样有。
 
 网络失败时，不把整轮审稿判死。报告失败原因和代理建议：
 
@@ -81,22 +89,39 @@ bun "<skill-root>/bin/llmlint.ts" config set detector.proxy http://127.0.0.1:789
 | `densityIssues` | 分布指纹，一条代表全文或一段，不是逐处替换。 |
 | `Issue.detail` | handler 动态说明，如连续短句数量或连接密度。 |
 
-### 热区表
+### 检测结论分两层
 
-列出 `detect` 中 `pAi >= 0.85` 的 chunk：
+绝对阈值只用在整篇层。文内挑段落一律用相对排序——整篇 AI 生成的文本常常全部 chunk 都超过任何固定阈值，绝对判据在文内会把全文标红，失去分辨力。
+
+| 层 | 判据 | 结论 |
+|---|---|---|
+| 整篇（绝对） | `docPAi >= 0.85` | 这篇整体可疑 / 不可疑。 |
+| 文内（相对） | `chunks[].rank` 取两端，各 `ceil(chunk 数 / 4)` 个 | 本篇最可疑 / 最不可疑的段落。 |
 
 ```text
-L12-L18  P(AI)=0.921  预览文本...
+文内最可疑（rank 1–2 / 7）：
+  L51-67  P(AI)=0.997  rank 1  Δ+0.122  预览文本...
+文内最不可疑（rank 6–7，仍需看绝对 P(AI)）：
+  L79-97  P(AI)=0.290  rank 7  Δ-0.586  预览文本...
 ```
+
+不要把文内低位读成「检测器认为这段像人写」。实测一篇里 rank 6 的 chunk 仍有 `P(AI)=0.929`——它只是本篇里相对最低。
 
 ### 四象限
 
-| 规则信号 | 检测热力 | 处理 |
+先用 `spread`（文内 P(AI) 极差）守门：
+
+- **`spread < 0.15`：四象限对这篇不适用**。chunk 之间没有可分辨的高低差，两端之分只是噪声。报告「整篇均匀可疑（或均匀不可疑）」，改用规则信号密度排候选优先级。
+- `spread >= 0.15`：按下表交叉。
+
+| 规则信号 | 文内位次 | 处理 |
 |---|---|---|
-| 密集 | 红 | 确认疑难。读上下文，优先交用户确认。 |
-| 静默 | 红 | 漏网新规则候选。记录片段和观察，不直接大改。 |
-| 密集 | 绿 | 误报候选。保留作者声音或建议 config 覆盖。 |
-| 绿 | 绿 | 不打扰。 |
+| 密集 | 高位 | 确认疑难。读上下文，优先交用户确认。 |
+| 静默 | 高位 | 漏网新规则候选。记录片段和观察，不直接大改。 |
+| 密集 | 低位 | **规则与检测器分歧，需人工裁决。** |
+| 静默 | 低位 | 不打扰。 |
+
+「密集 × 低位」这一格特别容易误用。它**不能**直接推出「规则误报」：检测器本身会漏报，实测一篇 `P(AI)=0.290` 的 chunk 里 6 条命中经人工复核全部成立，包括「就像秋日的落叶一样平稳而自然，不带一丝波澜」这种典型模板比喻。要建议 `llmlint.config.ts` 覆盖，必须另有独立证据：同一规则在真人文本上反复命中，或按规则替换会损失原文信息。
 
 ### LLM 语义审查
 
@@ -110,13 +135,13 @@ bun "<skill-root>/bin/llmlint.ts" show-llm-rules
 
 ### 候选分流
 
-每个候选都归入 **修 / 留 / 问**：确认无功能模板负担才修；承担剧情、人物、节奏、题材或载体功能则留；证据不足或可能改变作者意图则问。规则等级和检测热力决定审查优先级，不替代上下文判断。
+每个候选都归入 **修 / 留 / 问**：确认无功能模板负担才修；承担剧情、人物、节奏、题材或载体功能则留；证据不足或可能改变作者意图则问。规则等级和文内位次决定审查优先级，不替代上下文判断。`human` 桶命中默认只进「留 / 问」。
 
 ## 步骤 4：修复并复测一轮
 
 生成 `.agent/polish-plan.md`，等待用户审批。计划包含：
 
-- 静态命中统计、热区统计和四象限摘要。
+- 静态命中统计、两层检测结论，以及四象限摘要（`spread < 0.15` 时改为说明为何不适用）。
 - 建议修复、建议保留、需要确认的项目。
 - 每项的行号、原文片段、理由和拟改写。
 
@@ -124,14 +149,18 @@ bun "<skill-root>/bin/llmlint.ts" show-llm-rules
 
 执行顺序固定为：先读上下文并确认功能，再按 **删 → 压 → 换** 做最小修改。不能用同义词轮换、模板身体反应、硬拆短句或新增细节来掩盖命中。
 
-复测只跑一轮：
+复测只跑一轮（创作类正文同样 `--review all`）：
 
 ```bash
-bun "<skill-root>/bin/llmlint.ts" check .agent/polish-output.md --format json
+bun "<skill-root>/bin/llmlint.ts" check .agent/polish-output.md --review all --format json
 bun "<skill-root>/bin/llmlint.ts" detect .agent/polish-output.md --format json
 ```
 
-复测仍有高风险时报告剩余风险，不无限循环。不要为了压低外部检测分数牺牲语义、角色声音或可读性。
+复测判据是**静态命中减少且没有引入新命中**。检测分数只作参考，不作目标。
+
+实测证据：一篇 3131 字的 AI 生成轻小说，5 项修复后静态命中 43→38、high 1→0，但 `docPAi` 从 0.8757 **升到** 0.8844，承载其中 2 项改动的 chunk 从 0.929 升到 0.990。原因是「压缩抽象壳」的改写有时反而更贴近模型惯用表达。这与更早的配对实验一致（一轮修复规则分大降、神经检测器只动 0.7 个百分点）。
+
+所以：看到分数没降不要再开一轮，也不要为了压分数改写更多句子。复测仍有高风险时报告剩余风险，不无限循环。
 
 ## 步骤 5：台账与学习出口
 
@@ -145,20 +174,23 @@ bun "<skill-root>/bin/llmlint.ts" detect .agent/polish-output.md --format json
     "updatedAt": "",
     "status": "completed",
     "settings": {
-        "sharingTier": "stats",
+        "sharingTier": "",
         "login": "none"
     },
     "summary": {
         "staticIssues": 0,
         "densityIssues": 0,
-        "hotChunks": 0
+        "docPAi": 0,
+        "spread": 0
     },
     "decisions": [],
     "localConfigSuggestions": []
 }
 ```
 
-`decisions` 记录疑难片段：文件、行号、静态规则、检测热区、用户判定、保留/修复理由。`localConfigSuggestions` 记录建议的 `llmlint.config.ts` diff，例如：
+`settings.sharingTier` 写 `status` 报的实际值。`summary` 记 `docPAi` 与 `spread`，不记「热区数」——热区数依赖绝对阈值，跨篇不可比。
+
+`decisions` 记录疑难片段：文件、行号、静态规则、文内位次证据、用户判定、保留/修复理由。`localConfigSuggestions` 记录建议的 `llmlint.config.ts` diff，例如：
 
 - 某条误报规则：`rules: {"rule-id": "off"}`。
 - 某类偏风格命中：`namespaces: {"punctuation.dash": {review: "human"}}`。
