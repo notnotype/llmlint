@@ -2,7 +2,7 @@
   {
     "id": "cn.vocabulary.academic-anatomy.academic-body-terms",
     "namespace": "vocabulary.academic-anatomy",
-    "title": "学术与解剖词汇",
+    "title": "删“肌肉/结构/频率”",
     "level": "medium",
     "enabled": true,
     "source": {
@@ -25,7 +25,7 @@
   {
     "id": "cn.vocabulary.academic-anatomy.bony-feel",
     "namespace": "vocabulary.academic-anatomy",
-    "title": "学术与解剖词汇",
+    "title": "删“骨感”",
     "level": "medium",
     "enabled": true,
     "source": {
@@ -48,7 +48,7 @@
   {
     "id": "cn.vocabulary.academic-anatomy.physiological-academic-label",
     "namespace": "vocabulary.academic-anatomy",
-    "title": "学术与解剖词汇",
+    "title": "删“生理性”标签",
     "level": "medium",
     "enabled": true,
     "note": "默认收窄：“生理性眼泪/快感”由 cn.modifier.measure.physiological-label 覆盖；这里仅保留分析腔标签。",
@@ -97,7 +97,7 @@
   {
     "id": "cn.vocabulary.academic-anatomy.rhythmic-regularity",
     "namespace": "vocabulary.academic-anatomy",
-    "title": "学术与解剖词汇",
+    "title": "删“有规律地”",
     "level": "medium",
     "enabled": true,
     "source": {
@@ -120,7 +120,7 @@
   {
     "id": "cn.vocabulary.academic-anatomy.sphincter",
     "namespace": "vocabulary.academic-anatomy",
-    "title": "学术与解剖词汇",
+    "title": "删“括约肌”",
     "level": "medium",
     "enabled": true,
     "source": {

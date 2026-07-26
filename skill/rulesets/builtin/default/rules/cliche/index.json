@@ -54,7 +54,7 @@
   {
     "id": "cn.cliche.chest-rise",
     "namespace": "cliche",
-    "title": "删身体局部糖精特写",
+    "title": "删“胸腔起伏”",
     "level": "medium",
     "enabled": true,
     "review": "human",
@@ -80,7 +80,7 @@
   {
     "id": "cn.cliche.chest-vibration",
     "namespace": "cliche",
-    "title": "删身体局部糖精特写",
+    "title": "删“胸膛震动”",
     "level": "medium",
     "enabled": true,
     "review": "human",
@@ -106,7 +106,7 @@
   {
     "id": "cn.cliche.cold-touch-shell",
     "namespace": "cliche",
-    "title": "删触感模板壳",
+    "title": "删“冰凉的触感”",
     "level": "medium",
     "enabled": true,
     "review": "human",
@@ -156,7 +156,7 @@
   {
     "id": "cn.cliche.cup-collision",
     "namespace": "cliche",
-    "title": "删接触音效细节",
+    "title": "删“杯子碰撞”",
     "level": "medium",
     "enabled": true,
     "review": "human",
@@ -337,7 +337,7 @@
   {
     "id": "cn.cliche.knuckle-crack",
     "namespace": "cliche",
-    "title": "删身体局部糖精特写",
+    "title": "删“骨节作响”",
     "level": "medium",
     "enabled": true,
     "review": "human",
@@ -413,7 +413,7 @@
   {
     "id": "cn.cliche.personified-telling",
     "namespace": "cliche",
-    "title": "弱化拟人化元叙述",
+    "title": "都在诉说着→都显出",
     "level": "medium",
     "enabled": true,
     "note": "弱化拟人化元叙述",
@@ -437,7 +437,7 @@
   {
     "id": "cn.cliche.personified-telling-short",
     "namespace": "cliche",
-    "title": "弱化拟人化元叙述",
+    "title": "都在诉说→都显出",
     "level": "medium",
     "enabled": true,
     "note": "弱化拟人化元叙述；排除“都在诉说着”，避免与更长 canonical 规则重叠并产生半截候选替换。",
@@ -461,7 +461,7 @@
   {
     "id": "cn.cliche.quote-meta-as-if",
     "namespace": "cliche",
-    "title": "弱化引语元叙述壳",
+    "title": "仿佛在说→在说",
     "level": "medium",
     "enabled": true,
     "review": "human",
@@ -487,7 +487,7 @@
   {
     "id": "cn.cliche.quote-meta-like",
     "namespace": "cliche",
-    "title": "弱化引语元叙述壳",
+    "title": "像是在说→在说",
     "level": "medium",
     "enabled": true,
     "review": "human",
@@ -513,7 +513,7 @@
   {
     "id": "cn.cliche.quote-meta-seems",
     "namespace": "cliche",
-    "title": "弱化引语元叙述壳",
+    "title": "好像在说→在说",
     "level": "medium",
     "enabled": true,
     "review": "human",
@@ -539,7 +539,7 @@
   {
     "id": "cn.cliche.rough-fingertip-touch",
     "namespace": "cliche",
-    "title": "删触感模板壳",
+    "title": "删“粗糙的指腹”",
     "level": "medium",
     "enabled": true,
     "review": "human",
@@ -565,7 +565,7 @@
   {
     "id": "cn.cliche.table-cup-touch",
     "namespace": "cliche",
-    "title": "删接触音效细节",
+    "title": "删“杯底触碰桌面”",
     "level": "medium",
     "enabled": true,
     "review": "human",
@@ -591,7 +591,7 @@
   {
     "id": "cn.cliche.teeth-clenched-speech",
     "namespace": "cliche",
-    "title": "弱化咬字方式模板",
+    "title": "从牙缝里挤出→说出",
     "level": "medium",
     "enabled": true,
     "review": "human",
@@ -617,7 +617,7 @@
   {
     "id": "cn.cliche.teeth-pressed-speech",
     "namespace": "cliche",
-    "title": "弱化咬字方式模板",
+    "title": "从齿间挤出→说出",
     "level": "medium",
     "enabled": true,
     "review": "human",
@@ -643,7 +643,7 @@
   {
     "id": "cn.cliche.throat-roll",
     "namespace": "cliche",
-    "title": "删身体局部糖精特写",
+    "title": "删“喉咙滚出”",
     "level": "medium",
     "enabled": true,
     "review": "human",
@@ -669,7 +669,7 @@
   {
     "id": "cn.cliche.tongue-roll",
     "namespace": "cliche",
-    "title": "删身体局部糖精特写",
+    "title": "删“舌尖滚过”",
     "level": "medium",
     "enabled": true,
     "review": "human",
@@ -695,7 +695,7 @@
   {
     "id": "cn.cliche.trailing-callus-clause",
     "namespace": "cliche",
-    "title": "只删末尾或对话前置分句",
+    "title": "删尾部茧子分句",
     "level": "medium",
     "enabled": true,
     "review": "human",
@@ -721,7 +721,7 @@
   {
     "id": "cn.cliche.trailing-mouth-arc-clause",
     "namespace": "cliche",
-    "title": "只删末尾或对话前置分句",
+    "title": "删尾部嘴角弧度分句",
     "level": "medium",
     "enabled": true,
     "review": "human",
@@ -747,7 +747,7 @@
   {
     "id": "cn.cliche.trailing-sensory-clause",
     "namespace": "cliche",
-    "title": "只删末尾或对话前置分句",
+    "title": "删尾部感受分句",
     "level": "medium",
     "enabled": true,
     "note": "默认收窄：尾部分句只看叙述层，并只保留抽象情绪/气质/语气尾巴；破风声、指甲、喉咙、气味、温度和回音等具体物性信息不再整段提示。",
@@ -777,7 +777,7 @@
   {
     "id": "cn.cliche.trailing-sound-clause",
     "namespace": "cliche",
-    "title": "只删末尾或对话前置分句",
+    "title": "删尾部音效分句",
     "level": "medium",
     "enabled": true,
     "review": "human",
@@ -878,7 +878,7 @@
   {
     "id": "cn.cliche.voice-evaluation-abrupt",
     "namespace": "cliche",
-    "title": "删声音评价壳",
+    "title": "删“声音格外突兀”",
     "level": "medium",
     "enabled": true,
     "review": "human",
@@ -904,7 +904,7 @@
   {
     "id": "cn.cliche.voice-evaluation-clear",
     "namespace": "cliche",
-    "title": "删声音评价壳",
+    "title": "删“声音格外清晰”",
     "level": "medium",
     "enabled": true,
     "review": "human",
@@ -956,7 +956,7 @@
   {
     "id": "cn.cliche.warm-palm-touch",
     "namespace": "cliche",
-    "title": "删触感模板壳",
+    "title": "删“掌心干燥温热”",
     "level": "medium",
     "enabled": true,
     "review": "human",
@@ -982,7 +982,7 @@
   {
     "id": "cn.cliche.words-chewing",
     "namespace": "cliche",
-    "title": "删身体局部糖精特写",
+    "title": "删“咀嚼字句”",
     "level": "medium",
     "enabled": true,
     "review": "human",

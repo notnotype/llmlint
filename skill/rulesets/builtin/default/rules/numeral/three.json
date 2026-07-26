@@ -2,7 +2,7 @@
   {
     "id": "cn.numeral.three.few-words-idiom",
     "namespace": "numeral.three",
-    "title": "三",
+    "title": "几言两语→只言片语",
     "level": "medium",
     "enabled": true,
     "source": {
@@ -26,7 +26,7 @@
   {
     "id": "cn.numeral.three.hat-typo",
     "namespace": "numeral.three",
-    "title": "三",
+    "title": "几度笠→斗笠",
     "level": "medium",
     "enabled": true,
     "source": {
@@ -49,7 +49,7 @@
   {
     "id": "cn.numeral.three.intermittent-typo",
     "namespace": "numeral.three",
-    "title": "三",
+    "title": "隔几差五→时不时",
     "level": "medium",
     "enabled": true,
     "source": {
@@ -72,7 +72,7 @@
   {
     "id": "cn.numeral.three.numeral-five-typo",
     "namespace": "numeral.three",
-    "title": "三",
+    "title": "几五→几",
     "level": "medium",
     "enabled": true,
     "source": {

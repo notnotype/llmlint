@@ -2,7 +2,7 @@
   {
     "id": "cn.action-expression.calm-voice-shell",
     "namespace": "action-expression",
-    "title": "动作与神态",
+    "title": "删“声音平稳”壳",
     "level": "medium",
     "enabled": true,
     "review": "human",
@@ -28,7 +28,7 @@
   {
     "id": "cn.action-expression.explicit-teasing-tone",
     "namespace": "action-expression",
-    "title": "动作与神态",
+    "title": "删“明显的戏谑”",
     "level": "medium",
     "enabled": true,
     "review": "human",
@@ -54,7 +54,7 @@
   {
     "id": "cn.action-expression.flat-tone-shell",
     "namespace": "action-expression",
-    "title": "动作与神态",
+    "title": "删“语气平淡”壳",
     "level": "medium",
     "enabled": true,
     "review": "human",
@@ -80,7 +80,7 @@
   {
     "id": "cn.action-expression.force-white-knuckle",
     "namespace": "action-expression",
-    "title": "动作与神态",
+    "title": "因用力而泛白→用力",
     "level": "medium",
     "enabled": true,
     "review": "human",
@@ -106,7 +106,7 @@
   {
     "id": "cn.action-expression.mouth-corner-arc",
     "namespace": "action-expression",
-    "title": "动作与神态",
+    "title": "嘴角弧度→嘴唇上扬",
     "level": "medium",
     "enabled": true,
     "review": "human",
@@ -157,7 +157,7 @@
   {
     "id": "cn.action-expression.rough-manner-modifier",
     "namespace": "action-expression",
-    "title": "动作与神态",
+    "title": "删“粗重/粗暴/疯狂”",
     "level": "medium",
     "enabled": true,
     "review": "human",
@@ -183,7 +183,7 @@
   {
     "id": "cn.action-expression.scream-to-whimper",
     "namespace": "action-expression",
-    "title": "动作与神态",
+    "title": "尖叫→呜咽",
     "level": "medium",
     "enabled": true,
     "review": "human",
@@ -209,7 +209,7 @@
   {
     "id": "cn.action-expression.teasing-attitude-shell",
     "namespace": "action-expression",
-    "title": "动作与神态",
+    "title": "删“戏谑的态度”",
     "level": "medium",
     "enabled": true,
     "review": "human",
@@ -235,7 +235,7 @@
   {
     "id": "cn.action-expression.teasing-modifier",
     "namespace": "action-expression",
-    "title": "动作与神态",
+    "title": "删修饰语“戏谑”",
     "level": "medium",
     "enabled": true,
     "review": "human",
@@ -261,7 +261,7 @@
   {
     "id": "cn.action-expression.tightly-clenched",
     "namespace": "action-expression",
-    "title": "动作与神态",
+    "title": "绞得紧紧的→绞紧",
     "level": "medium",
     "enabled": true,
     "review": "human",

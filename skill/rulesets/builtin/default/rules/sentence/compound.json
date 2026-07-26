@@ -258,7 +258,7 @@
   {
     "id": "cn.sentence.compound.weather-tone-chat",
     "namespace": "sentence.compound",
-    "title": "天气式口气改直接状态",
+    "title": "像在聊天气一样→平静地",
     "level": "medium",
     "enabled": true,
     "review": "human",
@@ -284,7 +284,7 @@
   {
     "id": "cn.sentence.compound.weather-tone-chat-today",
     "namespace": "sentence.compound",
-    "title": "天气式口气改直接状态",
+    "title": "像聊今天天气一样→平静地",
     "level": "medium",
     "enabled": true,
     "review": "human",
@@ -336,7 +336,7 @@
   {
     "id": "cn.sentence.compound.weather-tone-discuss",
     "namespace": "sentence.compound",
-    "title": "天气式口气改直接状态",
+    "title": "像在讨论天气一样→平静地",
     "level": "medium",
     "enabled": true,
     "review": "human",
@@ -362,7 +362,7 @@
   {
     "id": "cn.sentence.compound.weather-tone-discussion",
     "namespace": "sentence.compound",
-    "title": "天气式口气改直接状态",
+    "title": "跟讨论天气一样→平静地",
     "level": "medium",
     "enabled": true,
     "review": "human",

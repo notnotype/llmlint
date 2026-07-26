@@ -2,7 +2,7 @@
   {
     "id": "cn.cliche.baguwen.amazing-possibility-modifier",
     "namespace": "cliche.baguwen",
-    "title": "八股句式/短语删除",
+    "title": "删“可能惊人的”",
     "level": "medium",
     "enabled": true,
     "source": {
@@ -25,7 +25,7 @@
   {
     "id": "cn.cliche.baguwen.death-grip-adverb",
     "namespace": "cliche.baguwen",
-    "title": "八股句式/短语删除",
+    "title": "删“得死死的”",
     "level": "medium",
     "enabled": true,
     "review": "human",
@@ -75,7 +75,7 @@
   {
     "id": "cn.cliche.baguwen.driftwood-metaphor",
     "namespace": "cliche.baguwen",
-    "title": "八股句式/短语删除",
+    "title": "删救命浮木比喻",
     "level": "medium",
     "enabled": true,
     "source": {
@@ -124,7 +124,7 @@
   {
     "id": "cn.cliche.baguwen.extreme-degree",
     "namespace": "cliche.baguwen",
-    "title": "八股句式/短语删除",
+    "title": "删“到了极致”",
     "level": "medium",
     "enabled": true,
     "review": "human",
@@ -150,7 +150,7 @@
   {
     "id": "cn.cliche.baguwen.inertia-cause",
     "namespace": "cliche.baguwen",
-    "title": "八股句式/短语删除",
+    "title": "删“因为惯性”",
     "level": "medium",
     "enabled": true,
     "review": "human",
@@ -176,7 +176,7 @@
   {
     "id": "cn.cliche.baguwen.irrefutable-tone-colon",
     "namespace": "cliche.baguwen",
-    "title": "八股句式/短语删除",
+    "title": "删“语气不容置喙”",
     "level": "medium",
     "enabled": true,
     "review": "human",
@@ -202,7 +202,7 @@
   {
     "id": "cn.cliche.baguwen.irresistible-but",
     "namespace": "cliche.baguwen",
-    "title": "八股句式/短语删除",
+    "title": "删“但不可抗拒”",
     "level": "medium",
     "enabled": true,
     "review": "human",
@@ -253,7 +253,7 @@
   {
     "id": "cn.cliche.baguwen.shell-noun",
     "namespace": "cliche.baguwen",
-    "title": "八股句式/短语删除",
+    "title": "删抽象“外壳”",
     "level": "medium",
     "enabled": true,
     "review": "human",
@@ -305,7 +305,7 @@
   {
     "id": "cn.cliche.baguwen.taut-neck",
     "namespace": "cliche.baguwen",
-    "title": "八股句式/短语删除",
+    "title": "删“绷得紧紧的”",
     "level": "medium",
     "enabled": true,
     "review": "human",
@@ -331,7 +331,7 @@
   {
     "id": "cn.cliche.baguwen.unquestionable-claim",
     "namespace": "cliche.baguwen",
-    "title": "八股句式/短语删除",
+    "title": "删“不容置疑”",
     "level": "medium",
     "enabled": true,
     "review": "human",
@@ -357,7 +357,7 @@
   {
     "id": "cn.cliche.baguwen.vague-amount-noun",
     "namespace": "cliche.baguwen",
-    "title": "八股句式/短语删除",
+    "title": "删虚指“一股/那股”",
     "level": "medium",
     "enabled": true,
     "note": "默认收窄：标点后的“一股”由 cn.modifier.measure.subject-measure-word 覆盖；这里保留句中“一股”和“那股”，避免同 span 量词重复提示。",

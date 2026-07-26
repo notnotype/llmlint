@@ -2,7 +2,7 @@
   {
     "id": "cn.color-description.crisp-voice-ideophone",
     "namespace": "color-description",
-    "title": "颜色描写",
+    "title": "脆生生→软糯/娇憨",
     "level": "medium",
     "enabled": true,
     "source": {
@@ -29,7 +29,7 @@
   {
     "id": "cn.color-description.glans-purple-color",
     "namespace": "color-description",
-    "title": "颜色描写",
+    "title": "删龟头颜色描写",
     "level": "medium",
     "enabled": true,
     "source": {
@@ -52,7 +52,7 @@
   {
     "id": "cn.color-description.pale-color-ideophone",
     "namespace": "color-description",
-    "title": "颜色描写",
+    "title": "白花花→白皙/雪白",
     "level": "medium",
     "enabled": true,
     "source": {
@@ -88,7 +88,7 @@
   {
     "id": "cn.color-description.purple-dark-color-modifier",
     "namespace": "color-description",
-    "title": "颜色描写",
+    "title": "删紫黑色修饰",
     "level": "medium",
     "enabled": true,
     "source": {
@@ -111,7 +111,7 @@
   {
     "id": "cn.color-description.purple-red-color-result",
     "namespace": "color-description",
-    "title": "颜色描写",
+    "title": "成紫红色→起",
     "level": "medium",
     "enabled": true,
     "source": {
@@ -134,7 +134,7 @@
   {
     "id": "cn.color-description.white-fresh-ideophone",
     "namespace": "color-description",
-    "title": "颜色描写",
+    "title": "白生生→白净/嫩白",
     "level": "medium",
     "enabled": true,
     "source": {

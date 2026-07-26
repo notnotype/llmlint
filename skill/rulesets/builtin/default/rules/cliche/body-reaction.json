@@ -2,7 +2,7 @@
   {
     "id": "cn.cliche.body-reaction.controlling-gaze",
     "namespace": "cliche.body-reaction",
-    "title": "嘴角与生理泪水",
+    "title": "审视的目光→打量",
     "level": "medium",
     "enabled": true,
     "review": "human",
@@ -90,7 +90,7 @@
   {
     "id": "cn.cliche.body-reaction.physiological-tears",
     "namespace": "cliche.body-reaction",
-    "title": "嘴角与生理泪水",
+    "title": "生理泪水→泪水",
     "level": "medium",
     "enabled": true,
     "review": "human",

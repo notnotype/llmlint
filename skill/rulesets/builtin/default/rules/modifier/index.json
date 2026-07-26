@@ -53,7 +53,7 @@
   {
     "id": "cn.modifier.absolute-claim-modifier",
     "namespace": "modifier",
-    "title": "必带“的/地”防误伤",
+    "title": "删“不容质疑的”",
     "level": "medium",
     "enabled": true,
     "note": "必带“的/地”防误伤",
@@ -126,7 +126,7 @@
   {
     "id": "cn.modifier.barely-perceptible-modifier",
     "namespace": "modifier",
-    "title": "必带“的/地”防误伤",
+    "title": "删“几不可察的”",
     "level": "medium",
     "enabled": true,
     "note": "必带“的/地”防误伤",
@@ -197,7 +197,7 @@
   {
     "id": "cn.modifier.excessive-state-simile",
     "namespace": "modifier",
-    "title": "必带“的/地”防误伤",
+    "title": "删极端状态修饰",
     "level": "medium",
     "enabled": true,
     "note": "必带“的/地”防误伤",
@@ -271,7 +271,7 @@
   {
     "id": "cn.modifier.hard-to-notice-modifier",
     "namespace": "modifier",
-    "title": "必带“的/地”防误伤",
+    "title": "删“不可察觉的”",
     "level": "medium",
     "enabled": true,
     "note": "必带“的/地”防误伤",
@@ -295,7 +295,7 @@
   {
     "id": "cn.modifier.heavy-degree-shell",
     "namespace": "modifier",
-    "title": "形副词系",
+    "title": "删“沉甸甸”",
     "level": "medium",
     "enabled": true,
     "note": "默认收窄：带“的/地”的“沉甸甸”已由 cn.modifier.sensory-atmosphere-modifier 覆盖；这里只保留裸“沉甸甸”，避免同 span 重复。",
@@ -394,7 +394,7 @@
   {
     "id": "cn.modifier.near-collapse-modifier",
     "namespace": "modifier",
-    "title": "形副词系",
+    "title": "删裸“崩溃”",
     "level": "medium",
     "enabled": true,
     "note": "默认收窄：带“的/地”的“崩溃”已由 cn.modifier.excessive-state-simile 覆盖；这里只保留裸状态，避免同 span 重复。",
@@ -466,7 +466,7 @@
   {
     "id": "cn.modifier.optional-mood-modifiers",
     "namespace": "modifier",
-    "title": "必带“的/地”防误伤[可选]",
+    "title": "删语气氛围修饰",
     "level": "medium",
     "enabled": true,
     "note": "必带“的/地”防误伤[可选]",
@@ -538,7 +538,7 @@
   {
     "id": "cn.modifier.sensory-atmosphere-modifier",
     "namespace": "modifier",
-    "title": "必带“的/地”防误伤",
+    "title": "删感官氛围修饰",
     "level": "medium",
     "enabled": true,
     "note": "默认收窄：“戏谑的/地”由 cn.action-expression.teasing-modifier 覆盖；这里保留其它氛围修饰词。",
@@ -563,7 +563,7 @@
   {
     "id": "cn.modifier.stacked-degree-adverbs",
     "namespace": "modifier",
-    "title": "形副词系",
+    "title": "删程度副词",
     "level": "medium",
     "enabled": true,
     "note": "默认收窄：移除裸“突然/忽然”、“稍微/略微/稍稍”、“一丝丝”和“近乎/近乎于”等低信号或已有 canonical 接管的分支，并移除会半截命中“凶猛的/迅猛的”的“猛的”。",
@@ -613,7 +613,7 @@
   {
     "id": "cn.modifier.stiff-remaining",
     "namespace": "modifier",
-    "title": "形副词系",
+    "title": "删“依然僵硬”",
     "level": "medium",
     "enabled": true,
     "source": {

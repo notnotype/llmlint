@@ -2,7 +2,7 @@
   {
     "id": "cn.regex.advanced.arc-outline",
     "namespace": "regex.advanced",
-    "title": "正则-高级替换",
+    "title": "顶起的弧度→轮廓",
     "level": "medium",
     "enabled": true,
     "source": {
@@ -30,7 +30,7 @@
   {
     "id": "cn.regex.advanced.callus-clause",
     "namespace": "regex.advanced",
-    "title": "正则-高级替换",
+    "title": "删茧子修饰短语",
     "level": "medium",
     "enabled": true,
     "source": {
@@ -79,7 +79,7 @@
   {
     "id": "cn.regex.advanced.few-degree",
     "namespace": "regex.advanced",
-    "title": "正则-高级替换",
+    "title": "几分→些/些许",
     "level": "medium",
     "enabled": true,
     "review": "human",
@@ -107,7 +107,7 @@
   {
     "id": "cn.regex.advanced.generic-arc-shell",
     "namespace": "regex.advanced",
-    "title": "正则-高级替换",
+    "title": "删“的弧度”壳",
     "level": "medium",
     "enabled": true,
     "source": {
@@ -131,7 +131,7 @@
   {
     "id": "cn.regex.advanced.lifted-smile-arc",
     "namespace": "regex.advanced",
-    "title": "正则-高级替换",
+    "title": "勾起弧度→地勾起",
     "level": "medium",
     "enabled": true,
     "source": {
@@ -184,7 +184,7 @@
   {
     "id": "cn.regex.advanced.oral-inner-wall",
     "namespace": "regex.advanced",
-    "title": "正则-高级替换",
+    "title": "口腔内壁→嫩肉",
     "level": "medium",
     "enabled": true,
     "source": {
@@ -243,7 +243,7 @@
   {
     "id": "cn.regex.advanced.parenthetical-example",
     "namespace": "regex.advanced",
-    "title": "正则-高级替换",
+    "title": "删括号举例",
     "level": "medium",
     "enabled": true,
     "source": {
@@ -267,7 +267,7 @@
   {
     "id": "cn.regex.advanced.pressured-arc-outline",
     "namespace": "regex.advanced",
-    "title": "正则-高级替换",
+    "title": "压出弧线→曲线",
     "level": "medium",
     "enabled": true,
     "source": {

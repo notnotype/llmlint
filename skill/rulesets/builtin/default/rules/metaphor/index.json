@@ -196,7 +196,7 @@
   {
     "id": "cn.metaphor.trailing-simile-clause",
     "namespace": "metaphor",
-    "title": "只删末尾或对话前置分句",
+    "title": "删尾部比喻分句",
     "level": "medium",
     "enabled": true,
     "note": "保持 human：当前语料真人侧 23% 的文档命中，且命中多是承担信息的有效比喻（如「仿佛在看讲述维多利亚时期故事的英剧」承担时代设定），不是装饰性比喻壳。加 {2,20} 长度上界排除规则越界——原无上界 `+` 会把「，像自己这样坐两个小时地铁到市中心已经能算是她半年以来出过最远的一次远门了」这类解释性长从句当尾部比喻壳；上界后 AI 召回只降 3%，富集 5.7x→6.4x。",
@@ -245,7 +245,7 @@
   {
     "id": "cn.metaphor.whole-sentence-stone-simile",
     "namespace": "metaphor",
-    "title": "整句删除投石变种比喻[选开]",
+    "title": "整句删投石类比喻",
     "level": "medium",
     "enabled": true,
     "note": "整句删除投石变种比喻[选开]",

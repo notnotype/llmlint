@@ -2,7 +2,7 @@
   {
     "id": "cn.vocabulary.body.back-head",
     "namespace": "vocabulary.body",
-    "title": "人体词汇转换",
+    "title": "后脑勺→头/脑袋",
     "level": "medium",
     "enabled": true,
     "source": {
@@ -26,7 +26,7 @@
   {
     "id": "cn.vocabulary.body.back-ridge",
     "namespace": "vocabulary.body",
-    "title": "人体词汇",
+    "title": "背脊→背/后背",
     "level": "medium",
     "enabled": true,
     "source": {
@@ -50,7 +50,7 @@
   {
     "id": "cn.vocabulary.body.back-spine",
     "namespace": "vocabulary.body",
-    "title": "人体词汇",
+    "title": "脊背→背/后背",
     "level": "medium",
     "enabled": true,
     "source": {
@@ -74,7 +74,7 @@
   {
     "id": "cn.vocabulary.body.body-formal",
     "namespace": "vocabulary.body",
-    "title": "人体词汇",
+    "title": "身躯→身体",
     "level": "medium",
     "enabled": true,
     "source": {
@@ -145,7 +145,7 @@
   {
     "id": "cn.vocabulary.body.butt-cheek-suffix",
     "namespace": "vocabulary.body",
-    "title": "人体词汇",
+    "title": "屁股蛋子→屁股",
     "level": "medium",
     "enabled": true,
     "source": {
@@ -168,7 +168,7 @@
   {
     "id": "cn.vocabulary.body.cheekbone",
     "namespace": "vocabulary.body",
-    "title": "人体词汇",
+    "title": "颧骨→脸颊",
     "level": "medium",
     "enabled": true,
     "source": {
@@ -191,7 +191,7 @@
   {
     "id": "cn.vocabulary.body.chest-cavity",
     "namespace": "vocabulary.body",
-    "title": "人体词汇转换",
+    "title": "胸腔→胸口/胸脯",
     "level": "medium",
     "enabled": true,
     "source": {
@@ -216,7 +216,7 @@
   {
     "id": "cn.vocabulary.body.collagen",
     "namespace": "vocabulary.body",
-    "title": "人体词汇转换",
+    "title": "胶原蛋白→婴儿肥",
     "level": "medium",
     "enabled": true,
     "source": {
@@ -239,7 +239,7 @@
   {
     "id": "cn.vocabulary.body.eye-corner-lid",
     "namespace": "vocabulary.body",
-    "title": "人体词汇转换",
+    "title": "眼角/眼皮→眼睛",
     "level": "medium",
     "enabled": true,
     "source": {
@@ -262,7 +262,7 @@
   {
     "id": "cn.vocabulary.body.finger-bone",
     "namespace": "vocabulary.body",
-    "title": "人体词汇转换",
+    "title": "指骨→手指",
     "level": "medium",
     "enabled": true,
     "note": "排除“指骨关节/指骨的关节”，避免与 cn.vocabulary.body.finger-joint-phrase 重叠。",
@@ -286,7 +286,7 @@
   {
     "id": "cn.vocabulary.body.finger-joint-phrase",
     "namespace": "vocabulary.body",
-    "title": "人体词汇转换",
+    "title": "指骨关节→手指",
     "level": "medium",
     "enabled": true,
     "source": {
@@ -309,7 +309,7 @@
   {
     "id": "cn.vocabulary.body.finger-segment",
     "namespace": "vocabulary.body",
-    "title": "人体词汇转换",
+    "title": "指节→手指",
     "level": "medium",
     "enabled": true,
     "source": {
@@ -332,7 +332,7 @@
   {
     "id": "cn.vocabulary.body.flesh-skin",
     "namespace": "vocabulary.body",
-    "title": "人体词汇转换",
+    "title": "皮肉→皮肤/肌肤",
     "level": "medium",
     "enabled": true,
     "source": {
@@ -356,7 +356,7 @@
   {
     "id": "cn.vocabulary.body.hip-bone",
     "namespace": "vocabulary.body",
-    "title": "人体词汇",
+    "title": "胯骨→胯部/腰胯",
     "level": "medium",
     "enabled": true,
     "source": {
@@ -380,7 +380,7 @@
   {
     "id": "cn.vocabulary.body.knuckle",
     "namespace": "vocabulary.body",
-    "title": "人体词汇转换",
+    "title": "骨节→手指",
     "level": "medium",
     "enabled": true,
     "source": {
@@ -403,7 +403,7 @@
   {
     "id": "cn.vocabulary.body.lift-eyelids",
     "namespace": "vocabulary.body",
-    "title": "人体词汇转换",
+    "title": "抬起眼皮→抬眼",
     "level": "medium",
     "enabled": true,
     "source": {
@@ -426,7 +426,7 @@
   {
     "id": "cn.vocabulary.body.mouth-corner",
     "namespace": "vocabulary.body",
-    "title": "人体词汇转换",
+    "title": "嘴角→嘴唇",
     "level": "medium",
     "enabled": true,
     "source": {
@@ -475,7 +475,7 @@
   {
     "id": "cn.vocabulary.body.oral-cavity",
     "namespace": "vocabulary.body",
-    "title": "人体词汇转换",
+    "title": "口腔→小嘴/嘴",
     "level": "medium",
     "enabled": true,
     "source": {
@@ -499,7 +499,7 @@
   {
     "id": "cn.vocabulary.body.pelvis-bone",
     "namespace": "vocabulary.body",
-    "title": "人体词汇",
+    "title": "髋骨→臀部",
     "level": "medium",
     "enabled": true,
     "source": {
@@ -522,10 +522,10 @@
   {
     "id": "cn.vocabulary.body.physiological-tear-label",
     "namespace": "vocabulary.body",
-    "title": "删生理学标签",
+    "title": "生理泪→泪",
     "level": "medium",
     "enabled": true,
-    "note": "删生理学标签",
+    "note": "「生理泪」是医学标签，叙述里直接写「泪」；确实在讲生理机制时保留。",
     "source": {
       "canonicalKey": "vocabulary.body\t\t生理泪",
       "importedFrom": "curated-cn-rule-samples"
@@ -546,10 +546,10 @@
   {
     "id": "cn.vocabulary.body.physiological-tear-label-full",
     "namespace": "vocabulary.body",
-    "title": "删生理学标签",
+    "title": "生理性泪→泪",
     "level": "medium",
     "enabled": true,
-    "note": "删生理学标签",
+    "note": "「生理性泪」是医学标签，叙述里直接写「泪」；确实在讲生理机制时保留。",
     "source": {
       "canonicalKey": "vocabulary.body\t\t生理性泪",
       "importedFrom": "curated-cn-rule-samples"
@@ -570,7 +570,7 @@
   {
     "id": "cn.vocabulary.body.physiological-tear-water",
     "namespace": "vocabulary.body",
-    "title": "人体词汇转换",
+    "title": "生理性泪水→泪水",
     "level": "medium",
     "enabled": true,
     "source": {
@@ -618,7 +618,7 @@
   {
     "id": "cn.vocabulary.body.rib",
     "namespace": "vocabulary.body",
-    "title": "人体词汇",
+    "title": "肋骨→胸口",
     "level": "medium",
     "enabled": true,
     "source": {
@@ -641,7 +641,7 @@
   {
     "id": "cn.vocabulary.body.shoulder-blade",
     "namespace": "vocabulary.body",
-    "title": "人体词汇",
+    "title": "肩胛骨→后肩/肩膀",
     "level": "medium",
     "enabled": true,
     "source": {
@@ -665,7 +665,7 @@
   {
     "id": "cn.vocabulary.body.skull-head",
     "namespace": "vocabulary.body",
-    "title": "人体词汇",
+    "title": "头颅→头/脑袋",
     "level": "medium",
     "enabled": true,
     "source": {
@@ -689,7 +689,7 @@
   {
     "id": "cn.vocabulary.body.spine-column",
     "namespace": "vocabulary.body",
-    "title": "人体词汇",
+    "title": "脊椎/脊柱→脊梁",
     "level": "medium",
     "enabled": true,
     "source": {
@@ -712,7 +712,7 @@
   {
     "id": "cn.vocabulary.body.tailbone",
     "namespace": "vocabulary.body",
-    "title": "人体词汇",
+    "title": "尾椎骨→腰眼",
     "level": "medium",
     "enabled": true,
     "source": {
@@ -735,7 +735,7 @@
   {
     "id": "cn.vocabulary.body.throat-inside",
     "namespace": "vocabulary.body",
-    "title": "人体词汇转换",
+    "title": "喉咙里→喉间",
     "level": "medium",
     "enabled": true,
     "source": {
@@ -759,7 +759,7 @@
   {
     "id": "cn.vocabulary.body.torso-formal",
     "namespace": "vocabulary.body",
-    "title": "人体词汇",
+    "title": "躯体→身体",
     "level": "medium",
     "enabled": true,
     "source": {
@@ -782,7 +782,7 @@
   {
     "id": "cn.vocabulary.body.whole-limbs-body",
     "namespace": "vocabulary.body",
-    "title": "人体词汇",
+    "title": "四肢百骸→全身",
     "level": "medium",
     "enabled": true,
     "source": {
