@@ -7,6 +7,7 @@
 - [CONTEXT.md](../../../CONTEXT.md)：体系四环定位（本任务把 skill 端接进环②③）
 - [PROJECT-STATUS.md](../../../PROJECT-STATUS.md)
 - [skill/SKILL.md](../../../skill/SKILL.md)：现有 skill 工作流（本任务改写为五步流程）
+- [dialogue-layer-research.md](dialogue-layer-research.md)：验收发现 ⑥ 的对白层调研结论（检测器无偏、但 7 个候选特征全部不成立）
 - `evals/detector/hf-client.ts`：神经检测客户端实现（`detect` 命令移植来源）
 - `web/server/utils/detect.ts`：服务端同算法通道（后续登录用户切换的目标形态）
 - nb-workshop `reference/passport/api-v1.md`：NeuroBook Passport 设备码规范（分片 3 消费）
