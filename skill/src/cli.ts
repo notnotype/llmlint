@@ -67,6 +67,14 @@ const DETECT_DOC_SUSPICIOUS = 0.85;
  * 不要因为单篇观感调这个数。提示词侧已声明它是起点而非定论。
  */
 const DETECT_SPREAD_FLOOR = 0.15;
+/**
+ * 门槛两侧的边界带半宽：`spread` 落在 FLOOR ± 该值之内时，位次只是弱证据。
+ *
+ * 阈值本身未校准，所以「刚好过线」和「远超过线」不该呈现成同一回事——实测第二篇样本
+ * spread 0.167，距门槛仅 0.017 就走了完整四象限分支。带宽与提示词侧写明的 0.10–0.20
+ * 同源，刻意不引入第二个独立魔数。
+ */
+const DETECT_SPREAD_MARGIN = 0.05;
 
 const OUTPUTS = new Set<LlmlintOutput>(["stylish", "json"]);
 const LEVELS = new Set<RuleLevel>(["high", "medium", "low"]);
@@ -703,6 +711,10 @@ function formatDetectReport(results: DetectFileResult[]): string {
             continue;
         }
 
+        if (report.spread < DETECT_SPREAD_FLOOR + DETECT_SPREAD_MARGIN) {
+            // 刚过线：仍给两端，但明说位次是弱证据，免得消费者把「勉强过线」当「分层明显」。
+            lines.push(`  文内分布：极差 ${formatProbability(report.spread)} 贴近 ${DETECT_SPREAD_FLOOR} 门槛，位次是弱证据；两种读法都要说明，以规则信号密度为主。`);
+        }
         const count = edgeChunkCount(report.chunks.length);
         const byScore = [...report.chunks].sort((left, right) => left.rank - right.rank);
         // 刻意不用「热区 / 冷区」：文内低位不等于检测器认为它像人写（本篇 rank 6 仍有 P(AI)=0.929），
