@@ -55,6 +55,7 @@
 - 同步验收：`bun run sync:neuro-book` 成功（copied 84 / unchanged 33 / removed 0），`bun scripts/cli/sync-user-assets.ts` 成功（copied 21 / skipped 229 / updatedAssets 63），NeuroBook `workspace-files` 同步聚焦测试 1 passed / 83 skipped。vendored snapshot 与当前 `workspace/.nbook` user runtime 均抽查到新规则和修复纪律。
 - 2026-07-26 提示词与依赖门验证：文档中的 `bun install --cwd skill --frozen-lockfile` 真跑成功且 lockfile 无变化；`tests/llmlint.test.ts` 67 passed，根 `tsc --noEmit` 通过，完整 Vitest 29 files / 275 tests 通过。首次同步 llmlint skill copied 6 / unchanged 111，user assets updatedAssets 6；原文边界措辞收紧后最终复同步 copied 1 / unchanged 116，user runtime 已一致所以 updatedAssets 0。NeuroBook 同步聚焦测试 1 passed / 83 skipped；6 个提示词/runtime 文件在真相源、vendored snapshot、当前 user runtime 的 SHA-256 全部一致。
 
+- 2026-07-26 验收发现修复轮：每个 Phase 提交前跑 `bun run typecheck`、`bun run test`、`cd web && bun run typecheck`，最终态 root tsc 通过、web vue-tsc 通过（仅既有 Volar 插件告警）、vitest **30 files / 282 tests**、bun test **11 files / 69 tests** 全绿。**注意：本轮起 `bun run test` 会先跑 `registry:build`**，所以测试结果不再可能建立在过期的 `web/app/data/registry.json` 快照上（此前正是这个假绿掩盖了一处规则漂移，见下方 Phase 1 记录）。真跑验证：紧凑/完整 JSON 体积对照、`--rule-detail` 逐字节回归、`detect` 三条分支（多 chunk 相对排序 / 单 chunk 守门 / 缓存命中仍带派生字段）、`show-llm-rules` 行数、全语料比喻家族复算、对白层 32 次 detect 与全语料形态量化。
 - 2026-07-26 端到端验收轮：提交前复跑 `bun run typecheck` 通过、`cd web && bun run typecheck` 通过（仅既有 `vue-router/volar/sfc-route-blocks` 插件告警）、`bun run test` 全绿（vitest 29 files / 275 tests + bun test 11 files / 69 tests）。skill CLI 真跑：依赖门 `bun install --cwd skill --frozen-lockfile` 无变化、`status --format json`、`check`、`check --review all`、`detect`（HF 真跑两次，修前 `cached:false`、修后新内容 `cached:false`）、`show-llm-rules` 全部成功。
 
 ## Implementation Walkthrough
@@ -175,6 +176,38 @@ chunk 5（L67–78）几乎全是对白，P(AI) 0.982，规则只 1 条命中。
 - 本轮真实 `~/.llmlint` 的 `initialized` 仍为 `false`，我没有代用户写入共享档位；初始化门不阻塞 `check`/`detect`，所以它是软门。
 - 实际执行顺序与 SKILL.md 有出入：为了尽快拿到复测数据，我先做了修复再补写 `polish-plan.md`，且跳过了用户审批门。正式使用时审批门必须保留。
 
+### 验收发现修复轮（2026-07-26）
+
+按 4 个阶段落地，共 4 个 commit。发现 ③（一轮修复后检测分数微升）是方法论结论不是缺陷，无代码动作，只写进提示词作为「不要拿检测分数当目标」的实测反例。
+
+**Phase 1 — `check` JSON 紧凑化（发现 ①）**
+
+紧凑投影抽到 `skill/src/check-report.ts`，与 `fix.ts` / `rule-registry.ts` 同一取舍：纯函数、无 `picocolors`，CLI 与 web 共用。规则元数据按 id 去重到顶层 `rules`，命中只留 `ruleId` + 位置 + 证据，`context` 各裁 24 码点并标省略号，`registry` 去掉 `namespaces` 明细，JSON 不缩进。`--rule-detail` 恢复完整形态。
+
+实测：`--review all` 84936 → **19720** 字节（−77%），`--review agent` 17907 → **3951**（−78%），`--rule-detail` 输出 84936 与改动前逐字节一致。`show-llm-rules` stylish 从 322 行压到 165 行。
+
+与计划的出入：① 计划写「投影放 `reporter.ts`」，实施时改为独立模块——web 从 `reporter.ts` 导入会把终端着色库拖进浏览器 bundle。② 计划没提去掉 JSON 缩进；实测缩进占 25% 体积，`--format json` 的消费者是 Agent，所以一并去掉，`--rule-detail` 保留缩进。③ 计划的「两步落地」（先加函数保持旧默认、再翻转）没有分成两个 commit，改为「先写投影 + 单测跑绿、再翻默认值」，省掉一次废弃提交但保留了隔离验证。
+
+**顺带堵掉一个假绿（计划外）**：`test` 脚本现在先跑 `registry:build`。`web/app/data/registry.json` 是 gitignore 的构建产物，之前它相对 `skill/rulesets/` 过期——`tests/revision-text-workspace.test.ts` 断言的 `cn.punctuation.dedup.repeated-symbols` 其实已在规则整理轮被 `enabled:false`，测试却因为产物过期而通过。**这也意味着本轮之前「提交前测试全绿」的结论是基于过期快照得出的。** 该用例改用仍 active 的 `cn.modifier.stacked-degree-adverbs`，并把硬编码的「总命中 61 条」改成断言预算合同本身（总命中 = 展示 + 省略），避免每轮规则整理都假失败。
+
+**Phase 2 — 相对判据与提示词（发现 ②④⑤⑦）**
+
+`detect` 报告层新增 `rank`（文内 P(AI) 降序位次）、`relative`（`pAi − docPAi`）、`spread`（文内极差），在 `toDetectReport` 计算而不写进 content-hash 缓存——否则每次加字段都要让全部缓存失效；实测 `cached:true` 时字段仍在。stylish 弃用「热区 / 冷区」措辞，改「文内最可疑 / 最不可疑」并标注「仍需看绝对 P(AI)」，因为文内低位不等于检测器认为它像人写（本篇 rank 6 仍有 `P(AI)=0.929`）。
+
+三条分支都真跑验证：多 chunk（spread 0.707，相对排序生效）、单 chunk（spread 0，守门分支）、缓存命中仍带派生字段。
+
+**Phase 3 — 比喻家族路由（发现 ② 规则腿）**
+
+裁决结果：**保持 `human`，不提回 `agent`**。定量上 `trailing-simile-clause` 富集 5.3x 高于两条已在 agent 桶的规则，但真人侧文档命中率 23% / 35% 是 agent 桶全部规则（0–8%）的 3–9 倍；定性上真人侧命中几乎全是出版小说里承担信息的有效比喻（天龙八部「犹如拗口令一般」、诡秘之主「仿佛在看讲述维多利亚时期故事的英剧」承担时代设定），决策口径要求的「装饰性」不成立。
+
+与计划的出入：计划只写了「量完再决定改不改路由」，实施中额外发现并修掉一处规则越界——`trailing-simile-clause` 用无上界 `+`，会把 40 字解释性长从句当尾部比喻壳。加 `{2,20}` 后真人命中 8→7、真人侧文档 23%→19%、富集 5.3x→5.8x，AI 召回只降 3%。
+
+**Phase 4 — 对白层调研（发现 ⑥）**
+
+结论是不新增规则，详见 [dialogue-layer-research.md](dialogue-layer-research.md)。检测器在对白上无系统性偏高（真人对白 P(AI) 中位 0.122 vs AI 0.709），所以缺口是真的；但从单篇高分样本归纳的 5 个形态加轮次分布 2 项，在全语料对白层上全部不成立（富集 0.7–2.4x，3 项方向相反，分布判别 AUC≈0.5）。
+
+与计划的出入：计划预期「若基线给出正向信号则产出候选规则清单」。基线确实给了正向信号（第一问通过），但第二问失败——所以产出的是**反证清单**而不是候选清单。这是「检测器能分、表层规则分不了」的又一实例，与 Task 08 的 AUC gap、Task 14 的 −0.7pp 同源。
+
 ## TODO / Follow-ups
 
 - [x] story-deslop 规则吸收分析与导入方案（`rules-absorption-analysis.md` + `rule-model-v3-design.md`）
@@ -182,10 +215,13 @@ chunk 5（L67–78）几乎全是对白，P(AI) 0.982，规则只 1 条命中。
 - [x] 分片 1 A 线：校准规则导入 + SKILL.md（`PLAN-A-rules-and-prompts.md`）
 - [x] 分片 1 B 线：用户状态层 + status/config + detect（`PLAN-B-coding-handoff.md`，交外部 Agent）
 - [x] 分片 1 端到端验收（2026-07-26，见上节 7 项发现）
-- [ ] 验收发现 1：`check` 紧凑输出模式（去掉 registry 全表与逐 issue 内联规则详情）
-- [ ] 验收发现 2 + 4 + 5：SKILL.md 报告段修订（`--review all` 提为主路径、四象限改相对判据、热力绿象限结论改为「规则与检测器分歧」）
-- [ ] 验收发现 6：`scope.layer:"dialogue"` 口语对白规则增量（先判定检测器对口语对白是否偏高）
-- [ ] 验收发现 7：`sharing.tier` 默认值口径统一（改文档还是改默认值）
+- [x] 验收发现 ①：`check` 紧凑输出模式（`--review all` 84936 → 19720 字节，−77%；`--rule-detail` 逃生舱与改动前逐字节一致）
+- [x] 验收发现 ②：`--review all` 提为创作类主路径（文档腿）；规则腿复算给出反证，比喻家族保持 `human`
+- [x] 验收发现 ④：四象限改相对判据（`rank` / `relative` / `spread` 派生字段 + `spread < 0.15` 有效性守门）
+- [x] 验收发现 ⑤：「热力绿 ⇒ 规则误报」改为「规则与检测器分歧，需人工裁决」；stylish 弃用红绿措辞
+- [x] 验收发现 ⑥：对白层调研完成（`dialogue-layer-research.md`）——检测器无偏、缺口是真的，但 7 个候选特征全部不成立，本轮**不新增** dialogue 层规则
+- [x] 验收发现 ⑦：`sharing.tier` 口径统一（保留代码默认 `fragments`，文档改为读 `status` 实际值 + 解释四档）
+- [ ] 后续：把「对白-only」做成语料正式视图，让判别 harness 在该层拟合（前置 Task 08 M3/M4 完成、`renderPromptVersion` 守门放行）
 - [ ] 分片 2 实施
 - [ ] 分片 3 实施（开工前先定跨站信任链：Passport 签发的 Bearer 如何被 llmlint web 校验；nb-workshop spec §7 已留 `contribution:submit` 保留 scope，但两侧都没写 introspection 或密钥分发）
 - [ ] contributions 数据模型对 Task 12 统一模型的映射设计
