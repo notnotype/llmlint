@@ -166,31 +166,29 @@ bun "<skill-root>/bin/llmlint.ts" detect .agent/polish-output.md --format json
 
 ## 步骤 5：台账与学习出口
 
-写入 `.agent/llmlint-session.json`，记录本轮事实：
+先读 `.agent/llmlint-session.json`，把本轮追加进 `rounds`，**不要整体覆写**；文件不存在时才新建：
 
 ```json
 {
-    "version": 1,
-    "sourceFiles": [],
-    "createdAt": "",
-    "updatedAt": "",
-    "status": "completed",
-    "settings": {
-        "sharingTier": "",
-        "login": "none"
-    },
-    "summary": {
-        "staticIssues": 0,
-        "densityIssues": 0,
-        "docPAi": 0,
-        "spread": 0
-    },
-    "decisions": [],
-    "localConfigSuggestions": []
+    "version": 2,
+    "rounds": [
+        {
+            "sourceFiles": [],
+            "completedAt": "",
+            "status": "completed",
+            "settings": {"sharingTier": "", "login": "none"},
+            "summary": {"staticIssues": 0, "densityIssues": 0, "docPAi": 0, "spread": 0},
+            "retest": {"staticIssues": 0, "densityIssues": 0, "docPAi": 0, "spread": 0, "verdict": "pass"},
+            "decisions": [],
+            "localConfigSuggestions": []
+        }
+    ]
 }
 ```
 
-`settings.sharingTier` 写 `status` 报的实际值。`summary` 记 `docPAi` 与 `spread`，不记「热区数」——热区数依赖绝对阈值，跨篇不可比。
+台账是唯一跨轮累积的产物：`decisions` 与 `localConfigSuggestions` 是学习出口的原料，覆写等于丢掉全部历史判断。相对地，`.agent/polish-plan.md` 与 `.agent/polish-output.md` 是单槽过程产物，每轮覆盖，需要留存由用户自行另存。
+
+`settings.sharingTier` 写 `status` 报的实际值。`summary` 与 `retest` 记 `docPAi` 与 `spread`，不记「热区数」——热区数依赖绝对阈值，跨篇不可比。
 
 `decisions` 记录疑难片段：文件、行号、静态规则、文内位次证据、用户判定、保留/修复理由。`localConfigSuggestions` 记录建议的 `llmlint.config.ts` diff，例如：
 

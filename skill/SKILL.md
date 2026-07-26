@@ -133,6 +133,8 @@ bun "<skill-root>/bin/llmlint.ts" config set detector.proxy http://127.0.0.1:789
 
 报告不要输出原始 JSON 给用户。只摘取必要行号、规则、文内位次和建议。
 
+报一条命中要同时给出 `rules[ruleId].title`、原文实际 `match`，以及 `action`（替换类给目标词，删除类说明删什么）。只报 title 不够——同一条规则在不同位置命中的原文不同，读者要看到自己写的那个词才能判断。
+
 ### 4. 修复 ↔ 复测一轮
 
 生成 `.agent/polish-plan.md`，内容包括：
@@ -141,6 +143,8 @@ bun "<skill-root>/bin/llmlint.ts" config set detector.proxy http://127.0.0.1:789
 - 每项引用行号、原文片段、修复理由。
 
 等待用户审批后执行修复。默认写入 `.agent/polish-output.md`，只有用户明确要求时才直接修改原文件。
+
+`.agent/polish-plan.md` 与 `.agent/polish-output.md` 是**单槽过程产物**：每轮审稿都覆盖上一轮，不做归档。需要留存上一轮的计划或改稿，先提醒用户自行另存，不要默认保留。真正需要跨轮累积的是台账（见步骤 5）。
 
 执行每项修复前先读命中前后文，确认它承担的信息、因果、视角和语气。按 **删 → 压 → 换** 处理：先删无信息负担；删后断裂则压缩重复说明；只有必要语义必须保留时才改写。改动限定到解决问题所需的最小范围，不整段重写无关内容。
 
@@ -157,31 +161,43 @@ bun "<skill-root>/bin/llmlint.ts" detect .agent/polish-output.md --format json
 
 ### 5. 台账与学习出口
 
-本轮结束时写入或更新 `.agent/llmlint-session.json`：
+台账是唯一跨轮累积的产物。**先读 `.agent/llmlint-session.json`，把本轮作为一个新条目追加进 `rounds`，不要整体覆写**；文件不存在时才按下面的形状新建：
 
 ```json
 {
-    "version": 1,
-    "sourceFiles": [],
-    "createdAt": "",
-    "updatedAt": "",
-    "status": "completed",
-    "settings": {
-        "sharingTier": "",
-        "login": "none"
-    },
-    "summary": {
-        "staticIssues": 0,
-        "densityIssues": 0,
-        "docPAi": 0,
-        "spread": 0
-    },
-    "decisions": [],
-    "localConfigSuggestions": []
+    "version": 2,
+    "rounds": [
+        {
+            "sourceFiles": [],
+            "completedAt": "",
+            "status": "completed",
+            "settings": {
+                "sharingTier": "",
+                "login": "none"
+            },
+            "summary": {
+                "staticIssues": 0,
+                "densityIssues": 0,
+                "docPAi": 0,
+                "spread": 0
+            },
+            "retest": {
+                "staticIssues": 0,
+                "densityIssues": 0,
+                "docPAi": 0,
+                "spread": 0,
+                "verdict": "pass"
+            },
+            "decisions": [],
+            "localConfigSuggestions": []
+        }
+    ]
 }
 ```
 
-`settings.sharingTier` 写 `status` 报的实际值，不要写死。`summary` 记 `docPAi` 与 `spread` 而不是「热区数」——热区数依赖绝对阈值，跨篇不可比。
+`decisions` 与 `localConfigSuggestions` 是学习出口的原料，被覆盖就等于丢掉全部历史判断，所以只能追加。同一篇正文重新审稿也追加新条目，靠 `sourceFiles` 与 `completedAt` 区分。
+
+`settings.sharingTier` 写 `status` 报的实际值，不要写死。`summary` 与 `retest` 记 `docPAi` 与 `spread` 而不是「热区数」——热区数依赖绝对阈值，跨篇不可比。`retest.verdict` 写 `pass` / `fail`，判据见步骤 4。
 
 疑难片段判定要记录：文件、行号、规则与文内位次证据、用户判定、保留或修复理由、建议的本地 config 覆盖。上传能力不在本版本实现；远端学习出口只说明“待后续 contributions 命令”。
 
