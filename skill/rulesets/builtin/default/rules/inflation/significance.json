@@ -21,8 +21,9 @@
     "namespace": "inflation.significance",
     "title": "重要性通胀",
     "level": "medium",
+    "enabled": false,
     "review": "human",
-    "note": "默认交人工：「至关重要 / 举足轻重 / 意义非凡」在任务规则、角色判断和说明性对白中可能合理；当前 dataset 真人侧不低于 AI 侧，只在它替代具体依据时修。",
+    "note": "默认关闭：「至关重要 / 举足轻重 / 意义非凡」在任务规则、角色判断和说明性对白中可能合理，当前 dataset 真人侧不低于 AI 侧；保留资产给项目显式开启。",
     "detector": {
       "type": "regex",
       "targets": [
@@ -57,8 +58,9 @@
     "namespace": "inflation.significance",
     "title": "惊叹式渲染",
     "level": "medium",
+    "enabled": false,
     "review": "human",
-    "note": "默认交人工：「令人瞩目 / 令人惊叹」在新闻、评论和角色视角中可能合法；当前 eval 人类侧命中高于 AI 侧，只在它替代证据时修。",
+    "note": "默认关闭：「令人瞩目 / 令人惊叹」在新闻、评论和角色视角中可能合法，当前 dataset 真人侧高于 AI 侧；保留资产给项目显式开启。",
     "detector": {
       "type": "regex",
       "targets": [

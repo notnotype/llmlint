@@ -81,8 +81,9 @@ const CORE_BASE_RULES = [
         "namespace": "filler",
         "title": "虚假邀请句式",
         "level": "low",
+        "enabled": false,
         "review": "human",
-        "note": "默认交人工：“让我们”可能是正常号召、角色台词或说明文组织语；当前 eval support 很低，只在它形成助手腔邀请时修。",
+        "note": "默认关闭：“让我们”可能是正常号召、角色台词或说明文组织语，当前 dataset 真人侧不低于 AI 侧；保留资产给项目显式开启。",
         "detector": {
             "type": "regex",
             "targets": [
@@ -315,7 +316,9 @@ const CORE_BASE_RULES = [
         "namespace": "absolute",
         "title": "懒惰绝对词",
         "level": "low",
-        "note": "默认收窄：不再裸扫“所有人/每个人/永远/一定会”等小说常用表达，只保留更像无范围断言的绝对词。",
+        "enabled": false,
+        "review": "human",
+        "note": "默认关闭：“大家都/从来不/没有人/任何人都”等在小说叙述和对白中是普通范围表达，当前 dataset 真人侧不低于 AI 侧；保留资产给项目显式开启。",
         "detector": {
             "type": "regex",
             "targets": [

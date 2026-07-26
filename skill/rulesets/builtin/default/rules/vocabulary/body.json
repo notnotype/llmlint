@@ -451,11 +451,13 @@
     "namespace": "vocabulary.body",
     "title": "医用词换通俗说法",
     "level": "medium",
-    "enabled": true,
-    "note": "医用词换通俗说法",
+    "enabled": false,
+    "review": "human",
+    "note": "默认关闭：裸“肌理”不是医用赘词，也不能无损替换为“肌肉”；当前 dataset 真人与 AI 各 1 次，保留资产给项目显式开启。",
     "source": {
       "canonicalKey": "vocabulary.body\t\t肌理",
-      "importedFrom": "curated-cn-rule-samples"
+      "importedFrom": "curated-cn-rule-samples",
+      "version": "rule-curation-v31"
     },
     "detector": {
       "type": "regex",

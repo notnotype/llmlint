@@ -113,8 +113,8 @@ llmlint 是针对 **LLM 生成中文文本**的 linter：CLI 用正则确定性�
 
 | key | 中文 | 含义 | 代码锚点 |
 |---|---|---|---|
-| `agent session` | Agent 会话 | 挂在一个 revision 上的持久化对话树；LLM 分析完成后继续承载 AI 改写 | `AgentSession` / `AgentHarnessPort` |
-| `invocation` | 调用轮 | 一次 analysis 或 optimize 运行；terminal 事实不可复活，retry 必须新建 invocation | `AgentInvocation` |
+| `agent session` | Agent 会话 | 承载一条线性 Revision lineage 的持久化对话树；`AgentSession.revisionId` 只是当前 Revision 指针 | `AgentSession` / `AgentHarnessPort` |
+| `invocation` | 调用轮 | 一次 analysis 或 optimize 运行；`AgentInvocation.revisionId` 是本次运行所属版本的唯一事实；terminal 事实不可复活，retry 必须新建 invocation | `AgentInvocation` |
 | `entry tree` | 会话条目树 | append-only 的 user/assistant/tool/edit/report/lifecycle 事实；active leaf 表示当前对话分支 | `AgentSessionEntry` |
 | `machine detect run` | 外部检测运行 | 外部检测器一次可取消、可重试的 attempt；结果仍由 `MachineDetect` 承载 | `MachineDetectRun` |
 | `event cursor` | 事件游标 | SSE 恢复位置，由进程级 `eventEpoch` 与 session 内单调 `seq` 组成；epoch 变化或 seq 缺口必须回 snapshot | `AgentSessionEvent` |

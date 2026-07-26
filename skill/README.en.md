@@ -4,7 +4,7 @@
 
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](./LICENSE)
 [![Runtime: Node.js or Bun](https://img.shields.io/badge/Runtime-Node.js%20or%20Bun-green.svg)](#requirements)
-[![Version](https://img.shields.io/badge/version-2.0.0-green.svg)](./package.json)
+[![Version](https://img.shields.io/badge/version-2.0.1-green.svg)](./package.json)
 
 **[中文](./README.md) · English**
 
@@ -44,12 +44,12 @@ npx skills add notnotype/llmlint --skill llmlint --full-depth
 
 It copies / links the skill files into the agent's skills directory and drives the CLI per `SKILL.md`.
 
-**Standalone CLI** — clone and install dependencies (Bun or Node both work):
+**Standalone CLI** — clone and install dependencies with Bun; the CLI runtime still supports Bun or Node + `tsx`:
 
 ```bash
 git clone https://github.com/notnotype/llmlint.git
 cd llmlint/skill
-bun install        # or npm install / pnpm install
+bun install --frozen-lockfile
 ```
 
 Run it directly (Bun runs TS natively; for Node see [Requirements](#requirements)):
@@ -60,7 +60,7 @@ bun bin/llmlint.ts check <file>     # Node: npx tsx bin/llmlint.ts check <file>
 
 Or expose the `llmlint` command on your PATH (declared in `package.json` `bin`): run `bun link`, then `llmlint check <file>`.
 
-> The docs in `SKILL.md` / `references/` call the CLI as `bun .nbook/agent/skills/llmlint/bin/llmlint.ts …`. That path is for when llmlint is installed as an embedded agent skill (see [Using as an Agent Skill](#using-as-an-agent-skill)). Standalone, just use `bin/llmlint.ts` and swap `bun` for your Node runner.
+> `SKILL.md` and `references/` use a `<skill-root>` placeholder. The agent takes the parent directory of the absolute `SKILL.md` location supplied by its skill catalog and substitutes it before execution. In standalone use, the current directory is the skill root, so run `bun bin/llmlint.ts …` directly.
 
 ## Quick start
 
@@ -152,16 +152,16 @@ Exit codes follow the **visible view**: hits hidden by `--review` / `--min-level
 
 ## Using as an Agent Skill
 
-This repo is also a self-contained **Agent Skill**. `SKILL.md` defines a 6-step polish workflow: get input → `check` → `show-llm-rules` + 50-point review → fix plan (user-approved) → apply → report.
+This repo is also a self-contained **Agent Skill**. `SKILL.md` defines a first-use dependency gate followed by a five-step local loop: `status` initialization → `check + detect` → combined report → approved delete/compress/rewrite repair plus one retest → ledger and local learning suggestions.
 
-Recommended install via the [`skills`](https://skills.sh) CLI — `npx skills add notnotype/llmlint --skill llmlint --full-depth` — which searches the repository recursively, installs the `llmlint` skill from `skill/`, and drops it into the agent's skills directory (e.g. `.claude/skills/llmlint/` or NeuroBook's `.nbook/agent/skills/llmlint/`). For manual installation, copy the repository's `skill/` directory and name it `llmlint/` in the target skills directory. After installing, run the dependency install once in the skill directory (`npm install` / `bun install` / `pnpm install`), and the agent can drive the CLI through the documented flow.
+Recommended install via the [`skills`](https://skills.sh) CLI — `npx skills add notnotype/llmlint --skill llmlint --full-depth` — which searches the repository recursively, installs the `llmlint` skill from `skill/`, and drops it into the agent's skills directory (e.g. `.claude/skills/llmlint/` or NeuroBook's `.nbook/agent/skills/llmlint/`). For manual installation, copy the repository's `skill/` directory and name it `llmlint/` in the target skills directory. On first activation, the agent must run `bun install --cwd "<skill-root>" --frozen-lockfile` in the catalog-provided skill root before entering the `status` initialization gate; later reviews reuse that installation. `package.json.version` is the skill version source of truth; it is not duplicated in `SKILL.md` frontmatter.
 
 ## Documentation
 
 - [`SKILL.md`](./SKILL.md) — the Agent Skill manifest and workflow contract
 - [`references/cli-usage.md`](./references/cli-usage.md) — full CLI reference (flags, output formats, JSON schema)
 - [`references/patterns.md`](./references/patterns.md) — the Chinese-text pattern library (what each rule looks for, and when to keep it)
-- [`references/workflow.md`](./references/workflow.md) — the 6-step polish workflow in detail
+- [`references/workflow.md`](./references/workflow.md) — the dependency gate and five-step local loop in detail
 
 ## License
 

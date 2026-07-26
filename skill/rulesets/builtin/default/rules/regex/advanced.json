@@ -157,10 +157,13 @@
     "namespace": "regex.advanced",
     "title": "正则-高级替换",
     "level": "medium",
-    "enabled": true,
+    "enabled": false,
+    "review": "human",
+    "note": "默认关闭：“抖/颤/缩/躲/愣/惊了一下”是普通动作和瞬时反应，当前 dataset 真人侧不低于 AI 侧；保留资产给项目显式开启。",
     "source": {
       "canonicalKey": "regex.advanced\tg\t([抖颤缩躲愣惊])了?一下",
-      "importedFrom": "curated-cn-rule-samples"
+      "importedFrom": "curated-cn-rule-samples",
+      "version": "rule-curation-v30"
     },
     "detector": {
       "type": "regex",

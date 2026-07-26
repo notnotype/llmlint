@@ -14,8 +14,9 @@ export const TRANSITION_SUMMARY_RULES = [
         "namespace": "transition.summary",
         "title": "总结式过渡",
         "level": "medium",
+        "enabled": false,
         "review": "human",
-        "note": "默认交人工：「综上所述 / 总而言之 / 由此可见」在说明文和论证收束中可能合法；当前 eval 人类侧不低于 AI 侧，只在它形成空转总结时修。",
+        "note": "默认关闭：「综上所述 / 总而言之 / 由此可见」在说明文和论证收束中可能合法，当前 dataset 真人侧不低于 AI 侧；保留资产给项目显式开启。",
         "detector": {
             "type": "regex",
             "targets": [
@@ -29,8 +30,9 @@ export const TRANSITION_SUMMARY_RULES = [
         "namespace": "transition.summary",
         "title": "重述式过渡",
         "level": "medium",
+        "enabled": false,
         "review": "human",
-        "note": "默认交人工：「换句话说 / 简而言之」在设定解释和对白规则说明里常有实际信息压缩功能；当前 dataset 真人侧不低于 AI 侧，只在它形成空转重述时修。",
+        "note": "默认关闭：「换句话说 / 简而言之」在设定解释和对白规则说明里常有实际信息压缩功能，当前 dataset 真人侧高于 AI 侧；保留资产给项目显式开启。",
         "detector": {
             "type": "regex",
             "targets": [

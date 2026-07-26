@@ -27,20 +27,21 @@ llmlint 是针对 LLM 生成中文文本的 linter：CLI 用正则确定性定�
 
 ## Rules / CLI Facts
 
-- 默认无 config 时加载单一内置 ruleset `builtin/default`：约 **360 rules / 284 active**，跨 50+ namespaces，由人工基础规则、中文策展规则（shuorenhua / avoid-ai-writing / humanizer）与 story-deslop 校准检测器合并生成。
-- 三个正交维度：`level`（high/medium/low，严重度+退出码）、`review`（agent/human/none，审查受众，`check` 默认 `--review agent`）、`fixability`（auto/candidate/manual，机械修复能力）。默认 review 桶为 agent=57 / human=225 / none=2；默认 regex 规则为 auto=2、candidate=0、manual=261；`action.replace` 只是替换模板，不授予应用权限。
+- 默认无 config 时加载单一内置 ruleset `builtin/default`：约 **360 rules / 266 active**，跨 50+ namespaces，由人工基础规则、中文策展规则（shuorenhua / avoid-ai-writing / humanizer）与 story-deslop 校准检测器合并生成。
+- 三个正交维度：`level`（high/medium/low，严重度+退出码）、`review`（agent/human/none，审查受众，`check` 默认 `--review agent`）、`fixability`（auto/candidate/manual，机械修复能力）。默认 review 桶为 agent=54 / human=210 / none=2；默认 regex 规则为 auto=2、candidate=0、manual=243；`action.replace` 只是替换模板，不授予应用权限。
 - 配置三层覆盖：rule id > namespace > ruleset > rule 默认；字符串是对象覆盖的语法糖，config 一处去糖、消费端无分支 patch。
 - 规则模型 v3 已落地：`scope.layer` 支持 narrative/dialogue/all 等长视图，`ignoreTerms` 统一遮罩 regex/density/handler，density detector 负责全文/段落分布指纹，builtin handler 负责 not-is 状态机、碎句号、过度精炼、低连接密度和引号强调；CLI、web 本地扫描、服务端 MachineScan 与 Agent `lint_check` 均消费同一份预烘静态规则。未知 detector/handler 按 warning 优雅跳过。
 - `check` 支持多文件/glob/目录、Markdown 遮罩（代码块/frontmatter/链接不误杀）、regex+density+handler 静态扫描、`--min-level` / `--review` 过滤、stylish（TTY 上色）与 `--format json`。
 - `fix` 只做 `fixability:auto` 机械修复（零宽字符 + 省略号/破折号尾部清理），默认 dry-run（有待修退出 1，可做 CI 门禁）、`--write` 落盘；重复感叹号/问号不再自动压缩，语义修复仍由 Agent 读上下文、经用户审批执行。
 - `status` / `config` 提供用户级 `~/.llmlint/settings.json` 初始化门；`detect` 直连 HF Space `yuchuantian-aigc-text-detector.hf.space`，句界分块、代理分流、content-hash 缓存，并输出 chunk 热区。
+- Agent Skill 使用“首次 install 依赖门 + 五步闭环”：当前安装首次启用、更新后或 `node_modules` 缺失时，先在 skill 根执行 `bun install --frozen-lockfile`，成功后才进入 `status`。修复提示词把静态命中/热区视为候选证据，先按修/留/问分流，再按删/压/换做最小改动；不以清零命中或降低检测分数为目标。
 - Web 同样严格区分修复权限：一键机械修复只吃 auto；默认 semantic replace 全部 manual，candidate 只保留给用户配置的显式白名单。构建期 `creative-writing@1` profile 直接消费 holdout report，排除 noise/anti 与稳定重复家族；MachineScan 和原始 eval 仍扫描完整超集。
 
 ## Recent Tasks
 
 | Task | Status | Notes |
 | --- | --- | --- |
-| [23 Skill 闭环与服务接入](docs/tasks/23-skill-loop-and-service/README.md) | 分片 1 A/B Done / 规则整理进行中 | B 线已提交 `0d8b7f3`：handler 管线测试、用户状态层、`status`/`config`、`detect`、缓存与验证闭环。A 线完成 story-deslop 校准规则导入、namespace 策略、校准测试、SKILL.md 五步流程、repair-guide 与规则模型 v3 不变量文档；后续规则整理已默认关闭稳定重叠旧规则和素材通配符转换遗留，并把题材词表、宽泛低信号规则、普通开场连接词、裸词级规则、旧单层否定对比、裸/尾部嘴角弧度、手部泛白、生理泪水、宏大时代开场、弱新颖性拔高、普通动作音效尾句、低支撑普通语气/接触音效细节、无校准身体/触感/声音微细节、语气强度/对白回声/场域前置壳、裸粗重/粗暴/疯狂、两个过时 modifier strong override、`transition-summary-restate`、`inflation-superlative` 和 `story-deslop.action-list` 下沉 human；`few-degree` 撤回 Agent 例外，裸“近乎”从 Agent 规则中移除，裸“三”默认关闭，泛否定转折规则转 human，`opening.cliche` 限制到叙述层文首窗口，`quote-emphasis` 保持 human advisory；最近继续收窄 `trailing-sensory-clause`、否定连排 only-turn/真实转折、量词（含“这具/那具”“这种/那种”“一丝丝”）、“沉甸甸/崩溃/近乎/黏腻”、degree adverb、副词/转折、工程师腔和氛围修饰重叠，并默认关闭 `filler-word-actually`、`filler-can-say`、`quotable-punchline-candidate`、`comprehensive-listing`、`sudden-moment`、`even-is` 等低信号 human regex；本轮默认关闭过宽增殖标点、裸破折号替逗号、`ineffable-absolute-modifier` 和 `sticky-optional`，商业黑话与懒惰绝对词收窄，重复感叹/问号从自动修复降级为人工提示。当前 dataset active 同 span overlap 只剩 1 处 human 宏观节奏规则共振，默认 review 分桶为 agent 54 / human 220 / none 2。分片 2 contributions 与分片 3 登录仍未做。 |
+| [23 Skill 闭环与服务接入](docs/tasks/23-skill-loop-and-service/README.md) | 分片 1 A/B Done / 规则整理进行中 | 本地闭环、story-deslop 校准规则、规则模型 v3 与“首次 install 依赖门 + 五步修复流程”已落地。提示词先按修/留/问判定候选，再按删/压/换做最小修复，保护剧情、人设、时间线、角色声音和载体功能，不为检测分数制造新文本。规则整理按“默认 Agent 低误杀、human 保留高召回但不保留已证实噪声、canonical 消重”持续收敛。当前 360 total / 266 active，review = agent 54 / human 210 / none 2；active 同 span 只剩 1 处 human 宏观节奏规则共振。待决策略集中在 `rule-curation-open-questions.md`；分片 2 contributions 与分片 3 登录仍未做。 |
 | [22 Agent Chat 界面适配](docs/tasks/22-agent-chat-ui/README.md) | Implemented / Browser Pending | Flow 展示可区分来源的完整运行上下文；同 Session 跨 Revision 保留 transcript/cursor；历史 Analysis 重试与取消由 `useAgentChat` 按 Invocation revision 收口；一键入口先应用 auto 静态修复，再把更新后的草稿交给不含 `lint_fix` 的风险润色 Agent。最终全量 34 files / 290 tests、双 typecheck、Nuxt production build 通过；浏览器验收待用户授权。 |
 | [20 AGPL-3.0-only 许可证迁移](docs/tasks/20-agpl-license-migration/README.md) | Implemented | 根开发仓和可安装 `skill/` package 已迁移到 AGPL-3.0-only，并同步刷新 NeuroBook vendored/user runtime 的许可证、README 与 manifest；NeuroBook 聚焦同步测试通过。 |
 | [21 NeuroAgentHarness llmlint Adapter](docs/tasks/21-neuro-agent-harness-llmlint/README.md) | Complete / Runtime Hardened | 公开 Harness hard cut 保持；同一线性 Revision lineage 复用 Session，Invocation revisionId 作为归属真相；`RevisionTextWorkspace` 统一 read/edit、CLI 同源 check/auto fix、历史只读 Revision 与三路持久检测。幂等 advance、精确读取覆盖和规则结果清零均已回归；业务能力仍留在 llmlint Adapter/Profile，不进入 Core。 |
@@ -169,11 +170,11 @@ Task 08 latest supplement addendum（2026-07-14）：评测可信度前置守门
 
 - **Task 08 Eval Pipeline Hardening（Implemented，2026-07-03）**：环 ① 全链路硬化 + 小验证轮已跑通。M1 calibre 批转 mobi + catalog 状态层（`neuro-book/datasets/aigc-detection`，manifest 为书目真相源）+ 3 新题组（武侠/宫斗/无限流）；M2 generator 硬化（commander、`eval.config.json`+example 双文件、prompt 版本化注册表守 I8、`claude -p`/`codex exec` CLI transport 走 stdin/合并契约、per-provider 限流、token 预算预估/实报/自校准）；M3 可换外部检测器（HF yuchuantian，句界分块避截断、长度加权 mean、sidecar 内容 hash 缓存、`report.externalDetector` 对照节，复用 rocAuc 同口径）；M4 5 题组/65 render：**llmlint AUC 0.681**（较旧 2 组 0.833 降＝判别力 genre-dependent 实证）、**holdout 首解锁** train0.616/test0.778、**外部检测器 AUC 0.941 ≫ llmlint**（证检测器是强 oracle 地基、gap=漏网新规则矿）。⚠ CLI transport 上游 anyrouter 不可达（claude 挂起/codex Reconnecting）未端到端验证，已降级快退。详见 [docs/tasks/08-eval-pipeline-hardening/README.md](docs/tasks/08-eval-pipeline-hardening/README.md)。
 - **Eval M3**：更多题材/题组/模型 + 文风预设档 + holdout 切分；补稀疏规则 prevalence 口径、真 1:1 同 brief 配对；稳后把「规则体检表」正式交 Task 02 驱动规则修复。M4 的 repair 一轮已建（[Task 14](docs/tasks/14-line-a-repair-loop/README.md)，2026-07-07），余 realism 难度档 + critic；之后 M5（LLM 规则判别 + 产品成绩单 + 显形回归集）。
-- **规则质量**：第二轮已落地 `creative-writing@1`：排除 noise/anti，稳定抑制重叠规则，保留 canonical rule 与原因；Task 23 后续规则整理已把稳定 overlap 和素材通配符转换遗留（含占位比喻壳）同步为默认 disabled，并把 R18/人体/解剖/颜色/一声/商业黑话/regex advanced 等题材词表、宽泛低信号 regex、裸词级规则、普通开场连接词、泛否定转折、裸嘴角弧度、裸粗重/粗暴/疯狂、宏大时代开场、弱新颖性拔高、普通动作音效尾句和过时 modifier strong override 下沉 human，`few-degree` 撤回 Agent 例外并排除“几分钟/几分之一”半截误报，裸“近乎”从默认 Agent 规则中移除，裸“三”默认关闭，过宽增殖标点与裸破折号替逗号规则默认关闭，商业黑话和懒惰绝对词收窄，重复感叹/问号降级为人工提示，`unquestionable-claim`、`trailing-sensory-clause`、否定连排、量词（含“这具/那具”“这种/那种”）、“沉甸甸”、degree adverb、physiological label、副词/转折和氛围修饰 overlap 已继续收窄，当前 dataset active 同 span overlap 为 0，但不删除资产。后续继续用更多题材 holdout 校准，避免把单轮 verdict 物理写死为全局删规则。
+- **规则质量**：`creative-writing@1` 继续排除 noise/anti 并抑制稳定 overlap；Task 23 已把可证实的重复、素材转换遗留和低信号规则默认关闭或下沉，不物理删除资产。最新一轮进一步关闭总结/通胀/绝对词/重复标点/瞬时反应、重复否定对比窄变体和错误“肌理→肌肉”规则，收窄安抚姿态与自媒体词表。当前 active exact regex target 重复为 0，当前 dataset 的 active 同 span regex overlap 为 0；全 detector 只剩两条 human 宏观节奏规则同段共振 1 处。后续继续用更多题材 holdout 校准，避免把单轮 verdict 写死为全局删规则。
 
 ## 2026-07-11 第二轮规则精简
 
-- 默认规则 materialize 结果（Task 23 规则整理后）：360 total / 284 active；263 regex / 8 density / 5 handler / 8 LLM；review = agent 57 / human 225 / none 2；regex fixability = `auto=2 / candidate=0 / manual=261`。用户配置仍可把指定 regex replace 提升为 candidate。
+- 默认规则 materialize 结果（Task 23 规则整理后）：360 total / 266 active；245 regex / 8 density / 5 handler / 8 LLM；review = agent 54 / human 210 / none 2；regex fixability = `auto=2 / candidate=0 / manual=243`。用户配置仍可把指定 regex replace 提升为 candidate。
 - Web registry 烘焙版本化 `creative-writing@1` profile。报告有效时排除 noise/anti；报告缺失时保留全量，但稳定 overlap 抑制仍生效。规则页保留完整超集并解释 profile 排除原因。
 - `Report.overlap` 已纳入正式报告：16,962 raw hits / 11,388 unique spans / 32.9% 原始重复率；score 默认 holdout=0.4。
 - 指定 NeuroBook `index2.md`：全量静态命中 115、机械修复 0、LLM 创作候选 17、候选重复 span 0。程度副词、量词、句尾比喻和二元转折家族不再重复进入清单。

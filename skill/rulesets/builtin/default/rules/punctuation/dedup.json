@@ -28,14 +28,14 @@
     "namespace": "punctuation.dedup",
     "title": "连续符号去重",
     "level": "medium",
-    "enabled": true,
+    "enabled": false,
     "review": "human",
     "fixability": "manual",
-    "note": "默认降级：重复感叹号/问号在小说对白和拟声中常承担语气，当前 reference 命中高于 render；只作为人工提示，不再自动去重。",
+    "note": "默认关闭：重复感叹号/问号在小说对白和拟声中常承担语气，当前 reference 命中率高于 render；保留资产给项目显式开启。",
     "source": {
       "canonicalKey": "punctuation.dedup\t\t([,，。~～!！?？])\\1+",
       "importedFrom": "curated-cn-rule-samples",
-      "version": "rule-curation-v28"
+      "version": "rule-curation-v30"
     },
     "detector": {
       "type": "regex",

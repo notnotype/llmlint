@@ -31,16 +31,20 @@ The recommended installation uses the `skills` CLI:
 npx skills add notnotype/llmlint --skill llmlint --full-depth
 ```
 
-For manual installation, copy [`skill/`](./skill/) into your Agent's skills directory as `llmlint/`, then install dependencies inside it:
+For manual installation, copy [`skill/`](./skill/) into your Agent's skills directory as `llmlint/`. On first activation, install dependencies in the skill root before running any llmlint CLI command:
 
 ```bash
 cd skill
-bun install    # or: npm install
+bun install --frozen-lockfile
 ```
+
+At runtime, the agent derives the skill root from the absolute `SKILL.md` location supplied by its skill catalog; it does not depend on a fixed `.nbook`, `.claude`, or `.codex` install path. `skill/package.json.version` is the skill version source of truth.
+
+`SKILL.md` treats this as a dependency gate before `status`; later uses of the same installation do not repeat it on every review.
 
 ### Configure
 
-No additional configuration is required. The engine and built-in rules work immediately after installation. See [`skill/references/cli-usage.md`](./skill/references/cli-usage.md) for CLI options, output formats, and the JSON schema.
+No additional configuration is required after dependencies are installed. See [`skill/references/cli-usage.md`](./skill/references/cli-usage.md) for CLI options, output formats, and the JSON schema.
 
 ### Run
 

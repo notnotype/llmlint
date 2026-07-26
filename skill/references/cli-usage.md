@@ -1,22 +1,32 @@
 # CLI 工具使用说明
 
-> 下文命令用 `bun` 演示；CLI 是 TypeScript，参数与运行器无关 —— Bun 原生运行，Node 通过 [`tsx`](https://github.com/privatenumber/tsx) 运行（把 `bun` 换成 `npx tsx`）。裸 `node` 不行：源码用了无扩展名相对导入，需 `tsx` 或 Bun 解析。首次使用若报缺依赖，在 skill 目录运行一次 `npm install`（或 `bun install` / `pnpm install`）。
+> 下文命令用 `bun` 演示；CLI 是 TypeScript，参数与运行器无关 —— Bun 原生运行，Node 通过 [`tsx`](https://github.com/privatenumber/tsx) 运行（把 `bun` 换成 `npx tsx`）。裸 `node` 不行：源码用了无扩展名相对导入，需 `tsx` 或 Bun 解析。`<skill-root>` 是 SkillCatalog `location` 所指 `SKILL.md` 的父目录；尖括号只是占位符，执行前替换为实际绝对路径。
+
+## 首次使用：安装依赖
+
+首次使用当前 skill，或依赖合同更新导致 `node_modules` 缺失时，必须在运行 `status`、`check`、`detect` 等任何 CLI 命令前执行：
+
+```bash
+bun install --cwd "<skill-root>" --frozen-lockfile
+```
+
+安装失败时不要继续运行 CLI，也不要依赖 Bun 运行时隐式补包。依赖已安装且依赖合同未更新时不必重复执行。
 
 ## 基本用法
 
 查看本地初始化状态、共享设置、项目配置路径和检测器状态：
 
 ```bash
-bun .nbook/agent/skills/llmlint/bin/llmlint.ts status
-bun .nbook/agent/skills/llmlint/bin/llmlint.ts status --format json
+bun "<skill-root>/bin/llmlint.ts" status
+bun "<skill-root>/bin/llmlint.ts" status --format json
 ```
 
 管理用户级 `settings.json`：
 
 ```bash
-bun .nbook/agent/skills/llmlint/bin/llmlint.ts config get
-bun .nbook/agent/skills/llmlint/bin/llmlint.ts config get sharing.tier
-bun .nbook/agent/skills/llmlint/bin/llmlint.ts config set sharing.tier stats
+bun "<skill-root>/bin/llmlint.ts" config get
+bun "<skill-root>/bin/llmlint.ts" config get sharing.tier
+bun "<skill-root>/bin/llmlint.ts" config set sharing.tier stats
 ```
 
 `config` 只管理用户级设置，不会修改项目级 `llmlint.config.ts`。
@@ -24,70 +34,70 @@ bun .nbook/agent/skills/llmlint/bin/llmlint.ts config set sharing.tier stats
 检查文件中的静态 detector 命中项：
 
 ```bash
-bun .nbook/agent/skills/llmlint/bin/llmlint.ts check <文件路径>
+bun "<skill-root>/bin/llmlint.ts" check <文件路径>
 ```
 
 估算文本 P(AI) 并输出热区：
 
 ```bash
-bun .nbook/agent/skills/llmlint/bin/llmlint.ts detect <文件路径>
-bun .nbook/agent/skills/llmlint/bin/llmlint.ts detect <文件路径> --format json
+bun "<skill-root>/bin/llmlint.ts" detect <文件路径>
+bun "<skill-root>/bin/llmlint.ts" detect <文件路径> --format json
 ```
 
 显示需要 Agent 主动全文审查的 LLM 规则：
 
 ```bash
-bun .nbook/agent/skills/llmlint/bin/llmlint.ts show-llm-rules
+bun "<skill-root>/bin/llmlint.ts" show-llm-rules
 ```
 
 指定配置文件：
 
 ```bash
-bun .nbook/agent/skills/llmlint/bin/llmlint.ts --config llmlint.config.ts check <文件路径>
+bun "<skill-root>/bin/llmlint.ts" --config llmlint.config.ts check <文件路径>
 ```
 
 输出 JSON：
 
 ```bash
-bun .nbook/agent/skills/llmlint/bin/llmlint.ts --format json check <文件路径>
-bun .nbook/agent/skills/llmlint/bin/llmlint.ts --format json show-llm-rules
-bun .nbook/agent/skills/llmlint/bin/llmlint.ts --format json detect <文件路径>
+bun "<skill-root>/bin/llmlint.ts" --format json check <文件路径>
+bun "<skill-root>/bin/llmlint.ts" --format json show-llm-rules
+bun "<skill-root>/bin/llmlint.ts" --format json detect <文件路径>
 ```
 
 长文件按最低级别过滤：
 
 ```bash
-bun .nbook/agent/skills/llmlint/bin/llmlint.ts check <文件路径> --min-level medium
-bun .nbook/agent/skills/llmlint/bin/llmlint.ts check <文件路径> --min-level high
+bun "<skill-root>/bin/llmlint.ts" check <文件路径> --min-level medium
+bun "<skill-root>/bin/llmlint.ts" check <文件路径> --min-level high
 ```
 
 按审查受众过滤（默认 `agent`，只展示需要 Agent/LLM 处理的命中）：
 
 ```bash
-bun .nbook/agent/skills/llmlint/bin/llmlint.ts check <文件路径>                 # 等同 --review agent
-bun .nbook/agent/skills/llmlint/bin/llmlint.ts check <文件路径> --review human  # 偏作者人工/风格偏好的命中
-bun .nbook/agent/skills/llmlint/bin/llmlint.ts check <文件路径> --review none   # 机械/诊断类命中
-bun .nbook/agent/skills/llmlint/bin/llmlint.ts check <文件路径> --review all    # 不按受众过滤，全部展示
+bun "<skill-root>/bin/llmlint.ts" check <文件路径>                 # 等同 --review agent
+bun "<skill-root>/bin/llmlint.ts" check <文件路径> --review human  # 偏作者人工/风格偏好的命中
+bun "<skill-root>/bin/llmlint.ts" check <文件路径> --review none   # 机械/诊断类命中
+bun "<skill-root>/bin/llmlint.ts" check <文件路径> --review all    # 不按受众过滤，全部展示
 ```
 
 显示完整命中行：
 
 ```bash
-bun .nbook/agent/skills/llmlint/bin/llmlint.ts check <文件路径> --show-lines
+bun "<skill-root>/bin/llmlint.ts" check <文件路径> --show-lines
 ```
 
 检查多个文件或整个目录（目录递归收集 `.md` / `.markdown` / `.txt`）：
 
 ```bash
-bun .nbook/agent/skills/llmlint/bin/llmlint.ts check a.md b.md
-bun .nbook/agent/skills/llmlint/bin/llmlint.ts check manuscript/
+bun "<skill-root>/bin/llmlint.ts" check a.md b.md
+bun "<skill-root>/bin/llmlint.ts" check manuscript/
 ```
 
 也支持 glob 模式（`**` 递归、`!` 排除、`{a,b}` 花括号）：
 
 ```bash
-bun .nbook/agent/skills/llmlint/bin/llmlint.ts check 'manuscript/**/*.md'
-bun .nbook/agent/skills/llmlint/bin/llmlint.ts check 'manuscript/**/*.md' '!manuscript/drafts/**'
+bun "<skill-root>/bin/llmlint.ts" check 'manuscript/**/*.md'
+bun "<skill-root>/bin/llmlint.ts" check 'manuscript/**/*.md' '!manuscript/drafts/**'
 ```
 
 > glob 模式按相对当前工作目录解析；用引号包住模式，避免被 shell 提前展开。目录参数（如 `manuscript/`）则在该目录内递归。
@@ -95,7 +105,7 @@ bun .nbook/agent/skills/llmlint/bin/llmlint.ts check 'manuscript/**/*.md' '!manu
 对 Markdown 文件，默认跳过代码块 / frontmatter / 行内代码 / 链接等结构区域，避免把代码、链接当正文误杀。`--scan-all` 关闭遮罩，扫描全部内容：
 
 ```bash
-bun .nbook/agent/skills/llmlint/bin/llmlint.ts check chapter.md --scan-all
+bun "<skill-root>/bin/llmlint.ts" check chapter.md --scan-all
 ```
 
 ## fix：确定性机械修复
@@ -105,9 +115,9 @@ bun .nbook/agent/skills/llmlint/bin/llmlint.ts check chapter.md --scan-all
 默认 dry-run：只打印将修复什么（含 before → after 预览，零宽等不可见字符会被显形为 `▯`），不改文件；存在待修复项时退出码为 `1`（可用于「禁止零宽字符入库」一类 CI 门禁）。`--write` 才写回原文件：
 
 ```bash
-bun .nbook/agent/skills/llmlint/bin/llmlint.ts fix manuscript/            # 预览（不落盘）
-bun .nbook/agent/skills/llmlint/bin/llmlint.ts fix manuscript/ --write    # 写回原文件
-bun .nbook/agent/skills/llmlint/bin/llmlint.ts fix chapter.md --format json
+bun "<skill-root>/bin/llmlint.ts" fix manuscript/            # 预览（不落盘）
+bun "<skill-root>/bin/llmlint.ts" fix manuscript/ --write    # 写回原文件
+bun "<skill-root>/bin/llmlint.ts" fix chapter.md --format json
 ```
 
 `fix` 同样默认尊重 Markdown 遮罩：代码块 / frontmatter 内的内容不会被改动，`--scan-all` 可关闭。
@@ -241,7 +251,7 @@ namespace: abstraction.hollow
 ```json
 {
   "kind": "status",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "initialized": false,
   "login": "none",
   "sharing": {"tier": "fragments", "mode": "ask", "anonymous": false},

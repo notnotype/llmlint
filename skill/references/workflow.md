@@ -1,19 +1,29 @@
 # 完整流程详解
 
-本文档解释 `llmlint` 的五步本地闭环：初始化、双路检测、合成报告、修复复测、台账与学习出口。
+本文档解释 `llmlint` 的依赖门和五步本地闭环：安装依赖、初始化、双路检测、合成报告、修复复测、台账与学习出口。
 
 ## 流程概览
 
 ```
-status 初始化门 → check + detect → 静态分级表 + 热区 + 四象限 → 修复并复测一轮 → 台账 + 本地学习建议
+首次 install 依赖门 → status 初始化门 → check + detect → 静态分级表 + 热区 + 四象限 → 修复并复测一轮 → 台账 + 本地学习建议
 ```
+
+## 步骤 0：install 依赖门
+
+从 SkillCatalog 的 `location` 取得当前 `SKILL.md` 绝对路径，将父目录记为 `<skill-root>`。尖括号是占位符，执行前必须替换为实际绝对路径。首次使用当前 skill，或依赖合同更新导致 `node_modules` 缺失时，在任何 CLI 命令前运行：
+
+```bash
+bun install --cwd "<skill-root>" --frozen-lockfile
+```
+
+安装成功后才能执行 `status`；安装失败就停止并报告。依赖已经安装且依赖合同未更新时，不需要在每轮审稿前重复安装。
 
 ## 步骤 1：status 初始化门
 
 先运行：
 
 ```bash
-bun .nbook/agent/skills/llmlint/bin/llmlint.ts status --format json
+bun "<skill-root>/bin/llmlint.ts" status --format json
 ```
 
 `status` 会报告版本、本地初始化状态、固定 `login:"none"`、共享设置、项目配置路径、检测器 space、代理状态和缓存目录。
@@ -21,8 +31,8 @@ bun .nbook/agent/skills/llmlint/bin/llmlint.ts status --format json
 如果 `initialized:false`，先向用户确认共享档位，再用 `config set` 写用户级 `settings.json`：
 
 ```bash
-bun .nbook/agent/skills/llmlint/bin/llmlint.ts config set sharing.tier stats
-bun .nbook/agent/skills/llmlint/bin/llmlint.ts config set initialized true
+bun "<skill-root>/bin/llmlint.ts" config set sharing.tier stats
+bun "<skill-root>/bin/llmlint.ts" config set initialized true
 ```
 
 `config` 只管理用户级 `settings.json`，不会修改项目级 `llmlint.config.ts`。项目级规则变化必须以 diff 建议形式交用户审批。
@@ -32,19 +42,19 @@ bun .nbook/agent/skills/llmlint/bin/llmlint.ts config set initialized true
 静态检查：
 
 ```bash
-bun .nbook/agent/skills/llmlint/bin/llmlint.ts check <files...> --format json
+bun "<skill-root>/bin/llmlint.ts" check <files...> --format json
 ```
 
 查看全部审查桶：
 
 ```bash
-bun .nbook/agent/skills/llmlint/bin/llmlint.ts check <files...> --review all --format json
+bun "<skill-root>/bin/llmlint.ts" check <files...> --review all --format json
 ```
 
 神经检测：
 
 ```bash
-bun .nbook/agent/skills/llmlint/bin/llmlint.ts detect <files...> --format json
+bun "<skill-root>/bin/llmlint.ts" detect <files...> --format json
 ```
 
 `check` 会输出 regex、handler 和 density 的结构化命中。`detect` 会输出每个文件的 `docPAi`、`maxPAi`、chunk span、起始行、P(AI) 与 `cached` 状态。
@@ -52,7 +62,7 @@ bun .nbook/agent/skills/llmlint/bin/llmlint.ts detect <files...> --format json
 网络失败时，不把整轮审稿判死。报告失败原因和代理建议：
 
 ```bash
-bun .nbook/agent/skills/llmlint/bin/llmlint.ts config set detector.proxy http://127.0.0.1:7890
+bun "<skill-root>/bin/llmlint.ts" config set detector.proxy http://127.0.0.1:7890
 ```
 
 ## 步骤 3：合成报告
@@ -93,10 +103,14 @@ L12-L18  P(AI)=0.921  预览文本...
 继续运行：
 
 ```bash
-bun .nbook/agent/skills/llmlint/bin/llmlint.ts show-llm-rules
+bun "<skill-root>/bin/llmlint.ts" show-llm-rules
 ```
 
 对无法静态定位的规则阅读全文判断。没有候选也要在计划中说明“未发现明显问题”。
+
+### 候选分流
+
+每个候选都归入 **修 / 留 / 问**：确认无功能模板负担才修；承担剧情、人物、节奏、题材或载体功能则留；证据不足或可能改变作者意图则问。规则等级和检测热力决定审查优先级，不替代上下文判断。
 
 ## 步骤 4：修复并复测一轮
 
@@ -108,11 +122,13 @@ bun .nbook/agent/skills/llmlint/bin/llmlint.ts show-llm-rules
 
 修复默认写入 `.agent/polish-output.md`。只有用户明确要求时才直接改原文件。
 
+执行顺序固定为：先读上下文并确认功能，再按 **删 → 压 → 换** 做最小修改。不能用同义词轮换、模板身体反应、硬拆短句或新增细节来掩盖命中。
+
 复测只跑一轮：
 
 ```bash
-bun .nbook/agent/skills/llmlint/bin/llmlint.ts check .agent/polish-output.md --format json
-bun .nbook/agent/skills/llmlint/bin/llmlint.ts detect .agent/polish-output.md --format json
+bun "<skill-root>/bin/llmlint.ts" check .agent/polish-output.md --format json
+bun "<skill-root>/bin/llmlint.ts" detect .agent/polish-output.md --format json
 ```
 
 复测仍有高风险时报告剩余风险，不无限循环。不要为了压低外部检测分数牺牲语义、角色声音或可读性。
@@ -162,6 +178,9 @@ bun .nbook/agent/skills/llmlint/bin/llmlint.ts detect .agent/polish-output.md --
 详见 [repair-guide.md](repair-guide.md)。简版：
 
 1. 先删无信息负担，再重写必要句子。
-2. 对白先分类，拿不准就交用户确认。
-3. 系统公告和技术说明可以保留载体，但要避免叙述者变成说明书。
-4. 每轮有收敛边界，复测一轮后报告剩余风险。
+2. 先判修 / 留 / 问，再按删 / 压 / 换处理；规则命中和 P(AI) 都不是修改命令。
+3. 只改表达，不改剧情、人设和时间线；不能删除有功能的信息，也不新增原文没有的事件或细节。
+4. 对白先分类，拿不准就交用户确认。
+5. 系统公告和技术说明可以保留载体，但要避免叙述者变成说明书。
+6. 不为清零命中或降低分数制造同义词套壳、模板反应和电报体。
+7. 每轮有收敛边界，复测一轮后报告剩余风险。

@@ -13,6 +13,7 @@ const DEFAULT_EVAL_CONFIG: NormalizedLlmlintConfig = {
     rulesetOverrides: {},
     namespaces: {},
     rules: {},
+    ignoreTerms: [],
     output: "json",
 };
 

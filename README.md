@@ -33,16 +33,20 @@
 npx skills add notnotype/llmlint --skill llmlint --full-depth
 ```
 
-手动安装时，复制 [`skill/`](./skill/) 目录，在目标 Agent 的 skills 目录中命名为 `llmlint/`，然后进入该目录装一次依赖：
+手动安装时，复制 [`skill/`](./skill/) 目录，在目标 Agent 的 skills 目录中命名为 `llmlint/`。首次启用该 skill 时，必须先在 skill 根目录安装依赖，再运行任何 llmlint CLI 命令：
 
 ```bash
 cd skill
-bun install    # 或：npm install
+bun install --frozen-lockfile
 ```
+
+Agent 实际运行时从 SkillCatalog 提供的 `SKILL.md` 绝对位置推导 skill 根，不依赖 `.nbook`、`.claude`、`.codex` 等固定安装目录。Skill 版本以 `skill/package.json.version` 为准。
+
+`SKILL.md` 会把这一步作为 `status` 之前的依赖门；同一份安装后续使用无需每轮重复执行。
 
 ### 配置
 
-无需额外配置。安装后引擎与规则开箱即用；CLI 参数、输出格式与 JSON schema 见 [`skill/references/cli-usage.md`](./skill/references/cli-usage.md)。
+依赖安装完成后无需额外配置，引擎与规则即可使用；CLI 参数、输出格式与 JSON schema 见 [`skill/references/cli-usage.md`](./skill/references/cli-usage.md)。
 
 ### 启动
 

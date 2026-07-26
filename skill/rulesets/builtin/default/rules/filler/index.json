@@ -66,8 +66,9 @@
     "namespace": "filler",
     "title": "虚假邀请句式",
     "level": "low",
+    "enabled": false,
     "review": "human",
-    "note": "默认交人工：“让我们”可能是正常号召、角色台词或说明文组织语；当前 eval support 很低，只在它形成助手腔邀请时修。",
+    "note": "默认关闭：“让我们”可能是正常号召、角色台词或说明文组织语，当前 dataset 真人侧不低于 AI 侧；保留资产给项目显式开启。",
     "detector": {
       "type": "regex",
       "targets": [

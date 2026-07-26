@@ -39,6 +39,8 @@
 - 2026-07-25：继续按 canonical 分工收敛 active overlap：`cn.modifier.ineffable-absolute-modifier` 与 `cn.modifier.sticky-optional` 默认关闭；`cn.modifier.near-collapse-modifier` 排除带“的/地”的“崩溃”；`cn.modifier.stacked-degree-adverbs` 移除“一丝丝”和“近乎/近乎于”。当前复扫 active 同 span overlap 只剩两条 human 宏观节奏规则共振 1 处。
 - 2026-07-25：低信号 human 规则继续默认关闭：`filler-word-actually`、`filler-can-say`、`quotable-punchline-candidate`、`comprehensive-listing`、`cn.cliche.baguwen.sudden-moment`、`cn.cliche.baguwen.even-is`。这些规则在当前 dataset reference 侧不低于 AI 侧，或裸 regex 会误报有信息表达；保留资产给项目显式开启。
 - 2026-07-25：`meta-announcement` 收窄为“下面/接下来我们将介绍/分析…”这类教程导语，裸“接下来”不再提示；`jargon-engineer-debug` 移除“收敛/收束/锁住”，避免误伤小说动作和状态。
+- 2026-07-26：低信号 human 规则继续默认关闭：`filler-lets`、`lazy-extremes`、`transition-summary-conclude`、`transition-summary-restate`、`inflation-superlative`、`inflation-marvel`、`cn.punctuation.dedup.repeated-symbols`、`cn.regex.advanced.momentary-reaction`。`assistant-comfort-pose` 与 `jargon-social-extra` 保持 active，但收窄到明确第二人称安抚和爆款文风词。
+- 2026-07-26：`cn.sentence.compound.unrealized-subject-preface` 因职责被 `contrastive-turn-preface` 覆盖且旧替换会删真实对比，已默认关闭；`cn.vocabulary.body.muscle-texture` 因“肌理→肌肉”并非无损替换，已默认关闭。当前 active exact regex target 重复为 0；低信号 human（reference 命中不低于 render）只剩 `story-deslop.action-list` 1 / 0，留作产品取舍。
 
 ## 待用户拍板
 
@@ -56,9 +58,10 @@
    - 当前已吸收工程词泄漏；复读/截断更像生成器质量门或后处理守门，不一定属于“AI 味规则”默认集合。
    - 待确认：放入 builtin handler、仅作为 `detect/check` 之外的生成退化 smoke，还是暂不做。
 
-4. **默认规则是否继续同步 creative overlap 抑制**
-   - 本轮已把 creative profile 里稳定 overlap 的 8 条旧规则同步为默认 `enabled:false`，保留规则资产和用户显式开启能力。
-   - 待确认：后续是否把这个作为规则整理常规策略：稳定重叠且有 canonical 替代时，默认关闭旧规则，但不物理删除。
+4. **creative overlap / canonical 分工是否作为长期策略**
+   - 本轮已把 creative profile 里稳定 overlap 的旧规则同步为默认 `enabled:false`，并继续按“保留更具体或 canonical 的规则、收窄旧规则”把当前 dataset 的 active 同 span regex overlap 清到 0。
+   - 已处理结果不代表全语料永远无 overlap；规则资产仍保留，项目可显式开启。
+   - 待确认：后续是否固定采用“稳定重叠且有 canonical 替代 → 默认收窄或关闭旧规则、不物理删除资产”的整理策略。
 
 5. **人工桶后的规则级例外是否要提回 Agent**
    - 本轮已把 `vocabulary.body`、`vocabulary.r18`、`vocabulary.academic-anatomy`、`color-description`、`sound.once`、`jargon.business`、`regex.advanced` 默认下沉 `human`；`cn.regex.advanced.few-degree` 的 Agent 例外已因扩充 dataset 反证撤回。
@@ -74,26 +77,21 @@
     - 我没有继续硬改的原因：story-deslop blocking 有独立真人校准来源；`trailing-sensory-clause` 当前已降到 render 10 / reference 0，只保留抽象情绪/气质/语气尾巴，暂未形成转 `human` 的反证。
     - 待确认：后续是否采用机械策略“verdict=insufficient 且无 blocking 校准来源 → 默认 `human`”，还是继续允许少量语义明确但样本支持不足的规则留在 `agent`。
 
-8. **canonical 分工是否作为长期整理策略**
-    - 当前 dataset 里 active 同 span overlap 已按“保留更具体或更 canonical 的规则、收窄旧规则”处理到 0。
-    - 已处理结果不代表全语料永远无 overlap；它只是把当前可证实的重复提示消掉。
-    - 待确认：后续是否把“稳定重叠且有 canonical 替代 → 默认收窄或关闭旧规则、不物理删除资产”作为规则整理常规策略。
-
-9. **story-deslop 否定连排是否继续 high blocking**
+8. **story-deslop 否定连排是否继续 high blocking**
     - 当前 dataset 继续收窄后，reference 误杀暂为 0，AI 文本剩 2 处典型命中。
     - 已处理的确定问题：后接“只有/只是/只会”的同 span 场景已排除，避免和 `story-deslop.negation-parade.only-turn` 重复；后接“然而/但/却”的真实转折也已排除。
     - 我没有直接下沉的原因：这是 story-deslop high blocking 校准规则，原校准集 0 人类命中；当前语料支持偏少，但没有形成反证。
     - 待确认：是否继续保持 `high + agent`，还是进一步收窄为只处理否定后转入抽象总结/情绪结论的结构。
 
-10. **强判别规则的人类侧少量命中是否接受**
+9. **强判别规则的人类侧少量命中是否接受**
     - 当前默认 Agent 桶在 dataset reference 侧仍命中的规则只剩三条：`cn.cliche.baguwen.vague-amount-noun`（reference 2 / render 125）、`story-deslop.not-is-comparison`（reference 2 / render 53）和 `cn.proliferation.mixed.repeated-de-pairs`（reference 1 / render 163）。
     - `vague-amount-noun` 的 reference 命中是“是一股陌生的摩挲拉拽感”和“藏着一股玩味的笑意”；这类“一股”在真人小说里并非不可用，但在 render 中高频变成情绪/气息/压力的泛化量词。
     - `not-is-comparison` 的 reference 命中来自镜像视觉辨认和世界观事实辨析；这类“不是 A，而是 B”有真实语义功能，但继续硬加“自己/古代遗留”等字面特例会让 handler 变脆，暂未修改。
     - `repeated-de-pairs` 的 reference 命中是“鲁莽的、缺乏手段的、不考虑后果的”，属于真实排比强化；render 中大量命中是“陌生的、昏暗的 / 冰冷的、混乱的、令人...”式堆叠形容。
     - 待确认：是否接受这类强判别规则保留少量人类侧命中，交 Agent 读上下文判断；还是把它们转 `human` / 增加更强结构条件，牺牲一部分 AI 文本召回。
 
-11. **剩余高频 human 桶是否继续激进收窄**
-    - 本轮已把 `extra-punctuation`、裸破折号替逗号、商业黑话裸词、`stacked-degree-adverbs` 的低信号/重复分支、`specific-measure-word` 的“这种/那种”、`lazy-extremes` 的普通小说绝对词、重复感叹/问号的 auto 权限、`transition-summary-restate` / `inflation-superlative` / `action-list` 默认 Agent 噪声、以及 6 条低信号 human regex 默认关闭或收窄。
+10. **剩余高频 human 桶是否继续激进收窄**
+    - 本轮已把 `extra-punctuation`、裸破折号替逗号、商业黑话裸词、`stacked-degree-adverbs` 的低信号/重复分支、`specific-measure-word` 的“这种/那种”、重复感叹/问号、总结/通胀/绝对词和瞬时反应等低信号 human regex 默认关闭或收窄；当前 active human 中只有 `story-deslop.action-list` 的 reference 命中不低于 render（1 / 0）。
     - 剩余高频 human 规则仍包括：`cn.modifier.stacked-degree-adverbs`、`cn.modifier.measure.specific-measure-word`、`cn.metaphor.trailing-simile-clause`、`cn.metaphor.simile-modifier-shell`、`story-deslop.quote-emphasis`、`sound.once` 词表等。
-    - 我没有继续硬改的原因：这些规则的 render 偏高仍有价值，但 reference 命中多是正常小说表达，例如“一道轨迹/一层光/一点细节”、有效比喻、普通“非常”；继续收窄需要更明确的产品取舍。
+    - 我没有继续硬改的原因：这些规则的 render 偏高仍有价值，但 reference 命中多是正常小说表达，例如“一道轨迹/一层光/一点细节”、有效比喻和功能性动作编排；继续收窄需要更明确的产品取舍。
     - 待确认：`--review all` 是否要偏“干净列表”（继续默认关闭/大幅收窄这些 human 规则），还是偏“素材雷达”（保留 high-recall human advisory，让编辑器和人工判断承担噪声）。

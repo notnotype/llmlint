@@ -353,10 +353,11 @@ function applyCuratedPatch(rule: LintRuleRecord): LintRuleRecord {
     if (rule.id === "cn.punctuation.dedup.repeated-symbols") {
         return {
             ...rule,
+            enabled: false,
             review: "human",
             fixability: "manual",
-            note: "默认降级：重复感叹号/问号在小说对白和拟声中常承担语气，当前 reference 命中高于 render；只作为人工提示，不再自动去重。",
-            source: {...(rule.source ?? {}), version: "rule-curation-v28"},
+            note: "默认关闭：重复感叹号/问号在小说对白和拟声中常承担语气，当前 reference 命中率高于 render；保留资产给项目显式开启。",
+            source: {...(rule.source ?? {}), version: "rule-curation-v30"},
         };
     }
     if (rule.id === "cn.cliche.baguwen.point-reference") {
@@ -614,6 +615,15 @@ function applyCuratedPatch(rule: LintRuleRecord): LintRuleRecord {
             detector: {type: "regex", targets: ["([有了上带添多染])几分(?![钟之])"], flags: "g"},
         };
     }
+    if (rule.id === "cn.regex.advanced.momentary-reaction") {
+        return {
+            ...rule,
+            enabled: false,
+            review: "human",
+            note: "默认关闭：“抖/颤/缩/躲/愣/惊了一下”是普通动作和瞬时反应，当前 dataset 真人侧不低于 AI 侧；保留资产给项目显式开启。",
+            source: {...(rule.source ?? {}), version: "rule-curation-v30"},
+        };
+    }
     if (rule.id === "cn.modifier.measure.specific-measure-word") {
         return {
             ...rule,
@@ -647,6 +657,15 @@ function applyCuratedPatch(rule: LintRuleRecord): LintRuleRecord {
             note: "默认收窄：“生理性眼泪/快感”由 cn.modifier.measure.physiological-label 覆盖；这里仅保留分析腔标签。",
             source: {...(rule.source ?? {}), version: "rule-curation-v16"},
             detector: {type: "regex", targets: ["(?:生理层面|生理本能)的?|生理性(?![眼泪]|快感)的?"]},
+        };
+    }
+    if (rule.id === "cn.vocabulary.body.muscle-texture") {
+        return {
+            ...rule,
+            enabled: false,
+            review: "human",
+            note: "默认关闭：裸“肌理”不是医用赘词，也不能无损替换为“肌肉”；当前 dataset 真人与 AI 各 1 次，保留资产给项目显式开启。",
+            source: {...(rule.source ?? {}), version: "rule-curation-v31"},
         };
     }
     if (rule.id === "cn.modifier.heavy-degree-shell") {
@@ -842,9 +861,10 @@ function applyCuratedPatch(rule: LintRuleRecord): LintRuleRecord {
     if (rule.id === "cn.sentence.compound.unrealized-subject-preface") {
         return {
             ...rule,
+            enabled: false,
             review: "human",
-            note: "默认交人工：带主语的“并没有…而是”可能是正常对比，当前 eval 人类侧命中；只在否定铺垫无功能时修。",
-            source: {...(rule.source ?? {}), version: "rule-curation-v2"},
+            note: "默认关闭：带主语的“并没有…而是”已由 cn.sentence.compound.contrastive-turn-preface 覆盖；旧替换还会删除有信息的真实对比。",
+            source: {...(rule.source ?? {}), version: "rule-curation-v31"},
         };
     }
     if (rule.id === "cn.sentence.compound.ordinary-days-preface") {

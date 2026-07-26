@@ -234,11 +234,11 @@
     "namespace": "sentence.compound",
     "title": "删未发生部分前半句",
     "level": "medium",
-    "enabled": true,
+    "enabled": false,
     "review": "human",
-    "note": "默认交人工：带主语的“并没有…而是”可能是正常对比，当前 eval 人类侧命中；只在否定铺垫无功能时修。",
+    "note": "默认关闭：带主语的“并没有…而是”已由 cn.sentence.compound.contrastive-turn-preface 覆盖；旧替换还会删除有信息的真实对比。",
     "source": {
-      "version": "rule-curation-v2",
+      "version": "rule-curation-v31",
       "canonicalKey": "sentence.compound\t\t([\\u4e00-\\u9fff]+)并(?:没有|未)[\\u4e00-\\u9fff，、“”‘’]{1,20}[，,]而是",
       "importedFrom": "curated-cn-rule-samples"
     },

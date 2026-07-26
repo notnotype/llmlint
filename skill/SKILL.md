@@ -1,43 +1,42 @@
 ---
 name: llmlint
-description: Lint and polish LLM-generated Chinese text by combining static rule hits, neural AIGC heatmaps, contextual review, approved repair, and local learning notes.
-when_to_use:
-  - 用户请求润色文本、检查 AI 味、优化自然度或审查套路化表达
-  - 用户显式提到 llmlint、文本 lint、LLM 输出规范或规则配置
-  - 用户提供 Markdown / 纯文本文件并要求生成修复计划或改写建议
-metadata:
-  author: NeuroBook Team
-  version: 2.0.0
+description: Lint and polish LLM-generated Chinese text by combining static rule hits, neural AIGC heatmaps, contextual review, approved repair, and local learning notes. Use when reviewing Markdown or plain text for AI writing tells, naturalness, repetitive patterns, lint rules, repair plans, or llmlint configuration.
 ---
 
 # llmlint
 
 llmlint 是面向 LLM 输出的文本 lint skill。CLI 负责稳定、可复现的候选定位与外部 AIGC 热力图；Agent 负责结合语境复核、制定修复计划、在用户审批后改写，并把疑难判断沉淀为本地学习出口。
 
+目标不是把规则命中或 P(AI) 清零，而是在守住原文事实、剧情功能、角色声音和文体意图的前提下，减少无功能的模板负担。静态命中和检测热区都是候选证据，不是修改命令。
+
 ## Runtime
 
-CLI 用 **Bun** 或 **Node + `tsx`** 运行。下文示例使用内嵌 skill 路径：
+CLI 用 **Bun** 或 **Node + `tsx`** 运行。先从 SkillCatalog 的 `location` 取得当前 `SKILL.md` 绝对路径，并把它的父目录记为 `<skill-root>`。下文尖括号是占位符，执行前必须替换为实际绝对路径：
 
 ```bash
-bun .nbook/agent/skills/llmlint/bin/llmlint.ts <command>
+bun "<skill-root>/bin/llmlint.ts" <command>
 ```
 
-独立安装时可改成：
+裸 `node` 不能直接跑此 CLI。首次使用当前 skill，或依赖合同更新导致 `node_modules` 缺失时，必须先完成下方依赖门；不要先尝试 `status`，再等缺依赖报错。
+
+## Dependency Gate + Five-Step Loop
+
+### 0. install 依赖门
+
+使用上面从 SkillCatalog 推导出的 `<skill-root>`。在第一次运行任何 llmlint CLI 命令前，必须执行一次：
 
 ```bash
-bun bin/llmlint.ts <command>
+bun install --cwd "<skill-root>" --frozen-lockfile
 ```
 
-首次运行若缺少依赖，在 skill 目录执行一次 `bun install`、`npm install` 或 `pnpm install`。裸 `node` 不能直接跑此 CLI。
-
-## Five-Step Loop
+安装命令成功后才能进入 `status` 初始化门。依赖已经安装且 skill 未更新时不要每轮重复安装；安装失败时停止本轮 llmlint 流程并向用户报告，不要绕过依赖门改用其它包管理器或让 Bun 隐式补包。
 
 ### 1. status 初始化门
 
 每次开始正式审稿前先运行：
 
 ```bash
-bun .nbook/agent/skills/llmlint/bin/llmlint.ts status --format json
+bun "<skill-root>/bin/llmlint.ts" status --format json
 ```
 
 读取这些字段：
@@ -53,15 +52,15 @@ bun .nbook/agent/skills/llmlint/bin/llmlint.ts status --format json
 3. 用户同意后用用户级配置命令写入，不修改项目级 `llmlint.config.ts`：
 
 ```bash
-bun .nbook/agent/skills/llmlint/bin/llmlint.ts config set sharing.tier stats
-bun .nbook/agent/skills/llmlint/bin/llmlint.ts config set initialized true
+bun "<skill-root>/bin/llmlint.ts" config set sharing.tier stats
+bun "<skill-root>/bin/llmlint.ts" config set initialized true
 ```
 
 可查看用户级设置：
 
 ```bash
-bun .nbook/agent/skills/llmlint/bin/llmlint.ts config get
-bun .nbook/agent/skills/llmlint/bin/llmlint.ts config get detector.proxy
+bun "<skill-root>/bin/llmlint.ts" config get
+bun "<skill-root>/bin/llmlint.ts" config get detector.proxy
 ```
 
 `config` 只管理用户级 `settings.json`，不写项目级规则配置。需要调整规则时，由 Agent 生成 `llmlint.config.ts` diff，等待用户审批。
@@ -71,25 +70,25 @@ bun .nbook/agent/skills/llmlint/bin/llmlint.ts config get detector.proxy
 先跑静态检查：
 
 ```bash
-bun .nbook/agent/skills/llmlint/bin/llmlint.ts check <files...> --format json
+bun "<skill-root>/bin/llmlint.ts" check <files...> --format json
 ```
 
 需要看全部审查桶时加：
 
 ```bash
-bun .nbook/agent/skills/llmlint/bin/llmlint.ts check <files...> --review all --format json
+bun "<skill-root>/bin/llmlint.ts" check <files...> --review all --format json
 ```
 
 再跑神经检测：
 
 ```bash
-bun .nbook/agent/skills/llmlint/bin/llmlint.ts detect <files...> --format json
+bun "<skill-root>/bin/llmlint.ts" detect <files...> --format json
 ```
 
 `detect` 使用默认 HF Space `yuchuantian-aigc-text-detector.hf.space`，按句界分块并缓存正文哈希。网络失败时报告失败原因和代理设置建议；已完成文件的缓存仍可保留。代理可配置：
 
 ```bash
-bun .nbook/agent/skills/llmlint/bin/llmlint.ts config set detector.proxy http://127.0.0.1:7890
+bun "<skill-root>/bin/llmlint.ts" config set detector.proxy http://127.0.0.1:7890
 ```
 
 静态命中不是判决，P(AI) 也不是单独裁决。二者都只是审稿证据。
@@ -107,6 +106,12 @@ bun .nbook/agent/skills/llmlint/bin/llmlint.ts config set detector.proxy http://
   - 双绿：不打扰。
 - LLM 语义规则：继续执行 `show-llm-rules`，主动阅读全文审查无法静态定位的问题。
 
+每个候选必须归入三类之一：
+
+- **修**：确认是无功能的模板负担，并给出最小改法。
+- **留**：命中承担剧情、人物、节奏、题材或载体功能，说明保留理由。
+- **问**：证据不足或修改会改变作者意图，把冲突点交给用户判断。
+
 报告不要输出原始 JSON 给用户。只摘取必要行号、规则、热区和建议。
 
 ### 4. 修复 ↔ 复测一轮
@@ -118,11 +123,13 @@ bun .nbook/agent/skills/llmlint/bin/llmlint.ts config set detector.proxy http://
 
 等待用户审批后执行修复。默认写入 `.agent/polish-output.md`，只有用户明确要求时才直接修改原文件。
 
+执行每项修复前先读命中前后文，确认它承担的信息、因果、视角和语气。按 **删 → 压 → 换** 处理：先删无信息负担；删后断裂则压缩重复说明；只有必要语义必须保留时才改写。改动限定到解决问题所需的最小范围，不整段重写无关内容。
+
 修复完成后只复测一轮：
 
 ```bash
-bun .nbook/agent/skills/llmlint/bin/llmlint.ts check .agent/polish-output.md --format json
-bun .nbook/agent/skills/llmlint/bin/llmlint.ts detect .agent/polish-output.md --format json
+bun "<skill-root>/bin/llmlint.ts" check .agent/polish-output.md --format json
+bun "<skill-root>/bin/llmlint.ts" detect .agent/polish-output.md --format json
 ```
 
 如果复测仍有高风险问题，报告剩余风险，不无限循环。不要为了压低检测分数牺牲语义、角色声音或可读性。
@@ -160,8 +167,11 @@ bun .nbook/agent/skills/llmlint/bin/llmlint.ts detect .agent/polish-output.md --
 
 修复时使用 [repair-guide.md](references/repair-guide.md)：
 - 删除优先，先删无信息负担，再重写必要句子。
+- 只改表达，不改剧情、人设和时间线；不能删除有功能的信息，也不新增原文没有的事件。
 - 对白先分类：保留角色声音，拿不准归入需确认。
 - 数据包腔、系统公告、技术说明可以保留载体，但不要让叙述者变成 API 文档。
+- 不用同义词轮换、模板身体反应、硬拆短句或新增感官细节掩盖命中。
+- 不追求零命中或更低检测分数；修后语义、角色声音和可读性优先。
 - 每轮修复有收敛边界，不因检测分数继续无意义打磨。
 
 ## Rule Author Notes
