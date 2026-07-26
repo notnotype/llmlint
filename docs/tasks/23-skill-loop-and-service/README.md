@@ -54,6 +54,8 @@
 - 同步验收：`bun run sync:neuro-book` 成功（copied 84 / unchanged 33 / removed 0），`bun scripts/cli/sync-user-assets.ts` 成功（copied 21 / skipped 229 / updatedAssets 63），NeuroBook `workspace-files` 同步聚焦测试 1 passed / 83 skipped。vendored snapshot 与当前 `workspace/.nbook` user runtime 均抽查到新规则和修复纪律。
 - 2026-07-26 提示词与依赖门验证：文档中的 `bun install --cwd skill --frozen-lockfile` 真跑成功且 lockfile 无变化；`tests/llmlint.test.ts` 67 passed，根 `tsc --noEmit` 通过，完整 Vitest 29 files / 275 tests 通过。首次同步 llmlint skill copied 6 / unchanged 111，user assets updatedAssets 6；原文边界措辞收紧后最终复同步 copied 1 / unchanged 116，user runtime 已一致所以 updatedAssets 0。NeuroBook 同步聚焦测试 1 passed / 83 skipped；6 个提示词/runtime 文件在真相源、vendored snapshot、当前 user runtime 的 SHA-256 全部一致。
 
+- 2026-07-26 端到端验收轮：提交前复跑 `bun run typecheck` 通过、`cd web && bun run typecheck` 通过（仅既有 `vue-router/volar/sfc-route-blocks` 插件告警）、`bun run test` 全绿（vitest 29 files / 275 tests + bun test 11 files / 69 tests）。skill CLI 真跑：依赖门 `bun install --cwd skill --frozen-lockfile` 无变化、`status --format json`、`check`、`check --review all`、`detect`（HF 真跑两次，修前 `cached:false`、修后新内容 `cached:false`）、`show-llm-rules` 全部成功。
+
 ## Implementation Walkthrough
 
 分片规划：
@@ -127,13 +129,63 @@
 - 当前默认 materialize：360 total / 266 active；245 regex / 8 density / 5 handler / 8 LLM；review = agent 54 / human 210 / none 2；regex fixability = auto 2 / candidate 0 / manual 243。临时内存复算当前语料：regex raw hits 3946（reference 196 / render 3657 / repair 93），全 detector raw hits 4152（reference 218 / render 3833 / repair 101）；active 同 span overlap 只剩 1 处，来自 `story-deslop.low-connective-density` 与 `story-deslop.overcompressed-prose` 两条 human 宏观节奏规则同段共振。默认 Agent 桶 reference 侧仍剩 `vague-amount-noun` 2 处、`story-deslop.not-is-comparison` 2 处和 `repeated-de-pairs` 1 处少量强判别权衡（未改写 `evals/report/report.json`）。
 - 拿不准的规则族和许可边界集中记录在 `rule-curation-open-questions.md`，等待用户一次性拍板。
 
+### 分片 1 端到端验收（2026-07-26）
+
+第一次把五步流程当作真实 skill 消费者完整跑通，样本 `evals/corpus/light-novel/villain-loli/render-0001-deepseek-deepseek-v4-flash.md`（3131 字 / 109 行，deepseek-v4-flash 生成；用户要求避开 claude 系样本，其 AIGC 误报率过高）。产物在 `.agent/polish-plan.md`、`.agent/polish-output.md`、`.agent/llmlint-session.json`。
+
+流程本身走通了：依赖门 → `status` → `check` + `check --review all` + `detect` → 四象限报告 → 5 项修复 → 一轮复测 → 台账。以下是暴露出来的问题，按严重度排列。
+
+**1. `check --format json` 的体积对 Agent 上下文不可持续（阻塞级）**
+
+3.1 KB 正文的输出：`--review agent` 17.9 KB，`--review all` **84.9 KB**（源文本的 27 倍）。原因是每条 issue 内联完整 rule 对象（`detector.targets`、`note`、`source.canonicalKey`），且顶层还带 360 条规则的 `registry.namespaces` 全表。真实章节（1 万字以上）会直接吃掉 Agent 的上下文预算。需要给 `check` 加紧凑输出模式（issue 只留 `ruleId`/`level`/`review`/`fixability`/`line`/`match`/`context`，规则详情按需二次查询），或至少默认省略 `registry.namespaces`。
+
+**2. 默认 Agent 桶看不见本文最强的 AI 味信号（产品级）**
+
+`--review agent` 只给 5 条命中，39 条落在 human 桶。而这篇的最强指纹是比喻密度：`story-deslop.metaphor-density` 报叙述层比喻标记 **19 处 / 10.25 每千字**（阈值 ≥7 且 ≥3/千字，超标 3.4 倍），加上 `cn.metaphor.trailing-simile-clause` 8 次、`cn.metaphor.simile-modifier-shell` 4 次——全在 human 桶。规则整理为压误杀把召回一起压掉了，默认 Agent 流程对一篇 docPAi 0.876 的文本只能看到「取而代之的是」这类边缘命中。这直接对上 `rule-curation-open-questions.md` 第 10 条（干净列表 vs 素材雷达）：**对小说场景，`--review all` 事实上才是主路径**，但 SKILL.md 把它写成可选补充。
+
+**3. 一轮修复后神经检测分数微升，改动最集中的 chunk 升 6.1pp（方法论确认）**
+
+| 指标 | 修前 | 修后 |
+| --- | --- | --- |
+| 静态命中（review all） | 43 | 38 |
+| high | 1 | 0 |
+| docPAi | 0.8757 | **0.8844** |
+| maxPAi | 0.9975 | 0.9975 |
+| chunk 2（L19–34）P(AI) | 0.929 | **0.990** |
+
+5 项修复全部消除目标命中且未引入新命中，但 docPAi 微升；chunk 2 恰好承载其中 2 项修复（L19 抽象感受尾巴压缩为「透得不像人」、L23 删三连「的」中的装饰项），P(AI) 反升 6.1pp。这复现了 Task 14 的结论并加强了它：**局部「压缩抽象壳」的改写可能让段落更贴近模型惯用表达**。检测分数不能作为修复目标，D5 双条件（检测概率降 **且** 人评不降）的必要性再次被证实。SKILL.md 的收敛边界（不为分数继续打磨）在这里救了场。
+
+**4. 四象限的绝对阈值在整体 AI 文本上失去分辨力（设计级）**
+
+7 个 chunk 里 6 个 ≥ 0.85。按 SKILL.md 的绝对阈值，「规则静默 × 热力红 = 漏网新规则矿」几乎覆盖全文，不可操作。四象限隐含假设热区是稀疏信号，但对整篇 AI 生成文本不成立。建议改为文内相对判据（chunk 相对 docPAi 的偏离，或取 top-k / bottom-k），绝对阈值只用于「这篇整体可疑吗」这一层。
+
+**5. 「热力绿 ⇒ 规则误报」的推论会被检测器漏报带偏（设计级）**
+
+chunk 6（L79–96）P(AI) 仅 0.290，却有 6 条规则命中，含「就像秋日的落叶一样平稳而自然，不带一丝波澜」这种典型 LLM 比喻组合。人工复核命中均成立，所以这里是检测器漏报，不是规则误报。四象限该象限的结论必须写成「规则与检测器分歧，需人工裁决」，不能直接指向调规则配置。
+
+**6. 真正的漏网矿：对白层规则覆盖近乎空白**
+
+chunk 5（L67–78）几乎全是对白，P(AI) 0.982，规则只 1 条命中。现有规则 `scope.layer` 绝大多数是 `narrative`，`dialogue` 层规则只服务公告/系统台词形态，对轻小说口语对白没有覆盖。这是本轮最值得跟进的规则增量方向，但需要先判定检测器对口语对白是否本身偏高。
+
+**7. 文档与实现的小口径差**
+
+- SKILL.md 第 50 行建议初始化时选 `stats` 或 `off`，示例命令写 `config set sharing.tier stats`；但代码默认值是拍板决策 3 的 `fragments`。两处口径要统一（改文档或改默认值）。
+- SKILL.md 第 100 行说报告要列「density 指纹」，但没说清 density issue 的字段是 `hits` / `perKilo` / `samples`（不是 handler 的 `detail`）。
+- 本轮真实 `~/.llmlint` 的 `initialized` 仍为 `false`，我没有代用户写入共享档位；初始化门不阻塞 `check`/`detect`，所以它是软门。
+- 实际执行顺序与 SKILL.md 有出入：为了尽快拿到复测数据，我先做了修复再补写 `polish-plan.md`，且跳过了用户审批门。正式使用时审批门必须保留。
+
 ## TODO / Follow-ups
 
 - [x] story-deslop 规则吸收分析与导入方案（`rules-absorption-analysis.md` + `rule-model-v3-design.md`）
 - [x] 分片 1 规则模型 v3 阶段 1–4（ScanContext/ignoreTerms/density/handler）
 - [x] 分片 1 A 线：校准规则导入 + SKILL.md（`PLAN-A-rules-and-prompts.md`）
 - [x] 分片 1 B 线：用户状态层 + status/config + detect（`PLAN-B-coding-handoff.md`，交外部 Agent）
+- [x] 分片 1 端到端验收（2026-07-26，见上节 7 项发现）
+- [ ] 验收发现 1：`check` 紧凑输出模式（去掉 registry 全表与逐 issue 内联规则详情）
+- [ ] 验收发现 2 + 4 + 5：SKILL.md 报告段修订（`--review all` 提为主路径、四象限改相对判据、热力绿象限结论改为「规则与检测器分歧」）
+- [ ] 验收发现 6：`scope.layer:"dialogue"` 口语对白规则增量（先判定检测器对口语对白是否偏高）
+- [ ] 验收发现 7：`sharing.tier` 默认值口径统一（改文档还是改默认值）
 - [ ] 分片 2 实施
-- [ ] 分片 3 实施
+- [ ] 分片 3 实施（开工前先定跨站信任链：Passport 签发的 Bearer 如何被 llmlint web 校验；nb-workshop spec §7 已留 `contribution:submit` 保留 scope，但两侧都没写 introspection 或密钥分发）
 - [ ] contributions 数据模型对 Task 12 统一模型的映射设计
 - [ ] 后置：banned-words 逐词差集（独立任务）；复读/截断退化检测（后续批次，见 `rule-curation-open-questions.md`）
