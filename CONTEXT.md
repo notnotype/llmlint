@@ -9,7 +9,7 @@
 
 ## 1. 一句话领域
 
-llmlint 是针对 **LLM 生成中文文本**的 linter：CLI 用正则确定性定位「AI 味」候选，Agent Skill 读上下文判断并在用户审批后改写。
+llmlint 是一个**中文正文规则库**加它的两个消费面：写作期把规则投影成动笔前的约束（`guide`，可注入系统提示词），审查期用正则确定性定位「AI 味」候选、Agent Skill 读上下文判断并在用户审批后改写。
 **eval harness** 是它的"体检仪"——用**配对语料**量化每条规则**区分 AI vs 人类**的能力，产出可直接驱动规则修复的「规则体检表」。
 
 闭环：`eval 量化 lift → 高 lift 规则 = 真 AI tell → 交 Task 02 修规则 → 同一组规则既作判别器、又作 llmlint 降 AI 味的依据`。
@@ -66,8 +66,11 @@ llmlint 是针对 **LLM 生成中文文本**的 linter：CLI 用正则确定性�
 |---|---|---|
 | `rule id` / `namespace` / `ruleset` | 规则标识 | flat Rule Registry：`id` 全局唯一，`namespace` 归类，`ruleset` 打包（默认 `builtin/default`） |
 | `level` | 严重度 | `high/medium/low`，决定退出码 |
-| `review` | 审查受众 | `agent/human/none`——命中该给谁看；eval 的**误杀率只看 `agent` 桶** |
-| `fixability` | 可修性 | `auto/candidate/manual`，机械修复能力 |
+| `review` | 审查受众 | `agent/human/none`——命中该给谁看；eval 的**误杀率只看 `agent` 桶**。**只管审查期**，不是写作期的取舍依据 |
+| `fixability` | 可修性 | `auto/candidate/manual`，脚本能不能盲改。**不是「改法要多少判断」**——I13 让 264/266 条都是 `manual`，选规则时零区分度 |
+| `detector kind` | 判据类别 | `regex`（词法）/ `density`（统计）/ `handler`（算法）/ `semantic`（语义）。命名的是**判据性质不是执行者**；语义类曾叫 `llm`，与 `review:"agent"` 撞语义且和「写作期全部规则都由模型消费」冲突 |
+| `写作期 / 审查期` | 两个消费时机 | 同一规则库两个投影：写作期（`guide`）给动笔前的约束，审查期（`check`/`fix`/`detect`/`rules`）在成稿上定位与修复。见 `skill/references/rule-model.md` §8b |
+| `guide tier` | 摘要档位 | `core ⊂ standard ⊂ wide ⊂ full`，即「哪些规则值得占提示词预算」。判别力档位由外部 `--profile` 传入，**不烧进规则记录**（I12） |
 
 ### 2.4 架构角色
 
@@ -157,6 +160,8 @@ llmlint 是针对 **LLM 生成中文文本**的 linter：CLI 用正则确定性�
 - **I21 机械修复只跑全文全域**：`fixability:auto` 或 `candidate` 的规则必须是 `scope: all` 且无 position 窗口；loader 发现 narrative/dialogue/position scope 时必须降级为 `manual` 并给 error 诊断。派生视图里的占位符不能被写回原文。
 - **I22 新规则形态前向兼容**：未知 `detector.type` 或未注册 handler 名必须 skip + diagnostic warning，不得抛错阻断整个 ruleset。规则共享生态允许新版规则包被旧版 skill 读取时优雅降级。
 - **I23 narrative 占位视图语义**：`scope.layer:"narrative"` 运行在引号段等长 `。` 占位视图上，offset 与原文一致。规则作者不得依赖“数句号”或占位串长度做判断；需要句长、密度、run 状态机时使用 density 或 handler。
+- **I24 判别力不进规则记录**：eval verdict（`strong`/`weak`）只在特定 task profile 内有效（I12），**不得**写进规则记录或内建进 `skill/` 包——那会让某个语料的结论看起来像规则的固有属性。写作期档位需要它时只能由 `guide --profile <report.json>` 从外部传入；没有 profile 时降级为「只按规则模型取」，不假装有证据。
+- **I25 示例必须可分正反**：`examples[].hit` 必填。只给反例会让消费方（尤其写作期提示词）把形近的正当写法一起躲开，写出过度躲闪的干瘪文本；对照例（`hit:false`）不得带 `fix`。旧 `{bad, good?}` 形态把 `good` 同时当「改写版」和「保留」裁决词，已废除。
 
 ## 4b. 检测数据（category ③）采集不变量
 

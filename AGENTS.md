@@ -20,6 +20,7 @@
 ## llmlint 专属
 
 - **真相源是 `skill/`**：这是可安装、可发布的 Agent Skill / CLI runtime 包（`skill/package.json` name=`llmlint`）。仓库根是开发工作区，承载 `tests/`、`evals/` 和开发用 `package.json`（name=`llmlint-dev`）。
+- 规则库有**两个消费时机**：写作期 `guide`（输出可注入系统提示词的写作约束，不需要输入文件）与审查期 `check` / `fix` / `detect` / `rules`。改提示词、文档或 CLI 描述时不要只写审查期——那是这个能力长期被埋住的原因。
 - CLI 稳定入口是 `bun skill/bin/llmlint.ts …`。运行时支持 **Bun 原生**或 **Node >=22.19 + tsx**（`npx tsx skill/bin/llmlint.ts …`）；**裸 `node` 跑不了**——源码用无扩展名 TS 相对导入，Node 内置 type stripping 不解析，必须走 tsx 或 Bun。
 - 依赖由根 `package.json` / `bun.lock` 和 `skill/package.json` / `skill/bun.lock` 声明；本地开发或外部手动安装时按所在目录运行 `bun install` 生成 `node_modules`。`node_modules/` 不入库、不发布、不随 NeuroBook snapshot 同步。
 - `evals/`（含 `corpus/`）是开发仓的一等资产，**整体进 git**。当前仓库私有，受版权/ToS 限制的采集语料（种子网文全本）暂随仓保存可接受；**转公开前必须先移除或 gitignore `evals/corpus/`，只留 fixture**。法律风险归用户。
@@ -28,7 +29,7 @@
 
 ## 文档索引
 
-- **`CONTEXT.md`：项目领域语言（术语）+ 硬不变量 I1–I11 的唯一真相源。术语改这里。**
+- **`CONTEXT.md`：项目领域语言（术语）+ 硬不变量 I1–I25 的唯一真相源。术语改这里。**
 - **`evals/METHODOLOGY.md`：评测方法论 / 流程规范，evals 代码按它实现（本项目最核心部分）。**
 - `PROJECT-STATUS.md`：仓库级现状、当前重点、模块状态、风险和近期任务。TODO 也记录在这里，注意 TODO 完成后记得删除。
 - `docs/README.md`：文档体系入口，说明 `docs/` 目录分工。

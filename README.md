@@ -109,7 +109,7 @@ cp evals/eval.config.example.json evals/eval.config.json   # 在仓库根
 ```bash
 bun test               # 单元测试（vitest）
 bun run typecheck      # tsc --noEmit
-bun run verify         # 一键：typecheck + test + CLI 冒烟（--version / show-llm-rules）
+bun run verify         # 一键：typecheck + test + CLI 冒烟（--version / rules / guide）
 bun run eval:fixture   # 用 fixture 语料跑一遍评测，输出到 .agent/evals/fixture-report
 ```
 
