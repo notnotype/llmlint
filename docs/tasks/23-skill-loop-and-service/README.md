@@ -482,7 +482,7 @@ Phase 3 给两条比喻规则加了带证据的 `note` 之后绝对值上移：�
 - [ ] 后续：把「对白-only」做成语料正式视图，让判别 harness 在该层拟合（前置 Task 08 M3/M4 完成、`renderPromptVersion` 守门放行）
 - [ ] 规则缺口候选（第二轮流程测试记录，需语料验证后才可导入）：并列回忆蒙太奇；跨段词汇/喻体自重复
 - [ ] `cn.vocabulary.r18` 三条 target 重叠（`flesh-blade` / `male-stalk` / `male-organ-compound`）待消重
-- [ ] 分片 2 实施
+- [ ] 分片 2 实施 → 已立项 [Task 24](../24-revision-rounds-and-contribute/README.md)（2026-07-27 设计定稿：形态演化为本地优先——多轮修订谱系 + `contribute` 落本地发件箱，web 端点与发送后置到服务轮），进展见该任务
 - [ ] 分片 3 实施（开工前先定跨站信任链：Passport 签发的 Bearer 如何被 llmlint web 校验；nb-workshop spec §7 已留 `contribution:submit` 保留 scope，但两侧都没写 introspection 或密钥分发）
-- [ ] contributions 数据模型对 Task 12 统一模型的映射设计
+- [ ] contributions 数据模型对 Task 12 统一模型的映射设计 → 迁入 Task 24 TODO（blob 先落地，映射为后置 ETL）
 - [ ] 后置：banned-words 逐词差集（独立任务）；复读/截断退化检测（后续批次，见 `rule-curation-open-questions.md`）
