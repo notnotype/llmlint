@@ -195,6 +195,176 @@
       "styleKey": "control",
       "difficulty": "raw",
       "charCount": 6815
+    },
+    {
+      "file": "render-0005-elysiver-gemini-gemini-3.1-pro-control.md",
+      "role": "render",
+      "model": "elysiver-gemini/gemini-3.1-pro",
+      "promptVersion": "render-v2",
+      "pairRef": "reference-0005.md",
+      "styleKey": "control",
+      "difficulty": "raw",
+      "charCount": 5168
+    },
+    {
+      "file": "render-0005-elysiver-gemini-gemini-3.1-pro-guide.md",
+      "role": "render",
+      "model": "elysiver-gemini/gemini-3.1-pro",
+      "promptVersion": "render-v2",
+      "pairRef": "reference-0005.md",
+      "styleKey": "guide",
+      "difficulty": "llmlint-guide-standard",
+      "charCount": 2997
+    },
+    {
+      "file": "render-0006-elysiver-gemini-gemini-3.1-pro-control.md",
+      "role": "render",
+      "model": "elysiver-gemini/gemini-3.1-pro",
+      "promptVersion": "render-v2",
+      "pairRef": "reference-0006.md",
+      "styleKey": "control",
+      "difficulty": "raw",
+      "charCount": 3297
+    },
+    {
+      "file": "render-0004-elysiver-gemini-gemini-3.1-pro-guide.md",
+      "role": "render",
+      "model": "elysiver-gemini/gemini-3.1-pro",
+      "promptVersion": "render-v2",
+      "pairRef": "reference-0004.md",
+      "styleKey": "guide",
+      "difficulty": "llmlint-guide-standard",
+      "charCount": 3984
+    },
+    {
+      "file": "render-0006-elysiver-gemini-gemini-3.1-pro-guide.md",
+      "role": "render",
+      "model": "elysiver-gemini/gemini-3.1-pro",
+      "promptVersion": "render-v2",
+      "pairRef": "reference-0006.md",
+      "styleKey": "guide",
+      "difficulty": "llmlint-guide-standard",
+      "charCount": 1556
+    },
+    {
+      "file": "render-0001-xiaomi-token-plan-cn-mimo-v2.5-pro-control.md",
+      "role": "render",
+      "model": "xiaomi-token-plan-cn/mimo-v2.5-pro",
+      "promptVersion": "render-v2",
+      "pairRef": "reference-0001.md",
+      "styleKey": "control",
+      "difficulty": "raw",
+      "charCount": 2702
+    },
+    {
+      "file": "render-0001-xiaomi-token-plan-cn-mimo-v2.5-pro-guide.md",
+      "role": "render",
+      "model": "xiaomi-token-plan-cn/mimo-v2.5-pro",
+      "promptVersion": "render-v2",
+      "pairRef": "reference-0001.md",
+      "styleKey": "guide",
+      "difficulty": "llmlint-guide-standard",
+      "charCount": 2188
+    },
+    {
+      "file": "render-0002-xiaomi-token-plan-cn-mimo-v2.5-pro-control.md",
+      "role": "render",
+      "model": "xiaomi-token-plan-cn/mimo-v2.5-pro",
+      "promptVersion": "render-v2",
+      "pairRef": "reference-0002.md",
+      "styleKey": "control",
+      "difficulty": "raw",
+      "charCount": 4608
+    },
+    {
+      "file": "render-0002-xiaomi-token-plan-cn-mimo-v2.5-pro-guide.md",
+      "role": "render",
+      "model": "xiaomi-token-plan-cn/mimo-v2.5-pro",
+      "promptVersion": "render-v2",
+      "pairRef": "reference-0002.md",
+      "styleKey": "guide",
+      "difficulty": "llmlint-guide-standard",
+      "charCount": 2982
+    },
+    {
+      "file": "render-0003-xiaomi-token-plan-cn-mimo-v2.5-pro-control.md",
+      "role": "render",
+      "model": "xiaomi-token-plan-cn/mimo-v2.5-pro",
+      "promptVersion": "render-v2",
+      "pairRef": "reference-0003.md",
+      "styleKey": "control",
+      "difficulty": "raw",
+      "charCount": 3994
+    },
+    {
+      "file": "render-0003-xiaomi-token-plan-cn-mimo-v2.5-pro-guide.md",
+      "role": "render",
+      "model": "xiaomi-token-plan-cn/mimo-v2.5-pro",
+      "promptVersion": "render-v2",
+      "pairRef": "reference-0003.md",
+      "styleKey": "guide",
+      "difficulty": "llmlint-guide-standard",
+      "charCount": 3543
+    },
+    {
+      "file": "render-0004-xiaomi-token-plan-cn-mimo-v2.5-pro-control.md",
+      "role": "render",
+      "model": "xiaomi-token-plan-cn/mimo-v2.5-pro",
+      "promptVersion": "render-v2",
+      "pairRef": "reference-0004.md",
+      "styleKey": "control",
+      "difficulty": "raw",
+      "charCount": 4343
+    },
+    {
+      "file": "render-0004-xiaomi-token-plan-cn-mimo-v2.5-pro-guide.md",
+      "role": "render",
+      "model": "xiaomi-token-plan-cn/mimo-v2.5-pro",
+      "promptVersion": "render-v2",
+      "pairRef": "reference-0004.md",
+      "styleKey": "guide",
+      "difficulty": "llmlint-guide-standard",
+      "charCount": 4449
+    },
+    {
+      "file": "render-0005-xiaomi-token-plan-cn-mimo-v2.5-pro-control.md",
+      "role": "render",
+      "model": "xiaomi-token-plan-cn/mimo-v2.5-pro",
+      "promptVersion": "render-v2",
+      "pairRef": "reference-0005.md",
+      "styleKey": "control",
+      "difficulty": "raw",
+      "charCount": 5905
+    },
+    {
+      "file": "render-0005-xiaomi-token-plan-cn-mimo-v2.5-pro-guide.md",
+      "role": "render",
+      "model": "xiaomi-token-plan-cn/mimo-v2.5-pro",
+      "promptVersion": "render-v2",
+      "pairRef": "reference-0005.md",
+      "styleKey": "guide",
+      "difficulty": "llmlint-guide-standard",
+      "charCount": 3331
+    },
+    {
+      "file": "render-0006-xiaomi-token-plan-cn-mimo-v2.5-pro-control.md",
+      "role": "render",
+      "model": "xiaomi-token-plan-cn/mimo-v2.5-pro",
+      "promptVersion": "render-v2",
+      "pairRef": "reference-0006.md",
+      "styleKey": "control",
+      "difficulty": "raw",
+      "charCount": 3263
+    },
+    {
+      "file": "render-0006-xiaomi-token-plan-cn-mimo-v2.5-pro-guide.md",
+      "role": "render",
+      "model": "xiaomi-token-plan-cn/mimo-v2.5-pro",
+      "promptVersion": "render-v2",
+      "pairRef": "reference-0006.md",
+      "styleKey": "guide",
+      "difficulty": "llmlint-guide-standard",
+      "charCount": 2466
     }
   ]
 }
