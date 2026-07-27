@@ -52,7 +52,7 @@ type ArmRates = {
     chars: number;
 };
 
-async function run(opts: {arm: string; main: string; tier: string; profile?: string; detector?: string; arms: string}): Promise<void> {
+async function run(opts: {arm: string; main: string; tier: string; profile?: string; detector?: string; arms: string; model?: string}): Promise<void> {
     const tier = resolveTier(opts.tier);
     const arms = resolveArms(opts.arms);
     const armRoot = resolve(opts.arm);
@@ -76,9 +76,17 @@ async function run(opts: {arm: string; main: string; tier: string; profile?: str
 
     const {scans} = await scanAll(renders);
     const pAiByText = loadDetectorScores(opts.detector);
-    const pairs = buildPairs(scans, arms);
+    let pairs = buildPairs(scans, arms);
+    if (opts.model !== undefined) {
+        // 子串匹配：语料里的 model 是「provider/模型名」全称（如 xiaomi-token-plan-cn/mimo-v2.5-pro），
+        // 命令行只写 deepseek / gemini / mimo 这类短键即可。
+        const key = opts.model;
+        const before = pairs.length;
+        pairs = pairs.filter((pair) => pair.model.includes(key));
+        console.log(`按模型过滤「${key}」：${before} 组配对中保留 ${pairs.length} 组\n`);
+    }
     if (pairs.length === 0) {
-        throw new Error(`没有配对上任何样本：${arms[0]} 与 ${arms[1]} 两臂都要有同 brief、同模型的产出。`);
+        throw new Error(`没有配对上任何样本：${arms[0]} 与 ${arms[1]} 两臂都要有同 brief、同模型的产出${opts.model === undefined ? "" : `，且模型名包含「${opts.model}」`}。`);
     }
 
     const rows = pairs.map((pair) => ({
@@ -278,6 +286,7 @@ program
     .option("--profile <path>", "eval 报告 JSON 路径；必须与生成时一致，否则注入/留出集合对不上")
     .option("--detector <path>", "外部检测器结果 detector-scores.json 路径")
     .option("--arms <baseline,treatment>", "要比较的两个臂 styleKey（三臂语料跑两两比较时逐次指定）", "control,guide")
-    .action((opts: {arm: string; main: string; tier: string; profile?: string; detector?: string; arms: string}) => run(opts));
+    .option("--model <key>", "只保留模型名包含该子串的配对（deepseek / gemini / mimo）；合并结论可能掩盖单模型差异，分层看时用它")
+    .action((opts: {arm: string; main: string; tier: string; profile?: string; detector?: string; arms: string; model?: string}) => run(opts));
 
 await program.parseAsync(process.argv);

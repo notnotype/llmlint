@@ -428,6 +428,25 @@ Phase 3 给两条比喻规则加了带证据的 `note` 之后绝对值上移：�
 
 **验证**：`typecheck` 绿；`test:bun` 74 pass / 0 fail；`test:vitest` 295 pass / 1 fail，唯一失败是既有的 `revision-text-workspace.test.ts`（硬编码 `not-but-structure` 的 verdict 为 strong，已确认当前 `report.json` 的 99 条里没有这条规则，且该测试不涉及 `summary`/`visibleChars`）。两种输出形态都实测带上了字数。
 
+### guide-arm 扩成三模型面板：gemini 与 mimo（2026-07-27）
+
+用户要的分级线（「对 DeepSeek、Mimo 这些模型是否有更好的改善作用」）不能从基线表推断，所以把 `guide-arm` 从单模型扩成三模型面板：gemini-3.1-pro 与 mimo-v2.5-pro 各补 26 对（52 篇 render），生成参数与 deepseek 完全一致（`--tier standard --profile evals/report/report.json`）；`guide-compare.ts` 新增 `--model` 过滤器按模型分层比较。完整数字表在 `evals/experiments/README.md`，这里记结论与过程：
+
+- **deepseek：有证据支持注入**（此前已有）：主指标 + 留出规则同降，各 p = 0.009；篇幅无代价。
+- **gemini：零收益 + 实打实的代价**：质量三层全不显著（docPAi 0.977 → 0.972），篇幅中位掉 757 字（−26%、23/26、p < 0.001）。约束没让它少 AI 味，只让它少写。
+- **mimo：方向一致但证据不足**：规则侧同向（留出 p = 0.076、docScore p = 0.009）说明它照着约束改了写法，但外部检测器不动（14/26、p = 0.845）；篇幅 −8%（p = 0.076）。26 对判不了。
+
+**两条方法论教训**：
+
+1. **合并跑会撒谎**。78 对合并后五行里四行显著，读起来像「面板整体有效」；分模型拆开才发现质量信号全来自 deepseek、字数信号主要来自 gemini。`--model` 过滤器就是为此加的：跨模型面板必须先分层看，合并数字只作总览。
+2. **「基线高 ⇒ 收益可期」被实测推翻**。delivery-arm 那轮写过「docPAi 基线 0.9+ 的模型有实测或强预期收益」，gemini（基线 0.969，面板最高）是直接反例。基线高只保证主指标可测，不保证注入有效。`experiments/README.md` 与 `PROJECT-STATUS.md` 的相关表述已改。
+
+**过程里踩了自己立的牌子**：README 明写「比较的 `--tier` / `--profile` 必须与生成一致」，本轮第一次跑分模型比较时漏了 `--profile`——注入集合从 71 条缩成 66 条，留出/注入两行数字全错，而 docPAi / docScore / 字数三行不受 profile 影响、恰好与原表逐个一致，才把这事暴露出来（错得非常安静）。从会话转录里核对了三个模型的生成命令确认同参数后重跑。这个不变量靠人记不住：`meta.json` 存了 `guideTier` 但没存 profile 指纹，比较脚本无从校验，已记进 TODO。
+
+另外补齐了 mimo 上一批的断点：上一批只落盘 9/52（provider 503 大面积失败，脚本对失败样本不落盘、正常退出），本轮续跑 43 个全部成功（`失败 0`）。
+
+
+
 ## TODO / Follow-ups
 
 - [x] story-deslop 规则吸收分析与导入方案（`rules-absorption-analysis.md` + `rule-model-v3-design.md`）
@@ -450,9 +469,11 @@ Phase 3 给两条比喻规则加了带证据的 `note` 之后绝对值上移：�
 - [x] **eval 验证写作期注入是否真的有用**（2026-07-27，`evals/experiments/guide-arm.ts` + `guide-compare.ts`）。26 对配对 render，主指标 docPAi 与主要佐证「留出规则命中」双双 20/26 更低、p = 0.009；注入规则命中不显著（12/26）恰好排除了「表层规避」这个替代解释。**D5 只满足一半**（人评拿不到），单模型（deepseek），结论暂定
 - [x] **第三轮用户实测**（2026-07-27，装进 `~/.claude/skills/llmlint/` 用 `claude -p` 跑四场景）。五步闭环全通、`rules --detector semantic` 首次获得实测证据、`guide` 在两个写作场景被自发调用
 - [x] **最小实验：拆开「投递方式」与「模型强度」**（2026-07-27，`delivery-arm.ts`，3 臂 × 15 章）。结论：**主因是模型强度不是投递位置**。`sysprompt` 确实提高约束遵守度（注入规则命中对 `toolresult` 1/15、p=0.001，校正后显著），但主指标 docPAi 上三臂在 Bonferroni 校正后无法区分，且 `sysprompt` 篇幅显著缩短 24%（13/15、p=0.007）。天花板效应：Opus 5 的 docPAi 中位 0.227 vs deepseek 0.846
-- [ ] **`guide` 需要按模型强度分级**。对 Opus 5 这类已经贴着检测器地板的模型，注入约束不改善主指标反而写短，属于净有害。需要更多模型的数据才能划线（当前只有 deepseek「有效」与 Opus 5「无效且有害」两点）。产品上在有结论之前不要无条件推荐注入
+- [x] **guide-arm 扩成三模型面板**（2026-07-27，gemini / mimo 各 26 对 + `guide-compare.ts --model` 分层比较）。deepseek 有效、gemini 零收益且篇幅 −26%（p<0.001）、mimo 规则侧同向但主指标不动；合并 78 对会把三种画像搅成「整体有效」的假象。详见上节与 `evals/experiments/README.md`
+- [ ] **`guide` 需要按模型分级推荐**。划线的数据已经有四个实测点：deepseek 有效（质量双指标 p=0.009、篇幅无代价）/ gemini 零收益且 −26% 篇幅（不建议默认注入）/ mimo 方向对但证据不足 / Opus 5 主指标不可用、篇幅 −24%（净收益未知）。缺的是产品形态：分级建议写在哪（SKILL.md？`guide` 抬头？）、「不建议注入」对 skill 写作期流程意味着什么（跳过 guide 还是降到更小档位）。注意「基线高 ⇒ 收益可期」已被 gemini 实测推翻，不要再用基线表替代逐模型实测
 - [ ] **D5 第二条件的缺口现在是硬阻塞**。`delivery-arm` 恰好出现篇幅显著缩短，这正是最需要人评 `wantReadOn` 的情况，而第 ② 层 critic 未建导致无法判断「写短了」是不是同时「变差了」。在建起来之前，任何涉及过度规避的结论都只能停在「有风险」
 - [ ] **`claude -p` 批量实验的两个环境坑**（对后续任何 headless 实验都成立）：① OAuth 凭据是进程间共享单文件，并发/连续刷新会互相踢掉，必须带认证重试；② 宿主会掐掉跑太久的进程，必须用 `--max-calls` 之类的分批配额干净退出，否则每次被掐都白花一次调用
+- [ ] **`guide-arm` 的 `meta.json` 没存 profile 指纹**：只存了 `guideTier`，`guide-compare` 无法自动校验「比较与生成同参数」这个不变量——本轮实际踩过（漏 `--profile` 导致注入/留出两行全错且无任何报警）。把 profile 摘要（比如注入规则 id 列表的哈希）写进 meta，比较时不一致就拒绝跑
 - [ ] **`guide` 缺少文体过滤**：`standard` 66 条里 18 条与虚构叙事无关（27% 噪声）。选集逻辑按 `action.type === "suggest"` 选，不按写作期相关性选。当前绕法是改 `llmlint.config.ts` 关规则；要做成一等能力需要一个「文体 / 载体」维度，与 task profile 的关系待想清楚，不要急着加字段
 - [ ] **`guide` 的 58 条结构类规则没有示例**：只有 8 条语义规则带 `{text, hit}` 正反例，其余只有一句抽象改法。T2 犯的那条（不是A，是B）恰好属于无示例的 58 条。补示例是提高写作期可执行性的最低成本动作，但要按 I25 同时配对照例，且**不能凭空编**——应从实测命中里取真实片段
 - [ ] **写作期不该被 `status` 初始化软门拦**：`guide` 是纯本地投影、不涉及数据共享，T2/T4 都因此多跑一次 `status` 并向用户复述了一遍共享档位
