@@ -105,6 +105,106 @@
       "styleKey": "guide",
       "difficulty": "llmlint-guide-standard",
       "charCount": 3768
+    },
+    {
+      "file": "render-0001-elysiver-gemini-gemini-3.1-pro-control.md",
+      "role": "render",
+      "model": "elysiver-gemini/gemini-3.1-pro",
+      "promptVersion": "render-v2",
+      "pairRef": "reference-0001.md",
+      "styleKey": "control",
+      "difficulty": "raw",
+      "charCount": 2775
+    },
+    {
+      "file": "render-0001-elysiver-gemini-gemini-3.1-pro-guide.md",
+      "role": "render",
+      "model": "elysiver-gemini/gemini-3.1-pro",
+      "promptVersion": "render-v2",
+      "pairRef": "reference-0001.md",
+      "styleKey": "guide",
+      "difficulty": "llmlint-guide-standard",
+      "charCount": 1002
+    },
+    {
+      "file": "render-0002-elysiver-gemini-gemini-3.1-pro-control.md",
+      "role": "render",
+      "model": "elysiver-gemini/gemini-3.1-pro",
+      "promptVersion": "render-v2",
+      "pairRef": "reference-0002.md",
+      "styleKey": "control",
+      "difficulty": "raw",
+      "charCount": 3412
+    },
+    {
+      "file": "render-0002-elysiver-gemini-gemini-3.1-pro-guide.md",
+      "role": "render",
+      "model": "elysiver-gemini/gemini-3.1-pro",
+      "promptVersion": "render-v2",
+      "pairRef": "reference-0002.md",
+      "styleKey": "guide",
+      "difficulty": "llmlint-guide-standard",
+      "charCount": 1568
+    },
+    {
+      "file": "render-0003-elysiver-gemini-gemini-3.1-pro-control.md",
+      "role": "render",
+      "model": "elysiver-gemini/gemini-3.1-pro",
+      "promptVersion": "render-v2",
+      "pairRef": "reference-0003.md",
+      "styleKey": "control",
+      "difficulty": "raw",
+      "charCount": 2945
+    },
+    {
+      "file": "render-0003-elysiver-gemini-gemini-3.1-pro-guide.md",
+      "role": "render",
+      "model": "elysiver-gemini/gemini-3.1-pro",
+      "promptVersion": "render-v2",
+      "pairRef": "reference-0003.md",
+      "styleKey": "guide",
+      "difficulty": "llmlint-guide-standard",
+      "charCount": 2622
+    },
+    {
+      "file": "render-0004-elysiver-gemini-gemini-3.1-pro-control.md",
+      "role": "render",
+      "model": "elysiver-gemini/gemini-3.1-pro",
+      "promptVersion": "render-v2",
+      "pairRef": "reference-0004.md",
+      "styleKey": "control",
+      "difficulty": "raw",
+      "charCount": 3596
+    },
+    {
+      "file": "render-0004-elysiver-gemini-gemini-3.1-pro-guide.md",
+      "role": "render",
+      "model": "elysiver-gemini/gemini-3.1-pro",
+      "promptVersion": "render-v2",
+      "pairRef": "reference-0004.md",
+      "styleKey": "guide",
+      "difficulty": "llmlint-guide-standard",
+      "charCount": 3737
+    },
+    {
+      "file": "render-0005-elysiver-gemini-gemini-3.1-pro-control.md",
+      "role": "render",
+      "model": "elysiver-gemini/gemini-3.1-pro",
+      "promptVersion": "render-v2",
+      "pairRef": "reference-0005.md",
+      "styleKey": "control",
+      "difficulty": "raw",
+      "charCount": 3630
+    },
+    {
+      "file": "render-0005-elysiver-gemini-gemini-3.1-pro-guide.md",
+      "role": "render",
+      "model": "elysiver-gemini/gemini-3.1-pro",
+      "promptVersion": "render-v2",
+      "pairRef": "reference-0005.md",
+      "styleKey": "guide",
+      "difficulty": "llmlint-guide-standard",
+      "charCount": 2404
     }
   ]
 }

@@ -224,7 +224,7 @@ abstraction.hollow
   "kind": "check",
   "filePath": "manuscript/chapter-01.md",
   "configPath": "llmlint.config.ts",
-  "summary": {"total": 2, "high": 0, "medium": 2, "low": 0},
+  "summary": {"total": 2, "high": 0, "medium": 2, "low": 0, "visibleChars": 3131},
   "filter": {"review": "agent", "hiddenByReview": 78, "minLevel": "low", "hiddenByLevel": 0},
   "registry": {"rulesets": ["builtin/default"], "totalRules": 360, "activeRules": 266, "disabledRules": 94},
   "diagnostics": [],
@@ -253,6 +253,8 @@ abstraction.hollow
 不变量：`issues[]` 与 `densityIssues[]` 的每个 `ruleId` 都能在顶层 `rules` 里查到；`rules` 只含本次报告实际涉及的规则。
 
 `context.before` / `context.after` 各裁到 24 个码点，被裁一侧带 `…` 标记（scanner 内部给的是整行，中文长段落一行常有 150+ 字）。需要完整段落时直接读原文。
+
+`summary.visibleChars` 是正文可见字数，**与 density 的「/千字」同分母**：只数 CJK / 字母 / 数字，跳过结构行与遮罩区（代码块、frontmatter、链接），标点和空白不计。它的用处是修复前后对比篇幅——审稿流程要求删减不超过两成（见 `workflow.md` 步骤 4）。不要用 `wc -m` 替代：那个数把标点空白都算进去，与规则命中的千字口径不是一套尺子，算出来的删减比例会失真。stylish 输出在总结行之后也给这个数。
 
 `--rule-detail` 恢复完整形态：命中内联完整规则对象（含 `detector.targets`、`source.canonicalKey`、`scope`）、`registry` 带逐 namespace 明细、无顶层 `rules`、缩进 2 空格。写规则、核对 canonicalKey、排查 overlap 时用它；日常审稿不要用——同一篇正文上它比紧凑形态大 4 倍以上。
 

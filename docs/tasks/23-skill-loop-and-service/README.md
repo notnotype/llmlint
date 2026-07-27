@@ -409,6 +409,25 @@ Phase 3 给两条比喻规则加了带证据的 `note` 之后绝对值上移：�
 
 **顺带的重构**：`guide-compare.ts` 从写死 `control`/`guide` 两臂泛化为 `--arms 基线,处理`（内部改叫 baseline/treatment），三臂语料跑三次两两比较。改完用原 `guide-arm` 数据回归，26 对的五项指标逐个一致。共用的语料读写逻辑抽到 `evals/experiments/arm-corpus.ts`——两个生成脚本末尾都自执行 `parseAsync`，互相 import 会直接触发对方跑起来（`generate.ts` 已经踩过，见 `resolve-model.ts`）。
 
+### 审查期篇幅护栏（2026-07-27）
+
+第三轮实测里 T3 在预授权下把 4663 字改成 3003 字（−35.6%），而**静态命中 55→2、docPAi 0.947→0.597，两个指标都在变好**——没有任何信号提示删多了。这是审查期主线上的真实风险：三种手法里「删」最容易累加失控，清单上每条单独看都该删，加起来能把一章削掉三分之一。
+
+原有约束不够：`repair-guide.md` 只有**段级**上限（「若一段超过三分之一内容都想删，先停下」），挡不住「每段各删一点、全篇掉三分之一」；SKILL.md 只有「不以清零命中为目标」这种态度性表述，不是可检查的约束。
+
+**CLI 侧**：`check` 报告新增 `summary.visibleChars`（stylish 在总结行后也输出）。口径复用 density `perKilo` 的分母——只数 CJK/字母/数字，跳过结构行与遮罩区。为此把 `countableVisibleChars` / `visibleCharsInSpan` 从 `density.ts` 私有函数移到 `scan-context.ts` 并导出：它们的签名依赖 `ScanContext`，归属本来就在那里，而且两处必须同分母，否则同一份报告里「每千字命中」和「可见字数」会互相对不上。篇幅基准取 `ctx.layers.all`（`view` 是分层视图，narrative 层台词是 `。` 占位不计）。
+
+**为什么不能让 Agent 自己数**：`wc -m` 把标点空白都算进去。同一篇正文 llmlint 口径 1212 字、`wc` 式口径 1429 字，差 18%——用它算删减比例会失真到没有意义。
+
+**提示词侧**（三处，口径一致）：
+- SKILL.md 步骤 4 新增「篇幅预算：删减不超过两成」，并把复测判据从两条改为三条（命中减少、无新命中、篇幅 ±20% 内），说明第三条防的是靠删够多来清零命中。
+- `workflow.md` 步骤 4 拆出「篇幅预算」小节，写明失控模式与实测数字。
+- `repair-guide.md` 的「删除比例上限」改为段级 + 篇级双尺度，总原则第 6 条补上篇幅判据。
+
+**±20% 沿用既有口径不新造魔数**：`prompts.ts` 的 repair-v1/v2 早就写着「篇幅与原文相当，增减不超过两成」。这与 `spread` 门槛那次的教训一致——同一件事不要有两个数。
+
+**验证**：`typecheck` 绿；`test:bun` 74 pass / 0 fail；`test:vitest` 295 pass / 1 fail，唯一失败是既有的 `revision-text-workspace.test.ts`（硬编码 `not-but-structure` 的 verdict 为 strong，已确认当前 `report.json` 的 99 条里没有这条规则，且该测试不涉及 `summary`/`visibleChars`）。两种输出形态都实测带上了字数。
+
 ## TODO / Follow-ups
 
 - [x] story-deslop 规则吸收分析与导入方案（`rules-absorption-analysis.md` + `rule-model-v3-design.md`）

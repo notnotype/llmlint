@@ -365,6 +365,15 @@ export type CheckSummary = {
     high: number;
     medium: number;
     low: number;
+    /**
+     * 正文可见字数，与 density `perKilo` 同分母（跳过结构行与遮罩区）。
+     *
+     * 用途是让修复前后能比篇幅——审稿流程要求删减不超过两成，没有这个数就只能靠外部
+     * 工具数字，而 `wc` 数的是全部字符（含标点空白），与规则命中的千字口径对不上。
+     *
+     * 缺省 = 调用方没有提供原文上下文（例如 web 从已有命中重建报告），此时报告不输出篇幅。
+     */
+    visibleChars?: number;
 };
 
 /**

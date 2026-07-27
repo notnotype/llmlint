@@ -1,5 +1,5 @@
 import {isMasked} from "./markdown-mask";
-import {computePositionWindow, overlapsRanges, visibleLength} from "./scan-context";
+import {computePositionWindow, countableVisibleChars, overlapsRanges, visibleCharsInSpan} from "./scan-context";
 import {buildLineStarts, ensureGlobalFlags, locatePosition} from "./scanner";
 import type {DensityIssue, DensityRuleRecord, MaskedRange, ScanContext} from "./types";
 
@@ -141,44 +141,6 @@ function evaluateThresholds(rule: DensityRuleRecord, hits: DensityHit[], visible
 }
 
 /** doc 粒度分母：非结构行、非遮罩区的可见字数总和（按 scope 层视图计）。 */
-function countableVisibleChars(ctx: ScanContext, view: string): number {
-    let total = 0;
-    for (const line of ctx.lines) {
-        if (line.structural) {
-            continue;
-        }
-        total += visibleCharsInSpan(view, line.start, line.end, ctx.maskedRanges);
-    }
-    return total;
-}
-
-/** 统计 [start, end) 内、不落遮罩区的可见字符数。 */
-function visibleCharsInSpan(view: string, start: number, end: number, maskedRanges: MaskedRange[]): number {
-    if (maskedRanges.length === 0) {
-        return visibleLength(view.slice(start, end));
-    }
-    let total = 0;
-    let cursor = start;
-    for (const [maskStart, maskEnd] of maskedRanges) {
-        if (maskEnd <= cursor) {
-            continue;
-        }
-        if (maskStart >= end) {
-            break;
-        }
-        if (maskStart > cursor) {
-            total += visibleLength(view.slice(cursor, Math.min(maskStart, end)));
-        }
-        cursor = Math.max(cursor, Math.min(maskEnd, end));
-        if (cursor >= end) {
-            return total;
-        }
-    }
-    if (cursor < end) {
-        total += visibleLength(view.slice(cursor, end));
-    }
-    return total;
-}
 
 /** 二分定位偏移所在行下标（ctx.lines 按 start 升序）。 */
 function locateLineIndex(ctx: ScanContext, index: number): number {

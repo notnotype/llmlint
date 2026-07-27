@@ -6,7 +6,7 @@ import {loadConfig} from "./config";
 import {DEFAULT_NAMESPACE_ALIASES} from "./namespaces";
 import {loadRules} from "./rules";
 import {computeMaskedRanges, mergeRanges} from "./markdown-mask";
-import {prepareScanContext} from "./scan-context";
+import {countableVisibleChars, prepareScanContext} from "./scan-context";
 import {buildLineStarts, locatePosition, scanHandlerRules, scanWithContext} from "./scanner";
 import {scanDensity} from "./density";
 import {applyAutoFix} from "./fix";
@@ -467,7 +467,7 @@ async function checkFiles(inputs: string[], options: GlobalOptions): Promise<voi
         const issues = filterIssuesByLevel(afterReview, minLevel);
         const densityIssues = afterReviewDensity.filter((issue) => LEVEL_RANK[issue.rule.level] >= LEVEL_RANK[minLevel]);
         const hiddenByLevel = (afterReview.length - issues.length) + (afterReviewDensity.length - densityIssues.length);
-        return {filePath, summary: summarizeIssues(issues), issues, densityIssues, hiddenByReview, hiddenByLevel};
+        return {filePath, summary: summarizeIssues(issues, countableVisibleChars(ctx, ctx.layers.all)), issues, densityIssues, hiddenByReview, hiddenByLevel};
     });
 
     const color = resolveColor(output);
@@ -499,6 +499,7 @@ function printSingle(result: FileResult, configPath: string | null, loadedRules:
         hiddenByLevel: result.hiddenByLevel,
         color: options.color,
         densityIssues: result.densityIssues ?? [],
+        ...(result.summary.visibleChars === undefined ? {} : {visibleChars: result.summary.visibleChars}),
         ...(options.showLines ? {showLines: true} : {}),
         ...(options.ruleDetail ? {ruleDetail: true} : {}),
     };
@@ -527,6 +528,7 @@ function printMulti(results: FileResult[], configPath: string | null, loadedRule
         includeDiagnostics: index === 0,
         color: options.color,
         densityIssues: result.densityIssues ?? [],
+        ...(result.summary.visibleChars === undefined ? {} : {visibleChars: result.summary.visibleChars}),
         ...(options.showLines ? {showLines: true} : {}),
     }));
     console.log([...sections, formatCheckAggregate(results, options.color)].join("\n\n"));

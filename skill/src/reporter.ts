@@ -26,6 +26,8 @@ export type CheckReportOptions = {
     densityIssues?: DensityIssue[];
     /** JSON 输出是否内联完整规则对象（`--rule-detail`）；缺省 = 紧凑形态。只影响 JSON，stylish 不看这个字段。 */
     ruleDetail?: boolean;
+    /** 正文可见字数（与 density perKilo 同分母）；缺省 = 调用方无原文上下文，报告不输出篇幅。 */
+    visibleChars?: number;
 };
 
 export function formatCheckReport(filePath: string, issues: Issue[], loadedRules: LoadedRules, options: CheckReportOptions = {}): string {
@@ -44,7 +46,7 @@ export function formatCheckReport(filePath: string, issues: Issue[], loadedRules
         return lines.join("\n");
     }
 
-    const summary = summarizeIssues(issues);
+    const summary = summarizeIssues(issues, options.visibleChars);
     const filterHeader = formatFilterHeader(options.review, hiddenByReview, options.minLevel, hiddenByLevel);
     if (filterHeader.length > 0) {
         lines.push(...filterHeader);
@@ -123,6 +125,10 @@ export function formatCheckReport(filePath: string, issues: Issue[], loadedRules
     if (densityIssues.length > 0) {
         lines.push(pc.red(`✖ ${densityIssues.length} 条密度指纹`));
     }
+    // 篇幅放在总结行之后：修复复测要拿它和修复前对比，删减过多本身就是一种回归。
+    if (summary.visibleChars !== undefined) {
+        lines.push(pc.dim(`正文 ${summary.visibleChars} 可见字（与「/千字」同分母；修复后用它对比篇幅）`));
+    }
 
     return lines.join("\n");
 }
@@ -170,7 +176,7 @@ export function createCheckJsonReport(filePath: string, configPath: string | nul
             kind: "check",
             filePath,
             configPath,
-            summary: summarizeIssues(issues),
+            summary: summarizeIssues(issues, options.visibleChars),
             filter,
             registry: loadedRules.summary,
             diagnostics: loadedRules.diagnostics,
@@ -184,7 +190,7 @@ export function createCheckJsonReport(filePath: string, configPath: string | nul
         kind: "check",
         filePath,
         configPath,
-        summary: summarizeIssues(issues),
+        summary: summarizeIssues(issues, options.visibleChars),
         filter,
         registry,
         diagnostics: loadedRules.diagnostics,
@@ -490,10 +496,18 @@ function renderInline(text: string): string {
         .replace(/\n/g, "\\n");
 }
 
-export function summarizeIssues(issues: Issue[]): CheckSummary {
+/**
+ * 汇总命中级别分布。
+ *
+ * @param visibleChars 正文可见字数；不传则 summary 不带 `visibleChars`（见该字段注释）。
+ */
+export function summarizeIssues(issues: Issue[], visibleChars?: number): CheckSummary {
     const summary: CheckSummary = {total: issues.length, high: 0, medium: 0, low: 0};
     for (const issue of issues) {
         summary[issue.rule.level]++;
+    }
+    if (visibleChars !== undefined) {
+        summary.visibleChars = visibleChars;
     }
     return summary;
 }

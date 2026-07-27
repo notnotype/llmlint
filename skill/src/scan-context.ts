@@ -176,6 +176,52 @@ export function visibleLength(text: string): number {
 }
 
 /**
+ * 一份视图里「可计数」的可见字符数：跳过结构行与遮罩区。
+ *
+ * 这是 density 规则 `perKilo` 的分母，也是 `check` 报告的篇幅基准——两处必须同口径，
+ * 否则同一份报告里「每千字命中」和「可见字数」会互相对不上。传 `ctx.layers.all` 得到
+ * 全文篇幅；传某一层的视图得到该层篇幅（narrative 层台词是 `。` 占位，不计入）。
+ */
+export function countableVisibleChars(ctx: ScanContext, view: string): number {
+    let total = 0;
+    for (const line of ctx.lines) {
+        if (line.structural) {
+            continue;
+        }
+        total += visibleCharsInSpan(view, line.start, line.end, ctx.maskedRanges);
+    }
+    return total;
+}
+
+/** 统计 [start, end) 内、不落遮罩区的可见字符数。 */
+export function visibleCharsInSpan(view: string, start: number, end: number, maskedRanges: MaskedRange[]): number {
+    if (maskedRanges.length === 0) {
+        return visibleLength(view.slice(start, end));
+    }
+    let total = 0;
+    let cursor = start;
+    for (const [maskStart, maskEnd] of maskedRanges) {
+        if (maskEnd <= cursor) {
+            continue;
+        }
+        if (maskStart >= end) {
+            break;
+        }
+        if (maskStart > cursor) {
+            total += visibleLength(view.slice(cursor, Math.min(maskStart, end)));
+        }
+        cursor = Math.max(cursor, Math.min(maskEnd, end));
+        if (cursor >= end) {
+            return total;
+        }
+    }
+    if (cursor < end) {
+        total += visibleLength(view.slice(cursor, end));
+    }
+    return total;
+}
+
+/**
  * 位置窗口：从文首（opening）/ 文末（ending）按 narrative 层可见字符数满 chars，
  * 返回允许的索引区间 [start, end)。台词在 narrative 层是 `。` 占位，不计入可见数
  * （预告腔看的是叙述层结尾）。命中起点落窗口外即跳过。
