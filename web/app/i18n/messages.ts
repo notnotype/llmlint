@@ -107,8 +107,8 @@ export type MessageKey =
     | "llm.replaceFullFromClipboard"
     | "llm.replaceFullTitle"
     | "layout.resizeReportPanelTitle"
-    | "llmRules.description"
-    | "llmRules.title"
+    | "semanticRules.description"
+    | "semanticRules.title"
     | "dimension.fixability"
     | "dimension.level"
     | "dimension.review"
@@ -512,7 +512,7 @@ export type MessageKey =
     | "rules.description"
     | "rules.effLiftHint"
     | "rules.hideRule"
-    | "rules.llmNotScanned"
+    | "rules.semanticNotScanned"
     | "rules.llmPrompt"
     | "rules.meta"
     | "rules.noMatch"
@@ -533,7 +533,7 @@ export type MessageKey =
     | "rules.statPairs"
     | "rules.statPrevLift"
     | "rules.title"
-    | "rules.typeLlm"
+    | "rules.typeSemantic"
     | "rules.typeReplace"
     | "rules.typeSuggest"
     | "rules.untestedNote"
@@ -820,8 +820,8 @@ const zhCN: Record<MessageKey, string> = {
     "llm.replaceFullFromClipboard": "用剪贴板替换全文",
     "llm.replaceFullTitle": "用剪贴板替换全文？",
     "layout.resizeReportPanelTitle": "拖拽调整报告面板宽度",
-    "llmRules.description": "这些规则需要读全文语境判断，属 llmlint 的 Agent Skill 流程；本检测页只跑确定性 regex 规则。",
-    "llmRules.title": "需 Agent 语义判断的规则（{count} 条，本页纯 regex 不检测）",
+    "semanticRules.description": "这些规则没有可稳定定位的词法特征，只能读全文语境判断，属 llmlint 的 Agent Skill 流程；本检测页只跑确定性 regex 规则。",
+    "semanticRules.title": "只能靠读上下文判断的语义规则（{count} 条，本页纯 regex 不检测）",
     "dimension.fixability": "修复",
     "dimension.level": "级别",
     "dimension.review": "受众",
@@ -899,7 +899,7 @@ const zhCN: Record<MessageKey, string> = {
     "rules.description": "内置 regex 规则全量清单，附评测判别统计，默认按 effectiveLift（判别力）降序。",
     "rules.effLiftHint": "effectiveLift = max(lift, prevalenceLift)：裁决与排序口径",
     "rules.hideRule": "隐藏此规则（本机扫描不再报告其命中）",
-    "rules.llmNotScanned": "LLM 规则未参与静态扫描：仅登记规则本体，无命中与判别统计。",
+    "rules.semanticNotScanned": "语义规则未参与静态扫描：仅登记规则本体，无命中与判别统计。",
     "rules.llmPrompt": "检测提示词（概要）",
     "rules.meta": "共 {total} 条规则 · 已测 {tested} 条 · 引擎 {engine}",
     "rules.noMatch": "无匹配规则",
@@ -920,7 +920,7 @@ const zhCN: Record<MessageKey, string> = {
     "rules.statPairs": "逐章配对 AI>人：{aiGreater}/{total}",
     "rules.statPrevLift": "prevLift（文档占比比）",
     "rules.title": "规则库",
-    "rules.typeLlm": "LLM 规则",
+    "rules.typeSemantic": "语义规则",
     "rules.typeReplace": "替换模板",
     "rules.typeSuggest": "仅检测",
     "rules.untestedNote": "该规则未进入本次评测报告（两侧均未命中或样本不足）。",
@@ -1538,8 +1538,8 @@ const enUS: Record<MessageKey, string> = {
     "llm.replaceFullFromClipboard": "Replace full text from clipboard",
     "llm.replaceFullTitle": "Replace full text from clipboard?",
     "layout.resizeReportPanelTitle": "Drag to resize report panel",
-    "llmRules.description": "These rules require full-context semantic judgment in the llmlint Agent Skill flow. This page only runs deterministic regex rules.",
-    "llmRules.title": "{count} Agent semantic rules (not checked on this regex-only page)",
+    "semanticRules.description": "These rules have no stable lexical signature and can only be judged by reading full context, in the llmlint Agent Skill flow. This page only runs deterministic regex rules.",
+    "semanticRules.title": "{count} semantic rules (not checked on this regex-only page)",
     "dimension.fixability": "Fix",
     "dimension.level": "Level",
     "dimension.review": "Audience",
@@ -1607,7 +1607,7 @@ const enUS: Record<MessageKey, string> = {
     "rules.description": "Full catalog of built-in regex rules with eval discrimination stats, sorted by effectiveLift (discriminative power) by default.",
     "rules.effLiftHint": "effectiveLift = max(lift, prevalenceLift): verdict & sorting basis",
     "rules.hideRule": "Hide this rule (its hits stop being reported on this device)",
-    "rules.llmNotScanned": "LLM rules are not part of static scanning: registry entry only, no hits or discrimination stats.",
+    "rules.semanticNotScanned": "Semantic rules are not part of static scanning: registry entry only, no hits or discrimination stats.",
     "rules.llmPrompt": "Detector prompt (summary)",
     "rules.meta": "{total} rules · {tested} evaluated · engine {engine}",
     "rules.noMatch": "No matching rules",
@@ -1628,7 +1628,7 @@ const enUS: Record<MessageKey, string> = {
     "rules.statPairs": "Paired AI>human: {aiGreater}/{total}",
     "rules.statPrevLift": "prevLift (prevalence ratio)",
     "rules.title": "Rule catalog",
-    "rules.typeLlm": "LLM rule",
+    "rules.typeSemantic": "Semantic rule",
     "rules.typeReplace": "Replacement template",
     "rules.typeSuggest": "Detect only",
     "rules.untestedNote": "This rule did not enter the eval report (no hits on either side or insufficient samples).",

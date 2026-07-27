@@ -60,7 +60,7 @@ describe("llmlint", () => {
         expect(issues.some((issue) => issue.rule.id === "firstly-secondly")).toBe(true);
         expect(issues.some((issue) => issue.rule.ruleset === "builtin/default")).toBe(true);
         expect(issues.find((issue) => issue.rule.id === "firstly-secondly")?.rule.level).toBe("high");
-        expect(loadedRules.llmRules.map((rule) => rule.id)).toContain("mechanical-elevation-ending");
+        expect(loadedRules.semanticRules.map((rule) => rule.id)).toContain("mechanical-elevation-ending");
         expect(issues.map((issue) => issue.rule.id)).toContain("cn.vocabulary.body.skull-head");
     });
 
@@ -422,14 +422,26 @@ describe("llmlint", () => {
         });
     });
 
-    it("命令行 --format json 覆盖 config output 并输出 LLM rules JSON", async () => {
+    it("命令行 --format json 覆盖 config output 并输出 rules JSON", async () => {
         const log = vi.spyOn(console, "log").mockImplementation(() => undefined);
 
-        await runCli(["bun", "llmlint", "--format", "json", "show-llm-rules"]);
+        await runCli(["bun", "llmlint", "--format", "json", "rules", "--detector", "semantic"]);
 
-        const report = JSON.parse(String(log.mock.calls[0]?.[0])) as {kind: string; rules: Array<{id: string}>};
-        expect(report.kind).toBe("llm-rules");
+        const report = JSON.parse(String(log.mock.calls[0]?.[0])) as {kind: string; filter: {detector: string}; rules: Array<{id: string}>};
+        expect(report.kind).toBe("rules");
+        expect(report.filter.detector).toBe("semantic");
         expect(report.rules.map((rule) => rule.id)).toContain("mechanical-elevation-ending");
+    });
+
+    it("rules 不带过滤时覆盖全部判据类别，不再只给语义规则", async () => {
+        const log = vi.spyOn(console, "log").mockImplementation(() => undefined);
+
+        await runCli(["bun", "llmlint", "--format", "json", "rules"]);
+
+        const report = JSON.parse(String(log.mock.calls[0]?.[0])) as {rules: Array<{id: string}>; registry: {activeRules: number}};
+        // 旧 show-llm-rules 只输出 8 条语义规则；rules 的默认视图必须是整个 active 规则库。
+        expect(report.rules.length).toBe(report.registry.activeRules);
+        expect(report.rules.length).toBeGreaterThan(100);
     });
 
     it("JSON check 输出保留 context 并包含结束位置", async () => {
@@ -497,7 +509,10 @@ describe("llmlint", () => {
         });
 
         expect(stdout).toContain("check [options] <files...>");
-        expect(stdout).toContain("show-llm-rules [options]");
+        expect(stdout).toContain("rules [options]");
+        // 写作期入口必须出现在第一屏：--help 是人和 Agent 发现「写之前也能用」的唯一途径。
+        expect(stdout).toContain("guide [options]");
+        expect(stdout).not.toContain("show-llm-rules");
         expect(stdout).not.toContain("import-legacy");
         expect(stdout).not.toContain("import-curated");
         expect(stdout).not.toContain("兼容旧用法");
@@ -929,13 +944,13 @@ describe("llmlint", () => {
                 action: {type: "suggest", message: "只提示"},
             },
             {
-                id: "test.explicit.llm",
+                id: "test.explicit.semantic",
                 namespace: "test.explicit",
                 title: "伪候选语义规则",
                 level: "medium",
                 review: "agent",
                 fixability: "candidate",
-                detector: {type: "llm", prompt: "读全文判断"},
+                detector: {type: "semantic", prompt: "读全文判断"},
                 action: {type: "suggest", message: "只提示"},
             },
         ]);
@@ -945,7 +960,7 @@ describe("llmlint", () => {
 
         expect(byId.get("test.explicit.replace")).toMatchObject({review: "human", fixability: "candidate"});
         expect(byId.get("test.explicit.suggest")).toMatchObject({review: "human", fixability: "manual"});
-        expect(byId.get("test.explicit.llm")).toMatchObject({review: "agent", fixability: "manual"});
+        expect(byId.get("test.explicit.semantic")).toMatchObject({review: "agent", fixability: "manual"});
     });
 
     it("CLI check 默认按 review=agent 过滤，--review human 显示人工桶", async () => {

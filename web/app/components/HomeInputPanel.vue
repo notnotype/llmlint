@@ -8,7 +8,7 @@ import {useRecentScans, type RecentScan} from "../composables/useRecentScans";
 const text = defineModel<string>({required: true});
 const props = defineProps<{
     activeRegexRules: number;
-    llmRules: number;
+    semanticRules: number;
 }>();
 const emit = defineEmits<{(e: "submit"): void}>();
 const {locale, t} = useLlmlintI18n();
@@ -226,7 +226,7 @@ function submit(): void {
                 </div>
                 <div class="border border-[var(--border-color)] bg-[var(--bg-input)] p-3">
                     <span class="block font-mono text-[9px] text-[var(--text-muted)]">LLM</span>
-                    <b class="mt-1 block font-mono text-2xl text-[var(--accent-pop)]">{{ props.llmRules }}</b>
+                    <b class="mt-1 block font-mono text-2xl text-[var(--accent-pop)]">{{ props.semanticRules }}</b>
                 </div>
             </div>
             <div class="space-y-3 border-y border-[var(--border-color)] py-4" aria-hidden="true">

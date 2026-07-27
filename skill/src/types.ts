@@ -1,8 +1,12 @@
 export type RuleLevel = "high" | "medium" | "low";
 
 /**
- * 审查受众：决定一条命中默认进入哪个审查出口，独立于严重度 level。
- * 用 agent 而不是 llm，避免和 detector.type === "llm" 撞名（那是“检测手段”，这是“给谁看”）。
+ * 审查受众：决定一条命中默认进入哪个审查出口，独立于严重度 level 与判据类别 detector。
+ *
+ * 注意这是**审查期**的维度，不能直接当写作期的取舍依据：命中给 human 看表示
+ * 「置信度不足，别让 Agent 自动改」，而写作期多提一句约束并不会损坏既有正文，
+ * 代价结构完全不同（实测判别力最强的几条规则恰好都在 human 桶）。
+ * 写作期的取舍见 guide.ts 的档位定义。
  * - agent：需要 Agent/LLM 读上下文判断，check 默认输出。
  * - human：偏人工或作者风格偏好的检查，默认不喂给 Agent。
  * - none：机械/诊断类规则，默认不进入审查输出。
@@ -109,9 +113,21 @@ export type BaseLintRuleRecord = {
     fixability?: Fixability;
     enabled?: boolean;
     note?: string;
+    /**
+     * 判定示例。**必须同时能表达命中例与对照例**——只给反例会让消费方（尤其是写作期
+     * 提示词）把「形近但可接受」的写法也一并规避掉，写出过度躲闪的干瘪文本。
+     *
+     * 早期形态是 `{bad, good?}`，`good` 被同时用作「改写后的版本」和「保留」这种裁决词，
+     * 同一字段两种含义，消费方无法可靠区分正反例；`hit` 把这件事显式化。
+     */
     examples?: Array<{
-        bad: string;
-        good?: string;
+        /** 示例正文片段。 */
+        text: string;
+        /** 该片段是否命中本规则。false = 形近但不该报的对照例。 */
+        hit: boolean;
+        /** 命中例的建议改法；对照例（hit=false）留空。 */
+        fix?: string;
+        /** 为什么命中或为什么不命中。 */
         reason?: string;
     }>;
     source?: {
@@ -129,8 +145,20 @@ export type RegexDetector = {
     flags?: string;
 };
 
-export type LLMDetector = {
-    type: "llm";
+/**
+ * 语义型 detector：命中判据是语义的，没有可稳定定位的词法、统计或算法特征，
+ * 只能由读得懂上下文的判断者（人或模型）逐段读出来。
+ *
+ * 命名刻意描述「判据的性质」而不是「谁来执行」——四种 detector 是
+ * 词法（regex）/ 统计（density）/ 算法（handler）/ 语义（semantic）四类判据。
+ * 早期叫 `llm` 是按执行者命名，既和 `review:"agent"`（给谁看）撞语义，
+ * 也和「全部规则在写作期都由模型消费」这个事实冲突。
+ *
+ * `prompt` 是审查期的判定流程（「判断文本是否…」），只在 `rules` 命令里输出；
+ * 写作期摘要取 `action.message` 与 `examples[].bad`，见 references/rule-model.md。
+ */
+export type SemanticDetector = {
+    type: "semantic";
     prompt: string;
 };
 
@@ -165,7 +193,7 @@ export type DensityDetector = {
 };
 
 export type DeclarativeRuleRecord = BaseLintRuleRecord & {
-    detector: RegexDetector | LLMDetector | DensityDetector;
+    detector: RegexDetector | SemanticDetector | DensityDetector;
     action:
         | {type: "replace"; replacements: string[]}
         | {type: "suggest"; message: string};
@@ -216,8 +244,8 @@ export type RegexRuleRecord = ActiveDeclarativeRuleRecord & {
     detector: RegexDetector;
 };
 
-export type LLMRuleRecord = ActiveDeclarativeRuleRecord & {
-    detector: LLMDetector;
+export type SemanticRuleRecord = ActiveDeclarativeRuleRecord & {
+    detector: SemanticDetector;
 };
 
 export type DensityRuleRecord = ActiveDeclarativeRuleRecord & {
@@ -250,7 +278,7 @@ export type RegistrySummary = {
 export type LoadedRules = {
     rules: ActiveRuleRecord[];
     regexRules: RegexRuleRecord[];
-    llmRules: LLMRuleRecord[];
+    semanticRules: SemanticRuleRecord[];
     densityRules: DensityRuleRecord[];
     handlerRules: ActiveHandlerRuleRecord[];
     diagnostics: RegistryDiagnostic[];
@@ -435,12 +463,26 @@ export type CheckFilterInfo = {
     hiddenByLevel: number;
 };
 
-export type LLMRulesJsonReport = {
-    kind: "llm-rules";
+/**
+ * 规则的判据类别。handler 规则没有 `detector` 字段（算法在代码里），
+ * 所以这不是 `detector.type` 的别名，而是「这条规则靠什么判据命中」的统一说法。
+ */
+export type RuleDetectorKind = "regex" | "density" | "handler" | "semantic";
+
+/** rules 命令的 JSON 报告：规则库检视，覆盖全部判据类别而不只是语义规则。 */
+export type RulesJsonReport = {
+    kind: "rules";
     configPath: string | null;
     registry: RegistrySummary;
     diagnostics: RegistryDiagnostic[];
-    rules: LLMRuleRecord[];
+    /** 应用过滤后的规则；无过滤条件时为全部 active 规则。 */
+    rules: ActiveRuleRecord[];
+    filter: {
+        /** all 表示不按判据过滤。 */
+        detector: RuleDetectorKind | "all";
+        /** null 表示不按 namespace 过滤。 */
+        namespace: string | null;
+    };
 };
 
 /** 多文件 check 的单文件条目。 */

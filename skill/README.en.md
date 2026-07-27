@@ -65,6 +65,10 @@ Or expose the `llmlint` command on your PATH (declared in `package.json` `bin`):
 ## Quick start
 
 ```bash
+# Before writing: emit writing constraints (markdown) to load into a system prompt or style preset
+bun bin/llmlint.ts guide
+bun bin/llmlint.ts guide --tier full            # include every word swap and deletion entry
+
 # Locate regex candidates in a file (or directory — recurses .md/.markdown/.txt)
 bun bin/llmlint.ts check manuscript/chapter-01.md
 bun bin/llmlint.ts check manuscript/
@@ -75,8 +79,9 @@ bun bin/llmlint.ts check chapter.md --min-level medium
 # Small file / human reading? Show full lines with <mark> around hits
 bun bin/llmlint.ts check chapter.md --show-lines
 
-# List the LLM rules that need an agent's whole-text review
-bun bin/llmlint.ts show-llm-rules
+# Inspect the rule library; semantic rules expand to full criteria and examples
+bun bin/llmlint.ts rules
+bun bin/llmlint.ts rules --detector semantic
 
 # Deterministic mechanical fix (zero-width chars, ellipsis/em-dash tails) — dry-run by default
 bun bin/llmlint.ts fix manuscript/             # preview only (exit code 1 if anything pending)
@@ -98,12 +103,12 @@ Every rule carries three orthogonal axes — don't conflate them:
 
 The default ruleset has only two context-free mechanical `auto` rules, no default `candidate` rules, and treats everything else as `manual`. A user config may still promote explicitly chosen regex `replace` rules to `candidate` for one-by-one confirmation. An `action.replace` value is only a replacement template; **it does not grant permission to apply the edit**. The final authority always comes from the materialized `fixability` value.
 
-`review` (audience) is **not** the same as `detector` (detection method):
+`review` (audience) is **not** the same as `detector` (kind of criterion):
 
-- **`detector`** decides *how* a problem is found: `regex` → matched statically by `check`; `llm` → reviewed by the agent via `show-llm-rules`.
-- **`review`** decides *who a regex hit is shown to* by default.
+- **`detector`** decides what kind of criterion the rule uses: `regex` (lexical), `density` (statistical) and `handler` (algorithmic) are matched statically by `check`; `semantic` has no stable locatable signature and goes to the agent via `rules --detector semantic`.
+- **`review`** decides *who a static hit is shown to* by default. It governs **review time only** — `human` means "confidence too low, don't let the agent rewrite it automatically", not "don't mention this rule while writing". Write-time selection is `guide --tier`.
 
-A complete review runs both `check` (regex hits for the agent) and `show-llm-rules` (whole-text semantic rules).
+A complete review runs both `check` (static hits for the agent) and `rules --detector semantic` (semantic rules).
 
 ## Configuration
 

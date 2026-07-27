@@ -34,12 +34,19 @@ type LintRuleRecord = DeclarativeRuleRecord | HandlerRuleRecord;
 | `fixability` | — | `auto` / `candidate` / `manual`。机械修复能力，缺省由 loader 推导且受能力约束。 |
 | `enabled` | — | 缺省视为启用。 |
 | `note` | — | 处理边界说明。**只写用户/Agent 需要知道的边界**，实现理由写代码注释。 |
-| `examples` | — | `{bad, good?, reason?}[]`，供 `show-llm-rules` 与规则作者参考。 |
+| `examples` | — | `{text, hit, fix?, reason?}[]`，供 `rules` / `guide` 与规则作者参考。`hit` 必填。 |
 | `source` | — | `{version?, canonicalKey?, importedFrom?}`。`canonicalKey` 用于消重审计。 |
 | `scope` | — | 扫描域，缺省全文全域。见 §3。 |
 | `ruleset` | — | **由 loader 写入**，规则文件里省略。 |
 
-三个维度是**正交**的，不要混：`level` 是「多严重」，`review` 是「给谁看」，`fixability` 是「能不能机械改」。`review` 用 `agent` 而不是 `llm`，是为了避免和 `detector.type === "llm"`（检测手段）撞名。
+三个维度是**正交**的，不要混：`level` 是「多严重」，`review` 是「给谁看」，`fixability` 是「能不能机械改」。
+
+两处容易误用：
+
+- **`review` 是审查期维度，不能当写作期的取舍依据。** `human` 表示「置信度不足，别让 Agent 自动改」；写作期多提一句约束并不损坏既有正文，代价结构不同。实测判别力最强的几条规则恰好都在 `human` 桶，照 `review: agent` 过滤会把证据最强的滤掉。写作期的取舍见 §8b。
+- **`fixability` 不是「改法要多少判断」。** 因为 I13 强制语义替换默认 `manual`，当前 266 条 active 里 264 条都是 `manual`，这个字段在选规则时零区分度。它量的是「脚本能不能盲改」。
+
+`examples` 必须同时能表达命中例与对照例（`hit: false` = 形近但不该报）。只给反例会让消费方——尤其是写作期提示词——把形近的正当写法也一并躲开，写出过度躲闪的干瘪文本。早期形态 `{bad, good?}` 把 `good` 同时用作「改写后的版本」和「保留」这种裁决词，同一字段两种含义，消费方无法可靠区分正反例；曾导致 `guide` 把 8 个对照例全标成「别写成」、web 把对照例画成红色删除线。
 
 ### 分支 A：声明式规则
 
@@ -82,10 +89,12 @@ HandlerRuleRecord = Base & {
 
 ## 2. 三种 detector
 
+四个判据类别命名的是**判据的性质**，不是执行者：词法（regex）/ 统计（density）/ 算法（handler）/ 语义（semantic）。语义类早期叫 `llm`，那是按执行者命名，既和 `review: "agent"`（给谁看）撞语义，也和「写作期全部规则都由模型消费」这个事实冲突。
+
 ```ts
 RegexDetector = {type: "regex"; targets: string[]; flags?: string}
 
-LLMDetector   = {type: "llm"; prompt: string}      // 不静态扫描，Agent 读全文判断
+SemanticDetector = {type: "semantic"; prompt: string}   // 不静态扫描，只能读上下文判断
 
 DensityDetector = {
     type: "density";
@@ -168,16 +177,18 @@ ActiveRuleRecord            = ActiveDeclarativeRuleRecord | ActiveHandlerRuleRec
 再按 detector 收窄，让执行器不必二次判别：
 
 ```ts
-RegexRuleRecord   = ActiveDeclarativeRuleRecord & {detector: RegexDetector}
-DensityRuleRecord = ActiveDeclarativeRuleRecord & {detector: DensityDetector}
-LLMRuleRecord     = ActiveDeclarativeRuleRecord & {detector: LLMDetector}
+RegexRuleRecord    = ActiveDeclarativeRuleRecord & {detector: RegexDetector}
+DensityRuleRecord  = ActiveDeclarativeRuleRecord & {detector: DensityDetector}
+SemanticRuleRecord = ActiveDeclarativeRuleRecord & {detector: SemanticDetector}
 ```
 
 `LoadedRules` 是预分桶产物，消费端直接取对应桶：
 
 ```ts
-{rules, regexRules, llmRules, densityRules, handlerRules, diagnostics, summary}
+{rules, regexRules, semanticRules, densityRules, handlerRules, diagnostics, summary}
 ```
+
+handler 规则没有 `detector` 字段，所以「这条规则靠什么判据命中」不能直接读 `detector.type`；统一走 `ruleDetectorKind(rule)`（`src/rule-registry.ts`），返回 `RuleDetectorKind = "regex" | "density" | "handler" | "semantic"`。
 
 `RuleRegistryCatalogItem = {rule, defaultEnabled}` 是给浏览器端用的：保留默认启停，让前端按用户覆盖重新生成 active registry，不必回到磁盘。
 
@@ -253,6 +264,28 @@ CompactIssue     = {ruleId, line, column, endLine, endColumn, match, detail?, co
 
 不变量：`issues[].ruleId` 与 `densityIssues[].ruleId` **一定**能在顶层 `rules` 里查到（按构造成立——投影只从传入的命中收集规则）。
 
+## 8b. 写作期投影：同一条规则的第四层形态
+
+规则库有两个消费时机，事后（`check` / `fix` / `detect` 定位并修复成稿）和事前（`guide` 输出动笔前的约束）。**同一条规则两个投影，不加字段**：
+
+| | 取什么 | 不取什么 |
+| --- | --- | --- |
+| 写作期（`guide`，`src/guide.ts`） | `title` + `action`（`action.message` 本来就是祈使句写法）+ `examples`（命中例与对照例都要） | `detector.prompt` |
+| 审查期（`rules`，`src/reporter.ts`） | `detector.prompt` + 全部 `examples` + 三个维度 | — |
+
+语义规则的 `detector.prompt` 是**审稿员的判定流程**（「判断文本是否…」），口气不对，不进写作期摘要。
+
+**档位（`GuideTier`）是「哪些规则值得占提示词预算」的实现**，四档严格嵌套：
+
+| 档 | 加进来的是 | 依据 |
+| --- | --- | --- |
+| `core` | 语义规则 + profile 里 `strong` 的 | 语义规则 CLI 永远抓不到，摘要是唯一执行路径；`strong` 有配对语料证据 |
+| `standard` | 再加全部 `action.type === "suggest"` 的 | CLI 能定位症状但改法要重写整句，事前不写远比事后重写便宜 |
+| `wide` | 再加 profile 里 `weak` 的 | — |
+| `full` | 再加词表类（`action.type === "replace"`） | CLI 抓得准也能提替换词，边际价值最低，所以排最后 |
+
+判别力（`strong` / `weak`）**不内建进 skill 包，也不写进规则记录**：verdict 只在特定 task profile 内有效（CONTEXT.md §3 / I12），把某个语料的结论烧进全局规则超集会让它看起来像规则的固有属性。它只能由 `guide --profile <report.json>` 从外部传入；没传时 `core` 只剩语义规则、`wide` 等同 `standard`，不假装有证据。
+
 ## 9. 结构性守卫（改规则时会拦你的东西）
 
 | 守卫 | 位置 | 拦什么 |
@@ -261,6 +294,9 @@ CompactIssue     = {ruleId, line, column, endLine, endColumn, match, detail?, co
 | title 无正则作者术语 | 同上 | 把「必带"的/地"防误伤」这类作者笔记当标题 |
 | title ≤ 20 码点 | 同上 | 标题写成句子，吃掉紧凑 JSON 的体积收益 |
 | 本文件覆盖全部 detector 与 handler | `tests/rule-model-doc.test.ts` | 新增 detector 类型或 handler 后忘记更新本文件 |
+| 对照例不被写成反例 | `tests/guide.test.ts` | `hit=false` 的示例被标成「别写成」，教模型过度规避 |
+| 档位严格嵌套 | 同上 | 放宽档位却丢掉窄档位里的规则 |
+| `examples[].hit` 必填、对照例不带 `fix` | `rules.ts` | 正反例二义（旧 `{bad, good?}` 的老问题复发） |
 | scope ⇒ 非 auto | `rules.ts` | 派生视图上的机械修复写坏原文 |
 | handler 名已注册 | `rules.ts` | 第三方规则包引用外部算法 |
 
@@ -285,7 +321,8 @@ RuleOverride = "off" | "warn" | "error" | RuleLevel | {enabled?, level?, review?
 5. `review` 缺省是 `agent`（可修入口）。语境敏感、真人语料也会命中的规则要显式写 `human`。
 6. `fixability` 不写就是 `manual`。想要 `auto` 必须是 regex + replace + 全文全域，且替换在任何上下文都成立。
 7. 有 `scope.layer: "narrative"` 就别依赖数句号；有 scope 就别想要 auto。
-8. 跑 `bun run test`（会先重烘 registry，避免对着过期产物假绿）。
+8. 写 `examples` 时**至少配一个 `hit: false` 的对照例**：形近但正当的写法不写清楚，写作期摘要会教模型连它一起躲。
+9. 跑 `bun run test`（会先重烘 registry，避免对着过期产物假绿）。
 
 ## 12. 维护要求
 
@@ -296,6 +333,7 @@ RuleOverride = "off" | "warn" | "error" | RuleLevel | {enabled?, level?, review?
 - 新增 / 移除 `HANDLER_REGISTRY` 条目
 - loader 的补全优先级、能力约束或不变量变化
 - 紧凑投影（`CompactRuleEntry` / `CompactIssue`）字段变化
+- 写作期投影（§8b）的取字段口径或档位定义变化
 - 新增结构性守卫
 
 `tests/rule-model-doc.test.ts` 会检查本文件是否覆盖全部 detector 类型与 handler 名——漏更新会让测试失败，不靠人记得。

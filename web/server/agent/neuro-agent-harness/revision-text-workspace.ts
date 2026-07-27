@@ -132,7 +132,7 @@ const registryRuleById = new Map([...registry.regexRules, ...registry.handlerRul
 const loadedRules: LoadedRules = {
     rules: [...registry.regexRules, ...registry.densityRules, ...registry.handlerRules],
     regexRules: registry.regexRules,
-    llmRules: [],
+    semanticRules: [],
     densityRules: registry.densityRules,
     handlerRules: registry.handlerRules,
     diagnostics: registry.diagnostics,

@@ -55,9 +55,11 @@ const open = computed({
             <section v-if="rule.examples && rule.examples.length">
                 <h3 class="text-sm font-medium text-[var(--text-muted)]">{{ t("ruleDetail.examples") }}</h3>
                 <ul class="mt-1 space-y-2">
+                    <!-- hit=false 是「形近但不该报」的对照例，不能画成删除线坏例 -->
                     <li v-for="(ex, index) in rule.examples" :key="index" class="text-sm">
-                        <p class="text-red-600 line-through decoration-red-400">{{ ex.bad }}</p>
-                        <p v-if="ex.good" class="text-emerald-700">{{ ex.good }}</p>
+                        <p v-if="ex.hit" class="text-red-600 line-through decoration-red-400">{{ ex.text }}</p>
+                        <p v-else class="text-emerald-700">{{ ex.text }}</p>
+                        <p v-if="ex.fix" class="text-emerald-700">{{ ex.fix }}</p>
                         <p v-if="ex.reason" class="text-xs text-[var(--text-muted)]">{{ ex.reason }}</p>
                     </li>
                 </ul>

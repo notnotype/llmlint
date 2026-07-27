@@ -46,10 +46,10 @@ const allRows: RuleCatalogRow[] = (() => {
             stat: null,
             profileExclusion: baseRegistry.creativeProfile.excludedRules[rule.id] ?? null,
         }));
-    const llmRows: RuleCatalogRow[] = [...baseRegistry.llmRules]
+    const semanticRows: RuleCatalogRow[] = [...baseRegistry.semanticRules]
         .sort((left, right) => left.id.localeCompare(right.id))
         .map((rule) => ({rule, stat: null, profileExclusion: null}));
-    return [...tested, ...untested, ...llmRows];
+    return [...tested, ...untested, ...semanticRows];
 })();
 
 // 已测条数（meta 行展示）。
@@ -85,7 +85,7 @@ const chips = computed<Array<{value: VerdictFilter; label: string; count: number
     }));
 });
 
-// 类型筛选 chips（R3）：全部 / LLM 规则 / 有替换 / 仅检测，带计数。
+// 类型筛选 chips（R3）：全部 / 语义规则 / 有替换 / 仅检测，带计数。
 const categoryChips = computed<Array<{value: CategoryFilter; label: string; count: number}>>(() => {
     const counts = new Map<RuleCategory, number>();
     for (const row of allRows) {
@@ -94,7 +94,7 @@ const categoryChips = computed<Array<{value: CategoryFilter; label: string; coun
     }
     const defs: Array<{value: CategoryFilter; label: string}> = [
         {value: "all", label: t("common.all")},
-        {value: "llm", label: t("rules.typeLlm")},
+        {value: "semantic", label: t("rules.typeSemantic")},
         {value: "replace", label: t("rules.typeReplace")},
         {value: "suggest", label: t("rules.typeSuggest")},
     ];

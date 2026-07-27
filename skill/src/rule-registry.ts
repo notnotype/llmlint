@@ -4,15 +4,26 @@ import type {
     ActiveRuleRecord,
     DensityRuleRecord,
     LoadedRules,
-    LLMRuleRecord,
     NormalizedLlmlintConfig,
     NormalizedRuleOverride,
     RegistrySummary,
     RegexRuleRecord,
     Review,
+    RuleDetectorKind,
     RuleLevel,
     RuleRegistryCatalogItem,
+    SemanticRuleRecord,
 } from "./types";
+
+/**
+ * 一条规则的判据类别。
+ *
+ * handler 规则的算法在代码里、没有 `detector` 字段，所以不能直接读 `detector.type`；
+ * 这个函数是「靠什么判据命中」的唯一读法，reporter 的过滤与 guide 的档位选择共用。
+ */
+export function ruleDetectorKind(rule: ActiveRuleRecord): RuleDetectorKind {
+    return "handler" in rule ? "handler" : rule.detector.type;
+}
 
 /** 规则在应用配置覆盖过程中的可变状态。 */
 type RuleState = {
@@ -37,14 +48,14 @@ export function materializeRules(options: {
     const activeRules = options.catalog
         .flatMap((item) => applyConfig(item, options.config, options.namespaceAliases));
     const regexRules = activeRules.filter((rule): rule is RegexRuleRecord => "detector" in rule && rule.detector.type === "regex");
-    const llmRules = activeRules.filter((rule): rule is LLMRuleRecord => "detector" in rule && rule.detector.type === "llm");
+    const semanticRules = activeRules.filter((rule): rule is SemanticRuleRecord => "detector" in rule && rule.detector.type === "semantic");
     const densityRules = activeRules.filter((rule): rule is DensityRuleRecord => "detector" in rule && rule.detector.type === "density");
     const handlerRules = activeRules.filter((rule): rule is ActiveHandlerRuleRecord => "handler" in rule);
 
     return {
         rules: activeRules,
         regexRules,
-        llmRules,
+        semanticRules,
         densityRules,
         handlerRules,
         diagnostics: options.diagnostics,

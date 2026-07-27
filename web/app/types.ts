@@ -1,7 +1,7 @@
 import type {
     Issue,
     ActiveHandlerRuleRecord,
-    LLMRuleRecord,
+    SemanticRuleRecord,
     DensityRuleRecord,
     RegexRuleRecord,
     RegistryDiagnostic,
@@ -18,7 +18,7 @@ export type {
     Issue,
     ActiveRuleRecord,
     RegexRuleRecord,
-    LLMRuleRecord,
+    SemanticRuleRecord,
     DensityRuleRecord,
     ActiveHandlerRuleRecord,
     RegistrySummary,
@@ -56,7 +56,7 @@ export type LlmlintRegistry = {
     regexRules: RegexRuleRecord[];
     densityRules: DensityRuleRecord[];
     handlerRules: ActiveHandlerRuleRecord[];
-    llmRules: LLMRuleRecord[];
+    semanticRules: SemanticRuleRecord[];
     /** ruleId → 判别裁决；用于规则排序、展示与创作修复 task profile。 */
     ruleVerdicts?: Record<string, RuleVerdictBake>;
     /** 版本化创作 profile；MachineScan 仍扫描全量，LLM 候选只消费 includedRuleIds。 */
@@ -85,10 +85,10 @@ export type RulesReport = {
 
 /**
  * 规则页一行：规则本体 + 评测统计（按 ruleId join；null = 未入评测 =「未测」）。
- * Task 16 R3：rule 放宽为 regex | llm 联合——LLM 规则不参与静态扫描，stat 恒为 null，排在列表最后。
+ * Task 16 R3：rule 放宽为 regex | semantic 联合——语义规则不参与静态扫描，stat 恒为 null，排在列表最后。
  */
 export type RuleCatalogRow = {
-    rule: RegexRuleRecord | LLMRuleRecord;
+    rule: RegexRuleRecord | SemanticRuleRecord;
     stat: RulesReportEntry | null;
     /** 仅 regex 规则可能非空；说明为何未进入 creative-writing profile。 */
     profileExclusion: CreativeProfileExclusion | null;

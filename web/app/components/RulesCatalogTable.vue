@@ -45,14 +45,14 @@ function badgeOf(row: RuleCatalogRow): VerdictBadge {
     return verdictBadge(row.stat?.verdict ?? null);
 }
 
-/** 行的分类徽标（LLM 规则 / 有替换 / 仅检测）。 */
+/** 行的分类徽标（语义规则 / 有替换 / 仅检测）。 */
 function categoryBadgeOf(row: RuleCatalogRow): RuleCategoryBadge {
     return CATEGORY_BADGE[ruleCategory(row.rule)];
 }
 
-/** 是否 LLM 规则：不参与静态扫描 → 无正则 targets、无隐藏开关、统计恒空。 */
-function isLlm(row: RuleCatalogRow): boolean {
-    return ruleCategory(row.rule) === "llm";
+/** 是否语义规则：不参与静态扫描 → 无正则 targets、无隐藏开关、统计恒空。 */
+function isSemantic(row: RuleCatalogRow): boolean {
+    return ruleCategory(row.rule) === "semantic";
 }
 
 /** 是否被用户隐藏（父页面从 web settings 读出的集合）。 */
@@ -75,14 +75,14 @@ function profileExclusionLabel(row: RuleCatalogRow): string {
     return t("rules.profileOverlap", {canonical: exclusion.canonicalRuleId ?? ""});
 }
 
-/** 正则规则的匹配模式列表；LLM 规则返回 null（模板据此切换为 prompt 概要）。 */
+/** 正则规则的匹配模式列表；语义规则返回 null（模板据此切换为 prompt 概要）。 */
 function regexTargets(row: RuleCatalogRow): string[] | null {
-    return row.rule.detector.type === "llm" ? null : row.rule.detector.targets;
+    return row.rule.detector.type === "semantic" ? null : row.rule.detector.targets;
 }
 
-/** LLM 规则的检测提示词概要（压空白 + 截断 240 字）；正则规则返回 null。 */
-function llmPromptSummary(row: RuleCatalogRow): string | null {
-    if (row.rule.detector.type !== "llm") {
+/** 语义规则的判定说明概要（压空白 + 截断 240 字）；正则规则返回 null。 */
+function semanticPromptSummary(row: RuleCatalogRow): string | null {
+    if (row.rule.detector.type !== "semantic") {
         return null;
     }
     const prompt = row.rule.detector.prompt.replace(/\s+/g, " ").trim();
@@ -145,7 +145,7 @@ function fmtFrac(value: number): string {
                         <!-- R1 显示/隐藏开关：LLM 规则不参与扫描，无开关 -->
                         <td class="whitespace-nowrap px-2 py-2 text-center">
                             <button
-                                v-if="!isLlm(row)"
+                                v-if="!isSemantic(row)"
                                 type="button"
                                 class="rounded p-1 text-[var(--text-muted)] transition hover:bg-[var(--bg-hover)] hover:text-[var(--text-main)]"
                                 :title="isHidden(row) ? t('rules.showRule') : t('rules.hideRule')"
@@ -176,9 +176,9 @@ function fmtFrac(value: number): string {
                                     </ul>
                                 </section>
                                 <section v-else>
-                                    <p class="text-xs text-[var(--text-muted)]">{{ t("rules.llmNotScanned") }}</p>
+                                    <p class="text-xs text-[var(--text-muted)]">{{ t("rules.semanticNotScanned") }}</p>
                                     <h4 class="mt-2 text-xs font-medium text-[var(--text-muted)]">{{ t("rules.llmPrompt") }}</h4>
-                                    <p class="mt-1 rounded bg-[var(--bg-panel)] p-1.5 text-xs text-[var(--text-secondary)]">{{ llmPromptSummary(row) }}</p>
+                                    <p class="mt-1 rounded bg-[var(--bg-panel)] p-1.5 text-xs text-[var(--text-secondary)]">{{ semanticPromptSummary(row) }}</p>
                                 </section>
 
                                 <!-- 修复动作：replace 列出替换词，suggest 显示建议文案 -->
@@ -197,9 +197,11 @@ function fmtFrac(value: number): string {
                                 <section v-if="row.rule.examples && row.rule.examples.length">
                                     <h4 class="text-xs font-medium text-[var(--text-muted)]">{{ t("ruleDetail.examples") }}</h4>
                                     <ul class="mt-1 space-y-2">
+                                        <!-- hit=false 是「形近但不该报」的对照例，不能画成删除线坏例 -->
                                         <li v-for="(ex, index) in row.rule.examples" :key="index" class="text-sm">
-                                            <p class="text-red-600 line-through decoration-red-400 dark:text-red-400">{{ ex.bad }}</p>
-                                            <p v-if="ex.good" class="text-emerald-700 dark:text-emerald-400">{{ ex.good }}</p>
+                                            <p v-if="ex.hit" class="text-red-600 line-through decoration-red-400 dark:text-red-400">{{ ex.text }}</p>
+                                            <p v-else class="text-emerald-700 dark:text-emerald-400">{{ ex.text }}</p>
+                                            <p v-if="ex.fix" class="text-emerald-700 dark:text-emerald-400">{{ ex.fix }}</p>
                                             <p v-if="ex.reason" class="text-xs text-[var(--text-muted)]">{{ ex.reason }}</p>
                                         </li>
                                     </ul>
@@ -214,7 +216,7 @@ function fmtFrac(value: number): string {
                                     <span>{{ t("rules.statPairs", {aiGreater: row.stat.pairsAiGreater, total: row.stat.pairsTotal}) }}</span>
                                 </section>
                                 <!-- 未测注记只对 regex 规则显示（LLM 规则的「未参与扫描」注记在上方 prompt 区） -->
-                                <p v-else-if="props.hasReport && !isLlm(row)" class="text-xs text-[var(--text-muted)]">{{ t("rules.untestedNote") }}</p>
+                                <p v-else-if="props.hasReport && !isSemantic(row)" class="text-xs text-[var(--text-muted)]">{{ t("rules.untestedNote") }}</p>
                             </div>
                         </td>
                     </tr>

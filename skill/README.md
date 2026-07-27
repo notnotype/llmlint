@@ -65,6 +65,10 @@ bun bin/llmlint.ts check <文件>     # Node：npx tsx bin/llmlint.ts check <文
 ## 快速开始
 
 ```bash
+# 写之前：输出写作约束要点（markdown），可注入系统提示词或存成文风预设
+bun bin/llmlint.ts guide
+bun bin/llmlint.ts guide --tier full            # 带上全部逐词替换与删除词表
+
 # 定位文件（或目录，递归 .md/.markdown/.txt）中的 regex 候选
 bun bin/llmlint.ts check manuscript/chapter-01.md
 bun bin/llmlint.ts check manuscript/
@@ -75,8 +79,9 @@ bun bin/llmlint.ts check chapter.md --min-level medium
 # 小文件 / 人类阅读：显示完整命中行，用 <mark> 标出命中片段
 bun bin/llmlint.ts check chapter.md --show-lines
 
-# 列出需要 Agent 全文审查的 LLM 规则
-bun bin/llmlint.ts show-llm-rules
+# 检视规则库；语义规则展开完整判定说明与示例
+bun bin/llmlint.ts rules
+bun bin/llmlint.ts rules --detector semantic
 
 # 确定性机械修复（零宽字符、省略号/破折号尾部清理）—— 默认 dry-run
 bun bin/llmlint.ts fix manuscript/             # 仅预览（有待修项时退出码 1）
@@ -98,12 +103,12 @@ bun bin/llmlint.ts check chapter.md --format json
 
 默认规则集中只有 3 条无需语境判断的机械规则是 `auto`，没有默认 `candidate`，其余规则均为 `manual`。用户仍可在配置中把明确选中的 regex `replace` 规则提升为 `candidate`，供逐条人工确认。规则数据里的 `action.replace` 只是替换模板，**不代表允许直接应用**；最终权限始终由 materialize 后的 `fixability` 决定。
 
-`review`（受众）和 `detector`（检测手段）是**两个不同概念**：
+`review`（受众）和 `detector`（判据类别）是**两个不同概念**：
 
-- **`detector`** 决定问题*怎么被发现*：`regex` 由 `check` 静态扫描命中；`llm` 由 `show-llm-rules` 交给 Agent 全文审查。
-- **`review`** 决定一条 regex 命中*默认给谁看*。
+- **`detector`** 决定判据是什么性质：`regex` 词法、`density` 统计、`handler` 算法由 `check` 静态扫描命中；`semantic` 没有可稳定定位的特征，靠 `rules --detector semantic` 交给 Agent 读全文判断。
+- **`review`** 决定一条静态命中*默认给谁看*。它**只管审查期**——`human` 表示「置信度不足，别让 Agent 自动改」，不表示这条规则在写作期不该提。写作期的取舍是 `guide --tier`。
 
-一次完整审查要同时跑 `check`（给 Agent 的 regex 命中）和 `show-llm-rules`（全文语义规则）。
+一次完整审查要同时跑 `check`（给 Agent 的静态命中）和 `rules --detector semantic`（语义规则）。
 
 ## 配置
 

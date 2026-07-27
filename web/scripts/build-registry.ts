@@ -83,7 +83,7 @@ const creativeProfile = buildCreativeProfile(
     ruleVerdicts,
 );
 
-// 只序列化浏览器需要的：扫描用的 regex/density/handler 规则（含全部元数据）、只读展示用的 llmRules、
+// 只序列化浏览器需要的：扫描用的 regex/density/handler 规则（含全部元数据）、只读展示用的 semanticRules、
 // 统计 summary、加载 diagnostics。version 供页脚展示；engineVersion 供服务端 MachineScan 落库（单源）；
 // ruleVerdicts 供规则排序、展示与创作修复 profile 使用（report 缺失则整个字段缺省）。
 const registry = {
@@ -98,7 +98,7 @@ const registry = {
     regexRules: loaded.regexRules,
     densityRules: loaded.densityRules,
     handlerRules: loaded.handlerRules,
-    llmRules: loaded.llmRules,
+    semanticRules: loaded.semanticRules,
     creativeProfile,
     ...(ruleVerdicts === undefined ? {} : {ruleVerdicts}),
 };
@@ -112,7 +112,7 @@ const strongCount = ruleVerdicts === undefined
 console.log(
     `registry.json 已生成：${loaded.regexRules.length} 条 regex 规则、` +
         `${loaded.densityRules.length} 条 density 规则、${loaded.handlerRules.length} 条 handler 规则、` +
-        `${loaded.llmRules.length} 条 llm 规则、${loaded.summary.activeRules}/${loaded.summary.totalRules} active，engine ${engineVersion}，` +
+        `${loaded.semanticRules.length} 条 semantic 规则、${loaded.summary.activeRules}/${loaded.summary.totalRules} active，engine ${engineVersion}，` +
         (strongCount === null
             ? "verdict 未烘焙（降级口径）。"
             : `verdict 已烘焙 ${Object.keys(ruleVerdicts ?? {}).length} 条（strong ${strongCount}）`)

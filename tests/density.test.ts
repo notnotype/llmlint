@@ -30,7 +30,7 @@ function emptyLoadedRules(): LoadedRules {
     return {
         rules: [],
         regexRules: [],
-        llmRules: [],
+        semanticRules: [],
         densityRules: [],
         handlerRules: [],
         diagnostics: [],

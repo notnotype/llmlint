@@ -44,10 +44,20 @@ bun "<skill-root>/bin/llmlint.ts" detect <文件路径>
 bun "<skill-root>/bin/llmlint.ts" detect <文件路径> --format json
 ```
 
-显示需要 Agent 主动全文审查的 LLM 规则：
+输出动笔之前的写作约束要点（markdown，不需要输入文件）：
 
 ```bash
-bun "<skill-root>/bin/llmlint.ts" show-llm-rules
+bun "<skill-root>/bin/llmlint.ts" guide
+bun "<skill-root>/bin/llmlint.ts" guide --tier full
+bun "<skill-root>/bin/llmlint.ts" guide --tier core --profile evals/report/report.json
+```
+
+检视当前启用的规则库：
+
+```bash
+bun "<skill-root>/bin/llmlint.ts" rules
+bun "<skill-root>/bin/llmlint.ts" rules --detector semantic
+bun "<skill-root>/bin/llmlint.ts" rules --namespace vocabulary
 ```
 
 指定配置文件：
@@ -60,9 +70,11 @@ bun "<skill-root>/bin/llmlint.ts" --config llmlint.config.ts check <文件路径
 
 ```bash
 bun "<skill-root>/bin/llmlint.ts" --format json check <文件路径>
-bun "<skill-root>/bin/llmlint.ts" --format json show-llm-rules
+bun "<skill-root>/bin/llmlint.ts" --format json rules
 bun "<skill-root>/bin/llmlint.ts" --format json detect <文件路径>
 ```
+
+`guide` 只有 markdown 一种形态：它的产物本身就是要贴进提示词或存成预设的散文，JSON 包装没有消费者。
 
 长文件按最低级别过滤：
 
@@ -166,41 +178,42 @@ handler 命中可能带 `detail`，用于说明动态计数，例如连续短句
 `--review` 会按审查受众过滤候选，默认 `agent`。`--review` 与 `--min-level` 是两个独立过滤器，被隐藏数量分别统计为“按审查受众隐藏”和“按级别隐藏”。
 `--show-lines` 只影响 stylish 输出。JSON 的 `context` 默认裁到命中前后各 24 个码点；要完整整行前后文用 `--rule-detail`。
 
-## show-llm-rules 输出格式
+## rules 输出格式
 
-`show-llm-rules` 输出纯文本，不使用 Markdown 标题格式。它用于告诉 Agent 本轮还要额外进行哪些全文语义审查。
+`rules` 输出纯文本，按 namespace 分组、一条一行，方括号里是 `[级别/审查受众/判据类别]`。不带过滤时覆盖当前配置下的全部 active 规则。
+
+**语义规则会自动展开完整判定说明与示例**——对这类规则 `detector.prompt` 就是规则的全部内容，只给标题等于没给。其余判据类别的正文是 targets/patterns，属于实现细节，要看走 `--format json`。
 
 示例：
 
 ```text
-LLM 判断规则
+规则库（判据 semantic）
+8 / 266 条 active；规则包 builtin/default
 
-说明：以下规则需要 Agent 根据上下文主动审查，不由 CLI 静态扫描命中。
-
-规则 1: hollow-summary-paragraph - 空泛总结段
-
-namespace: abstraction.hollow
-
-来源: builtin/default
-
-级别: medium
-
-说明: 段落用抽象价值判断收束，却没有提供新的具体信息。
-
-判断标准:
-
-...
-
-判断示例:
-
-...
+abstraction.hollow
+  hollow-summary-paragraph  [medium/human/semantic]  空泛总结段
+    改成具体结果、动作、情绪变化、论点推进或可观察场景。
+    判定说明：
+      判断段落是否只是把前文包装成空泛总结，而没有推进事实、情绪、论点或场景。
+      ...
+      - 命中例: 几次调整之后，事情似乎走向了更开阔的地方。｜理由: 句子只给出抽象方向感，没有说明调整带来什么具体变化。
+      - 对照例（不该报）: 他把空杯放回桌面，终于明白这场谈判已经结束。｜理由: 这句用具体动作和认知变化完成段落收束。
 ```
 
-如果没有启用 LLM 规则，会输出：
+示例分两种，**照对照例判断能少误报**：`命中例` 是该报的；`对照例（不该报）` 是形近但正当的写法，规则记录里是 `hit: false`。
 
-```text
-当前没有启用需要全文语义审查的 LLM 规则。
-```
+没有符合条件的规则时输出 `没有符合条件的规则。`。
+
+## guide 输出格式
+
+`guide` 输出 markdown，分四段（空段自动省略）：
+
+- **优先注意：静态工具查不出来的** —— 语义规则，带命中例与对照例。
+- **写作原则** —— 改法要重写整句的规则，一条一行。
+- **优先换掉的词** —— 逐词替换类，按 namespace 聚成一行一组。
+- **直接不用的写法** —— 定点删除类，同样按 namespace 聚合。
+
+抬头有一段框架说明（这不是禁令清单，承担功能的写法照写），末尾声明档位与条数，例如 `档位 standard，71 / 266 条 active 规则`。生成结果不要手工编辑——规则库更新后重新跑 `guide` 覆盖即可。
 
 ## JSON 输出格式
 
@@ -262,15 +275,16 @@ bun "<skill-root>/bin/llmlint.ts" check chapter.md --review all --rule-detail --
 }
 ```
 
-`show-llm-rules --format json` 输出：
+`rules --format json` 输出（`filter` 回显本次过滤条件；`detector: "all"` / `namespace: null` 表示不过滤）：
 
 ```json
 {
-  "kind": "llm-rules",
+  "kind": "rules",
   "configPath": "llmlint.config.ts",
   "registry": {"rulesets": [], "totalRules": 0, "activeRules": 0, "disabledRules": 0, "namespaces": []},
   "diagnostics": [],
-  "rules": []
+  "rules": [],
+  "filter": {"detector": "all", "namespace": null}
 }
 ```
 
@@ -357,8 +371,9 @@ bun "<skill-root>/bin/llmlint.ts" check chapter.md --review all --rule-detail --
 
 ### detector 与 review 是两个不同概念
 
-- `detector`（regex / density / handler / llm）决定**用什么手段检测**：regex、density、handler 由 `check` 静态扫描命中，llm 由 `show-llm-rules` 交给 Agent 全文审查。
-- `review`（agent / human / none）决定一条静态命中**默认给谁看**。`check --review agent` 是需要 Agent 处理的静态审查入口；它和 `show-llm-rules`（detector 为 llm 的全文语义规则）是两个互补的 Agent 审查面，完整审查时两者都要跑。
+- `detector`（regex / density / handler / semantic）决定**判据是什么性质**：词法 / 统计 / 算法 / 语义。前三种由 `check` 静态扫描命中，semantic 没有可稳定定位的特征，靠 `rules --detector semantic` 交给 Agent 读全文判断。
+- `review`（agent / human / none）决定一条静态命中**默认给谁看**。`check --review agent` 是需要 Agent 处理的静态审查入口；它和 `rules --detector semantic` 是两个互补的 Agent 审查面，完整审查时两者都要跑。
+- `review` 只管审查期，不要拿它当写作期的取舍依据：`human` 表示「置信度不足，别让 Agent 自动改」，而写作期多提一句约束不会损坏既有正文。写作期的取舍是 `guide --tier`。
 
 ## 彩色输出
 
@@ -381,15 +396,15 @@ stylish 输出在交互式终端（TTY）下按语义着色：级别 high 红、
 标准流程：
 
 1. 执行 `check <file>`，获取静态 detector 命中项。
-2. 执行 `show-llm-rules`，获取需要主动全文审查的 LLM 规则。
+2. 执行 `rules --detector semantic`，获取需要主动全文审查的语义规则。
 3. 复核 regex 命中项，读取上下文后判断修复、保留或需要用户确认。
-4. 对每条 LLM rule 主动审查全文；没有候选也要在计划中说明“未发现明显问题”。
+4. 对每条语义规则主动审查全文；没有候选也要在计划中说明“未发现明显问题”。
 5. 执行快速审查清单，并给出 Directness / Rhythm / Trust / Authenticity / Density 五维评分。
 6. 用面向用户的 Markdown 生成审查结论和修复计划，不要输出 JSON、YAML 或 TypeScript interface。
 
 ## 常见问题
 
-### 为什么“不是...而是...”不是 LLM rule？
+### 为什么“不是...而是...”不是语义规则？
 
 因为它可以被正则稳定识别。它确实需要上下文判断是否修复，但这是“修复决策”需要 LLM，不是“候选定位”需要 LLM。
 

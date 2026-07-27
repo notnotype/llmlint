@@ -1,6 +1,7 @@
 import {createColors} from "picocolors";
 import {mergeCompactRules, projectCheckIssues} from "./check-report";
-import type {CheckDetailJsonReport, CheckFileEntry, CheckFilterInfo, CheckJsonReport, CheckMultiDetailJsonReport, CheckMultiJsonReport, CheckSummary, DensityIssue, FixFileEntry, FixFileResult, FixReport, FixRuleCount, Issue, LLMRuleRecord, LLMRulesJsonReport, LoadedRules, RegistryDiagnostic, Review, RuleLevel} from "./types";
+import {ruleDetectorKind} from "./rule-registry";
+import type {ActiveRuleRecord, CheckDetailJsonReport, CheckFileEntry, CheckFilterInfo, CheckJsonReport, CheckMultiDetailJsonReport, CheckMultiJsonReport, CheckSummary, DensityIssue, FixFileEntry, FixFileResult, FixReport, FixRuleCount, Issue, LoadedRules, RegistryDiagnostic, RegistrySummary, Review, RuleLevel, RulesJsonReport} from "./types";
 
 /** picocolors 着色器；createColors(false) 时所有方法为恒等，输出纯文本。 */
 type Painter = ReturnType<typeof createColors>;
@@ -256,13 +257,14 @@ function aggregateSummary(files: CheckFileEntry[]): CheckSummary {
     return summary;
 }
 
-export function createLLMRulesJsonReport(configPath: string | null, loadedRules: LoadedRules): LLMRulesJsonReport {
+export function createRulesJsonReport(configPath: string | null, loadedRules: LoadedRules, rules: ActiveRuleRecord[], filter: RulesJsonReport["filter"]): RulesJsonReport {
     return {
-        kind: "llm-rules",
+        kind: "rules",
         configPath,
         registry: loadedRules.summary,
         diagnostics: loadedRules.diagnostics,
-        rules: loadedRules.llmRules,
+        rules,
+        filter,
     };
 }
 
@@ -272,7 +274,7 @@ export function createLLMRulesJsonReport(configPath: string | null, loadedRules:
  * @param pretty 是否缩进。缺省缩进，便于人工与 diff 阅读；紧凑 check 报告传 false——
  *   它的消费者是 Agent，缩进在长清单上纯属上下文开销（本仓样本上占 25%）。
  */
-export function formatJsonReport(report: CheckJsonReport | CheckDetailJsonReport | CheckMultiJsonReport | CheckMultiDetailJsonReport | FixReport | LLMRulesJsonReport, pretty = true): string {
+export function formatJsonReport(report: CheckJsonReport | CheckDetailJsonReport | CheckMultiJsonReport | CheckMultiDetailJsonReport | FixReport | RulesJsonReport, pretty = true): string {
     return pretty ? JSON.stringify(report, null, 2) : JSON.stringify(report);
 }
 
@@ -355,62 +357,70 @@ function revealInvisible(text: string): string {
     return text.replace(new RegExp(`[${charClass}]`, "g"), "▯");
 }
 
-export function formatLLMRules(rules: LLMRuleRecord[], diagnostics: RegistryDiagnostic[], color = false): string {
+/** 一条规则的处置摘要：替换类给目标词，纯删除类说明是整处删除，建议类给建议原文。 */
+export function ruleActionSummary(rule: ActiveRuleRecord): string {
+    if (rule.action.type === "suggest") {
+        return rule.action.message;
+    }
+    const targets = rule.action.replacements.filter(Boolean);
+    return targets.length > 0 ? `替换为 ${targets.join(" / ")}` : "整处删除";
+}
+
+/**
+ * rules 命令的 stylish 输出：规则库检视，按 namespace 分组、一条一行。
+ *
+ * 语义规则额外展开完整判定说明与示例——对这类规则 `detector.prompt` 就是规则的
+ * 全部内容，只给 20 字标题等于没给。其余判据类别的正文是 targets/patterns，
+ * 属于实现细节，要看走 JSON 输出。
+ */
+export function formatRules(rules: ActiveRuleRecord[], filter: RulesJsonReport["filter"], registry: RegistrySummary, diagnostics: RegistryDiagnostic[], color = false): string {
     const pc = createColors(color);
+    const conditions = [
+        filter.detector === "all" ? null : `判据 ${filter.detector}`,
+        filter.namespace === null ? null : `namespace ${filter.namespace}`,
+    ].filter((item): item is string => item !== null);
     const lines: string[] = [
         ...formatDiagnostics(diagnostics, pc),
-        pc.bold("LLM 判断规则"),
-        "",
-        "说明：以下规则需要 Agent 根据上下文主动审查，不由 CLI 静态扫描命中。",
+        pc.bold(`规则库${conditions.length > 0 ? `（${conditions.join("，")}）` : ""}`),
+        pc.dim(`${rules.length} / ${registry.activeRules} 条 active；规则包 ${registry.rulesets.join(", ")}`),
         "",
     ];
 
     if (rules.length === 0) {
-        lines.push("当前没有启用需要全文语义审查的 LLM 规则。");
+        lines.push("没有符合条件的规则。");
         return lines.join("\n");
     }
 
-    for (let ruleIndex = 0; ruleIndex < rules.length; ruleIndex++) {
-        const rule = rules[ruleIndex];
-        if (!rule) {
-            continue;
-        }
-        // 元数据压成一行、示例压成一行：这段是 Agent 每轮都要读的参考材料，
-        // 逐字段插空行会让 8 条规则膨胀到 300 行以上，纯属上下文浪费。
-        lines.push(`规则 ${ruleIndex + 1}: ${pc.cyan(rule.id)} - ${rule.title}`);
-        lines.push(pc.dim(`  namespace: ${rule.namespace}；来源: ${rule.ruleset}；级别: ${rule.level}`));
-        if (rule.note) {
-            lines.push(pc.dim(`  说明: ${rule.note}`));
-        }
-        lines.push("");
-        lines.push("判断标准:");
-        lines.push(rule.detector.prompt);
-        lines.push("");
-
-        if (rule.examples && rule.examples.length > 0) {
-            lines.push("判断示例:");
-            for (let i = 0; i < rule.examples.length; i++) {
-                const example = rule.examples[i];
-                if (!example) {
-                    continue;
+    const byNamespace = new Map<string, ActiveRuleRecord[]>();
+    for (const rule of rules) {
+        byNamespace.set(rule.namespace, [...(byNamespace.get(rule.namespace) ?? []), rule]);
+    }
+    for (const namespace of [...byNamespace.keys()].sort((left, right) => left.localeCompare(right))) {
+        lines.push(pc.bold(namespace));
+        for (const rule of byNamespace.get(namespace) ?? []) {
+            lines.push(`  ${pc.cyan(rule.id)}  ${pc.dim(`[${rule.level}/${rule.review}/${ruleDetectorKind(rule)}]`)}  ${rule.title}`);
+            lines.push(`    ${ruleActionSummary(rule)}`);
+            if (!("handler" in rule) && rule.detector.type === "semantic") {
+                lines.push("    判定说明：");
+                for (const line of rule.detector.prompt.split("\n")) {
+                    lines.push(`      ${line}`);
                 }
-                const parts = [`坏例: ${example.bad}`];
-                if (example.good) {
-                    parts.push(`好例: ${example.good}`);
+                for (const example of rule.examples ?? []) {
+                    const parts = [`${example.hit ? "命中例" : "对照例（不该报）"}: ${example.text}`];
+                    if (example.fix) {
+                        parts.push(`改法: ${example.fix}`);
+                    }
+                    if (example.reason) {
+                        parts.push(`理由: ${example.reason}`);
+                    }
+                    lines.push(`      - ${parts.join("｜")}`);
                 }
-                if (example.reason) {
-                    parts.push(`理由: ${example.reason}`);
-                }
-                lines.push(`  ${i + 1}. ${parts.join("｜")}`);
             }
-            lines.push("");
         }
-
-        lines.push("----");
         lines.push("");
     }
 
-    return lines.join("\n");
+    return lines.join("\n").trimEnd();
 }
 
 export function hasHighLevelIssue(issues: Issue[]): boolean {

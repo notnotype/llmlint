@@ -342,7 +342,7 @@ watch(() => filteredIssues.value, (newIssues) => {
                     key="home"
                     v-model="text"
                     :active-regex-rules="registry.regexRules.length"
-                    :llm-rules="registry.llmRules.length"
+                    :semantic-rules="registry.semanticRules.length"
                     @submit="startCheck"
                 />
                 <div
@@ -415,7 +415,7 @@ watch(() => filteredIssues.value, (newIssues) => {
                                 @reset-rule-settings="resetRulesAndReveal"
                             />
                         </div>
-                        <LlmRulesPanel :rules="registry.llmRules" />
+                        <SemanticRulesPanel :rules="registry.semanticRules" />
                     </section>
                 </div>
             </Transition>

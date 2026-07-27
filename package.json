@@ -15,7 +15,7 @@
         "test:bun": "bun test tests/agent-invocation-revision-migration.test.ts web/tests/nuxt/use-agent-chat.test.ts evals",
         "registry:build": "cd web && bun scripts/build-registry.ts",
         "typecheck": "tsc --noEmit --pretty false",
-        "verify": "bun run typecheck && bun test && bun skill/bin/llmlint.ts --version && bun skill/bin/llmlint.ts show-llm-rules --format json",
+        "verify": "bun run typecheck && bun test && bun skill/bin/llmlint.ts --version && bun skill/bin/llmlint.ts rules --detector semantic --format json && bun skill/bin/llmlint.ts guide --tier core",
         "eval:fixture": "bun evals/score.ts --corpus evals/fixtures/corpus --out .agent/evals/fixture-report --min-support 1",
         "web:dev": "cd web && bun run dev",
         "web:generate": "cd web && bun run generate",

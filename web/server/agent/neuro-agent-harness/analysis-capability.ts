@@ -1,5 +1,5 @@
 import type {CapabilityProvider} from "@notnotype/neuro-agent-harness";
-import type {LLMRuleRecord} from "llmlint/types";
+import type {SemanticRuleRecord} from "llmlint/types";
 import registryData from "../../../app/data/registry.json";
 import {prisma, type PrismaClient} from "../../database/prisma";
 import {chunkBody} from "../analysis-contract";
@@ -10,7 +10,7 @@ import type {LlmAnalysisReport, LlmRuleHit} from "#shared/agent-harness";
 import {llmlintRevisionTextSource, type DetectionHeatmap, type RevisionDetectionRecords, type RevisionTextSource, type RevisionTextSourceResolver} from "./revision-text-workspace";
 
 const CHUNK_VISIBLE_CHARS = 4000;
-const registry = registryData as unknown as {llmRules: LLMRuleRecord[]};
+const registry = registryData as unknown as {semanticRules: SemanticRuleRecord[]};
 
 /** 从当前 revision 读取分析所需正文、扫描统计和 LLM 规则清单。 */
 export function createLlmlintAnalysisContextProvider(client: PrismaClient = prisma): CapabilityProvider<"llmlint.analysisContext", LlmlintAnalysisContextLoader, string, LlmlintSessionInitial> {
@@ -28,9 +28,9 @@ export function createLlmlintAnalysisContextProvider(client: PrismaClient = pris
                         body: revision.body,
                         chunks: chunkBody(revision.body, CHUNK_VISIBLE_CHARS),
                         scanStats: scan ? {hitCount: parseScanHits(scan.hitsJson).length, docScore: scan.docScore} : {hitCount: 0, docScore: 0},
-                        ruleIds: new Set(registry.llmRules.map((rule) => rule.id)),
-                        ruleLevels: new Map(registry.llmRules.map((rule) => [rule.id, rule.level] as const)),
-                        rulesText: registry.llmRules.map((rule) => `- ${rule.id}：${rule.title}；${rule.detector.prompt}`).join("\n"),
+                        ruleIds: new Set(registry.semanticRules.map((rule) => rule.id)),
+                        ruleLevels: new Map(registry.semanticRules.map((rule) => [rule.id, rule.level] as const)),
+                        rulesText: registry.semanticRules.map((rule) => `- ${rule.id}：${rule.title}；${rule.detector.prompt}`).join("\n"),
                     };
                 },
             };

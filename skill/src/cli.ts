@@ -3,19 +3,22 @@ import {resolve} from "node:path";
 import {Command} from "commander";
 import {globSync} from "tinyglobby";
 import {loadConfig} from "./config";
+import {DEFAULT_NAMESPACE_ALIASES} from "./namespaces";
 import {loadRules} from "./rules";
 import {computeMaskedRanges, mergeRanges} from "./markdown-mask";
 import {prepareScanContext} from "./scan-context";
 import {buildLineStarts, locatePosition, scanHandlerRules, scanWithContext} from "./scanner";
 import {scanDensity} from "./density";
 import {applyAutoFix} from "./fix";
-import {createCheckJsonReport, createFixJsonReport, createLLMRulesJsonReport, createMultiCheckJsonReport, formatCheckAggregate, formatCheckReport, formatFixReport, formatJsonReport, formatLLMRules, hasHighLevelIssue, summarizeIssues} from "./reporter";
+import {createCheckJsonReport, createFixJsonReport, createMultiCheckJsonReport, createRulesJsonReport, formatCheckAggregate, formatCheckReport, formatFixReport, formatJsonReport, formatRules, hasHighLevelIssue, summarizeIssues} from "./reporter";
+import {ruleDetectorKind} from "./rule-registry";
+import {buildGuide, GUIDE_TIERS, parseRuleVerdicts, type GuideTier, type RuleVerdicts} from "./guide";
 import {readDetectCache, detectCacheKey, writeDetectCache} from "./detect/cache";
 import {chunkBySentence} from "./detect/chunk";
 import {aggregate, defaultDetectorOptions, HfTransport, type DetectPayload, type DetectorTransport} from "./detect/transport";
 import {loadUserSettings, saveUserSettings, userCacheDir} from "./user-state";
 import {LLMLINT_VERSION} from "./version";
-import type {CheckFileEntry, CheckFilterInfo, DensityIssue, FixFileResult, Issue, LlmlintOutput, MaskedRange, RegexRuleRecord, Review, RuleLevel} from "./types";
+import type {ActiveRuleRecord, CheckFileEntry, CheckFilterInfo, DensityIssue, FixFileResult, Issue, LlmlintOutput, MaskedRange, RegexRuleRecord, Review, RuleDetectorKind, RuleLevel} from "./types";
 import type {SharingMode, SharingTier, UserSettings} from "./user-state";
 
 type GlobalOptions = {
@@ -31,6 +34,14 @@ type GlobalOptions = {
     /** commander 的 --no-cache 会落成 cache:false。 */
     cache?: boolean;
     noCache?: boolean;
+    /** rules：按判据类别过滤。 */
+    detector?: string;
+    /** rules：按 namespace 过滤。 */
+    namespace?: string;
+    /** guide：摘要档位。 */
+    tier?: string;
+    /** guide：eval 报告路径，提供判别力档位。 */
+    profile?: string;
 };
 
 /** 单文件检查结果（含逐文件隐藏统计，供 stylish 逐文件表头使用）。 */
@@ -79,6 +90,7 @@ const DETECT_SPREAD_MARGIN = 0.05;
 const OUTPUTS = new Set<LlmlintOutput>(["stylish", "json"]);
 const LEVELS = new Set<RuleLevel>(["high", "medium", "low"]);
 const REVIEWS = new Set<Review | "all">(["agent", "human", "none", "all"]);
+const DETECTOR_KINDS = new Set<RuleDetectorKind>(["regex", "density", "handler", "semantic"]);
 const LEVEL_RANK: Record<RuleLevel, number> = {
     high: 3,
     medium: 2,
@@ -106,7 +118,11 @@ export async function runCli(argv: string[]): Promise<void> {
 
     program
         .name("llmlint")
-        .description("检查 LLM 输出中的套路化表达、AI 写作痕迹和中文文本节奏问题")
+        .description([
+            "中文正文的套路化表达 / AI 写作痕迹 / 节奏问题规则库，两种用法：",
+            "  写之前：guide 输出写作约束要点，可注入系统提示词；rules 检视规则库。",
+            "  写之后：check 定位候选、fix 机械修复、detect 估算 P(AI)。",
+        ].join("\n"))
         .version(LLMLINT_VERSION)
         .addHelpCommand(false)
         .option("-c, --config <path>", "指定 llmlint.config.ts 路径")
@@ -196,13 +212,40 @@ export async function runCli(argv: string[]): Promise<void> {
         });
 
     program
-        .command("show-llm-rules")
-        .description("显示需要 Agent 主动全文审查的 LLM 规则")
-        .option("-f, --format <format>", "输出格式：stylish 或 json")
+        .command("guide")
+        .description("输出写作期规则摘要（markdown）：动笔之前的写作约束，可直接注入系统提示词")
+        .option("--tier <tier>", `摘要档位（由窄到宽）：${GUIDE_TIERS.join(" < ")}；缺省 standard`)
+        .option("--profile <path>", "eval 报告 JSON 路径；提供后按判别力把 strong 规则并入 core、weak 并入 wide")
+        .addHelpText("after", [
+            "",
+            "档位含义：",
+            "  core      语义规则（静态判据不存在，只能靠读）+ profile 里判别力 strong 的",
+            "  standard  再加建议类规则（CLI 能定位症状，但改法要重写整句）",
+            "  wide      再加 profile 里判别力 weak 的",
+            "  full      再加词表类规则（逐词替换与定点删除）",
+            "",
+            "规则的启停沿用项目级 llmlint.config.ts，例如关掉 vocabulary.r18 后它不会出现在摘要里。",
+        ].join("\n"))
         .action(async (commandOptions: GlobalOptions | Command) => {
             try {
                 const options = mergeOptions(program, commandOptions);
-                await showLLMRules(options);
+                await showGuide(options);
+            } catch (error) {
+                console.error(`错误: ${error instanceof Error ? error.message : String(error)}`);
+                process.exitCode = 1;
+            }
+        });
+
+    program
+        .command("rules")
+        .description("检视当前配置下启用的规则库；语义规则展开完整判定说明与示例")
+        .option("-f, --format <format>", "输出格式：stylish 或 json")
+        .option("--detector <kind>", "按判据类别过滤：regex、density、handler 或 semantic")
+        .option("--namespace <namespace>", "按 namespace 过滤；支持中文 alias")
+        .action(async (commandOptions: GlobalOptions | Command) => {
+            try {
+                const options = mergeOptions(program, commandOptions);
+                await showRules(options);
             } catch (error) {
                 console.error(`错误: ${error instanceof Error ? error.message : String(error)}`);
                 process.exitCode = 1;
@@ -570,13 +613,58 @@ async function fixFiles(inputs: string[], options: GlobalOptions): Promise<void>
     }
 }
 
-async function showLLMRules(options: GlobalOptions): Promise<void> {
+async function showGuide(options: GlobalOptions): Promise<void> {
+    const {config} = await loadConfig({cwd: process.cwd(), configPath: options.config});
+    const loadedRules = await loadRules(config);
+    const tier = resolveTier(options.tier);
+    // 没传 --profile 就是没有判别力数据；此时 core 只剩语义规则、wide 等同 standard，
+    // 刻意不猜一个内置报告路径——skill 包不依赖 evals（CONTEXT.md §2.4）。
+    let verdicts: RuleVerdicts = new Map();
+    if (options.profile !== undefined) {
+        const profilePath = resolve(process.cwd(), options.profile);
+        if (!existsSync(profilePath)) {
+            throw new Error(`profile 报告不存在: ${options.profile}`);
+        }
+        try {
+            verdicts = parseRuleVerdicts(readFileSync(profilePath, "utf-8"));
+        } catch (error) {
+            throw new Error(`profile 报告解析失败: ${error instanceof Error ? error.message : String(error)}`);
+        }
+    }
+    // guide 只有 markdown 一种形态：产物本身就是要贴进提示词的散文，JSON 包装没有消费者。
+    console.log(buildGuide(loadedRules, tier, verdicts));
+}
+
+async function showRules(options: GlobalOptions): Promise<void> {
     const {config, configPath} = await loadConfig({cwd: process.cwd(), configPath: options.config});
     const loadedRules = await loadRules(config);
     const output = resolveOutput(config.output, options.format);
+    const detector = resolveDetectorKind(options.detector);
+    const namespace = options.namespace ?? null;
+    const filtered = filterRules(loadedRules.rules, detector, namespace);
+    const filter = {detector, namespace};
     console.log(output === "json"
-        ? formatJsonReport(createLLMRulesJsonReport(configPath, loadedRules))
-        : formatLLMRules(loadedRules.llmRules, loadedRules.diagnostics, resolveColor(output)));
+        ? formatJsonReport(createRulesJsonReport(configPath, loadedRules, filtered, filter))
+        : formatRules(filtered, filter, loadedRules.summary, loadedRules.diagnostics, resolveColor(output)));
+}
+
+/**
+ * 按判据类别与 namespace 过滤规则。
+ *
+ * namespace 先按内置 alias 归一（配置里支持中文 alias，过滤器保持一致），
+ * 再做前缀匹配：传 `vocabulary` 同时命中 `vocabulary.body` 与 `vocabulary.r18`。
+ */
+function filterRules(rules: ActiveRuleRecord[], detector: RuleDetectorKind | "all", namespace: string | null): ActiveRuleRecord[] {
+    const target = namespace === null ? null : DEFAULT_NAMESPACE_ALIASES[namespace] ?? namespace;
+    return rules.filter((rule) => {
+        if (detector !== "all" && ruleDetectorKind(rule) !== detector) {
+            return false;
+        }
+        if (target !== null && rule.namespace !== target && !rule.namespace.startsWith(`${target}.`)) {
+            return false;
+        }
+        return true;
+    });
 }
 
 async function detectFiles(inputs: string[], options: GlobalOptions): Promise<void> {
@@ -785,6 +873,28 @@ function resolveMinLevel(minLevel: string | undefined): RuleLevel {
         throw new Error(`级别过滤无效: ${minLevel}`);
     }
     return minLevel as RuleLevel;
+}
+
+/** guide 档位；默认 standard——core 只有十余条推不动效果，full 含全部词表要显式要求。 */
+function resolveTier(tier: string | undefined): GuideTier {
+    if (!tier) {
+        return "standard";
+    }
+    if (!GUIDE_TIERS.includes(tier as GuideTier)) {
+        throw new Error(`档位无效: ${tier}。合法值：${GUIDE_TIERS.join("、")}`);
+    }
+    return tier as GuideTier;
+}
+
+/** rules 的判据类别过滤；缺省 all。 */
+function resolveDetectorKind(detector: string | undefined): RuleDetectorKind | "all" {
+    if (!detector || detector === "all") {
+        return "all";
+    }
+    if (!DETECTOR_KINDS.has(detector as RuleDetectorKind)) {
+        throw new Error(`判据类别无效: ${detector}。合法值：${[...DETECTOR_KINDS].join("、")}`);
+    }
+    return detector as RuleDetectorKind;
 }
 
 /** 审查受众过滤；默认 agent，即只展示需要 Agent/LLM 处理的命中。 */

@@ -50,7 +50,7 @@ export function useLlmlint() {
             regexRules: loaded.regexRules,
             densityRules: loaded.densityRules,
             handlerRules: loaded.handlerRules,
-            llmRules: loaded.llmRules,
+            semanticRules: loaded.semanticRules,
         };
     });
 

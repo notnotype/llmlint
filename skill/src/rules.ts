@@ -368,7 +368,7 @@ function rejectRemovedManifestField(manifest: Record<string, unknown>, key: stri
 }
 
 /** 已知 detector 类型；此外的类型 skip + 诊断（规则共享生态的前向兼容硬前提）。 */
-const KNOWN_DETECTOR_TYPES = new Set(["regex", "llm", "density"]);
+const KNOWN_DETECTOR_TYPES = new Set(["regex", "semantic", "density"]);
 
 /**
  * 校验单条规则记录。未知 `detector.type` 返回 null 并登记 warning 诊断（老版本 skill
@@ -431,16 +431,16 @@ function readDetector(value: unknown, fieldName: string): DeclarativeRuleRecord[
             flags: readOptionalString(value, "flags", `${fieldName}.flags`),
         };
     }
-    if (value.type === "llm") {
+    if (value.type === "semantic") {
         return {
-            type: "llm",
+            type: "semantic",
             prompt: readRequiredString(value, "prompt", `${fieldName}.prompt`),
         };
     }
     if (value.type === "density") {
         return readDensityDetector(value, fieldName);
     }
-    throw new Error(`${fieldName}.type 必须是 regex、llm 或 density。`);
+    throw new Error(`${fieldName}.type 必须是 regex、semantic 或 density。`);
 }
 
 /** 校验 density detector：patterns 非空、minHits ≥ 1、门槛字段均为正数。 */
@@ -549,9 +549,18 @@ function readExamples(value: unknown, fieldName: string): BaseExample[] | undefi
         if (!isObject(item)) {
             throw new Error(`${fieldName}[${index}] 必须是对象。`);
         }
+        if (typeof item.hit !== "boolean") {
+            throw new Error(`${fieldName}[${index}].hit 必须是 true 或 false（显式声明这是命中例还是对照例）。`);
+        }
+        const fix = readOptionalString(item, "fix", `${fieldName}[${index}].fix`);
+        // 对照例带改法是自相矛盾的：不命中就没有要改的东西。
+        if (!item.hit && fix !== undefined) {
+            throw new Error(`${fieldName}[${index}] 是对照例（hit=false），不能带 fix。`);
+        }
         return compactObject({
-            bad: readRequiredString(item, "bad", `${fieldName}[${index}].bad`),
-            good: readOptionalString(item, "good", `${fieldName}[${index}].good`),
+            text: readRequiredString(item, "text", `${fieldName}[${index}].text`),
+            hit: item.hit,
+            fix,
             reason: readOptionalString(item, "reason", `${fieldName}[${index}].reason`),
         });
     });

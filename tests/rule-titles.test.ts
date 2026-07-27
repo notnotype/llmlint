@@ -31,7 +31,7 @@ const MAX_TITLE_CHARS = 20;
 
 async function activeRules(): Promise<ActiveRuleRecord[]> {
     const loaded = await loadRules(defaultConfig());
-    return [...loaded.regexRules, ...loaded.densityRules, ...loaded.handlerRules, ...loaded.llmRules];
+    return [...loaded.regexRules, ...loaded.densityRules, ...loaded.handlerRules, ...loaded.semanticRules];
 }
 
 describe("规则 title 结构性守卫", () => {

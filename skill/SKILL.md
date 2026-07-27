@@ -1,13 +1,16 @@
 ---
 name: llmlint
-description: Lint and polish LLM-generated Chinese text by combining static rule hits, neural AIGC heatmaps, contextual review, approved repair, and local learning notes. Use when reviewing Markdown or plain text for AI writing tells, naturalness, repetitive patterns, lint rules, repair plans, or llmlint configuration.
+description: A Chinese-prose rule library with two entry points. Before writing, emit the rules as writing constraints to load into a system prompt or style guide. After writing, lint the draft with static rule hits, neural AIGC heatmaps, contextual review, approved repair, and local learning notes. Use when drafting or rewriting Chinese prose and you want to avoid AI writing tells up front, when you need a wording/sentence-pattern constraint list or style preset for a writer, and when reviewing Markdown or plain text for AI writing tells, naturalness, repetitive patterns, lint rules, repair plans, or llmlint configuration.
 ---
 
 # llmlint
 
-llmlint 是面向 LLM 输出的文本 lint skill。CLI 负责稳定、可复现的候选定位与外部 AIGC 热力图；Agent 负责结合语境复核、制定修复计划、在用户审批后改写，并把疑难判断沉淀为本地学习出口。
+llmlint 的核心资产是一个中文正文规则库。它有**两个消费时机**，别只用后一个：
 
-目标不是把规则命中或 P(AI) 清零，而是在守住原文事实、剧情功能、角色声音和文体意图的前提下，减少无功能的模板负担。静态命中和检测热区都是候选证据，不是修改命令。
+- **写之前**：`guide` 把规则投影成动笔前的写作约束，可以直接注入系统提示词或存成文风预设。规则库里有一类规则（语义规则）静态工具永远定位不到，模型读过是它们唯一的执行路径；对其余规则，事前不写也比事后重写便宜。
+- **写之后**：`check` / `fix` / `detect` 在成稿上做稳定可复现的候选定位与外部 AIGC 热力图；Agent 结合语境复核、制定修复计划、在用户审批后改写，并把疑难判断沉淀为本地学习出口。
+
+目标不是把规则命中或 P(AI) 清零，而是在守住原文事实、剧情功能、角色声音和文体意图的前提下，减少无功能的模板负担。静态命中和检测热区都是候选证据，不是修改命令。**写作约束同理**：某条写法在当前语境里承担剧情、人物声音、题材或载体功能时照写，不要为了绕开清单牺牲语义或可读性。
 
 ## Runtime
 
@@ -18,6 +21,28 @@ bun "<skill-root>/bin/llmlint.ts" <command>
 ```
 
 裸 `node` 不能直接跑此 CLI。首次使用当前 skill，或依赖合同更新导致 `node_modules` 缺失时，必须先完成下方依赖门；不要先尝试 `status`，再等缺依赖报错。
+
+## 写作期：动笔之前
+
+用户要写正文、或要一份给写手用的文风约束时，先完成下面的依赖门，然后：
+
+```bash
+bun "<skill-root>/bin/llmlint.ts" guide
+```
+
+输出是 markdown，直接读或转交即可。它不需要任何输入文件——写之前没有文件可扫。
+
+档位由 `--tier` 控制，由窄到宽是 `core < standard < wide < full`，缺省 `standard`：
+
+- `core`：只有语义规则和有配对语料证据的规则。最省预算。
+- `standard`：再加改法要重写整句的规则。日常默认。
+- `wide` / `full`：`full` 会带上全部逐词替换与定点删除词表，体积明显变大。用户明确要「全部」时才用。
+
+判别力档位需要外部 eval 报告，用 `--profile <report.json>` 传入；没有报告时 `core` 只剩语义规则、`wide` 等同 `standard`。规则启停沿用项目级 `llmlint.config.ts`，例如关掉 `vocabulary.r18` 后它不会出现在摘要里。
+
+要把摘要长期挂进某个写作流程（例如存成文风预设文件），先向用户说明这是**从规则库生成**的产物：规则库更新后重新跑 `guide` 覆盖即可，不要手工编辑生成结果，否则下次同步会丢改动。
+
+写作期摘要不替代成稿检查。写完仍然走下面的五步。
 
 ## Dependency Gate + Five-Step Loop
 
@@ -123,7 +148,7 @@ bun "<skill-root>/bin/llmlint.ts" config set detector.proxy http://127.0.0.1:789
   - 规则静默 × 文内高位：漏网新规则候选。记录片段和观察，不直接大改。
   - 规则密集 × 文内低位：**规则与检测器分歧，需人工裁决**。不要仅凭这一点就判定规则误报或建议关规则——文内低位不等于检测器认为它像人写（实测一篇里 rank 最低第二位的 chunk 仍有 P(AI) 0.929），而且检测器本身会漏报。要建议 `llmlint.config.ts` 覆盖，必须另有独立证据：同一规则在真人文本上反复命中，或按规则替换会损失原文信息。
   - 规则静默 × 文内低位：不打扰。
-- LLM 语义规则：继续执行 `show-llm-rules`，主动阅读全文审查无法静态定位的问题。
+- 语义规则：执行 `rules --detector semantic`，按输出的判定说明与示例主动阅读全文，审查无法静态定位的问题。示例分命中例与对照例（`hit: false`），对照例是「形近但不该报」，照它判断可以少误报。
 
 每个候选必须归入三类之一：
 
@@ -218,10 +243,13 @@ bun "<skill-root>/bin/llmlint.ts" detect .agent/polish-output.md --format json
 
 完整的规则数据模型（磁盘形态、三种 detector、loader 不变量、命中类型、紧凑投影）见 [rule-model.md](references/rule-model.md)。下面只列写规则时最容易踩的几条。
 
+- 四个判据类别命名的是判据性质，不是执行者：`regex` 词法、`density` 统计、`handler` 算法、`semantic` 语义。
 - `scope.layer:"narrative"` 扫描的是引号外等长占位视图；引号段呈现为等长 `。`。规则不能依赖“数句号”判断。
 - `scope.layer:"dialogue"` 扫描成对引号和 `【】` 面板内文本，适合公告/系统台词。
 - `density` 表示分布指纹，命中一条代表全文或一段的统计结论，不能机械替换。
 - `ignoreTerms` 是项目级白名单；命中与术语区间重叠会被三种 detector 统一跳过。
+- `examples` 的每一项必须显式声明 `hit`，并且**至少配一个 `hit: false` 的对照例**——形近但正当的写法不写清楚，写作期摘要会教模型连它一起躲开。
+- `review: "human"` 只表示「置信度不足，别让 Agent 自动改」，不表示这条规则在写作期不该提。两个时机的代价结构不同。
 
 ## References
 
