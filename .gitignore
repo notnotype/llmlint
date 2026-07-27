@@ -30,3 +30,8 @@ evals/.cache/
 
 # eval 真实配置（可含 CLI provider 密钥）；模板 = evals/eval.config.example.json 进 git
 evals/eval.config.json
+
+# 主语料：含采集自受版权作品的 reference 正文，**绝不进 git**（仓库已公开）。
+# 2026-07-27 用 git filter-repo 从全历史移除，本地保留可继续跑 evals。
+# 对照：evals/experiments/ 是自产 AI 正文，随仓保存（见 evals/experiments/README.md 末节）。
+evals/corpus/
