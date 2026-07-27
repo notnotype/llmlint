@@ -111,7 +111,8 @@ flowchart TB
 2. **extract**：抽取器模型（`eval.config.extractor`）读一章 reference → `brief-<idx>.md`。prompt 从 `generator/prompts.ts` 版本化注册表取（现 `brief-v2`），**受 I1 约束：只记剧情内容，严禁文体**。⚠ brief 质量本身未经元评测（哪个 prompt/抽取器产出最好的 brief 待 A/B，见 §7 M3-C）。
 3. **render**：render 面板（`eval.config.renderModels`，HTTP 与 CLI transport 混编）照 brief 各写一版 `render-<idx>-<slug>.md`，`targetChars`=本章字数、`pairRef`=本章 reference（真 1:1 配对）。**受 I2/I3 约束**。prompt 版本（现 `render-v1`）连同 brief 版本写进 `meta.promptVersion`（I8）。
 4. **可靠性设施**（Task 08）：`eval.config.json`（gitignore）+ example 双文件；per-provider 限流 + 重试配置；proxy（所有 provider 走 `127.0.0.1:7890`）；token 预算预估/实报/自校准；**断点续跑**（brief/render 文件已存在即跳过，单篇失败只跳该篇）；拒答守门（render ≪ 目标字数判伪 render 丢弃）。
-5. **classify（语料整备，可选）**：`classifier/classify.ts` 用 LLM 小 agent 补空题组分类——**强制工具调用**（typebox 枚举白名单 + unknown，照 NeuroBook `report_result` 模式），拿不准留空（宁缺勿错，错值污染 byGenre 分层）；**只补空不覆盖**（curator > user > llm）。值集单一真相源 = `lib/taxonomy.ts`（题材 13 / 体裁 4 / 视角 4；纪律：**只增不改 key**）。模型/截断可配（`eval.config.classifier`，须 HTTP 通道——CLI transport 无工具协议）。
+5. **元评测（`evals/experiments/`，与常规流水线分开）**：回答「我们对生成或修复做的某个改动有没有用」，而不是「每条规则的判别力」。产物**不进主语料**——主语料固定 `render-v1`，实验通常换 render prompt 版本，混进去会触发 I8 的版本混用守门。当前实验：`guide-arm`（写作期约束注入是否真的降低 AI 痕迹，用 `render-v2` 的可选约束槽位；空约束时与 v1 逐字节等价）。指标分层与判读口径见 [experiments/README.md](experiments/README.md)——**核心纪律是不能用 llmlint 自己的命中数当主指标**（把规则塞进提示词再用规则数命中是循环论证），主指标必须是外部检测器，佐证必须看留出规则。
+6. **classify（语料整备，可选）**：`classifier/classify.ts` 用 LLM 小 agent 补空题组分类——**强制工具调用**（typebox 枚举白名单 + unknown，照 NeuroBook `report_result` 模式），拿不准留空（宁缺勿错，错值污染 byGenre 分层）；**只补空不覆盖**（curator > user > llm）。值集单一真相源 = `lib/taxonomy.ts`（题材 13 / 体裁 4 / 视角 4；纪律：**只增不改 key**）。模型/截断可配（`eval.config.classifier`，须 HTTP 通道——CLI transport 无工具协议）。
 
 ### 2.2 消费侧（`evals/` + `evals/lib/` + `evals/detector/`）
 
@@ -246,14 +247,28 @@ meta.json: { genre, plotId, author?,
 | M2 | 首条真实 lift | eval-writer 多模型 render → 真实体检表 | ✅ |
 | M3 | 判别仪器可信化 | prevalence 双口径 + 逐章配对 + 分层 + holdout + 模型发现 | ✅（round-04） |
 | M3-B | 扩量校准 | ≥4 题组启用 holdout ✅、外部检测器对照 ✅、均衡多模型面板 ✅（Task 08）；余：文风预设档、校准 β、byGenre 纳入 prevalence | 部分 ✅ |
+| M3-D | **写作期约束元评测** | 同批 brief × {注入 `llmlint guide` 约束 / 不注入} 配对 render → 判据 = 外部检测器 docPAi 下降 **且** 留出规则命中同步下降（只有注入规则降 = 表层规避）。harness 已建（`experiments/guide-arm.ts` + `guide-compare.ts`），D5 第二条件（人评）仍缺 | harness ✅ / 结论未出 |
 | M3-C | **brief/extractor 元评测** | A/B：同批 reference × {brief prompt 版本 × 抽取器（mimo vs fable 等）}→ 判据 = 剧情忠实度（LLM judge）+ 同忠实度下 lift 更高（文体泄漏更少）；胜者定为默认 extractor/prompt | 未建 |
 | W | 采集线 B 真人数据首批 | web 盲评/复评/五步改文循环已产品化（[Task 09](../docs/tasks/09-web-revision-persistence/README.md) / [Task 13](../docs/tasks/13-web-five-step-flow/README.md)）；成对判定后置 | 待真人数据 |
 | M4 | realism + repair + critic | 真 production writer 难度档 + 全池打分 | repair 一轮 ✅（[Task 14](../docs/tasks/14-line-a-repair-loop/README.md)）；realism / critic 未建 |
 | M5 | LLM 规则判别 + 产品层 + 显形回归 | 完整三层 | 未建 |
 
-## 8. 当前基线快照（round-05，2026-07-03/06，Task 08 小验证轮）
+## 8. 当前基线快照（round-06，2026-07-26，规则整理后首份正式报告）
 
 以最新 `evals/report/report.json` 为准；下列为快照，**不作数据源**。历史 round-04 快照见 [Task 03 walkthrough](../docs/tasks/03-llmlint-eval-harness/README.md)。
+
+**round-06**（2026-07-26；100 render 混面板，历史 render 的样本级 `promptVersion` 有据回填后解冻，见 [Task 08](../docs/tasks/08-eval-pipeline-hardening/README.md) 2026-07-26 节）：
+
+- 规模：5 题组 / 26 reference / **100 render**（round-05 均衡 77 + CLI 探针 23）/ 5 repair；`renderPromptVersion: render-v1`（全报告唯一，I8 审计字段）。
+- **规则面 = Task 23 规则整理后**（360 total / 266 active / 245 regex）；⚠ 与 round-05 各项**不可直接对比**——docScore 量级整体降约 8 倍、重复率 32.9%→0.0%、强判别 15→5 均为规则消重与关噪声所致。
+- 检测器 **ROC-AUC 0.966**；docScore 中位 人类 **2.47** / AI **8.86**；人类 Agent 误杀 **0.00/千字**。
+- holdout：train 3 组 0.949 / test 2 组 **1.000**（2 组小样本，只作趋势看）。
+- 强判别 5：`repeated-de-pairs` 4.80、`few-degree` 3.68、`rough-manner-modifier` 3.68、`metaphor.trailing-simile-clause` 3.57、`subject-measure-word` 3.11。
+- 外部检测器对照：AUC **0.870**（ref P(AI) 0.285 / render 0.924；sidecar 缓存复用）。规则整理后 llmlint（0.966）已反超神经检测器（0.870）——但混面板含 claude 隐身样本压低外部 AUC，两者口径差异见下。
+- 模型榜（⚠ 混面板：CLI 探针仅 2 题材、n=7–8，不可与 26 篇的均衡三模型直接比）：gpt-5.5 6.11 < fable-5 6.42 < opus-4-8 7.25 < deepseek 7.64 < gemini 10.76 < mimo 11.27。
+- repair 一轮（不进 lift/AUC）：docScore 中位 9.48→6.25（5/5 改善）；外部 P(AI) 0.923→0.919。
+
+**round-05 历史快照**（2026-07-03/06，Task 08 小验证轮；规则整理前口径，与 round-06 不可比）：
 
 **核心基线 = 均衡 3 模型面板**（77 render；模型间可比的口径）：
 

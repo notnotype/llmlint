@@ -1,0 +1,130 @@
+{
+  "genre": "wuxia",
+  "plotId": "tianlong-babu",
+  "promptVersion": {
+    "render": "render-v2"
+  },
+  "guideTier": "standard",
+  "samples": [
+    {
+      "file": "render-0001-deepseek-deepseek-v4-flash-control.md",
+      "role": "render",
+      "model": "deepseek/deepseek-v4-flash",
+      "promptVersion": "render-v2",
+      "pairRef": "reference-0001.md",
+      "styleKey": "control",
+      "difficulty": "raw",
+      "charCount": 4082
+    },
+    {
+      "file": "render-0001-deepseek-deepseek-v4-flash-guide.md",
+      "role": "render",
+      "model": "deepseek/deepseek-v4-flash",
+      "promptVersion": "render-v2",
+      "pairRef": "reference-0001.md",
+      "styleKey": "guide",
+      "difficulty": "llmlint-guide-standard",
+      "charCount": 3873
+    },
+    {
+      "file": "render-0002-deepseek-deepseek-v4-flash-control.md",
+      "role": "render",
+      "model": "deepseek/deepseek-v4-flash",
+      "promptVersion": "render-v2",
+      "pairRef": "reference-0002.md",
+      "styleKey": "control",
+      "difficulty": "raw",
+      "charCount": 4805
+    },
+    {
+      "file": "render-0002-deepseek-deepseek-v4-flash-guide.md",
+      "role": "render",
+      "model": "deepseek/deepseek-v4-flash",
+      "promptVersion": "render-v2",
+      "pairRef": "reference-0002.md",
+      "styleKey": "guide",
+      "difficulty": "llmlint-guide-standard",
+      "charCount": 4899
+    },
+    {
+      "file": "render-0003-deepseek-deepseek-v4-flash-control.md",
+      "role": "render",
+      "model": "deepseek/deepseek-v4-flash",
+      "promptVersion": "render-v2",
+      "pairRef": "reference-0003.md",
+      "styleKey": "control",
+      "difficulty": "raw",
+      "charCount": 3885
+    },
+    {
+      "file": "render-0003-deepseek-deepseek-v4-flash-guide.md",
+      "role": "render",
+      "model": "deepseek/deepseek-v4-flash",
+      "promptVersion": "render-v2",
+      "pairRef": "reference-0003.md",
+      "styleKey": "guide",
+      "difficulty": "llmlint-guide-standard",
+      "charCount": 4475
+    },
+    {
+      "file": "render-0004-deepseek-deepseek-v4-flash-control.md",
+      "role": "render",
+      "model": "deepseek/deepseek-v4-flash",
+      "promptVersion": "render-v2",
+      "pairRef": "reference-0004.md",
+      "styleKey": "control",
+      "difficulty": "raw",
+      "charCount": 4087
+    },
+    {
+      "file": "render-0004-deepseek-deepseek-v4-flash-guide.md",
+      "role": "render",
+      "model": "deepseek/deepseek-v4-flash",
+      "promptVersion": "render-v2",
+      "pairRef": "reference-0004.md",
+      "styleKey": "guide",
+      "difficulty": "llmlint-guide-standard",
+      "charCount": 4279
+    },
+    {
+      "file": "render-0005-deepseek-deepseek-v4-flash-control.md",
+      "role": "render",
+      "model": "deepseek/deepseek-v4-flash",
+      "promptVersion": "render-v2",
+      "pairRef": "reference-0005.md",
+      "styleKey": "control",
+      "difficulty": "raw",
+      "charCount": 5474
+    },
+    {
+      "file": "render-0005-deepseek-deepseek-v4-flash-guide.md",
+      "role": "render",
+      "model": "deepseek/deepseek-v4-flash",
+      "promptVersion": "render-v2",
+      "pairRef": "reference-0005.md",
+      "styleKey": "guide",
+      "difficulty": "llmlint-guide-standard",
+      "charCount": 5009
+    },
+    {
+      "file": "render-0006-deepseek-deepseek-v4-flash-control.md",
+      "role": "render",
+      "model": "deepseek/deepseek-v4-flash",
+      "promptVersion": "render-v2",
+      "pairRef": "reference-0006.md",
+      "styleKey": "control",
+      "difficulty": "raw",
+      "charCount": 2689
+    },
+    {
+      "file": "render-0006-deepseek-deepseek-v4-flash-guide.md",
+      "role": "render",
+      "model": "deepseek/deepseek-v4-flash",
+      "promptVersion": "render-v2",
+      "pairRef": "reference-0006.md",
+      "styleKey": "guide",
+      "difficulty": "llmlint-guide-standard",
+      "charCount": 3490
+    }
+  ]
+}

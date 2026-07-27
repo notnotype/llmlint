@@ -1,0 +1,100 @@
+{
+  "genre": "light-novel",
+  "plotId": "villain-loli",
+  "promptVersion": {
+    "render": "render-v2"
+  },
+  "guideTier": "standard",
+  "samples": [
+    {
+      "file": "render-0001-opus5-control.md",
+      "role": "render",
+      "model": "claude-cli/claude-opus-5",
+      "promptVersion": "render-v2",
+      "pairRef": "reference-0001.md",
+      "styleKey": "control",
+      "difficulty": "raw",
+      "charCount": 2000
+    },
+    {
+      "file": "render-0001-opus5-sysprompt.md",
+      "role": "render",
+      "model": "claude-cli/claude-opus-5",
+      "promptVersion": "render-v2",
+      "pairRef": "reference-0001.md",
+      "styleKey": "sysprompt",
+      "difficulty": "sysprompt-guide-standard",
+      "charCount": 2210
+    },
+    {
+      "file": "render-0001-opus5-toolresult.md",
+      "role": "render",
+      "model": "claude-cli/claude-opus-5",
+      "promptVersion": "render-v2",
+      "pairRef": "reference-0001.md",
+      "styleKey": "toolresult",
+      "difficulty": "toolresult-guide-standard",
+      "charCount": 1978
+    },
+    {
+      "file": "render-0002-opus5-control.md",
+      "role": "render",
+      "model": "claude-cli/claude-opus-5",
+      "promptVersion": "render-v2",
+      "pairRef": "reference-0002.md",
+      "styleKey": "control",
+      "difficulty": "raw",
+      "charCount": 2586
+    },
+    {
+      "file": "render-0002-opus5-sysprompt.md",
+      "role": "render",
+      "model": "claude-cli/claude-opus-5",
+      "promptVersion": "render-v2",
+      "pairRef": "reference-0002.md",
+      "styleKey": "sysprompt",
+      "difficulty": "sysprompt-guide-standard",
+      "charCount": 2660
+    },
+    {
+      "file": "render-0002-opus5-toolresult.md",
+      "role": "render",
+      "model": "claude-cli/claude-opus-5",
+      "promptVersion": "render-v2",
+      "pairRef": "reference-0002.md",
+      "styleKey": "toolresult",
+      "difficulty": "toolresult-guide-standard",
+      "charCount": 2587
+    },
+    {
+      "file": "render-0003-opus5-control.md",
+      "role": "render",
+      "model": "claude-cli/claude-opus-5",
+      "promptVersion": "render-v2",
+      "pairRef": "reference-0003.md",
+      "styleKey": "control",
+      "difficulty": "raw",
+      "charCount": 2441
+    },
+    {
+      "file": "render-0003-opus5-sysprompt.md",
+      "role": "render",
+      "model": "claude-cli/claude-opus-5",
+      "promptVersion": "render-v2",
+      "pairRef": "reference-0003.md",
+      "styleKey": "sysprompt",
+      "difficulty": "sysprompt-guide-standard",
+      "charCount": 2344
+    },
+    {
+      "file": "render-0003-opus5-toolresult.md",
+      "role": "render",
+      "model": "claude-cli/claude-opus-5",
+      "promptVersion": "render-v2",
+      "pairRef": "reference-0003.md",
+      "styleKey": "toolresult",
+      "difficulty": "toolresult-guide-standard",
+      "charCount": 3077
+    }
+  ]
+}

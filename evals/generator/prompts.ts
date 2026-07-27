@@ -56,13 +56,42 @@ const REPAIR_V1: PromptPreset = {
 - 直接输出润色后的完整正文:不要解释、不要罗列修改点、不要标题,不要用 markdown 代码块或其它标记包裹。`,
 };
 
+/**
+ * v2（写作期约束元评测）：v1 基础上多一个可选的「写作约束」块，用于测量把规则库
+ * 投影成写作期约束（`llmlint guide`）注入系统提示词后，输出是否真的更少 AI 痕迹。
+ *
+ * 约束块为空时渲染结果与 v1 **逐字节等价**（`renderSystem` 保证，`prompts.test.ts` 守），
+ * 但 promptVersion 如实记 v2——I8 要求版本反映模板而不是渲染结果。
+ *
+ * 这不是新 baseline：I2 规定 baseline 取模型最原始嗓音，带约束的臂是可选更难档
+ * （METHODOLOGY M3-B 的「文风预设档」槽位），两臂都用 v2 才能排除模型漂移这个混淆变量。
+ */
+const RENDER_V2: PromptPreset = {
+    key: "render-v2",
+    system: `${RENDER_V1.system}{CONSTRAINTS}`,
+};
+
 export const BRIEF_PROMPTS: Record<string, PromptPreset> = {
     [BRIEF_V2.key]: BRIEF_V2,
 };
 
 export const RENDER_PROMPTS: Record<string, PromptPreset> = {
     [RENDER_V1.key]: RENDER_V1,
+    [RENDER_V2.key]: RENDER_V2,
 };
+
+/**
+ * 渲染 render 系统提示词。
+ *
+ * @param constraints 写作期约束正文（`llmlint guide` 的 markdown）。空串或缺省表示不注入；
+ *   此时 v2 的渲染结果与 v1 逐字节相同，两臂差异只剩这一个变量。
+ */
+export function renderSystem(preset: PromptPreset, targetChars: number, constraints = ""): string {
+    const block = constraints.trim().length === 0
+        ? ""
+        : `\n\n下面是这次写作要遵守的额外约束，与上面的要求同等重要：\n\n${constraints.trim()}`;
+    return preset.system.replace("{TARGET}", String(targetChars)).replace("{CONSTRAINTS}", block);
+}
 
 // v2（Task 13 W7，web llm_fix 通道）：v1 基础上支持「用户标注」——输入可附带人工阅读时圈出的
 // 原文片段与批注意见，作为与问题清单并列的修复依据（buildRepairUser 有批注才渲染该节；

@@ -2,11 +2,11 @@
 // 生成侧编排：遍历题组每个 reference → 逐章各抽 brief → 各模型各 render(1:1 配对) → 写盘 + merge meta。
 // commander CLI；HTTP + CLI 两种 transport；render prompt 版本写进每个 sample（守 I8）；token 预算预估/实报/自校准。
 import {existsSync, readdirSync, readFileSync, rmSync, writeFileSync} from "node:fs";
-import {isAbsolute, join} from "node:path";
+import {join} from "node:path";
 import {Command} from "commander";
-import {loadConfig, modelSlug, resolveModel, resolveProvider, type RawConfig} from "./config";
-import {loadEvalConfig, type EvalConfig, type CliProviderConfig} from "./eval-config";
-import {resolveCliModel} from "./cli-transport";
+import {loadConfig, modelSlug, resolveProvider} from "./config";
+import {loadEvalConfig, type EvalConfig} from "./eval-config";
+import {resolveAnyModel, resolveRepoPath} from "./resolve-model";
 import {configureModelClient, discoverModels, smokeCheck, type AnyModel} from "./model-client";
 import {ProviderGate} from "./rate-limit";
 import {extractBriefDetailed} from "./brief";
@@ -19,27 +19,6 @@ type GroupMeta = {genre?: string; plotId?: string; promptVersion?: {brief?: stri
 type Group = {dir: string; genre: string; plot: string};
 
 const DEFAULT_CORPUS = join(import.meta.dir, "..", "corpus");
-// llmlint 仓根（generator 的上两级）：相对路径的 modelsConfig/datasetsRoot 按它解析，cwd 无关（I10）。
-const REPO_ROOT = join(import.meta.dir, "..", "..");
-
-/** 相对路径按 llmlint 仓根解析（跨仓引用 NeuroBook config.json 时 cwd 无关）。 */
-function resolveRepoPath(path: string): string {
-    return isAbsolute(path) ? path : join(REPO_ROOT, path);
-}
-
-/** modelKey → HTTP 或 CLI 通道（providerId 命中 cliProviders 走 CLI）。proxy 注入 CLI 子进程；providerTimeouts 覆盖 HTTP 墙钟。 */
-function resolveAnyModel(config: RawConfig, modelKey: string, cliProviders: Record<string, CliProviderConfig>, proxy?: string, providerTimeouts?: Record<string, number>): AnyModel {
-    const slash = modelKey.indexOf("/");
-    const providerId = slash > 0 ? modelKey.slice(0, slash) : "";
-    const cli = cliProviders[providerId];
-    if (cli) {
-        return resolveCliModel(providerId, modelKey.slice(slash + 1), cli, proxy);
-    }
-    const resolved = resolveModel(config, modelKey);
-    // per-provider 超时覆盖（如 doubao 推理模型长章需要更长墙钟）。
-    const override = providerTimeouts?.[providerId];
-    return override ? {...resolved, timeoutMs: override} : resolved;
-}
 
 type Options = {
     corpus: string;
