@@ -157,11 +157,14 @@ llmlint 是一个**中文正文规则库**加它的两个消费面：写作期�
 - **I18 Harness Core 与宿主投影分离**：provider-neutral Session/Invocation/Tool/approval/compaction/事件事实由 NeuroAgentHarness Core 负责；Pi、Prisma、SSE DTO、`MachineLlmReview` 和权限必须留在 llmlint Adapter/Workflow。新增消费者只能通过 Adapter 接入，不得把宿主业务字段倒灌进 Core。
 - **I19 Invocation Revision 单源**：`AgentSession.revisionId` 只表示线性 lineage 的当前指针，历史 Invocation 的版本归属只能读取其自己的 `AgentInvocation.revisionId`。禁止用 Session 当前指针反推历史 Invocation、Review、重试或 terminal 刷新所属版本；Session 推进只能沿同一 Text 的直接子 Revision 串行发生。
 - **I20 历史恢复不启动工作**：从历史记录 hydrate 工作台不得隐式 reveal、advance 或 invoke；若 lineage Session 已有 active Invocation，恢复必须绑定其 invocationId 执行 abort。未揭示 head 保持只读，只有用户显式点击“继续检测”后才能揭示并启动 Analysis。
-- **I21 机械修复只跑全文全域**：`fixability:auto` 或 `candidate` 的规则必须是 `scope: all` 且无 position 窗口；loader 发现 narrative/dialogue/position scope 时必须降级为 `manual` 并给 error 诊断。派生视图里的占位符不能被写回原文。
+- **I21 机械修复只跑全文全域**：`fixability:auto` 或 `candidate` 的规则必须是 `scope: all` 且无 position 窗口；loader 发现 narrative/quoted/position scope 时必须降级为 `manual` 并给 error 诊断。派生视图里的占位符不能被写回原文。
 - **I22 新规则形态前向兼容**：未知 `detector.type` 或未注册 handler 名必须 skip + diagnostic warning，不得抛错阻断整个 ruleset。规则共享生态允许新版规则包被旧版 skill 读取时优雅降级。
 - **I23 narrative 占位视图语义**：`scope.layer:"narrative"` 运行在引号段等长 `。` 占位视图上，offset 与原文一致。规则作者不得依赖“数句号”或占位串长度做判断；需要句长、密度、run 状态机时使用 density 或 handler。
 - **I24 判别力不进规则记录**：eval verdict（`strong`/`weak`）只在特定 task profile 内有效（I12），**不得**写进规则记录或内建进 `skill/` 包——那会让某个语料的结论看起来像规则的固有属性。写作期档位需要它时只能由 `guide --profile <report.json>` 从外部传入；没有 profile 时降级为「只按规则模型取」，不假装有证据。
 - **I25 示例必须可分正反**：`examples[].hit` 必填。只给反例会让消费方（尤其写作期提示词）把形近的正当写法一起躲开，写出过度躲闪的干瘪文本；对照例（`hit:false`）不得带 `fix`。旧 `{bad, good?}` 形态把 `good` 同时当「改写版」和「保留」裁决词，已废除。
+- **I26 scope 是规则作者合同**：磁盘规则可省略 `scope`，loader 必须归一为 `{layer:"all"}`；Active 记录与公开输出必须带 `ResolvedScanScope`。一条规则只声明 `narrative` / `quoted` / `all` 之一，项目配置不得覆盖。regex、density、handler 必须消费同一等长视图、位置窗口与原文 offset 合同；position 按当前 layer 的可见 Unicode 码点计数并只约束命中起点，layer 必须覆盖完整命中区间；handler 结果还要由执行器二次过滤。
+- **I27 guide 实验必须指纹守门**：实验 meta 必须记录 tier、profile、最终选中规则集合/数量和实际注入文本的 provenance；三个指纹统一为 `sha256:<64 lowercase hex>`。生成续跑、dry-run 和比较都必须在读/扫样本前逐字段严格核对，旧 `guideTier`、漏 profile、规则漂移或文本漂移不得降级继续。
+- **I28 本地贡献与外部检测分离**：`contribute` 只写本地 outbox，当前版本无发送通道；`detect` 会把未缓存正文块 POST 到配置的外部服务，不发送文件名或项目路径。`sharing.off` 只关闭贡献记录，不得被解释为关闭 detect；远端日志和保留策略不受 llmlint 控制，文档必须明确告知。
 
 ## 4b. 检测数据（category ③）采集不变量
 

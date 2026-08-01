@@ -12,7 +12,7 @@ import type {ActiveRuleRecord, CompactDensityIssue, CompactIssue, CompactRuleEnt
  */
 export const COMPACT_CONTEXT_CHARS = 24;
 
-/** 单条规则的紧凑投影：只保留审稿决策要用的字段，丢掉 detector / source / scope / examples / ruleset。 */
+/** 单条规则的紧凑投影：保留 resolved scope，丢掉 detector / source / examples / ruleset。 */
 function compactRuleEntry(rule: ActiveRuleRecord): CompactRuleEntry {
     return {
         namespace: rule.namespace,
@@ -20,6 +20,7 @@ function compactRuleEntry(rule: ActiveRuleRecord): CompactRuleEntry {
         level: rule.level,
         review: rule.review,
         fixability: rule.fixability,
+        scope: rule.scope,
         action: rule.action,
         ...(rule.note ? {note: rule.note} : {}),
     };

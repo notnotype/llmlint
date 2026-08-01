@@ -1,4 +1,5 @@
 import type {
+    ActiveRuleRecord,
     Issue,
     ActiveHandlerRuleRecord,
     SemanticRuleRecord,
@@ -85,12 +86,12 @@ export type RulesReport = {
 
 /**
  * 规则页一行：规则本体 + 评测统计（按 ruleId join；null = 未入评测 =「未测」）。
- * Task 16 R3：rule 放宽为 regex | semantic 联合——语义规则不参与静态扫描，stat 恒为 null，排在列表最后。
+ * 规则目录覆盖全部 active 判据；语义规则不参与静态扫描，stat 恒为 null，排在列表最后。
  */
 export type RuleCatalogRow = {
-    rule: RegexRuleRecord | SemanticRuleRecord;
+    rule: ActiveRuleRecord;
     stat: RulesReportEntry | null;
-    /** 仅 regex 规则可能非空；说明为何未进入 creative-writing profile。 */
+    /** 静态规则可能非空；说明为何未进入 creative-writing profile。 */
     profileExclusion: CreativeProfileExclusion | null;
 };
 

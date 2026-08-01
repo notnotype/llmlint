@@ -22,7 +22,10 @@ function densityRule(id: string, detector: Omit<DensityDetector, "type">, scope?
         fixability: "manual",
         detector: {type: "density", ...detector},
         action: {type: "suggest", message: id},
-        ...(scope ? {scope} : {}),
+        scope: {
+            layer: scope?.layer ?? "all",
+            ...(scope?.position ? {position: scope.position} : {}),
+        },
     };
 }
 
@@ -109,6 +112,20 @@ describe("density detector", () => {
         expect(one[0]!.hits).toBe(1);
         // all 层照常 4 处。
         expect(scanDensity(ctx, [densityRule("a4", {patterns: [{target: "忽然"}], minHits: 4})])[0]!.hits).toBe(4);
+    });
+
+    it("quoted/all scope 在同一样本上只统计各自层", () => {
+        const ctx = prepareScanContext("叙述忽然。『忽然忽然』");
+        const detector = {patterns: [{target: "忽然"}], minHits: 2};
+        expect(scanDensity(ctx, [densityRule("quoted", detector, {layer: "quoted"})])).toHaveLength(1);
+        expect(scanDensity(ctx, [densityRule("narrative", detector, {layer: "narrative"})])).toHaveLength(0);
+        expect(scanDensity(ctx, [densityRule("all", detector, {layer: "all"})])[0]?.hits).toBe(3);
+    });
+
+    it("density 命中区间跨 quoted 边界时被完整 layer 防线过滤", () => {
+        const ctx = prepareScanContext("甲「乙」丙");
+        const rule = densityRule("cross", {patterns: [{target: "甲.*丙"}], minHits: 1}, {layer: "narrative"});
+        expect(scanDensity(ctx, [rule])).toHaveLength(0);
     });
 
     it("markdown 遮罩区不计数也不进分母", () => {

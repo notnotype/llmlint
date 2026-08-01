@@ -1,9 +1,9 @@
 import {isMasked, mergeRanges, splitLines} from "./markdown-mask";
-import type {MaskedRange, ScanContext, ScanLine} from "./types";
+import type {HandlerLineProjection, HandlerScanContext, MaskedRange, ResolvedScanScope, ScanContext, ScanLine} from "./types";
 
 // 扫描上下文构建：引号分域、三层等长视图、结构行标记、词级白名单区间。
 // 与 markdown-mask 同为纯函数层——不读文件系统，浏览器端可打包消费。
-// 设计真相源：docs/tasks/23-skill-loop-and-service/rule-model-v3-design.md（v3.1）。
+// 活契约：skill/references/rule-model.md。任务目录里的 v3 design 只保留历史决策。
 
 /**
  * 成对引号表：行内配对（不跨换行），未闭合不遮罩。
@@ -41,17 +41,17 @@ export type PrepareScanOptions = {
 export function prepareScanContext(content: string, options: PrepareScanOptions = {}): ScanContext {
     const maskedRanges = options.maskedRanges ?? [];
     const lines = splitScanLines(content);
-    const dialogueRanges = computeDialogueRanges(lines, maskedRanges);
+    const quotedRanges = computeQuotedRanges(lines, maskedRanges);
     return {
         content,
         layers: {
             all: content,
-            narrative: buildPlaceholderView(content, dialogueRanges, "inside"),
-            dialogue: buildPlaceholderView(content, dialogueRanges, "outside"),
+            narrative: buildPlaceholderView(content, quotedRanges, "inside"),
+            quoted: buildPlaceholderView(content, quotedRanges, "outside"),
         },
         maskedRanges,
         ignoreRanges: computeIgnoreTermRanges(content, options.ignoreTerms ?? []),
-        dialogueRanges,
+        quotedRanges,
         lines,
     };
 }
@@ -75,7 +75,7 @@ function isStructuralLine(text: string): boolean {
  * 一个漏引号把后半篇全吞进对白层）。落在 maskedRanges 内的引号字符不参与配对——
  * 代码块 / frontmatter 里的 `「` 不能制造假对白区。
  */
-export function computeDialogueRanges(lines: ScanLine[], maskedRanges: MaskedRange[]): MaskedRange[] {
+export function computeQuotedRanges(lines: ScanLine[], maskedRanges: MaskedRange[]): MaskedRange[] {
     const ranges: MaskedRange[] = [];
     for (const line of lines) {
         // 栈内是尚未闭合的开引号；close 只与栈顶同类配对，错配的闭引号当普通字符忽略。
@@ -102,6 +102,169 @@ export function computeDialogueRanges(lines: ScanLine[], maskedRanges: MaskedRan
         }
     }
     return mergeRanges(ranges);
+}
+
+/** 为单条 handler 绑定 resolved scope，并提供统一的视图、窗口、投影和区间判定。 */
+export function prepareHandlerScanContext(ctx: ScanContext, scope: ResolvedScanScope): HandlerScanContext {
+    const positionWindow = scope.position ? computePositionWindow(ctx, scope) : null;
+    const allowsIndex = (index: number): boolean => {
+        if (index < 0 || index >= ctx.content.length) {
+            return false;
+        }
+        if (scope.layer === "all") {
+            return true;
+        }
+        const quoted = overlapsRanges(index, index + 1, ctx.quotedRanges);
+        return scope.layer === "quoted" ? quoted : !quoted;
+    };
+
+    return {
+        ...ctx,
+        scope,
+        view: ctx.layers[scope.layer],
+        positionWindow,
+        allowsFinding: (start, end) => scopeAllowsFinding(ctx, scope, positionWindow, start, end),
+        shortAnchor: (start, maxCodePoints = 12) => shortAnchor(ctx, scope, start, maxCodePoints),
+        projectLine: (line) => projectHandlerLine(line, allowsIndex),
+        layerRangesOfLine: (line) => layerRangesOfLine(ctx, line, scope.layer),
+    };
+}
+
+/** 按当前 layer/window 紧凑投影一行，同时保留每个字符的原文 UTF-16 offset。 */
+function projectHandlerLine(line: ScanLine, allowsIndex: (index: number) => boolean): HandlerLineProjection {
+    let text = "";
+    const map: number[] = [];
+    for (let offset = 0; offset < line.text.length; offset++) {
+        const absolute = line.start + offset;
+        if (!allowsIndex(absolute)) {
+            continue;
+        }
+        text += line.text[offset]!;
+        map.push(absolute);
+    }
+    return {text, map};
+}
+
+/** 当前行属于 layer/window 的连续原文区间，供 quoted 等逐段 handler 使用。 */
+function layerRangesOfLine(
+    ctx: ScanContext,
+    line: ScanLine,
+    layer: ResolvedScanScope["layer"],
+): MaskedRange[] {
+    const lineEnd = line.start + line.text.length;
+    const source = layer === "quoted"
+        ? ctx.quotedRanges
+        : layer === "all"
+            ? [[line.start, lineEnd] as MaskedRange]
+            : complementRanges(ctx.quotedRanges, line.start, lineEnd);
+    const ranges: MaskedRange[] = [];
+    for (const [start, end] of source) {
+        const clippedStart = Math.max(start, line.start);
+        const clippedEnd = Math.min(end, lineEnd);
+        if (clippedStart < clippedEnd) {
+            ranges.push([clippedStart, clippedEnd]);
+        }
+    }
+    return ranges;
+}
+
+/**
+ * 三种 detector 共用的 scope 防线：position 只约束命中起点；非 all layer 要求完整
+ * [start,end) 都属于声明层，不能从叙述跨进引号或从引号跨回叙述。
+ */
+export function scopeAllowsFinding(
+    ctx: ScanContext,
+    scope: ResolvedScanScope,
+    positionWindow: MaskedRange | null,
+    start: number,
+    end: number,
+): boolean {
+    if (!Number.isInteger(start) || !Number.isInteger(end) || start < 0 || end <= start || end > ctx.content.length) {
+        return false;
+    }
+    if (positionWindow && (start < positionWindow[0] || start >= positionWindow[1])) {
+        return false;
+    }
+    if (positionWindow && ctx.lines.some((line) => line.structural && start >= line.start && start < line.end)) {
+        return false;
+    }
+    if (scope.layer === "all") {
+        return true;
+    }
+    if (scope.layer === "narrative") {
+        return !overlapsRanges(start, end, ctx.quotedRanges);
+    }
+    return rangeContainedBy(start, end, ctx.quotedRanges);
+}
+
+/** 从指定起点取连续短锚点；统计型 handler 用 detail 报全量结论，match 只负责定位。 */
+function shortAnchor(ctx: ScanContext, scope: ResolvedScanScope, start: number, maxCodePoints: number): MaskedRange | null {
+    if (!Number.isInteger(maxCodePoints) || maxCodePoints < 1 || start < 0 || start >= ctx.content.length) {
+        return null;
+    }
+    const line = ctx.lines.find((candidate) => start >= candidate.start && start < candidate.start + candidate.text.length);
+    if (!line || isMasked(start, ctx.maskedRanges)) {
+        return null;
+    }
+    const containing = layerRangesOfLine(ctx, line, scope.layer).find(([rangeStart, rangeEnd]) => start >= rangeStart && start < rangeEnd);
+    if (!containing) {
+        return null;
+    }
+    let limit = containing[1];
+    for (const [maskStart, maskEnd] of ctx.maskedRanges) {
+        if (maskEnd <= start) {
+            continue;
+        }
+        if (maskStart <= start) {
+            return null;
+        }
+        limit = Math.min(limit, maskStart);
+        break;
+    }
+    let end = start;
+    let count = 0;
+    for (const char of ctx.content.slice(start, limit)) {
+        end += char.length;
+        count += 1;
+        if (count >= maxCodePoints) {
+            break;
+        }
+    }
+    return end > start ? [start, end] : null;
+}
+
+function rangeContainedBy(start: number, end: number, ranges: MaskedRange[]): boolean {
+    for (const [rangeStart, rangeEnd] of ranges) {
+        if (rangeEnd <= start) {
+            continue;
+        }
+        return rangeStart <= start && end <= rangeEnd;
+    }
+    return false;
+}
+
+function complementRanges(ranges: MaskedRange[], start: number, end: number): MaskedRange[] {
+    const result: MaskedRange[] = [];
+    let cursor = start;
+    for (const [rangeStart, rangeEnd] of ranges) {
+        if (rangeEnd <= cursor) {
+            continue;
+        }
+        if (rangeStart >= end) {
+            break;
+        }
+        if (rangeStart > cursor) {
+            result.push([cursor, Math.min(rangeStart, end)]);
+        }
+        cursor = Math.max(cursor, Math.min(rangeEnd, end));
+        if (cursor >= end) {
+            return result;
+        }
+    }
+    if (cursor < end) {
+        result.push([cursor, end]);
+    }
+    return result;
 }
 
 /**
@@ -182,13 +345,17 @@ export function visibleLength(text: string): number {
  * 否则同一份报告里「每千字命中」和「可见字数」会互相对不上。传 `ctx.layers.all` 得到
  * 全文篇幅；传某一层的视图得到该层篇幅（narrative 层台词是 `。` 占位，不计入）。
  */
-export function countableVisibleChars(ctx: ScanContext, view: string): number {
+export function countableVisibleChars(ctx: ScanContext, view: string, range: MaskedRange = [0, view.length]): number {
     let total = 0;
     for (const line of ctx.lines) {
         if (line.structural) {
             continue;
         }
-        total += visibleCharsInSpan(view, line.start, line.end, ctx.maskedRanges);
+        const start = Math.max(line.start, range[0]);
+        const end = Math.min(line.end, range[1]);
+        if (start < end) {
+            total += visibleCharsInSpan(view, start, end, ctx.maskedRanges);
+        }
     }
     return total;
 }
@@ -222,31 +389,60 @@ export function visibleCharsInSpan(view: string, start: number, end: number, mas
 }
 
 /**
- * 位置窗口：从文首（opening）/ 文末（ending）按 narrative 层可见字符数满 chars，
- * 返回允许的索引区间 [start, end)。台词在 narrative 层是 `。` 占位，不计入可见数
- * （预告腔看的是叙述层结尾）。命中起点落窗口外即跳过。
+ * 位置窗口：从文首（opening）/ 文末（ending）按规则当前 layer 的可见 Unicode 码点计数，
+ * 跳过 Markdown 遮罩、frontmatter、标题和结构行，返回允许的 UTF-16 索引区间。
+ * 命中只要求起点落在窗口内，结束位置可越过窗口边界。
  */
-export function computePositionWindow(ctx: ScanContext, position: {kind: "opening" | "ending"; chars: number}): MaskedRange {
-    const view = ctx.layers.narrative;
+export function computePositionWindow(ctx: ScanContext, scope: ResolvedScanScope): MaskedRange {
+    const view = ctx.layers[scope.layer];
+    const position = scope.position;
+    if (!position) {
+        return [0, view.length];
+    }
     if (position.kind === "opening") {
         let count = 0;
-        for (let index = 0; index < view.length; index++) {
-            if (VISIBLE_CHAR_PATTERN.test(view[index]!)) {
-                count++;
-                if (count >= position.chars) {
-                    return [0, index + 1];
+        for (const line of ctx.lines) {
+            if (line.structural) {
+                continue;
+            }
+            let absolute = line.start;
+            for (const char of view.slice(line.start, line.start + line.text.length)) {
+                if (!isMasked(absolute, ctx.maskedRanges) && VISIBLE_CHAR_PATTERN.test(char)) {
+                    count += 1;
+                    if (count >= position.chars) {
+                        return [0, absolute + char.length];
+                    }
                 }
+                absolute += char.length;
             }
         }
         return [0, view.length];
     }
     let count = 0;
-    for (let index = view.length - 1; index >= 0; index--) {
-        if (VISIBLE_CHAR_PATTERN.test(view[index]!)) {
-            count++;
-            if (count >= position.chars) {
-                return [index, view.length];
+    for (let lineIndex = ctx.lines.length - 1; lineIndex >= 0; lineIndex--) {
+        const line = ctx.lines[lineIndex]!;
+        if (line.structural) {
+            continue;
+        }
+        const lineStart = line.start;
+        let absoluteEnd = line.start + line.text.length;
+        while (absoluteEnd > lineStart) {
+            let absoluteStart = absoluteEnd - 1;
+            const tail = view.charCodeAt(absoluteStart);
+            if (tail >= 0xDC00 && tail <= 0xDFFF && absoluteStart > lineStart) {
+                const head = view.charCodeAt(absoluteStart - 1);
+                if (head >= 0xD800 && head <= 0xDBFF) {
+                    absoluteStart -= 1;
+                }
             }
+            const char = view.slice(absoluteStart, absoluteEnd);
+            if (!isMasked(absoluteStart, ctx.maskedRanges) && VISIBLE_CHAR_PATTERN.test(char)) {
+                count += 1;
+                if (count >= position.chars) {
+                    return [absoluteStart, view.length];
+                }
+            }
+            absoluteEnd = absoluteStart;
         }
     }
     return [0, view.length];

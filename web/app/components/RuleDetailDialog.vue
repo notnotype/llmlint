@@ -27,6 +27,7 @@ const open = computed({
                 <span>· {{ rule.ruleset }}</span>
             </div>
             <DimensionBadges :rule="rule" />
+            <ScopeBadge :scope="rule.scope" />
             <p v-if="rule.note" class="rounded-md bg-[var(--bg-subtle)] p-2 text-sm text-[var(--text-secondary)]">{{ rule.note }}</p>
 
             <!-- handler 规则无 regex 模式列表，只展示 builtin 名 -->

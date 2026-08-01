@@ -11,6 +11,9 @@
       "canonicalKey": "low-connective-density handler",
       "importedFrom": "oh-story-claudecode/story-deslop"
     },
+    "scope": {
+      "layer": "narrative"
+    },
     "handler": {
       "type": "builtin",
       "name": "low-connective-density"

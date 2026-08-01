@@ -1,5 +1,5 @@
 import {isMasked} from "./markdown-mask";
-import {computePositionWindow, countableVisibleChars, overlapsRanges, visibleCharsInSpan} from "./scan-context";
+import {computePositionWindow, countableVisibleChars, overlapsRanges, scopeAllowsFinding, visibleCharsInSpan} from "./scan-context";
 import {buildLineStarts, ensureGlobalFlags, locatePosition} from "./scanner";
 import type {DensityIssue, DensityRuleRecord, MaskedRange, ScanContext} from "./types";
 
@@ -30,8 +30,8 @@ export function scanDensity(ctx: ScanContext, rules: DensityRuleRecord[]): Densi
     const issues: DensityIssue[] = [];
 
     for (const rule of rules) {
-        const view = ctx.layers[rule.scope?.layer ?? "all"];
-        const window = rule.scope?.position ? computePositionWindow(ctx, rule.scope.position) : null;
+        const view = ctx.layers[rule.scope.layer];
+        const window = rule.scope.position ? computePositionWindow(ctx, rule.scope) : null;
         const hits = collectHits(ctx, view, rule, window);
 
         if ((rule.detector.granularity ?? "doc") === "paragraph") {
@@ -47,7 +47,9 @@ export function scanDensity(ctx: ScanContext, rules: DensityRuleRecord[]): Densi
                 if (!line) {
                     continue;
                 }
-                const chars = visibleCharsInSpan(view, line.start, line.end, ctx.maskedRanges);
+                const start = Math.max(line.start, window?.[0] ?? line.start);
+                const end = Math.min(line.end, window?.[1] ?? line.end);
+                const chars = start < end ? visibleCharsInSpan(view, start, end, ctx.maskedRanges) : 0;
                 const issue = evaluateThresholds(rule, lineHits, chars, ctx.content, lineStarts);
                 if (issue) {
                     issues.push(issue);
@@ -56,7 +58,7 @@ export function scanDensity(ctx: ScanContext, rules: DensityRuleRecord[]): Densi
             continue;
         }
 
-        const chars = countableVisibleChars(ctx, view);
+        const chars = countableVisibleChars(ctx, view, window ?? [0, view.length]);
         const issue = evaluateThresholds(rule, hits, chars, ctx.content, lineStarts);
         if (issue) {
             issues.push(issue);
@@ -89,7 +91,7 @@ function collectHits(ctx: ScanContext, view: string, rule: DensityRuleRecord, wi
             if (ctx.ignoreRanges.length > 0 && overlapsRanges(index, index + length, ctx.ignoreRanges)) {
                 continue;
             }
-            if (window && (index < window[0] || index >= window[1])) {
+            if (!scopeAllowsFinding(ctx, rule.scope, window, index, index + length)) {
                 continue;
             }
             const lineIndex = locateLineIndex(ctx, index);

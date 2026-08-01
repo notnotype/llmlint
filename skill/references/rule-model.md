@@ -11,7 +11,7 @@
 规则是**纯 JSON 数据**，只有算法体在代码里。整条链是：
 
 ```
-磁盘 JSON → loader 补全 + 校验 → Active 记录 → 三种 detector 执行器 → Issue / DensityIssue → 报告投影
+磁盘 JSON → loader 补全 + 校验 → Active 记录 → 四类判据执行器 → Issue / DensityIssue → 报告投影
 ```
 
 ## 1. 磁盘形态：两个分支
@@ -54,7 +54,7 @@ type LintRuleRecord = DeclarativeRuleRecord | HandlerRuleRecord;
 
 ```ts
 DeclarativeRuleRecord = Base & {
-    detector: RegexDetector | LLMDetector | DensityDetector;
+    detector: RegexDetector | SemanticDetector | DensityDetector;
     action:
         | {type: "replace"; replacements: string[]}
         | {type: "suggest"; message: string};
@@ -87,7 +87,7 @@ HandlerRuleRecord = Base & {
 
 全文一条 / 逐段类 handler 要注意 `length` 取短锚定，见 §6。
 
-## 2. 三种 detector
+## 2. 三种声明式 detector + handler
 
 四个判据类别命名的是**判据的性质**，不是执行者：词法（regex）/ 统计（density）/ 算法（handler）/ 语义（semantic）。语义类早期叫 `llm`，那是按执行者命名，既和 `review: "agent"`（给谁看）撞语义，也和「写作期全部规则都由模型消费」这个事实冲突。
 
@@ -122,12 +122,21 @@ density 表达的是**分布指纹**（「套词 12 处/千字才算模板腔」
 
 ```ts
 ScanScope = {
-    layer?: "narrative" | "dialogue" | "all";              // 缺省 all
+    layer?: "narrative" | "quoted" | "all";                // 磁盘可省略，缺省 all
     position?: {kind: "opening" | "ending"; chars: number}; // 缺省不限位置
+}
+
+ResolvedScanScope = {
+    layer: "narrative" | "quoted" | "all";                 // Active 记录和公开输出必填
+    position?: {kind: "opening" | "ending"; chars: number};
 }
 ```
 
-`narrative` / `dialogue` 是**等长派生视图**：成对引号段（含引号）被替换成同样长度的 `。` 串，换行原样保留，所以 `match.index` 与原文偏移完全一致，命中可以直接回定位。
+一条规则只声明一个 layer；同时适用引号内外时用 `all`，不使用数组。scope 是算法适用域，由规则作者定义，项目配置不能覆盖。
+
+`narrative` / `quoted` 是**等长派生视图**：非当前层字符被替换成同样长度的 `。` 串，换行原样保留，所以 `match.index` 与原文偏移完全一致，命中可以直接回定位。quoted 只配对同一行内的 `「」`、`『』`、`“”`、`‘’`、`【】` 并包含开闭分隔符；ASCII 直引号、未闭合或跨行分隔符不进入 quoted。
+
+`position.chars` 按规则当前 layer 的可见 Unicode 码点计数，跳过 Markdown 遮罩、frontmatter、标题与结构行；返回值仍是原文 UTF-16 offset。位置语义只要求**命中起点**在窗口内，layer 语义则要求**完整命中区间**属于声明层，禁止跨引号高亮。
 
 代价与约束：
 
@@ -169,8 +178,8 @@ if (declared !== "manual" && (detector.type !== "regex" || action.type !== "repl
 ## 5. 加载后的类型：从联合收窄到具体
 
 ```ts
-ActiveDeclarativeRuleRecord = DeclarativeRuleRecord & {ruleset: string; review: Review; fixability: Fixability}
-ActiveHandlerRuleRecord     = HandlerRuleRecord     & {ruleset: string; review: Review; fixability: Fixability}
+ActiveDeclarativeRuleRecord = DeclarativeRuleRecord & {ruleset: string; review: Review; fixability: Fixability; scope: ResolvedScanScope}
+ActiveHandlerRuleRecord     = HandlerRuleRecord     & {ruleset: string; review: Review; fixability: Fixability; scope: ResolvedScanScope}
 ActiveRuleRecord            = ActiveDeclarativeRuleRecord | ActiveHandlerRuleRecord
 ```
 
@@ -192,17 +201,17 @@ handler 规则没有 `detector` 字段，所以「这条规则靠什么判据命
 
 `RuleRegistryCatalogItem = {rule, defaultEnabled}` 是给浏览器端用的：保留默认启停，让前端按用户覆盖重新生成 active registry，不必回到磁盘。
 
-## 6. `ScanContext`：三种 detector 共享的上下文
+## 6. `ScanContext`：静态判据共享的上下文
 
 由 `prepareScanContext` 一次算好，避免各执行器重复切行、重复配对引号。纯数据，浏览器可打包。
 
 ```ts
 {
     content: string;
-    layers: {all: string; narrative: string; dialogue: string};  // 等长视图，all 是原文引用
+    layers: {all: string; narrative: string; quoted: string};    // 等长视图，all 是原文引用
     maskedRanges: MaskedRange[];    // markdown 遮罩：代码块 / frontmatter / 链接
     ignoreRanges: MaskedRange[];    // ignoreTerms 白名单区间
-    dialogueRanges: MaskedRange[];  // 成对引号区间（含引号本身），行内配对
+    quotedRanges: MaskedRange[];    // 成对分隔符区间（含分隔符），行内配对
     lines: ScanLine[];              // {start, end, text, structural}
 }
 ```
@@ -211,14 +220,23 @@ handler 规则没有 `detector` 字段，所以「这条规则靠什么判据命
 
 `ScanLine.structural` 标记 markdown 结构行（标题/列表/引用/表格/分隔线）与章节标题行，density 与 handler 的统计默认跳过——否则一个 bullet 列表就能把密度顶爆。
 
-handler 契约极窄：
+handler 使用统一执行上下文，不允许各算法重新实现引号排除或位置窗口：
 
 ```ts
-type RuleHandler = (ctx: ScanContext) => HandlerFinding[];
+type HandlerScanContext = ScanContext & {
+    scope: ResolvedScanScope;
+    view: string;                              // 当前 layer 的等长视图
+    positionWindow: MaskedRange | null;
+    allowsFinding(start: number, end: number): boolean;
+    shortAnchor(start: number, maxCodePoints?: number): MaskedRange | null;
+    projectLine(line: ScanLine): {text: string; map: number[]};
+    layerRangesOfLine(line: ScanLine): MaskedRange[];
+};
+type RuleHandler = (ctx: HandlerScanContext) => HandlerFinding[];
 type HandlerFinding = {index: number; length: number; message?: string};
 ```
 
-`message` 映射为 `Issue.detail`。**`length` 决定 `Issue.match` 的长度**（`match = content.slice(index, index + length)`），所以段落级 / 全文级 handler 要用短锚定，不要把整段塞进 `match`。
+`projectLine` 提供当前 layer 紧凑文本到原文 offset 的映射；执行器还会用 `allowsFinding` 对 handler 结果做第二次 scope/window 过滤。`shortAnchor` 生成不跨行、不跨 layer/Markdown 遮罩的连续定位区间。`message` 映射为 `Issue.detail`。**`length` 决定 `Issue.match` 的长度**（`match = content.slice(index, index + length)`），所以段落级 / 全文级 handler 必须用短锚定，把完整统计写进 `detail`，不要把整段塞进 `match`。
 
 ## 7. 命中：两种形状，刻意不合并
 
@@ -254,11 +272,11 @@ type DensityIssue = {
 给 Agent 消费时有一层紧凑投影（`src/check-report.ts`，纯函数、无终端依赖，CLI 与 web「复制 JSON」共用）：
 
 ```ts
-CompactRuleEntry = {namespace, title, level, review, fixability, action, note?}
+CompactRuleEntry = {namespace, title, level, review, fixability, scope, action, note?}
 CompactIssue     = {ruleId, line, column, endLine, endColumn, match, detail?, context}
 ```
 
-规则元数据按 id 去重提到报告顶层 `rules`，命中只引用 `ruleId`；`context` 各裁 24 码点。剔掉的是规则作者才需要的字段：`detector`（长正则）、`source.canonicalKey`、`scope`、`examples`、`ruleset`。完整形态用 `check --rule-detail`。
+规则元数据按 id 去重提到报告顶层 `rules`，命中只引用 `ruleId`；`context` 各裁 24 码点。resolved `scope` 保留，因为它是审稿决策边界。剔掉的是规则作者才需要的字段：`detector`（长正则）、`source.canonicalKey`、`examples`、`ruleset`。完整形态用 `check --rule-detail`。
 
 **这层投影决定了 `title` 的重要性**：压缩后 Agent 拿不到 `detector.targets` 和 `examples`，只剩 `title` + `note` + `action` 三个字段可读。所以标题必须逐条唯一且能独立读懂，不能是分类名。
 
@@ -285,6 +303,20 @@ CompactIssue     = {ruleId, line, column, endLine, endColumn, match, detail?, co
 | `full` | 再加词表类（`action.type === "replace"`） | CLI 抓得准也能提替换词，边际价值最低，所以排最后 |
 
 判别力（`strong` / `weak`）**不内建进 skill 包，也不写进规则记录**：verdict 只在特定 task profile 内有效（CONTEXT.md §3 / I12），把某个语料的结论烧进全局规则超集会让它看起来像规则的固有属性。它只能由 `guide --profile <report.json>` 从外部传入；没传时 `core` 只剩语义规则、`wide` 等同 `standard`，不假装有证据。
+
+实验保存完整 `GuideProvenance`，防止档位、profile、规则集或文本漂移后继续混写/比较旧样本：
+
+```ts
+type GuideProvenance = {
+    tier: GuideTier;
+    profileFingerprint: string | null;
+    selectedRuleFingerprint: string;
+    selectedRuleCount: number;
+    textFingerprint: string;
+};
+```
+
+三个指纹统一为 `sha256:<64 lowercase hex>`：profile 哈希排序后的有效 `[ruleId, strong|weak]`；selected rules 哈希排序后的最终 ID；text 哈希实际注入 guide 的 UTF-8 字节。实验 meta 不接受旧 `guideTier` 或缺字段形态；生成续跑和比较都必须先逐字段核对，再读/扫描样本。
 
 ## 9. 结构性守卫（改规则时会拦你的东西）
 

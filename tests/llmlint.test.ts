@@ -1,5 +1,5 @@
 import {execFile} from "node:child_process";
-import {randomUUID} from "node:crypto";
+import {createHash, randomUUID} from "node:crypto";
 import {mkdir, mkdtemp, readFile, readdir, rm, writeFile} from "node:fs/promises";
 import {tmpdir} from "node:os";
 import {dirname, join, resolve} from "node:path";
@@ -15,7 +15,7 @@ import {formatCheckReport} from "../skill/src/reporter";
 import {materializeRules} from "../skill/src/rule-registry";
 import {loadRuleCatalog, loadRules} from "../skill/src/rules";
 import {scanText} from "../skill/src/scanner";
-import type {Issue, LintRuleRecord, RegexRuleRecord} from "../skill/src/types";
+import type {ActiveHandlerRuleRecord, Issue, LintRuleRecord, RegexRuleRecord} from "../skill/src/types";
 import {messages, type MessageKey} from "../web/app/i18n/messages";
 import {markdownSelectionLinkInputHref} from "../web/app/utils/markdown-selection-state";
 import {isIssueAutoApplicable, isIssueReplacementApplicable, reviewIssueActionLabel, reviewIssueLevelLabel, reviewReplacementActionLabel, reviewReplacementTitle} from "../web/app/utils/review-issue-ui";
@@ -536,7 +536,7 @@ describe("llmlint", () => {
         expect(promptSource).not.toContain(".nbook/agent/skills/llmlint");
         expect(skill).not.toContain("metadata:");
         expect(skill).not.toContain("when_to_use:");
-        expect(packageJson.version).toBe("2.0.1");
+        expect(packageJson.version).toBe("3.0.0");
         expect(skill).toContain("安装命令成功后才能进入 `status` 初始化门");
         expect(repairGuide).toContain("候选不是判决");
         expect(repairGuide).toContain("修 / 留 / 问");
@@ -1111,6 +1111,21 @@ describe("llmlint", () => {
         expect(materialized.summary.activeRules).toBe(loaded.summary.activeRules);
     });
 
+    it("Web MachineScan engineVersion 只哈希实际执行的 regex+handler span 规则", async () => {
+        const registry = JSON.parse(await readFile(resolve("web/app/data/registry.json"), "utf-8")) as {
+            version: string;
+            engineVersion: string;
+            regexRules: RegexRuleRecord[];
+            handlerRules: ActiveHandlerRuleRecord[];
+        };
+        const rulesHash = createHash("sha256")
+            .update(JSON.stringify({regexRules: registry.regexRules, handlerRules: registry.handlerRules}))
+            .digest("hex")
+            .slice(0, 8);
+
+        expect(registry.engineVersion).toBe(`${registry.version}+r${rulesHash}`);
+    });
+
     it("Web 设置归一化会丢弃非法旧值，并保留合法规则覆盖", () => {
         const settings = normalizeWebSettings({
             locale: "ja-JP",
@@ -1645,6 +1660,7 @@ function makeAutoRule(id: string, target: string, replacement: string): RegexRul
         level: "low",
         review: "none",
         fixability: "auto",
+        scope: {layer: "all"},
         detector: {
             type: "regex",
             targets: [target],

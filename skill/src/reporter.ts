@@ -67,7 +67,7 @@ export function formatCheckReport(filePath: string, issues: Issue[], loadedRules
                 continue;
             }
             const rule = firstIssue.rule;
-            lines.push(`${pc.cyan(rule.id)} ${pc.dim(`[${rule.namespace}]`)} (${rule.title})`);
+            lines.push(`${pc.cyan(rule.id)} ${pc.dim(`[${rule.namespace}]`)}${formatScopeBadge(rule, pc)} (${rule.title})`);
             lines.push(pc.dim(`  来源：${rule.ruleset}；级别：${rule.level}；审查：${rule.review}；修复：${rule.fixability}`));
 
             for (const issue of ruleIssues) {
@@ -100,7 +100,7 @@ export function formatCheckReport(filePath: string, issues: Issue[], loadedRules
         lines.push("");
         for (const issue of densityIssues) {
             const rule = issue.rule;
-            lines.push(`${pc.cyan(rule.id)} ${pc.dim(`[${rule.namespace}]`)} (${rule.title})`);
+            lines.push(`${pc.cyan(rule.id)} ${pc.dim(`[${rule.namespace}]`)}${formatScopeBadge(rule, pc)} (${rule.title})`);
             lines.push(pc.dim(`  来源：${rule.ruleset}；级别：${rule.level}；审查：${rule.review}；修复：${rule.fixability}`));
             lines.push(`  ${issue.line}:${issue.column}  ${issue.hits} 处命中，${issue.perKilo}/千字`);
             if (issue.samples.length > 0) {
@@ -254,11 +254,20 @@ export function createMultiCheckJsonReport(configPath: string | null, files: Che
 /** 把各文件 summary 相加得到聚合 summary。 */
 function aggregateSummary(files: CheckFileEntry[]): CheckSummary {
     const summary: CheckSummary = {total: 0, high: 0, medium: 0, low: 0};
+    let visibleChars = 0;
+    let hasVisibleChars = false;
     for (const file of files) {
         summary.total += file.summary.total;
         summary.high += file.summary.high;
         summary.medium += file.summary.medium;
         summary.low += file.summary.low;
+        if (file.summary.visibleChars !== undefined) {
+            visibleChars += file.summary.visibleChars;
+            hasVisibleChars = true;
+        }
+    }
+    if (hasVisibleChars) {
+        summary.visibleChars = visibleChars;
     }
     return summary;
 }
@@ -404,7 +413,7 @@ export function formatRules(rules: ActiveRuleRecord[], filter: RulesJsonReport["
     for (const namespace of [...byNamespace.keys()].sort((left, right) => left.localeCompare(right))) {
         lines.push(pc.bold(namespace));
         for (const rule of byNamespace.get(namespace) ?? []) {
-            lines.push(`  ${pc.cyan(rule.id)}  ${pc.dim(`[${rule.level}/${rule.review}/${ruleDetectorKind(rule)}]`)}  ${rule.title}`);
+            lines.push(`  ${pc.cyan(rule.id)}  ${pc.dim(`[${rule.level}/${rule.review}/${ruleDetectorKind(rule)}]`)}${formatScopeBadge(rule, pc)}  ${rule.title}`);
             lines.push(`    ${ruleActionSummary(rule)}`);
             if (!("handler" in rule) && rule.detector.type === "semantic") {
                 lines.push("    判定说明：");
@@ -427,6 +436,18 @@ export function formatRules(rules: ActiveRuleRecord[], filter: RulesJsonReport["
     }
 
     return lines.join("\n").trimEnd();
+}
+
+/** stylish 展示所有非默认 scope；all 层的位置窗口也必须可见。 */
+function formatScopeBadge(rule: ActiveRuleRecord, pc: Painter): string {
+    if (rule.scope.layer === "all" && !rule.scope.position) {
+        return "";
+    }
+    const layer = rule.scope.layer === "narrative" ? "叙述" : rule.scope.layer === "quoted" ? "引号内" : "全文";
+    const position = rule.scope.position
+        ? `/${rule.scope.position.kind === "opening" ? "文首" : "文末"}${rule.scope.position.chars}字`
+        : "";
+    return ` ${pc.dim(`[${layer}${position}]`)}`;
 }
 
 export function hasHighLevelIssue(issues: Issue[]): boolean {

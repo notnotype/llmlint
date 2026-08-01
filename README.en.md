@@ -40,11 +40,19 @@ bun install --frozen-lockfile
 
 At runtime, the agent prefers the absolute skill root supplied by its catalog; if the host only exposes a `SKILL.md` locator, it uses that file's parent directory. It does not depend on a fixed `.nbook`, `.claude`, or `.codex` install path. `skill/package.json.version` is the skill version source of truth.
 
-`SKILL.md` treats this as a dependency gate before `status`; later uses of the same installation do not repeat it on every review.
+`SKILL.md` treats this as a dependency gate before `status`. Later uses reuse the installation while the dependency fields and `bun.lock` contract remain valid and `node_modules` exists. Version, prompt, rule, or source-only updates do not trigger reinstall.
 
 ### Configure
 
 No additional configuration is required after dependencies are installed. See [`skill/references/cli-usage.md`](./skill/references/cli-usage.md) for CLI options, output formats, and the JSON schema.
+
+### Data and privacy
+
+`contribute` only writes a local outbox and does not upload in this version. `detect` is a separate external path: it sends uncached text chunks to the configured service (an HF Space by default), but sends no filename or project path. `sharing.off` does not disable `detect`, and llmlint cannot control remote logging or retention. See [`skill/README.en.md#data-sharing-and-privacy`](./skill/README.en.md#data-sharing-and-privacy) for tiers and withdrawal.
+
+### Web scan boundary
+
+Browser-local detection and server-side MachineScan currently execute only locatable regex+handler spans. Density rules remain visible in the registry but do not enter Web `hitsJson` or `docScore`. Use CLI `check` or Agent `lint_check` for the complete regex+density+handler static scan.
 
 ### Run
 
@@ -117,7 +125,7 @@ Further reading:
 
 - [`web/README.md`](./web/README.md) describes the Nuxt 4 SPA, Nitro API, authentication, persistence, build-time registry, and deployment.
 - [`evals/METHODOLOGY.md`](./evals/METHODOLOGY.md) is the evaluation methodology; [`evals/README.md`](./evals/README.md) documents the harness commands.
-- `evals/`, including `corpus/`, is a tracked development asset. Put temporary output under `.agent/evals/` or `evals/tmp/`.
+- `evals/` is a tracked development asset, but `evals/corpus/` is intentionally ignored because the source corpus is not publishable. Put temporary output under `.agent/evals/` or `evals/tmp/`.
 - [`CONTEXT.md`](./CONTEXT.md) defines project terminology and invariants. [`PROJECT-STATUS.md`](./PROJECT-STATUS.md) tracks current work and follow-ups.
 
 ---

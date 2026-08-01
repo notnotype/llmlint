@@ -1,5 +1,5 @@
 import {describe, expect, it} from "vitest";
-import {buildGuide, GUIDE_TIERS, parseRuleVerdicts, selectGuideRules, type GuideTier, type RuleVerdicts} from "../skill/src/guide";
+import {buildGuide, buildGuideArtifact, fingerprintRuleVerdicts, fingerprintText, GUIDE_TIERS, parseRuleVerdicts, renderGuide, selectGuideRules, type GuideTier, type RuleVerdicts} from "../skill/src/guide";
 import {loadRules} from "../skill/src/rules";
 import type {LoadedRules, NormalizedLlmlintConfig} from "../skill/src/types";
 
@@ -84,6 +84,33 @@ describe("写作期摘要 guide", () => {
         const markdown = buildGuide(await loaded(), "full", new Map());
         const total = (await loaded()).rules.length;
         expect(markdown).toContain(`档位 full，${total} / ${total} 条 active 规则`);
+    });
+
+    it("默认范围写进抬头，只有例外规则带 scope 与位置标签（语义规则同样适用）", async () => {
+        const markdown = buildGuide(await loaded(), "full", new Map());
+        expect(markdown).toContain("未标注范围的规则默认适用全文");
+        expect(markdown).toContain("[叙述]不是A，是B 对比状态机");
+        expect(markdown).toContain("[引号内]叙述层短词引号强调");
+
+        const semantic = (await loaded()).semanticRules[0]!;
+        const scopedSemantic = {...semantic, scope: {layer: "narrative" as const, position: {kind: "ending" as const, chars: 120}}};
+        expect(renderGuide([scopedSemantic], "core", 1, ["test"])).toContain(`[叙述][文末 120 字]${semantic.title}`);
+    });
+
+    it("Guide provenance 对 profile 顺序稳定，并对 verdict、规则集合与文本变化敏感", async () => {
+        const rules = await loaded();
+        const first: RuleVerdicts = new Map([["b", "weak"], ["a", "strong"]]);
+        const reordered: RuleVerdicts = new Map([["a", "strong"], ["b", "weak"]]);
+        expect(fingerprintRuleVerdicts(first)).toBe(fingerprintRuleVerdicts(reordered));
+        expect(fingerprintRuleVerdicts(first)).not.toBe(fingerprintRuleVerdicts(new Map([["a", "weak"], ["b", "weak"]])));
+
+        const standard = buildGuideArtifact(rules, "standard", first, true);
+        const core = buildGuideArtifact(rules, "core", first, true);
+        expect(standard.provenance.profileFingerprint).toMatch(/^sha256:[0-9a-f]{64}$/);
+        expect(standard.provenance.selectedRuleFingerprint).not.toBe(core.provenance.selectedRuleFingerprint);
+        expect(standard.provenance.textFingerprint).toBe(fingerprintText(standard.text));
+        expect(fingerprintText(`${standard.text}\n`)).not.toBe(standard.provenance.textFingerprint);
+        expect(buildGuideArtifact(rules, "standard", first, false).provenance.profileFingerprint).toBeNull();
     });
 
     it("profile 报告只收 strong / weak，其余裁决桶对写作期没有意义", () => {

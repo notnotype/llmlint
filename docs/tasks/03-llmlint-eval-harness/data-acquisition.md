@@ -44,8 +44,9 @@
 - 主力:中文网文 6-8 题材(番茄为主,经 Tomato-Novel-Downloader 取);
 - 高端锚:传统 / 严肃文学(genre=`literary`),小量,防误杀文学手法;
 - 工具 **Tomato-Novel-Downloader**:Rust 预编译 exe,番茄小说,输出 TXT/EPUB,CLI 仅 `--update <book_id>`,新书需 TUI 交互 → acquire **半自动**。
-- 合规:`evals/`(含 `corpus/` 语料)**整体进本仓 git**。当前 github 仓**私有**,受版权/ToS 限制的采集语料(种子网文全本)暂随仓保存可接受;**转公开前必须先移除或 gitignore `evals/corpus/`**,只留 fixture。低并发别压服务器;法律风险归用户。
+- 合规（2026-07-27 更新）：`evals/corpus/` **不进 git**，已由 `.gitignore` 拦住。仓库自 2026-07 起公开，而这条红线此前被突破过——受版权的 reference 章节全文随仓公开过一段时间，已用 `git filter-repo --path evals/corpus --invert-paths` 从主仓全历史移除并 force push（Task 24 Phase 0）。语料只在本地保留供 evals 使用。低并发别压服务器；法律风险归用户。
+  - **残留暴露（未闭合）**：两个 public fork（`Eacgh/llmlint`、`Otirik-handi/llmlint`）与主仓的 `refs/pull/1|2/head` 仍带完整语料，force push 触及不到它们。处置需要仓外动作（联系 fork 所有者 / GitHub support），见 Task 24 walkthrough。
 
 ## 代码位置
 
-acquire + curate 属**生成侧**。稳定位置在 `evals/`(`evals/acquire/` 脚本、`evals/corpus/` 语料、`evals/report/` 报告),**全部进 git(仓库私有阶段,含受版权保护的种子语料)**;转公开前须先移除或 gitignore `evals/corpus/`。
+acquire + curate 属**生成侧**。稳定位置在 `evals/`（`evals/acquire/` 脚本、`evals/corpus/` 语料、`evals/report/` 报告）。脚本进 git；`evals/corpus/` 与 `evals/report/` 已 gitignore，只在本地存在（语料因版权、报告因每跑必变）。

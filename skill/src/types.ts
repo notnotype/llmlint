@@ -85,18 +85,24 @@ export type RulesetManifest = {
 
 export type LintRuleRecord = DeclarativeRuleRecord | HandlerRuleRecord;
 
-/** 扫描域的文本层。narrative=成对引号外的叙述；dialogue=成对引号内（含【】面板）；all=全文。 */
-export type ScanScopeLayer = "narrative" | "dialogue" | "all";
+/** 扫描域的文本层。narrative=成对分隔符外的叙述；quoted=成对分隔符内（含分隔符）；all=全文。 */
+export type ScanScopeLayer = "narrative" | "quoted" | "all";
 
 /**
- * 扫描域：规则在哪一层文本、哪个位置窗口上生效。缺省 = 全文全域（向后兼容）。
+ * 扫描域：规则在哪一层文本、哪个位置窗口上生效。磁盘规则可省略，loader 归一为 all。
  * 不变量：fixability 为 auto/candidate 的规则必须是全文全域（loader 强制降级）——
- * narrative/dialogue 视图里引号段是等长 `。` 占位串，机械修复在派生视图上会写坏原文。
+ * narrative/quoted 视图是等长派生文本，机械修复在派生视图上会写坏原文。
  */
 export type ScanScope = {
     /** 文本层；缺省 = all。 */
     layer?: ScanScopeLayer;
-    /** 位置窗口：只在文首/文末 chars 个可见字符（按 narrative 层计）内生效。缺省 = 不限位置。 */
+    /** 位置窗口：只在当前 layer 的文首/文末 chars 个可见字符内生效。缺省 = 不限位置。 */
+    position?: {kind: "opening" | "ending"; chars: number};
+};
+
+/** loader 解析后的扫描域。Active 规则与公开输出始终显式携带 layer。 */
+export type ResolvedScanScope = {
+    layer: ScanScopeLayer;
     position?: {kind: "opening" | "ending"; chars: number};
 };
 
@@ -214,8 +220,8 @@ export type HandlerRuleRecord = BaseLintRuleRecord & {
     action: {type: "suggest"; message: string};
 };
 
-/** handler 契约：纯函数，输入扫描上下文，输出命中区间；不碰文件系统，浏览器可打包。 */
-export type RuleHandler = (ctx: ScanContext) => HandlerFinding[];
+/** handler 契约：纯函数，输入按规则 scope 解析后的上下文，输出原文命中区间。 */
+export type RuleHandler = (ctx: HandlerScanContext) => HandlerFinding[];
 
 export type HandlerFinding = {
     index: number;
@@ -225,17 +231,19 @@ export type HandlerFinding = {
 };
 
 /** loader 解析后的声明式规则：review / fixability 一定有值。 */
-export type ActiveDeclarativeRuleRecord = DeclarativeRuleRecord & {
+export type ActiveDeclarativeRuleRecord = Omit<DeclarativeRuleRecord, "scope"> & {
     ruleset: string;
     review: Review;
     fixability: Fixability;
+    scope: ResolvedScanScope;
 };
 
 /** loader 解析后的 handler 规则；fixability 恒为 manual。 */
-export type ActiveHandlerRuleRecord = HandlerRuleRecord & {
+export type ActiveHandlerRuleRecord = Omit<HandlerRuleRecord, "scope"> & {
     ruleset: string;
     review: Review;
     fixability: Fixability;
+    scope: ResolvedScanScope;
 };
 
 export type ActiveRuleRecord = ActiveDeclarativeRuleRecord | ActiveHandlerRuleRecord;
@@ -314,18 +322,40 @@ export type ScanContext = {
     content: string;
     /**
      * 三层等长视图：all 即原文引用（无拷贝）；narrative = 成对引号段（含引号）替换为等长 `。`；
-     * dialogue = 补集同法。换行符在所有视图中原样保留，`match.index` 与原文偏移一致。
+     * quoted = 补集同法。换行符在所有视图中原样保留，`match.index` 与原文偏移一致。
      * narrative 规则作者须知：引号段呈现为 `。` 串，规则模式不得依赖「数句号」类判断。
      */
-    layers: {all: string; narrative: string; dialogue: string};
+    layers: {all: string; narrative: string; quoted: string};
     /** markdown 结构遮罩（代码块/frontmatter/链接等）；命中起点落入即跳过。 */
     maskedRanges: MaskedRange[];
     /** 词级白名单区间；命中区间与之重叠即丢弃。 */
     ignoreRanges: MaskedRange[];
     /** 成对引号区间（含引号本身），行内配对；诊断/报告可复用。 */
-    dialogueRanges: MaskedRange[];
+    quotedRanges: MaskedRange[];
     /** 行切分结果；density(paragraph) 与 handler 复用，免逐个重算。 */
     lines: ScanLine[];
+};
+
+/** handler 的逐行紧凑投影。text 只含当前 layer 字符，map 可回到原文偏移。 */
+export type HandlerLineProjection = {
+    text: string;
+    map: number[];
+};
+
+/**
+ * 单条 handler 的执行上下文。view 与原文等长；projection 供统计/状态机跳过非当前层字符，
+ * allowsFinding 与 positionWindow 供 handler 和执行器统一守住 scope。
+ */
+export type HandlerScanContext = ScanContext & {
+    scope: ResolvedScanScope;
+    view: string;
+    positionWindow: MaskedRange | null;
+    /** position 检查起点，layer 检查完整 [start,end)；执行器会用它做第二次防御。 */
+    allowsFinding: (start: number, end: number) => boolean;
+    /** 从 start 生成不跨行、不跨 layer/Markdown 遮罩的连续短锚点。 */
+    shortAnchor: (start: number, maxCodePoints?: number) => MaskedRange | null;
+    projectLine: (line: ScanLine) => HandlerLineProjection;
+    layerRangesOfLine: (line: ScanLine) => MaskedRange[];
 };
 
 export interface Issue {
@@ -379,7 +409,7 @@ export type CheckSummary = {
 /**
  * 紧凑报告里的规则元数据：按 rule id 去重提到报告顶层，Agent 做「修 / 留 / 问」判断要用的字段全在这里。
  *
- * 剔除的是规则作者才需要的字段：`detector`（长正则）、`source.canonicalKey`、`scope`、`examples`、
+ * 剔除的是规则作者才需要的字段：`detector`（长正则）、`source.canonicalKey`、`examples`、
  * `enabled`、`ruleset`。它们在逐处内联时是 JSON 体积的主要来源，而对单轮审稿判断没有作用。
  * 需要完整形态时用 `check --rule-detail`。
  */
@@ -389,6 +419,7 @@ export type CompactRuleEntry = {
     level: RuleLevel;
     review: Review;
     fixability: Fixability;
+    scope: ResolvedScanScope;
     action: DeclarativeRuleRecord["action"];
     /** 规则整理留下的处理边界说明；缺省 = 该规则没有额外说明。 */
     note?: string;

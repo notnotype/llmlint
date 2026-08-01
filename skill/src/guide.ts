@@ -1,3 +1,4 @@
+import {createHash} from "node:crypto";
 import {ruleActionSummary} from "./reporter";
 import {ruleDetectorKind} from "./rule-registry";
 import type {ActiveRuleRecord, LoadedRules, RuleLevel} from "./types";
@@ -39,6 +40,20 @@ export const GUIDE_TIERS: GuideTier[] = ["core", "standard", "wide", "full"];
  * 没有 profile 时 core / wide 只按规则模型取，不假装有证据。
  */
 export type RuleVerdicts = Map<string, "strong" | "weak">;
+
+/** 一次 guide 注入的完整来源指纹；实验元数据以此拒绝档位、profile、规则或文本漂移。 */
+export type GuideProvenance = {
+    tier: GuideTier;
+    profileFingerprint: string | null;
+    selectedRuleFingerprint: string;
+    selectedRuleCount: number;
+    textFingerprint: string;
+};
+
+export type GuideArtifact = {
+    text: string;
+    provenance: GuideProvenance;
+};
 
 /** eval 报告里本模块唯一关心的形状；其余字段一概不读，避免和报告 schema 耦合。 */
 type ProfileReport = {
@@ -125,6 +140,8 @@ export function renderGuide(rules: ActiveRuleRecord[], tier: GuideTier, total: n
         "这不是禁令清单：如果某条写法在当前语境里承担剧情、人物声音、题材或载体功能，照写，",
         "不要为了绕开它牺牲语义或可读性。清单的作用是让你在无功能的默认写法上换一个选择。",
         "",
+        "未标注范围的规则默认适用全文；[叙述] 只约束成对分隔符外文本，[引号内] 只约束成对分隔符内文本。",
+        "",
     ];
 
     if (semantic.length > 0) {
@@ -133,7 +150,7 @@ export function renderGuide(rules: ActiveRuleRecord[], tier: GuideTier, total: n
         lines.push("这几条没有可稳定定位的词法特征，成稿检查也只能靠人或模型逐段读。写的时候就避开，代价最低。");
         lines.push("");
         for (const rule of sortByLevel(semantic)) {
-            lines.push(`- **${rule.title}**：${ruleActionSummary(rule)}`);
+            lines.push(`- **${guideRuleTitle(rule)}**：${ruleActionSummary(rule)}`);
             for (const example of rule.examples ?? []) {
                 // 对照例（hit=false）必须照样输出：只列反例会让模型连形近的正当写法一起躲开。
                 lines.push(example.hit ? `    - 别写成：${example.text}` : `    - 这样写没问题：${example.text}`);
@@ -146,7 +163,7 @@ export function renderGuide(rules: ActiveRuleRecord[], tier: GuideTier, total: n
         lines.push("## 写作原则");
         lines.push("");
         for (const rule of sortByLevel(principles)) {
-            lines.push(`- **${rule.title}**：${ruleActionSummary(rule)}`);
+            lines.push(`- **${guideRuleTitle(rule)}**：${ruleActionSummary(rule)}`);
         }
         lines.push("");
     }
@@ -189,7 +206,7 @@ function sortByLevel(rules: ActiveRuleRecord[]): ActiveRuleRecord[] {
 function groupByNamespace(rules: ActiveRuleRecord[]): string[] {
     const grouped = new Map<string, string[]>();
     for (const rule of rules) {
-        grouped.set(rule.namespace, [...(grouped.get(rule.namespace) ?? []), rule.title]);
+        grouped.set(rule.namespace, [...(grouped.get(rule.namespace) ?? []), guideRuleTitle(rule)]);
     }
     return [...grouped.entries()]
         .sort((left, right) => right[1].length - left[1].length || left[0].localeCompare(right[0]))
@@ -200,4 +217,49 @@ function groupByNamespace(rules: ActiveRuleRecord[]): string[] {
 export function buildGuide(loadedRules: LoadedRules, tier: GuideTier, verdicts: RuleVerdicts): string {
     const selected = selectGuideRules(loadedRules.rules, tier, verdicts);
     return renderGuide(selected, tier, loadedRules.rules.length, loadedRules.summary.rulesets);
+}
+
+/** 构建 guide 正文及其严格 provenance；profileProvided=false 时 profile 指纹固定为 null。 */
+export function buildGuideArtifact(loadedRules: LoadedRules, tier: GuideTier, verdicts: RuleVerdicts, profileProvided: boolean): GuideArtifact {
+    const selected = selectGuideRules(loadedRules.rules, tier, verdicts);
+    const text = renderGuide(selected, tier, loadedRules.rules.length, loadedRules.summary.rulesets);
+    const selectedIds = selected.map((rule) => rule.id).sort((left, right) => left.localeCompare(right));
+    return {
+        text,
+        provenance: {
+            tier,
+            profileFingerprint: profileProvided ? fingerprintRuleVerdicts(verdicts) : null,
+            selectedRuleFingerprint: fingerprintJson(selectedIds),
+            selectedRuleCount: selectedIds.length,
+            textFingerprint: fingerprintText(text),
+        },
+    };
+}
+
+/** profile 只取有效 strong/weak verdict，并按 ruleId 排序后哈希。 */
+export function fingerprintRuleVerdicts(verdicts: RuleVerdicts): string {
+    const entries = [...verdicts.entries()].sort(([left], [right]) => left.localeCompare(right));
+    return fingerprintJson(entries);
+}
+
+/** 对实际注入文本的 UTF-8 字节做 SHA-256。 */
+export function fingerprintText(text: string): string {
+    return `sha256:${createHash("sha256").update(text, "utf8").digest("hex")}`;
+}
+
+function fingerprintJson(value: ReadonlyArray<unknown>): string {
+    return fingerprintText(JSON.stringify(value));
+}
+
+function guideRuleTitle(rule: ActiveRuleRecord): string {
+    const labels: string[] = [];
+    if (rule.scope.layer === "narrative") {
+        labels.push("叙述");
+    } else if (rule.scope.layer === "quoted") {
+        labels.push("引号内");
+    }
+    if (rule.scope.position) {
+        labels.push(`${rule.scope.position.kind === "opening" ? "文首" : "文末"} ${rule.scope.position.chars} 字`);
+    }
+    return `${labels.map((label) => `[${label}]`).join("")}${rule.title}`;
 }

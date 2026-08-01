@@ -4,7 +4,7 @@
 
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](./LICENSE)
 [![Runtime: Node.js or Bun](https://img.shields.io/badge/Runtime-Node.js%20or%20Bun-green.svg)](#requirements)
-[![Version](https://img.shields.io/badge/version-2.0.1-green.svg)](./package.json)
+[![Version](https://img.shields.io/badge/version-3.0.0-green.svg)](./package.json)
 
 **[中文](./README.md) · English**
 
@@ -18,7 +18,7 @@ It has two faces that work together:
 
 | Layer | Role |
 | --- | --- |
-| **CLI** (this repo's `bin/llmlint.ts`) | Stable, reproducible **candidate location** via regex detectors. It tells you *where* something might be wrong. |
+| **CLI** (this repo's `bin/llmlint.ts`) | Stable, reproducible static checks via regex, density, and handlers, producing locatable candidates or statistical signatures. |
 | **Agent Skill** (`SKILL.md`) | An LLM/agent reads the candidates **in context**, scores the text, drafts a fix plan, and rewrites *only after you approve*. |
 
 The guiding principle: **a hit is a candidate, not a verdict.** The CLI never auto-rewrites your prose. Mechanical, judgment-free cleanups (invisible characters, ellipsis/em-dash tails) are the only thing `fix` touches; everything semantic stays with the human/agent.
@@ -69,7 +69,7 @@ Or expose the `llmlint` command on your PATH (declared in `package.json` `bin`):
 bun bin/llmlint.ts guide
 bun bin/llmlint.ts guide --tier full            # include every word swap and deletion entry
 
-# Locate regex candidates in a file (or directory — recurses .md/.markdown/.txt)
+# Scan static candidates in a file (or directory — recurses .md/.markdown/.txt)
 bun bin/llmlint.ts check manuscript/chapter-01.md
 bun bin/llmlint.ts check manuscript/
 
@@ -110,6 +110,10 @@ The default ruleset has only two context-free mechanical `auto` rules, no defaul
 
 A complete review runs both `check` (static hits for the agent) and `rules --detector semantic` (semantic rules).
 
+Each rule also has an author-defined `scope.layer`: `narrative` scans only prose outside paired delimiters, `quoted` scans only same-line text inside paired `「」`, `『』`, `“”`, `‘’`, or `【】` (including the delimiters), and `all` scans both layers. Omitting scope resolves to `all`; project config cannot override it. ASCII straight quotes, unclosed delimiters, and cross-line pairs do not enter `quoted`.
+
+Web browser scans and server-side MachineScan currently execute only regex+handler spans. Density remains visible in the rule registry but does not enter Web `hitsJson` or `docScore`. CLI `check` and Agent `lint_check` provide the complete regex+density+handler static scan.
+
 ## Configuration
 
 Most projects need **no config** — without `llmlint.config.ts`, llmlint loads `builtin/default` and a tuned namespace policy. When you do want to customize, drop a `llmlint.config.ts` anywhere up the directory tree (auto-discovered from the cwd):
@@ -139,7 +143,7 @@ See [`llmlint.config.example.ts`](./llmlint.config.example.ts) for a fully annot
 
 ## Built-in ruleset: `builtin/default`
 
-The official recommended ruleset — ~340 rule records across 40+ namespaces, merged from a hand-maintained anti-AI-slop set and curated Chinese rule samples (`shuorenhua` / `avoid-ai-writing` / `humanizer`).
+The official recommended ruleset — 360 rule records (266 enabled by default) across 71 namespaces, merged from a hand-maintained anti-AI-slop set and curated Chinese rule samples (`shuorenhua` / `avoid-ai-writing` / `humanizer`). Run `llmlint rules --format json` for live counts under your current config.
 
 - **agent bucket (shown by default):** `filler`, `opening.cliche`, `inflation.significance`, `transition.summary`, `attribution.vague`, `cliche.uplift`, `sycophantic`, `jargon.business`, …
 - **human bucket (high false-positive / author preference):** `punctuation.dash`, `metaphor`, `modifier`, `jargon.engineer`, `jargon.social`, `translationese`, `structure.fragment`, …
@@ -159,7 +163,13 @@ Exit codes follow the **visible view**: hits hidden by `--review` / `--min-level
 
 This repo is also a self-contained **Agent Skill**. `SKILL.md` defines a first-use dependency gate followed by a five-step local loop: `status` initialization → `check + detect` → combined report → approved delete/compress/rewrite repair plus one retest → ledger and local learning suggestions.
 
-Recommended install via the [`skills`](https://skills.sh) CLI — `npx skills add notnotype/llmlint --skill llmlint --full-depth` — which searches the repository recursively, installs the `llmlint` skill from `skill/`, and drops it into the agent's skills directory (e.g. `.claude/skills/llmlint/` or NeuroBook's `.nbook/agent/skills/llmlint/`). For manual installation, copy the repository's `skill/` directory and name it `llmlint/` in the target skills directory. On first activation, the agent must run `bun install --cwd "<skill-root>" --frozen-lockfile` in the catalog-provided skill root before entering the `status` initialization gate; later reviews reuse that installation. `package.json.version` is the skill version source of truth; it is not duplicated in `SKILL.md` frontmatter.
+Recommended install via the [`skills`](https://skills.sh) CLI — `npx skills add notnotype/llmlint --skill llmlint --full-depth` — which searches the repository recursively, installs the `llmlint` skill from `skill/`, and drops it into the agent's skills directory (e.g. `.claude/skills/llmlint/` or NeuroBook's `.nbook/agent/skills/llmlint/`). For manual installation, copy the repository's `skill/` directory and name it `llmlint/` in the target skills directory. On first activation, the agent must run `bun install --cwd "<skill-root>" --frozen-lockfile` in the catalog-provided skill root before entering the `status` initialization gate. Later reviews reuse it while the dependency fields and `bun.lock` contract remain valid and `node_modules` exists; version, prompt, rule, or source-only updates do not reinstall. `package.json.version` is the skill version source of truth; it is not duplicated in `SKILL.md` frontmatter.
+
+## Data sharing and privacy
+
+`contribute` and `detect` are separate data paths. `contribute` only writes tier-filtered records to the local `~/.llmlint/outbox/`; this version has no login, network send, or upload path. The `fragments` and `full` tiers keep only safe snapshot names from the round directory, never original absolute paths; `stats` keeps neither filenames nor free text. Only a complete output snapshot set may produce `outputHash` or enter full text; incomplete output degrades to fragments with a machine-readable `degradedReason`. Inspect entries with `contribute --list`, and withdraw them by deleting an entry or the outbox directory.
+
+`detect` does send uncached text chunks to the configured external detector, which defaults to an HF Space. Requests contain text chunks but no filename or project path. llmlint cannot control the remote service's logging or retention policy, and `sharing.off` only disables local contribution records; it does not disable `detect`. Do not run `detect` when text must stay on the local machine.
 
 ## Documentation
 

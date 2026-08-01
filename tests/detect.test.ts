@@ -1,8 +1,8 @@
-import {mkdir, mkdtemp, rm, writeFile} from "node:fs/promises";
+import {mkdir, mkdtemp, readdir, rm, utimes, writeFile} from "node:fs/promises";
 import {tmpdir} from "node:os";
 import {join} from "node:path";
 import {afterEach, describe, expect, it} from "vitest";
-import {detectCacheKey, readDetectCache, writeDetectCache} from "../skill/src/detect/cache";
+import {detectCacheKey, pruneDetectCache, readDetectCache, writeDetectCache} from "../skill/src/detect/cache";
 import {chunkBySentence, visibleLen} from "../skill/src/detect/chunk";
 import {aggregate, defaultDetectorOptions, toPAi, type DetectPayload} from "../skill/src/detect/transport";
 
@@ -98,6 +98,34 @@ describe("detect", () => {
 
         await writeFile(join(home, "cache", `${key}.json`), JSON.stringify({generatedAt: "now", payload: {kind: "bad"}}), "utf-8");
         expect(readDetectCache(key)).toBeNull();
+    });
+
+    it("cache 按保留期、条目数和总字节回收", async () => {
+        const home = await createHome();
+        const cache = join(home, "cache");
+        await mkdir(cache, {recursive: true});
+        const expired = join(cache, `${"a".repeat(64)}.json`);
+        const older = join(cache, `${"b".repeat(64)}.json`);
+        const newest = join(cache, `${"c".repeat(64)}.json`);
+        const ignored = join(cache, "owner.json");
+        await Promise.all([
+            writeFile(expired, "x".repeat(80), "utf-8"),
+            writeFile(older, "y".repeat(80), "utf-8"),
+            writeFile(newest, "z".repeat(80), "utf-8"),
+            writeFile(ignored, "owner", "utf-8"),
+        ]);
+        await utimes(expired, new Date("2026-05-01T00:00:00.000Z"), new Date("2026-05-01T00:00:00.000Z"));
+        await utimes(older, new Date("2026-06-27T10:00:00.000Z"), new Date("2026-06-27T10:00:00.000Z"));
+        await utimes(newest, new Date("2026-06-27T11:00:00.000Z"), new Date("2026-06-27T11:00:00.000Z"));
+
+        pruneDetectCache({
+            maxAgeMs: 30 * 24 * 60 * 60 * 1000,
+            maxEntries: 2,
+            maxBytes: 100,
+            nowMs: new Date("2026-06-28T12:00:00.000Z").getTime(),
+        });
+
+        expect((await readdir(cache)).sort()).toEqual([`${"c".repeat(64)}.json`, "owner.json"]);
     });
 
     async function createHome(): Promise<string> {

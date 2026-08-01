@@ -4,7 +4,7 @@ import {join, resolve} from "node:path";
 import {afterEach, describe, expect, it} from "vitest";
 import {loadConfig} from "../skill/src/config";
 import {computeMaskedRanges} from "../skill/src/markdown-mask";
-import {computeDialogueRanges, computeIgnoreTermRanges, computePositionWindow, overlapsRanges, prepareScanContext, splitScanLines, visibleLength} from "../skill/src/scan-context";
+import {computeIgnoreTermRanges, computePositionWindow, computeQuotedRanges, overlapsRanges, prepareScanContext, splitScanLines, visibleLength} from "../skill/src/scan-context";
 import {scanText, scanWithContext} from "../skill/src/scanner";
 import {loadRules} from "../skill/src/rules";
 import type {NormalizedLlmlintConfig, RegexRuleRecord, ScanScope} from "../skill/src/types";
@@ -23,7 +23,10 @@ function scopedRule(id: string, target: string, scope?: ScanScope): RegexRuleRec
         fixability: "manual",
         detector: {type: "regex", targets: [target]},
         action: {type: "suggest", message: id},
-        ...(scope ? {scope} : {}),
+        scope: {
+            layer: scope?.layer ?? "all",
+            ...(scope?.position ? {position: scope.position} : {}),
+        },
     };
 }
 
@@ -37,23 +40,31 @@ describe("scan-context", () => {
 
     it("成对引号行内配对，未闭合与跨行引号不遮罩", () => {
         const paired = prepareScanContext("「你好。」他说。");
-        expect(paired.dialogueRanges).toEqual([[0, 5]]);
+        expect(paired.quotedRanges).toEqual([[0, 5]]);
 
         const unclosed = prepareScanContext("「他说到一半");
-        expect(unclosed.dialogueRanges).toEqual([]);
+        expect(unclosed.quotedRanges).toEqual([]);
 
         const crossLine = prepareScanContext("「他说\n完了」");
-        expect(crossLine.dialogueRanges).toEqual([]);
+        expect(crossLine.quotedRanges).toEqual([]);
 
         // 错配的闭引号当普通字符忽略，未闭合的开引号在行尾丢弃。
         const mismatched = prepareScanContext("『好」的");
-        expect(mismatched.dialogueRanges).toEqual([]);
+        expect(mismatched.quotedRanges).toEqual([]);
+    });
+
+    it("quoted 支持五组有方向分隔符且拒绝 ASCII 直引号", () => {
+        const content = "甲「一」乙『二』丙“三”丁‘四’戊【五】己\"六\"庚'七'";
+        const ctx = prepareScanContext(content);
+        expect(ctx.quotedRanges.map(([start, end]) => content.slice(start, end))).toEqual(["「一」", "『二』", "“三”", "‘四’", "【五】"]);
+        expect(ctx.layers.quoted).not.toContain("六");
+        expect(ctx.layers.quoted).not.toContain("七");
     });
 
     it("嵌套引号取每一层配对并合并为外层区间", () => {
         const content = "「他说『好』了」之后。";
         const ctx = prepareScanContext(content);
-        expect(ctx.dialogueRanges).toEqual([[0, 8]]);
+        expect(ctx.quotedRanges).toEqual([[0, 8]]);
         expect(ctx.layers.narrative.slice(0, 8)).toBe("。。。。。。。。");
         expect(ctx.layers.narrative.slice(8)).toBe("之后。");
     });
@@ -63,26 +74,26 @@ describe("scan-context", () => {
         const maskedRanges = computeMaskedRanges(content);
         const ctx = prepareScanContext(content, {maskedRanges});
         const bodyStart = content.indexOf("「正文");
-        expect(ctx.dialogueRanges).toEqual([[bodyStart, bodyStart + 5]]);
+        expect(ctx.quotedRanges).toEqual([[bodyStart, bodyStart + 5]]);
     });
 
     it("三层视图与原文等长且换行保留", () => {
         const content = "叙述一。\n「对白。」\n叙述二。";
         const ctx = prepareScanContext(content);
         expect(ctx.layers.narrative.length).toBe(content.length);
-        expect(ctx.layers.dialogue.length).toBe(content.length);
+        expect(ctx.layers.quoted.length).toBe(content.length);
         expect(ctx.layers.all).toBe(content);
         // 换行符在两个派生视图中原样保留，行结构不破坏。
         expect(ctx.layers.narrative.split("\n").length).toBe(3);
-        expect(ctx.layers.dialogue.split("\n").length).toBe(3);
-        // narrative 视图里对白是占位；dialogue 视图里叙述是占位。
+        expect(ctx.layers.quoted.split("\n").length).toBe(3);
+        // narrative 视图里引号内文本是占位；quoted 视图里叙述是占位。
         expect(ctx.layers.narrative).toContain("叙述一。");
         expect(ctx.layers.narrative).not.toContain("对白");
-        expect(ctx.layers.dialogue).toContain("「对白。」");
-        expect(ctx.layers.dialogue).not.toContain("叙述");
+        expect(ctx.layers.quoted).toContain("「对白。」");
+        expect(ctx.layers.quoted).not.toContain("叙述");
     });
 
-    it("narrative 规则不扫对白，dialogue 规则只扫对白，命中 excerpt 取原文", () => {
+    it("narrative 规则不扫引号内文本，quoted 规则只扫引号内文本，命中 excerpt 取原文", () => {
         const content = "他不是不想去。\n「不是我干的。」他说。";
         const ctx = prepareScanContext(content);
 
@@ -91,9 +102,9 @@ describe("scan-context", () => {
         expect(narrativeIssues[0]!.line).toBe(1);
         expect(narrativeIssues[0]!.match).toBe("不是");
 
-        const dialogueIssues = scanWithContext(ctx, [scopedRule("d", "不是", {layer: "dialogue"})]);
-        expect(dialogueIssues).toHaveLength(1);
-        expect(dialogueIssues[0]!.line).toBe(2);
+        const quotedIssues = scanWithContext(ctx, [scopedRule("d", "不是", {layer: "quoted"})]);
+        expect(quotedIssues).toHaveLength(1);
+        expect(quotedIssues[0]!.line).toBe(2);
 
         const allIssues = scanWithContext(ctx, [scopedRule("a", "不是")]);
         expect(allIssues).toHaveLength(2);
@@ -126,8 +137,38 @@ describe("scan-context", () => {
         const content = "叙述。「很长很长的对白内容」尾";
         const ctx = prepareScanContext(content);
         // ending 2 个可见字：对白整段是占位不计数，窗口必须一直伸到「叙述」里。
-        const [start] = computePositionWindow(ctx, {kind: "ending", chars: 3});
+        const [start] = computePositionWindow(ctx, {layer: "narrative", position: {kind: "ending", chars: 3}});
         expect(start).toBeLessThanOrEqual(content.indexOf("述"));
+    });
+
+    it("position 窗口按当前 layer 计数，跳过结构/遮罩并按 Unicode 码点不切半", () => {
+        const content = "# 标题𠀀𠀀\n---\n𠀀甲乙";
+        const ctx = prepareScanContext(content, {maskedRanges: computeMaskedRanges(content)});
+        const opening = computePositionWindow(ctx, {layer: "narrative", position: {kind: "opening", chars: 2}});
+        expect(opening).toEqual([0, content.indexOf("乙")]);
+        // 第一个扩展汉字占两个 UTF-16 单元，但只算一个可见码点。
+        expect(opening[1] - content.indexOf("𠀀甲")).toBe(3);
+
+        const quoted = prepareScanContext("叙述。『甲乙』尾部");
+        const quotedOpening = computePositionWindow(quoted, {layer: "quoted", position: {kind: "opening", chars: 2}});
+        expect(quotedOpening[1]).toBe("叙述。『甲乙".length);
+    });
+
+    it("position 规则不命中计数时跳过的结构行", () => {
+        const content = "# 预告\n正文开场。\n结尾正文\n> 预告";
+        const ctx = prepareScanContext(content, {maskedRanges: computeMaskedRanges(content)});
+        const opening = scopedRule("opening.structural", "预告", {layer: "all", position: {kind: "opening", chars: 4}});
+        const ending = scopedRule("ending.structural", "预告", {layer: "all", position: {kind: "ending", chars: 4}});
+        expect(scanWithContext(ctx, [opening])).toHaveLength(0);
+        expect(scanWithContext(ctx, [ending])).toHaveLength(0);
+    });
+
+    it("scope 完整区间校验阻止 regex/density 穿过 quoted 边界", () => {
+        const content = "甲「乙」丙";
+        const ctx = prepareScanContext(content);
+        const cross = scopedRule("n.cross", "甲.*丙", {layer: "narrative"});
+        expect(scanWithContext(ctx, [cross])).toHaveLength(0);
+        expect(scanWithContext(ctx, [scopedRule("a.cross", "甲.*丙")])).toHaveLength(1);
     });
 
     it("结构行标记：markdown 结构与章节标题", () => {
@@ -209,6 +250,20 @@ describe("scan-context", () => {
         expect(loaded.rules.find((rule) => rule.id === "scoped-suggest")?.scope).toEqual({layer: "narrative"});
     });
 
+    it("loader 把省略 scope 的磁盘规则归一为 resolved all", async () => {
+        const loaded = await loadRules({
+            rulesets: ["builtin/default"],
+            trustedRulesets: [],
+            ignoreTerms: [],
+            rulesetOverrides: {},
+            namespaces: {},
+            rules: {},
+            output: "json",
+        });
+        expect(loaded.rules.every((rule) => ["all", "narrative", "quoted"].includes(rule.scope.layer))).toBe(true);
+        expect(loaded.rules.find((rule) => rule.id === "filler-worth-noting")?.scope).toEqual({layer: "all"});
+    });
+
     it("scope 校验拒绝非法 layer 与非正整数 chars", async () => {
         const rulesetId = "test-scan-scope-invalid";
         const root = join(RULESETS_ROOT, rulesetId);
@@ -221,7 +276,7 @@ describe("scan-context", () => {
                 namespace: "test",
                 title: "bad",
                 level: "low",
-                scope: {layer: "quoted"},
+                scope: {layer: "dialogue"},
                 detector: {type: "regex", targets: ["a"]},
                 action: {type: "suggest", message: "x"},
             },
@@ -235,7 +290,7 @@ describe("scan-context", () => {
             rules: {},
             output: "stylish",
         };
-        await expect(loadRules(config)).rejects.toThrow(/layer/);
+        await expect(loadRules(config)).rejects.toThrow(/narrative、quoted 或 all/);
     });
 
     it("llmlint.config.ts 的 ignoreTerms 进入归一配置，非法值报错", async () => {
@@ -251,8 +306,8 @@ describe("scan-context", () => {
         await expect(loadConfig({cwd: badRoot})).rejects.toThrow(/ignoreTerms/);
     });
 
-    it("computeDialogueRanges 直接消费行切分结果", () => {
+    it("computeQuotedRanges 直接消费行切分结果", () => {
         const lines = splitScanLines("甲「乙」丙【丁】");
-        expect(computeDialogueRanges(lines, [])).toEqual([[1, 4], [5, 8]]);
+        expect(computeQuotedRanges(lines, [])).toEqual([[1, 4], [5, 8]]);
     });
 });

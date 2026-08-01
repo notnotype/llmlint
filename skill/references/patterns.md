@@ -237,7 +237,7 @@ builtin/default 在原有规则上扩充了一批成体系的中文 regex 规则
 - `cliche` 套词密度、`metaphor` 比喻密度、`explanation.chain` 解释链密度、`abstraction.hollow` 抽象总结复读。
 - `rhythm.micro-action` 微动作复读、`rhythm.action-list` 动作清单、`rhythm.period-stutter` 碎句号。
 - `rhythm.overcompressed` 过度精炼、`rhythm.low-connective` 低连接密度，误杀风险较高，默认 human 桶。
-- `register.notice` 系统公告公文腔，扫 `【】` 等 dialogue 层载体。
+- `register.notice` 系统公告公文腔，扫 `【】` 等 quoted 层载体。
 
 这些规则的修法遵循：删除优先，减少结构总量，不做同义词轮换；复测一轮后停止。
 
@@ -247,7 +247,7 @@ builtin/default 在原有规则上扩充了一批成体系的中文 regex 规则
 
 - `all`：全文全域，缺省值。
 - `narrative`：成对引号外叙述层。引号片段会在扫描视图中替成等长 `。`，所以 `match.index` 与原文 offset 一致，excerpt 仍取原文。
-- `dialogue`：成对引号和 `【】` 面板内文本。
+- `quoted`：同一行内成对的 `「」`、`『』`、`“”`、`‘’`、`【】`（含分隔符）；不配对 ASCII 直引号、未闭合或跨行分隔符。
 
 `narrative` 占位视图的硬语义：规则不得依赖“数句号”或“连续句号长度”。占位句号的作用是让 `[^。，]` 一类字符类自然截断跨引号假命中；需要句长、密度、短句 run 时应写 `density` 或 handler。
 

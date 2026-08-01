@@ -4,7 +4,17 @@
   "promptVersion": {
     "render": "render-v2"
   },
-  "guideTier": "standard",
+  "validity": {
+    "status": "invalid",
+    "reason": "delivery-arm 旧批次的 toolresult 臂漏传 --profile，实际 guide 规则集合与 sysprompt 臂不一致。"
+  },
+  "guide": {
+    "tier": "standard",
+    "profileFingerprint": "sha256:b54f839131a065419cbde73389537b0c103144535f63068240bd855f5e4e698b",
+    "selectedRuleFingerprint": "sha256:555c7194a12ee4372ca5bdd2235bf5cb16634aa0dc34f6db2400b7d2bb9c85e6",
+    "selectedRuleCount": 71,
+    "textFingerprint": "sha256:ad938e8afebc2d207f51d178eef420f02e3c0e019faa3d9a2bfb0c3ef67f8a92"
+  },
   "samples": [
     {
       "file": "render-0001-opus5-control.md",

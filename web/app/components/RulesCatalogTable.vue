@@ -75,13 +75,25 @@ function profileExclusionLabel(row: RuleCatalogRow): string {
     return t("rules.profileOverlap", {canonical: exclusion.canonicalRuleId ?? ""});
 }
 
-/** 正则规则的匹配模式列表；语义规则返回 null（模板据此切换为 prompt 概要）。 */
-function regexTargets(row: RuleCatalogRow): string[] | null {
-    return row.rule.detector.type === "semantic" ? null : row.rule.detector.targets;
+/** 各静态判据的可读入口；语义规则返回 null（模板据此切换为 prompt 概要）。 */
+function detectorPatterns(row: RuleCatalogRow): string[] | null {
+    if ("handler" in row.rule) {
+        return [`builtin: ${row.rule.handler.name}`];
+    }
+    if (row.rule.detector.type === "semantic") {
+        return null;
+    }
+    if (row.rule.detector.type === "density") {
+        return row.rule.detector.patterns.map((pattern) => pattern.target);
+    }
+    return row.rule.detector.targets;
 }
 
 /** 语义规则的判定说明概要（压空白 + 截断 240 字）；正则规则返回 null。 */
 function semanticPromptSummary(row: RuleCatalogRow): string | null {
+    if ("handler" in row.rule) {
+        return null;
+    }
     if (row.rule.detector.type !== "semantic") {
         return null;
     }
@@ -131,6 +143,7 @@ function fmtFrac(value: number): string {
                             <!-- 规则名称 + 类型徽标（R3：LLM 规则 / 有替换 / 仅检测） -->
                             <div class="flex flex-wrap items-center gap-1.5">
                                 <span class="font-medium">{{ row.rule.title }}</span>
+                                <ScopeBadge :scope="row.rule.scope" />
                                 <span class="rounded px-1.5 py-0.5 text-[11px]" :class="categoryBadgeOf(row).cls">{{ t(categoryBadgeOf(row).labelKey) }}</span>
                                 <span v-if="row.profileExclusion" class="rounded border border-[var(--status-warning)] bg-[var(--bg-hover)] px-1.5 py-0.5 text-[11px] text-[var(--status-warning)]" :title="profileExclusionLabel(row)">{{ t("rules.profileExcluded") }}</span>
                             </div>
@@ -163,16 +176,17 @@ function fmtFrac(value: number): string {
                             <div class="space-y-3 text-sm">
                                 <div class="flex flex-wrap items-center gap-2">
                                     <DimensionBadges :rule="row.rule" />
+                                    <ScopeBadge :scope="row.rule.scope" />
                                     <span class="font-mono text-xs text-[var(--text-muted)]">{{ row.rule.namespace }} · {{ row.rule.ruleset }}</span>
                                 </div>
                                 <p v-if="row.rule.note" class="rounded-md bg-[var(--bg-panel)] p-2 text-sm text-[var(--text-secondary)]">{{ row.rule.note }}</p>
                                 <p v-if="row.profileExclusion" class="rounded-md border border-[var(--status-warning)] bg-[var(--bg-hover)] p-2 text-sm text-[var(--status-warning)]">{{ profileExclusionLabel(row) }}</p>
 
                                 <!-- 匹配模式（正则 targets）；LLM 规则改为提示词概要 + 未参与静态扫描注记 -->
-                                <section v-if="regexTargets(row) !== null">
+                                <section v-if="detectorPatterns(row) !== null">
                                     <h4 class="text-xs font-medium text-[var(--text-muted)]">{{ t("ruleDetail.pattern") }}</h4>
                                     <ul class="mt-1 space-y-1">
-                                        <li v-for="(target, index) in regexTargets(row) ?? []" :key="index" class="overflow-x-auto rounded bg-[var(--bg-panel)] p-1.5 font-mono text-xs">{{ target }}</li>
+                                        <li v-for="(target, index) in detectorPatterns(row) ?? []" :key="index" class="overflow-x-auto rounded bg-[var(--bg-panel)] p-1.5 font-mono text-xs">{{ target }}</li>
                                     </ul>
                                 </section>
                                 <section v-else>

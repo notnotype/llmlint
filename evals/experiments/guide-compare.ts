@@ -18,10 +18,11 @@ import {loadCorpus, visibleLength} from "../lib/corpus";
 import {scanAll} from "../lib/scan";
 import {detectorCacheKey, type DetectorScoresFile} from "../detector/scores";
 import {loadRules} from "../../skill/src/rules";
-import {selectGuideRules, GUIDE_TIERS, parseRuleVerdicts, type GuideTier, type RuleVerdicts} from "../../skill/src/guide";
+import {buildGuideArtifact, selectGuideRules, GUIDE_TIERS, parseRuleVerdicts, type GuideTier, type RuleVerdicts} from "../../skill/src/guide";
 import type {Sample, SampleScan} from "../lib/types";
+import {verifyExperimentGuide} from "./arm-corpus";
 
-const DEFAULT_ARM_CORPUS = join(import.meta.dir, "guide-arm");
+const DEFAULT_ARM_CORPUS = join(import.meta.dir, "guide-arm-v3");
 const DEFAULT_MAIN_CORPUS = join(import.meta.dir, "..", "corpus");
 
 /**
@@ -56,6 +57,16 @@ async function run(opts: {arm: string; main: string; tier: string; profile?: str
     const tier = resolveTier(opts.tier);
     const arms = resolveArms(opts.arms);
     const armRoot = resolve(opts.arm);
+
+    // 扫描样本之前先重建 guide 并严格核对 meta，防止档位/profile/规则/文本漂移静默改写注入集合。
+    const loaded = await loadRules({rulesets: ["builtin/default"], trustedRulesets: [], rulesetOverrides: {}, namespaces: {}, rules: {}, ignoreTerms: [], output: "json"});
+    let verdicts: RuleVerdicts = new Map();
+    if (opts.profile !== undefined) {
+        verdicts = parseRuleVerdicts(readFileSync(resolve(opts.profile), "utf-8"));
+    }
+    const guide = buildGuideArtifact(loaded, tier, verdicts, opts.profile !== undefined);
+    verifyExperimentGuide(armRoot, guide.provenance);
+
     const {samples, warnings} = loadCorpus(armRoot);
     for (const warning of warnings) {
         console.log(`⚠ ${warning}`);
@@ -65,12 +76,7 @@ async function run(opts: {arm: string; main: string; tier: string; profile?: str
         throw new Error(`实验语料里没有 render 样本：${armRoot}（先跑 guide-arm.ts 生成）`);
     }
 
-    // 注入集合：完全复用 guide 的档位选择逻辑，避免这里重新实现一遍导致口径漂移。
-    const loaded = await loadRules({rulesets: ["builtin/default"], trustedRulesets: [], rulesetOverrides: {}, namespaces: {}, rules: {}, ignoreTerms: [], output: "json"});
-    let verdicts: RuleVerdicts = new Map();
-    if (opts.profile !== undefined) {
-        verdicts = parseRuleVerdicts(readFileSync(resolve(opts.profile), "utf-8"));
-    }
+    // 注入集合继续复用 guide 档位选择逻辑；provenance 已证明它与生成时一致。
     const injectedIds = new Set(selectGuideRules(loaded.rules, tier, verdicts).map((rule) => rule.id));
     console.log(`注入档位 ${tier}：${injectedIds.size} 条规则进提示词，${loaded.rules.length - injectedIds.size} 条留出\n`);
 

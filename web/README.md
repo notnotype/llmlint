@@ -1,16 +1,16 @@
 # llmlint web
 
-llmlint 的 web 站：**浏览器本地 AI 味检测** + **判定数据（category ③）采集站**。
+llmlint 的 web 站：**浏览器本地规则高亮** + **判定数据（category ③）采集站**。
 
-- 支持配置式鉴权（见下「鉴权」节）：开发环境默认关闭登录，生产默认开启；`/` 重定向到 `/contribute`——唯一「检测」入口；`/rules`（规则数据页，Task 15）、`/report`、`/dataset` 照旧；playground 编辑器迁至 `/playground`（调试用，不进导航）。检测逻辑只在浏览器跑（`ssr:false` + 复用 `../skill/src` 引擎）。
+- 支持配置式鉴权（见下「鉴权」节）：开发环境默认关闭登录，生产默认开启；`/` 重定向到 `/contribute`——唯一「检测」入口；`/rules`（规则数据页，Task 15）、`/report`、`/dataset` 照旧；playground 编辑器迁至 `/playground`（调试用，不进导航）。浏览器本地高亮复用 `../skill/src` 引擎；持久化机器结果仍由服务器计算。
 - `/contribute` 免登录承载**版本化检测工作台**（[Task 15](../docs/tasks/15-detection-workbench/README.md)；采集语义与数据模型仍以 [METHODOLOGY §2.3](../evals/METHODOLOGY.md) 五步权威流程与 [Task 13](../docs/tasks/13-web-five-step-flow/README.md) 为准，落位见 Task 15「采集点落位表」）——`draft → workspace → done` 三态：
   - **draft**：上传 + 自报（题材/体裁/作品名，全可选）+ 「我的检测历史」列表（点开恢复到工作台继续）。
   - **workspace**：左=head 编辑器（规则命中高亮、机械修复、diff 审阅）或旧版只读正文；右=三维检测报告、命中列表、持久化 Agent。报告顶部并列规则引擎/外部检测/LLM Agent 三张“AI 痕迹风险”卡，越高越可疑、颜色越偏红；外部与 LLM 可真实取消、失败重试。综合风险按 30%/45%/25% 作为次级参考，缺失通道重新归一。同一线性 Revision lineage 复用一个 Agent Session，选区以引用附件进入 composer，每个 invocation 最多 64 轮，编辑次数没有业务上限。
   - **done**：总结卡。
-- 机器信号**一律服务器计算写入**（上传/建修订即扫、先算后藏）；浏览器本地扫描只作行内高亮展示层。
+- 机器信号**一律服务器计算写入**（上传/建修订即扫、先算后藏）；浏览器本地扫描只作行内高亮展示层。两条 Web 路径当前都只执行 regex+handler 的 span 扫描，不执行 density；完整 regex+density+handler 静态检查由 CLI 和 Agent `lint_check` 提供。
 - Agent Harness 通过 `AgentHarnessPort` 接入，唯一实现是公开包 `@notnotype/neuro-agent-harness@0.1.0`。llmlint 提供 Prisma SessionStore、Pi ModelRuntime、Profile、MachineLlmReviewProjector 和 SSE Adapter；Core 不认识 Prisma、Pi 或业务表。
 - 采集到的是**判定标签**，喂评测第②层与规则精度，**永不进 lift**（见根 [CONTEXT.md](../CONTEXT.md) 不变量 D1–D5）。
-- `/rules`：规则目录页——registry 全部 303 条 regex 规则 join 构建期烘焙的评测统计（verdict 徽标/effectiveLift/两侧命中率，effectiveLift 预排），verdict 筛选 + 搜索 + 行展开详情（正则/示例/lift 明细）+ 分页；评测 report 缺失时降级注明。
+- `/rules`：规则目录页——registry 的 360 条规则超集（266 条默认 active，含 regex/density/handler/semantic）join 构建期烘焙的评测统计（verdict 徽标/effectiveLift/两侧命中率，effectiveLift 预排），支持 verdict 筛选、搜索、展开详情和分页；评测 report 缺失时降级注明。目录展示某条 density 规则不代表 Web 扫描会执行它。
 
 ## 栈
 
@@ -37,7 +37,7 @@ bun run dev                   # 预烘 registry/report 后起 nuxt dev
 - `Revision`：修订谱系脊。`ordinal`（0=原文）、`parentId` 软指针血缘、`transitionKind`（upload/static_fix/llm_fix/user_fix）、`revealedAt`（机器结果首次揭示时刻，服务器写、幂等；**blind 判定唯一依据**）。
 - `DocJudgment`：`@@unique(userId, revisionId)`，四轴全可选至少一项（aiFlavor/wantReadOn/improvementScore/comment）；`improvementScore` 仅对有 parent 的修订合法；整行覆盖语义；`blind` = 写入时 `revealedAt` 仍为 null。
 - `SpanAnnotation`：span 挂 revision 坐标（UTF-16），note 原样存（D3）。
-- `MachineScan`：llmlint 引擎扫描（`@@unique(revisionId, engineVersion)`，hitsJson + docScore）；`MachineDetect`：外部 AIGC 检测器（HF gradio，服务端异步写；docPAi/maxPAi + chunksJson 热力图槽位）。两者**仅服务器写**。
+- `MachineScan`：llmlint regex+handler span 扫描（`@@unique(revisionId, engineVersion)`，hitsJson + docScore；当前不含 density）；`MachineDetect`：外部 AIGC 检测器（HF gradio，服务端异步写；docPAi/maxPAi + chunksJson 热力图槽位）。两者**仅服务器写**。
 
 DTO 校验见 `server/utils/dto.ts`：客户端不可提交 `id`/时间戳/`charCount`/`originKind`/`*Source`/`uploaderId`/`userId`/`blind`——全服务端设；`genre/textType` 白名单单源 `evals/lib/taxonomy.ts`（alias `evals`）。
 
@@ -78,7 +78,7 @@ DTO 校验见 `server/utils/dto.ts`：客户端不可提交 `id`/时间戳/`char
 
 ## 构建期预烘
 
-- `scripts/build-registry.ts` → `app/data/registry.json`：规则 + `engineVersion`（包版本+规则内容 hash，服务端 MachineScan 落库同源）+ `ruleVerdicts` + 版本化 **`creativeProfile`**。`creative-writing@1` 在构建期消费 `evals/report/report.json`：排除 noise/anti 与稳定重复规则，并为排除项记录原因和 canonical rule；report 缺失时保留全量 verdict 候选，但重复规则抑制仍生效。服务端 LLM 改写直接消费 `creativeProfile.includedRuleIds`，不再自行解释 verdict。MachineScan/raw eval 与规则页仍保留完整规则超集。机械修复只吃真正的 `fixability:auto`；默认 semantic replace 为 manual。
+- `scripts/build-registry.ts` → `app/data/registry.json`：完整规则 catalog + 默认 active 的分类型列表 + `engineVersion`（包版本+规则内容 hash，服务端 MachineScan 落库同源）+ `ruleVerdicts` + 版本化 **`creativeProfile`**。`creative-writing@1` 在构建期消费 `evals/report/report.json`：排除 noise/anti 与稳定重复规则，并为排除项记录原因和 canonical rule；report 缺失时保留全量 verdict 候选，但重复规则抑制仍生效。服务端 LLM 改写直接消费 `creativeProfile.includedRuleIds`，不再自行解释 verdict。规则页与 raw eval 保留完整规则超集；MachineScan 只消费其中的 regex+handler span 子集。机械修复只吃真正的 `fixability:auto`；默认 semantic replace 为 manual。
 - `scripts/build-registry.ts` 同次 → `app/data/rules-report.json`（Task 15，gitignored）：per-rule 全量判别统计（verdict/effectiveLift/两侧命中率/配对明细/byModel/byGenre，已按 effectiveLift 预排），供 `/rules` 页按 ruleId join 规则本体；report 缺失时写空降级产物（`source: null, rules: []`），页面据此注明评测数据缺失。
 - `scripts/build-report.ts` → `public/report.json`：报告页内置示例。
 

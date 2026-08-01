@@ -42,11 +42,19 @@ bun install --frozen-lockfile
 
 Agent 实际运行时优先使用 SkillCatalog 提供的绝对 skill root；宿主只提供 `SKILL.md` locator 时使用其父目录，不依赖 `.nbook`、`.claude`、`.codex` 等固定安装目录。Skill 版本以 `skill/package.json.version` 为准。
 
-`SKILL.md` 会把这一步作为 `status` 之前的依赖门；同一份安装后续使用无需每轮重复执行。
+`SKILL.md` 会把这一步作为 `status` 之前的依赖门；只要依赖字段与 `bun.lock` 的合同仍有效且 `node_modules` 存在，后续使用直接复用。单纯版本、提示词、规则或源码更新不触发重装。
 
 ### 配置
 
 依赖安装完成后无需额外配置，引擎与规则即可使用；CLI 参数、输出格式与 JSON schema 见 [`skill/references/cli-usage.md`](./skill/references/cli-usage.md)。
+
+### 数据与隐私
+
+`contribute` 只写本机发件箱，当前版本不上传；`detect` 是独立的外部检测链路，会把未缓存正文块发送到配置服务（默认 HF Space），但不发送文件名或项目路径。`sharing.off` 不会关闭 `detect`，远端日志与保留策略也不受 llmlint 控制。完整分档和撤回方式见 [`skill/README.md#数据共享与隐私`](./skill/README.md#数据共享与隐私)。
+
+### Web 扫描边界
+
+浏览器本地检测与服务端 MachineScan 当前只执行 regex+handler 的可定位 span 扫描；density 规则会显示在规则目录，但不会进入 Web 的 `hitsJson` 或 `docScore`。需要完整 regex+density+handler 静态检查时使用 CLI `check` 或 Agent `lint_check`。
 
 ### 启动
 

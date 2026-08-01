@@ -1,6 +1,6 @@
-# Rule Curation Open Questions
+# Rule Curation Decisions
 
-> 目的：规则系统精简时，凡是我无法靠现有 eval / overlap / 许可边界直接判断的事项，先集中记录在这里，最后一次性交给用户拍板。
+> 目的：记录默认规则库整理的证据与用户治理决策。原待决项已于 2026-07-31 统一拍板；后续调整按本文件执行，不再把这些问题重复当成开放项。
 
 ## 已按证据处理
 
@@ -56,56 +56,15 @@
   定量上 `trailing-simile-clause` 的富集（5.3x）高于两条已在 agent 桶的规则，但真人侧文档命中率 23% / 35% 是当前 agent 桶全部规则（0–8%）的 3–9 倍。定性证据更决定性：真人侧命中几乎全是出版小说里承担信息的有效比喻——「犹如拗口令一般」「如是玩物一般」（天龙八部）、「仿佛是西瓜爆炸一般」（无限恐怖）、「仿佛在看讲述维多利亚时期故事的英剧」（诡秘之主，承担时代设定）。决策口径要求「真人命中形态可辨为装饰性」，此条不成立，因此不提回 `agent`。
 - 2026-07-26：复算顺带发现并修掉一处**规则越界**：`cn.metaphor.trailing-simile-clause` 的 detector 用无上界 `[一-鿿、]+`，会把「，像自己这样坐两个小时地铁到市中心已经能算是她半年以来出过最远的一次远门了」这类 40 字解释性长从句当成「尾部比喻壳」。加 `{2,20}` 上界后真人命中 8→7、真人侧文档 23%→19%、富集 5.3x→5.8x，AI 召回只降 3%（207→201）。规则仍留在 `human`，但 `--review all` 的信号质量提升——这在本轮把 `--review all` 定为创作类主路径后更重要。三条规则的 `note` 都已写入本轮证据与处理边界。
 
-## 待用户拍板
+## 用户决策（2026-07-31）
 
-1. **story-oracle 来源与许可边界**
-   - 当前仓库只有 `skill/references/repair-guide.md` 中已经重述过的 story-oracle 原则，没有可校验原始来源或 LICENSE。
-   - 建议：继续只吸收原则，不搬原文、不按其原文新增具体规则；如果用户能提供合法来源和许可，再进入规则导入评估。
-
-2. **ASCII 直引号是否纳入引号分域**
-   - 当前 `ScanContext` 明确不配对 `"` / `'`，原因是中文正文里直引号无方向性，容易误配。
-   - 新增 `story-deslop.quote-emphasis` 只消费现有中文成对引号：`「」` / `『』` / `“”` / `‘’` / `【】`。
-   - 待确认：是否要为英文直引号另做保守状态机，或继续要求中文小说规则只处理成对中文引号。
-
-3. **复读 / 截断退化检测是否进入 llmlint**
-   - story-deslop 的 `check-degeneration.js` 包含复读打转、末尾截断、占位符、工程词泄漏。
-   - 当前已吸收工程词泄漏；复读/截断更像生成器质量门或后处理守门，不一定属于“AI 味规则”默认集合。
-   - 待确认：放入 builtin handler、仅作为 `detect/check` 之外的生成退化 smoke，还是暂不做。
-
-4. **creative overlap / canonical 分工是否作为长期策略**
-   - 本轮已把 creative profile 里稳定 overlap 的旧规则同步为默认 `enabled:false`，并继续按“保留更具体或 canonical 的规则、收窄旧规则”把当前 dataset 的 active 同 span regex overlap 清到 0。
-   - 已处理结果不代表全语料永远无 overlap；规则资产仍保留，项目可显式开启。
-   - 待确认：后续是否固定采用“稳定重叠且有 canonical 替代 → 默认收窄或关闭旧规则、不物理删除资产”的整理策略。
-
-5. **人工桶后的规则级例外是否要提回 Agent**
-   - 本轮已把 `vocabulary.body`、`vocabulary.r18`、`vocabulary.academic-anatomy`、`color-description`、`sound.once`、`jargon.business`、`regex.advanced` 默认下沉 `human`；`cn.regex.advanced.few-degree` 的 Agent 例外已因扩充 dataset 反证撤回。
-   - 待确认：是否把 `vocabulary.body.flesh-skin` / `back-spine` / `mouth-corner`、`sound.once.laugh-one-sound` 等 weak 但人类命中低的规则级例外提回 `agent`，还是继续把这些题材词表留给人工复核。
-
-6. **LLM 金句感是否继续打扰 Agent**
-    - 本轮已将宽泛 regex 入口继续下沉：`filler-worth-noting`、开场普通连接词、`transition-summary-essence` 和旧单层否定对比不再进入默认 Agent 桶。
-    - 当前仍保留在 `agent` 的同类高语义规则主要是 LLM 版 `quotable-punchline`。因为它不是裸 regex，而是要求读上下文判断“是否只剩姿态”，我暂未机械下沉。
-    - 待确认：LLM 版金句感是否继续作为默认 Agent 审查项，还是也转为 `human`。
-
-7. **剩余 Agent 桶 insufficient 规则是否按策略统一下沉**
-    - 当前仍保留在 `agent` 且旧报告 verdict 为 `weak` / `insufficient` 的主要是 story-deslop 的少量 high blocking 校准规则，以及已二次收窄后的 `cn.cliche.trailing-sensory-clause`。
-    - 我没有继续硬改的原因：story-deslop blocking 有独立真人校准来源；`trailing-sensory-clause` 当前已降到 render 10 / reference 0，只保留抽象情绪/气质/语气尾巴，暂未形成转 `human` 的反证。
-    - 待确认：后续是否采用机械策略“verdict=insufficient 且无 blocking 校准来源 → 默认 `human`”，还是继续允许少量语义明确但样本支持不足的规则留在 `agent`。
-
-8. **story-deslop 否定连排是否继续 high blocking**
-    - 当前 dataset 继续收窄后，reference 误杀暂为 0，AI 文本剩 2 处典型命中。
-    - 已处理的确定问题：后接“只有/只是/只会”的同 span 场景已排除，避免和 `story-deslop.negation-parade.only-turn` 重复；后接“然而/但/却”的真实转折也已排除。
-    - 我没有直接下沉的原因：这是 story-deslop high blocking 校准规则，原校准集 0 人类命中；当前语料支持偏少，但没有形成反证。
-    - 待确认：是否继续保持 `high + agent`，还是进一步收窄为只处理否定后转入抽象总结/情绪结论的结构。
-
-9. **强判别规则的人类侧少量命中是否接受**
-    - 当前默认 Agent 桶在 dataset reference 侧仍命中的规则只剩三条：`cn.cliche.baguwen.vague-amount-noun`（reference 2 / render 125）、`story-deslop.not-is-comparison`（reference 2 / render 53）和 `cn.proliferation.mixed.repeated-de-pairs`（reference 1 / render 163）。
-    - `vague-amount-noun` 的 reference 命中是“是一股陌生的摩挲拉拽感”和“藏着一股玩味的笑意”；这类“一股”在真人小说里并非不可用，但在 render 中高频变成情绪/气息/压力的泛化量词。
-    - `not-is-comparison` 的 reference 命中来自镜像视觉辨认和世界观事实辨析；这类“不是 A，而是 B”有真实语义功能，但继续硬加“自己/古代遗留”等字面特例会让 handler 变脆，暂未修改。
-    - `repeated-de-pairs` 的 reference 命中是“鲁莽的、缺乏手段的、不考虑后果的”，属于真实排比强化；render 中大量命中是“陌生的、昏暗的 / 冰冷的、混乱的、令人...”式堆叠形容。
-    - 待确认：是否接受这类强判别规则保留少量人类侧命中，交 Agent 读上下文判断；还是把它们转 `human` / 增加更强结构条件，牺牲一部分 AI 文本召回。
-
-10. **剩余高频 human 桶是否继续激进收窄**
-    - 本轮已把 `extra-punctuation`、裸破折号替逗号、商业黑话裸词、`stacked-degree-adverbs` 的低信号/重复分支、`specific-measure-word` 的“这种/那种”、重复感叹/问号、总结/通胀/绝对词和瞬时反应等低信号 human regex 默认关闭或收窄；当前 active human 中只有 `story-deslop.action-list` 的 reference 命中不低于 render（1 / 0）。
-    - 剩余高频 human 规则仍包括：`cn.modifier.stacked-degree-adverbs`、`cn.modifier.measure.specific-measure-word`、`cn.metaphor.trailing-simile-clause`、`cn.metaphor.simile-modifier-shell`、`story-deslop.quote-emphasis`、`sound.once` 词表等。
-    - 我没有继续硬改的原因：这些规则的 render 偏高仍有价值，但 reference 命中多是正常小说表达，例如“一道轨迹/一层光/一点细节”、有效比喻和功能性动作编排；继续收窄需要更明确的产品取舍。
-    - 待确认：`--review all` 是否要偏“干净列表”（继续默认关闭/大幅收窄这些 human 规则），还是偏“素材雷达”（保留 high-recall human advisory，让编辑器和人工判断承担噪声）。
+1. **story-oracle 只吸收原则。** 没有可校验来源与许可时，不搬原文、不据此导入具体规则；将来拿到合法来源后再单独评估。
+2. **不支持 ASCII 直引号分域。** `quoted` 只认 `「」`、`『』`、`“”`、`‘’`、`【】`；无方向性的 `"` / `'` 不进入配对状态机。
+3. **复读 / 截断以后做独立完整性 smoke。** 它们不混进本轮 AI 味默认规则库；本轮也不实现新 smoke。
+4. **canonical 消重是长期策略。** 稳定重叠且有 canonical 替代时，只收窄或默认关闭旧规则，不物理删除资产，保留项目显式启用能力。
+5. **弱词表留在 `human`。** `vocabulary.body`、`sound.once` 等题材词表不因低真人命中就提回默认 Agent 入口。
+6. **语义金句感留在 `agent`。** 保留 `quotable-punchline` 的上下文判断，不恢复已下沉的宽泛 regex 入口。
+7. **`insufficient` 逐条校准。** 不采用“无 support 一律下沉”的机械策略；结合独立校准、语义边界、真人反证和命中形态逐条决定。
+8. **否定连排维持 `high + agent`。** 继续保留现有 blocking 校准与已经收窄的排除条件；出现新反证时再收窄。
+9. **接受强判别规则少量真人命中。** `vague-amount-noun`、`not-is-comparison`、`repeated-de-pairs` 保留默认 Agent 入口，由 Agent 读语境判定，不用脆弱字面特例换取表面零误报。
+10. **human 桶保留高召回，通过排序与聚合降负担。** 不继续为“干净列表”激进关闭有效素材雷达；优先在展示层按信号、规则族和位置聚合，减少人工逐条阅读成本。

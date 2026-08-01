@@ -21,7 +21,7 @@ function higherLevel(left: RuleLevel, right: RuleLevel): RuleLevel {
 
 /**
  * llmlint 客户端检测核心。所有函数都是纯计算：
- * - scan：对整段文本跑一次 regex 扫描（scanAll=true 时跳过 Markdown 遮罩）。
+ * - scan：对整段文本跑一次 regex+handler span 扫描（scanAll=true 时跳过 Markdown 遮罩）。
  * - applyFilters / summarize / groupByRule：对命中列表做纯过滤/统计/分组。
  * - issueRanges：把命中反算成合并后的高亮区间（供行内高亮背板）。
  * - namespaceOptions：registry 里出现过的命名空间，供过滤下拉。
@@ -54,6 +54,8 @@ export function useLlmlint() {
         };
     });
 
+    // Web 编辑器是可高亮的 span scanner，只执行 regex + handler。density 没有 span，
+    // 在持久化模型与 engine fingerprint 定稿前不能混进 hitsJson/docScore。
     function scan(text: string, scanAll: boolean): Issue[] {
         if (!text.trim()) {
             return [];
@@ -63,6 +65,7 @@ export function useLlmlint() {
         return [...scanWithContext(ctx, registry.value.regexRules), ...scanHandlerRules(ctx, registry.value.handlerRules)];
     }
 
+    /** 默认 registry 的同一 span-only 边界；完整静态检查走 CLI 或 Agent lint_check。 */
     function scanDefault(text: string, scanAll: boolean): Issue[] {
         if (!text.trim()) {
             return [];

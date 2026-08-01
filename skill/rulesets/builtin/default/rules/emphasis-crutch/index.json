@@ -31,6 +31,9 @@
       "canonicalKey": "quote-emphasis handler",
       "importedFrom": "oh-story-claudecode/story-deslop"
     },
+    "scope": {
+      "layer": "quoted"
+    },
     "handler": {
       "type": "builtin",
       "name": "quote-emphasis"

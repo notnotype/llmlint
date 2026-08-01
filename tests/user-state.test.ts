@@ -4,10 +4,11 @@ import {tmpdir} from "node:os";
 import {join} from "node:path";
 import {afterEach, describe, expect, it, vi} from "vitest";
 import {runCli} from "../skill/src/cli";
-import {loadUserSettings, saveUserSettings, userStateDir} from "../skill/src/user-state";
+import {loadUserSettings, saveUserSettings, userCacheDir, userStateDir} from "../skill/src/user-state";
 
 describe("user state", () => {
     const originalHome = process.env.LLMLINT_HOME;
+    const originalCacheDir = process.env.LLMLINT_CACHE_DIR;
     const tempRoots: string[] = [];
 
     afterEach(async () => {
@@ -18,8 +19,27 @@ describe("user state", () => {
         } else {
             process.env.LLMLINT_HOME = originalHome;
         }
+        if (originalCacheDir === undefined) {
+            delete process.env.LLMLINT_CACHE_DIR;
+        } else {
+            process.env.LLMLINT_CACHE_DIR = originalCacheDir;
+        }
         await Promise.all(tempRoots.map((root) => rm(root, {recursive: true, force: true})));
         tempRoots.length = 0;
+    });
+
+    it("LLMLINT_CACHE_DIR只覆盖可重建缓存，不改变durable用户状态", async () => {
+        const home = await createHome();
+        const cache = await mkdtemp(join(tmpdir(), "llmlint-cache-"));
+        tempRoots.push(cache);
+        process.env.LLMLINT_CACHE_DIR = cache;
+
+        expect(userStateDir()).toBe(home);
+        expect(userCacheDir()).toBe(cache);
+        saveUserSettings({...loadUserSettings(), initialized: true});
+
+        expect(existsSync(join(home, "settings.json"))).toBe(true);
+        expect(existsSync(join(cache, "settings.json"))).toBe(false);
     });
 
     it("首读返回默认值且不主动创建 settings.json", async () => {
@@ -30,7 +50,7 @@ describe("user state", () => {
         expect(settings).toMatchObject({
             version: 1,
             initialized: false,
-            sharing: {tier: "fragments", mode: "ask", anonymous: false},
+            sharing: {tier: "fragments", mode: "auto", anonymous: false},
             detector: {
                 proxy: null,
                 space: "yuchuantian-aigc-text-detector.hf.space",
@@ -58,13 +78,23 @@ describe("user state", () => {
     it("缺失字段补默认，顶层和嵌套未知字段报错并带路径", async () => {
         const home = await createHome();
         await writeFile(join(home, "settings.json"), JSON.stringify({version: 1, sharing: {tier: "off"}}), "utf-8");
-        expect(loadUserSettings().sharing).toEqual({tier: "off", mode: "ask", anonymous: false});
+        expect(loadUserSettings().sharing).toEqual({tier: "off", mode: "auto", anonymous: false});
 
         await writeFile(join(home, "settings.json"), JSON.stringify({version: 1, typo: true}), "utf-8");
         expect(() => loadUserSettings()).toThrow(new RegExp(escapeRegExp(join(home, "settings.json"))));
 
         await writeFile(join(home, "settings.json"), JSON.stringify({version: 1, sharing: {tier: "off", items: []}}), "utf-8");
         expect(() => loadUserSettings()).toThrow(/sharing\.items/);
+    });
+
+    it("detector.space 只接受无凭据、路径和查询参数的 host 或 host:port", async () => {
+        const home = await createHome();
+        const base = loadUserSettings();
+        expect(() => saveUserSettings({...base, detector: {...base.detector, space: "https://user:secret@example.com/path?token=1"}})).toThrow(/host 或 host:port/);
+        expect(() => saveUserSettings({...base, detector: {...base.detector, space: "example.com:70000"}})).toThrow(/host 或 host:port/);
+        saveUserSettings({...base, detector: {...base.detector, space: "localhost:7860"}});
+        expect(loadUserSettings().detector.space).toBe("localhost:7860");
+        expect(existsSync(join(home, "settings.json"))).toBe(true);
     });
 
     it("损坏 JSON 报错包含 settings.json 路径", async () => {
@@ -114,6 +144,9 @@ describe("user state", () => {
 
     it("CLI status --format json 输出初始化状态、项目配置路径与缓存目录", async () => {
         const home = await createHome();
+        const cache = await mkdtemp(join(tmpdir(), "llmlint-cache-"));
+        tempRoots.push(cache);
+        process.env.LLMLINT_CACHE_DIR = cache;
         const log = vi.spyOn(console, "log").mockImplementation(() => undefined);
 
         await runCli(["bun", "llmlint", "status", "--format", "json"]);
@@ -131,7 +164,7 @@ describe("user state", () => {
         expect(report.configPath === null || report.configPath.endsWith("llmlint.config.ts")).toBe(true);
         expect(report.detector.space).toBe("yuchuantian-aigc-text-detector.hf.space");
         expect(report.detector.proxyConfigured).toBe(false);
-        expect(report.detector.cacheDir).toBe(join(home, "cache"));
+        expect(report.detector.cacheDir).toBe(cache);
     });
 
     async function createHome(): Promise<string> {

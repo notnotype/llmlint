@@ -27,7 +27,7 @@
 
 ## Current State
 
-- `skill/` 已是 v2.0.1 自包含 runnable Skill package：`check`（regex 候选定位 + markdown 遮罩）/ `fix`（仅 auto 桶）/ `show-llm-rules`；当前默认规则为 360 rules / 266 active；`llmlint.config.ts` 三层覆盖（rule id > namespace > ruleset）。
+- `skill/` 已是 v3.0.0 自包含 runnable Skill package：`guide` / `check` / `detect` / `fix` / `rules` / `round` / `contribute`；当前默认规则为 360 rules / 266 active；`llmlint.config.ts` 三层覆盖（rule id > namespace > ruleset），但不能覆盖规则作者定义的 scope。
 - 神经检测：`evals/detector/hf-client.ts`（客户端直连 HF yuchuantian gradio、句界分块、P(AI) 归一、长度加权 mean+max、content-hash sidecar 缓存）；web 端 `detect.ts` 同算法 + 代理 + `chunksJson` 热力图落库。
 - web 鉴权：nuxt-auth-utils 自有账号，未接 Passport。
 - skill 无用户级状态层、无神经检测命令、无上传通道。
@@ -363,44 +363,19 @@ Phase 3 给两条比喻规则加了带证据的 `note` 之后绝对值上移：�
 
 **环境记录**（与 skill 无关，但会卡住任何 headless 复现）：`claude -p` 子进程直连 Anthropic API 返回 **403**，且不带凭据也是 403（正常应为 401），说明是网络层拒绝而非认证问题。需要 `HTTPS_PROXY=http://127.0.0.1:7890`——正是 `evals/eval.config.json` 里已配的那个代理，eval 流水线一直在用，只是子进程没继承。
 
-### delivery-arm：拆开投递方式与模型强度（2026-07-27）
+### delivery-arm：旧批次失效与修复版边界（2026-07-31 更正）
 
-新增 `evals/experiments/delivery-arm.ts`，固定模型（claude CLI 的 Opus 5），只动约束进上下文的位置，三臂 × 15 章 = 45 样本：`control` 不给约束 / `sysprompt` 走 `--append-system-prompt-file` / `toolresult` 要求先跑 `llmlint guide` 再动笔（还原真实 skill 路径）。两个注入臂的**约束正文完全相同**（同一次 `buildGuideText`），写作指令也统一走 system 位，所以唯一变量就是约束的位置。已验证 `toolresult` 臂确实跑了 CLI 并拿到 3763 字约束（查 claude session transcript 里的 Bash 调用与 tool result）。
+旧 `delivery-arm/` 不能回答投递位置或模型强度。生成时 `sysprompt` 使用传入 profile 得到 71 条 guide，`toolresult` 臂执行 CLI 时漏传 `--profile`，实际只得到 66 条；两个处理臂正文不同，“只动投递位置”的前提不成立。旧五组 meta 已标为：
 
-**结论是「主因是模型强度，不是投递位置」，而且它推翻了本轮中途的一个判断**——跑到 7 对时我只有规则侧数据，看到 `sysprompt` 在注入规则命中上 0/7 全胜（p=0.016）就判断「投递位置是主因」。补上外部检测器后方向反转，那个中期判断是错的，记在这里避免以后翻旧账时被误导。
+```json
+{"validity":{"status":"invalid","reason":"toolresult omitted --profile; treatment guides differed (71 vs 66 selected rules)"}}
+```
 
-| 指标 | control | sysprompt | toolresult |
-| --- | --- | --- | --- |
-| 外部检测器 docPAi（主指标） | 0.241 | 0.230 | 0.149 |
-| 留出规则命中 / 千字 | 4.696 | 3.071 | 4.804 |
-| 注入规则命中 / 千字 | 1.105 | 0.301 | 1.601 |
-| docScore / 千字 | 5.349 | 3.462 | 6.138 |
-| 可见字数 | 3098 | **2344** | 2980 |
+因此旧数表只能描述当时三个输出集合存在差异，**不得**继续解释为 system prompt 优于 tool result、模型强度是主因、Opus 5 有正/负收益，或 24% 篇幅变化由投递位置造成。`control → sysprompt` 也只能保留为描述性观察，不具备三臂因果结论资格。
 
-四条读数：
+修复版写入独立 `delivery-arm-v2/`：profile 先解析为绝对路径，toolresult 命令显式传同一 `--profile`；调模型前还会真实执行同构 guide CLI，去掉 CLI 固有尾换行后逐字节比对 stdout 与内存 sysprompt guide，不一致立即停止。比较器先检查 `validity`，再检查完整 Guide provenance，旧目录不能混入新样本。本轮只通过 `--dry-run` 验证前置守门，**没有重新调用模型**。
 
-1. **`sysprompt` 确实让模型更遵守约束**。注入规则命中与 `toolresult` 直接比是 1/15、p = 0.001，Bonferroni 校正后仍显著。「约束进 system prompt 比进 tool result 有效得多」这一半假设成立。
-2. **规则侧 `sysprompt` 朝人类基线移动**。docScore 5.349 → 3.462（12/15、p = 0.035），人类参照 2.47；留出规则 4.696 → 3.071 同向（11/15、p = 0.118）。
-3. **主指标不显著，但这一次不能读成「无效」**。`control → sysprompt` 的 docPAi 是 9/15、p = 0.607；3 个预注册对比 Bonferroni α = 0.0167，两个 p = 0.035 也都不过关。**但 Opus 5 的 docPAi 基线（0.227）已经低于人类 reference（0.285）**——指标没有下降空间。`experiments/README.md` 那条「主指标不降 → 不构成证据」的口径隐含假设是主指标有分辨力，在贴地板的模型上它不成立，此时 docPAi 既不能证实也不能证伪。**这是本轮先写进文档、随后自我修正的一处**：初版结论写的是「sysprompt 臂不构成证据 / 对强模型净有害」，那是用一个失去分辨力的裁判下判决，措辞过头了。
-4. **篇幅代价是真实的**。`sysprompt` 中位 2344 字 vs `control` 3098，13/15、p = 0.007。目标是人类原章长度（中位约 3099），`control` 基本达标而 `sysprompt` 欠 24%。规则命中降了、篇幅也降了，究竟是「变简洁」还是「被削薄」只有 D5 第二条件能判，所以净收益是**未知**而不是负。
-
-`toolresult` 臂 docPAi 最低（0.149，对 control 12/15、p = 0.035）但规则侧同时是三臂最差，两者矛盾且校正后不显著，暂按噪声处理，不做解读。
-
-**按模型基线（`report.json` 的 `externalDetector.byModel` + `modelRanking`，主语料 100 render / 26 reference）**：
-
-| 模型 | docPAi | docScore / 千字 |
-| --- | --- | --- |
-| gemini-3.1-pro | 0.969 | 10.76 |
-| deepseek-v4-flash | 0.945 | 7.64 |
-| gpt-5.5 | 0.941 | 6.11 |
-| mimo-v2.5-pro | 0.923 | 11.27 |
-| claude-opus-4-8 | **0.130** | 7.25 |
-| claude-fable-5 | **0.071** | 6.42 |
-| **人类 reference** | **0.285** | **2.47** |
-
-**两个维度的排序不一致**：claude 系在 docPAi 上比人类还低，但规则侧仍有 6.4–7.25（人类 2.47）的模板负担。「躲过神经检测器」与「不写套路」是两件事，`guide` / `check` 分别对着它们。这也解释了第三轮实测的 T1——Opus 5 裸写 4.94/千字，检测器不报警但规则仍报。
-
-**产品含义**：不应无条件推荐注入。docPAi 基线 0.9+ 的模型（deepseek / mimo / gemini / gpt 系）有实测或强预期收益；claude 系在检测器维度已无空间，注入的净收益未知且有篇幅风险。这条线目前只有 deepseek 一个实证点，其余靠基线表推断。同时**测 claude 系必须换主指标**——docPAi 在它们身上无分辨力，而规则侧是循环指标，第 ② 层人评是唯一现成的独立出口。
+模型基线仍只说明检测器有没有分辨空间，不说明 guide 必然有收益。有效 `guide-arm` 三模型证据保持不变：deepseek 有效、gemini 不建议默认注入、mimo 证据不足；claude/Opus 与投递位置等待 `delivery-arm-v2` 或独立人评。
 
 **过程问题（两个，都影响可复现性）**：
 
@@ -445,6 +420,28 @@ Phase 3 给两条比喻规则加了带证据的 `note` 之后绝对值上移：�
 
 另外补齐了 mimo 上一批的断点：上一批只落盘 9/52（provider 503 大面积失败，脚本对失败样本不落盘、正常退出），本轮续跑 43 个全部成功（`失败 0`）。
 
+### v3.0.0 Scope、Guide 指纹与隐私收口（2026-07-31）
+
+本轮不增加规则，不重跑模型实验，只补规则适用域、实验可复现性和本地贡献隐私边界。
+
+- **Scope 硬切**：公开层从 `dialogue` 改为 `quoted`，不保留旧 schema 兼容。磁盘省略 scope 归一为 `{layer:"all"}`；Active 规则和 compact/full/rules JSON 必带 resolved scope。`quoted` 只认同一行内成对的 `「」`、`『』`、`“”`、`‘’`、`【】`（含分隔符），ASCII 直引号、未闭合与跨行分隔符不进入该层。
+- **统一执行上下文**：regex、density、handler 共用等长 layer view、position window 与原文 offset；handler 通过 `HandlerScanContext` 取逐行紧凑投影和 map，执行器对结果再做 scope/window 过滤，删除各 handler 私有的引号排除逻辑。
+- **保守迁移**：指定的五个规则族使用 narrative，`quote-emphasis` 与 `notice-formality` 使用 quoted，其余保持 all。实际分布是 `all=240 / narrative=24 / quoted=2`，不是计划估算的 `239 / 25 / 2`：`long-paragraph` 在本轮前已是 narrative，所以“迁移五条”只净增四条 narrative。没有为凑目标数字擅自改其它规则。
+- **Guide provenance**：先按 v2.0.1 的实际 guide 回填 10 个历史 meta，再改 guide 文本。历史共同值为 profile `sha256:b54f...e698b`、selected `sha256:555c...c85e6`、71 条、text `sha256:ad93...8a92`。v3 生成器、dry-run 与比较器都会在读/扫样本前逐字段核对 tier/profile/规则集合/数量/文本；旧实验因 v3 `textFingerprint=sha256:d69f...de67` 与历史输入不同而明确拒绝，不能冒充 v3 结果。
+- **实验有效性硬门**：`GroupMeta.validity` 必填；缺失或 `invalid` 的实验在扫描样本前失败。旧 `delivery-arm` 因漏传 `--profile` 被整体标记 `invalid`，修复版只写 `delivery-arm-v2`；有效 `guide-arm` 的组级 provenance 继续严格核对，不增加逐样本重复字段。
+- **两条数据链路分开告知**：`contribute` 只写本机 outbox，当前无发送通道；`detect` 会把缓存未命中的正文块 POST 到配置的外部服务，不发送文件名或项目路径，且不受 `sharing.off` 控制。远端日志与保留策略不在 llmlint 控制范围。
+- **贡献完整性与隐私**：台账、轮次、metrics、retest、judgment、decision 逐层严格解析，未知键、非法枚举、非有限数字、非规范时间戳和非 UUID 直接 fail closed；source 快照必须与 `snapshotNamesForFiles(sourceFiles)` 精确一致，output 集合不完整时不计算 `outputHash`、不进入 full，并写 `degradedReason:"output-snapshots-incomplete"` 降级 fragments。fragments/full 的 `sourceFiles` 与 `decisions[].file` 只保留安全快照名，决策无法映射到 sourceFiles 时整轮跳过；stats 仍是白名单数字/时间/规则与检测器信息/随机项目 ID/SHA-256，不含文件名、正文、片段、理由、评语或配置建议。
+- **Web 边界写死**：浏览器本地扫描与服务端 MachineScan 当前只执行 regex+handler span 扫描；当前 `engineVersion` 也只哈希这两类实际执行规则，density 单独变化不会制造行为相同的新 MachineScan 版本。density 继续出现在规则目录与 CLI/Agent 完整静态检查中，但不进入 Web `hitsJson` 或 `docScore`；未来 Web 化另立结果合同与指纹决策，不在本轮半接入。
+- **治理决策完成**：十项开放问题已改写为 `rule-curation-open-questions.md` 内的用户决策记录。story-oracle 只吸收原则；canonical 只关/窄不删；弱词表留 human；语义金句感留 agent；insufficient 逐条校准；否定连排保持 high+agent；强规则允许少量真人命中并交 Agent 看语境；human 桶靠排序聚合降负担。复读/截断另做后续完整性 smoke，本轮不实现。
+
+**版本边界**：根/Skill package 和 CLI 一起升 `3.0.0`。依赖字段与 `bun.lock` 未变化，因此同步时必须保留现有 `node_modules`；版本、规则、提示词或源码变化不构成依赖失效。
+
+**当前验证状态**：scope focused tests 22 项、实验 provenance 4 项、root typecheck、Web typecheck、完整 `bun run test`（新增 MachineScan 指纹守门后 Vitest 34 文件 / 332 项 + Bun 78 项）、`verify` 与 Skill validator 全部通过；`guide-arm-v3 --dry-run`、`delivery-arm-v2 --dry-run` 均通过，旧 delivery 比较器在扫描前因 `invalid` 拒绝。不含 `node_modules` 的隔离 skill 完成 frozen install，首次 status 为 `3.0.0 / initialized=false / fragments+auto / login=none`；真实贡献 CLI 链路完成 dry-run、初始化、`--auto`、`--list` 与重复导出幂等验证。Task 130 双 clean build 结束后，source → NeuroBook vendored → 当前 user runtime 三处各 122 个文件，逐文件 SHA-256 差异为 0；最终两级同步均为 no-op。NeuroBook 依赖生命周期聚焦测试 2 passed / 70 skipped。没有重新调用模型、没有浏览器验收、没有提交或推送。
+
+**已完成的真实链路**：隔离项目实跑 `round begin → contribute` dry-run → 初始化 → `--auto` → `--list` → 重复导出，写入 1 条 fragments 后重复导出被 `contributedAt` 拦截；刻意放入的 Windows 用户绝对路径在载荷中只剩 `chapter.md`。Task 130 解冻后又完成 source → vendored → user runtime 的 122 文件三层对账，并确认两段哈希零差异。
+
+**计划出入**：计划分布 `239 / 25 / 2` 算术不成立，最终保持真实的 `240 / 24 / 2`；未为凑数迁移其它规则。delivery-arm 旧数据因 profile 漂移作废，修复版只做 dry-run。Task 130 的写入冻结让 NeuroBook 同步延后到独立批次，但现已完成三层同步、哈希对账与依赖生命周期聚焦测试。没有重新调用模型、没有浏览器验收、没有提交或推送。
+
 
 
 ## TODO / Follow-ups
@@ -468,21 +465,23 @@ Phase 3 给两条比喻规则加了带证据的 `note` 之后绝对值上移：�
 - [x] `examples` schema 改 `{text, hit, fix?, reason?}`（I25）——修掉 `guide` 把 8 个对照例标成反例、web 把对照例画成删除线的真 bug
 - [x] **eval 验证写作期注入是否真的有用**（2026-07-27，`evals/experiments/guide-arm.ts` + `guide-compare.ts`）。26 对配对 render，主指标 docPAi 与主要佐证「留出规则命中」双双 20/26 更低、p = 0.009；注入规则命中不显著（12/26）恰好排除了「表层规避」这个替代解释。**D5 只满足一半**（人评拿不到），单模型（deepseek），结论暂定
 - [x] **第三轮用户实测**（2026-07-27，装进 `~/.claude/skills/llmlint/` 用 `claude -p` 跑四场景）。五步闭环全通、`rules --detector semantic` 首次获得实测证据、`guide` 在两个写作场景被自发调用
-- [x] **最小实验：拆开「投递方式」与「模型强度」**（2026-07-27，`delivery-arm.ts`，3 臂 × 15 章）。结论：**主因是模型强度不是投递位置**。`sysprompt` 确实提高约束遵守度（注入规则命中对 `toolresult` 1/15、p=0.001，校正后显著），但主指标 docPAi 上三臂在 Bonferroni 校正后无法区分，且 `sysprompt` 篇幅显著缩短 24%（13/15、p=0.007）。天花板效应：Opus 5 的 docPAi 中位 0.227 vs deepseek 0.846
+- [x] **delivery-arm 有效性审计**（2026-07-31）：旧批次漏传 `--profile`，五组 meta 已标 `invalid`；比较器在扫描前拒绝，旧表不再支持投递位置、Opus 5 或模型强度结论。修复版目录改为 `delivery-arm-v2`，只完成 dry-run 和同构 guide 字节核对，本轮不调用模型
 - [x] **guide-arm 扩成三模型面板**（2026-07-27，gemini / mimo 各 26 对 + `guide-compare.ts --model` 分层比较）。deepseek 有效、gemini 零收益且篇幅 −26%（p<0.001）、mimo 规则侧同向但主指标不动；合并 78 对会把三种画像搅成「整体有效」的假象。详见上节与 `evals/experiments/README.md`
-- [ ] **`guide` 需要按模型分级推荐**。划线的数据已经有四个实测点：deepseek 有效（质量双指标 p=0.009、篇幅无代价）/ gemini 零收益且 −26% 篇幅（不建议默认注入）/ mimo 方向对但证据不足 / Opus 5 主指标不可用、篇幅 −24%（净收益未知）。缺的是产品形态：分级建议写在哪（SKILL.md？`guide` 抬头？）、「不建议注入」对 skill 写作期流程意味着什么（跳过 guide 还是降到更小档位）。注意「基线高 ⇒ 收益可期」已被 gemini 实测推翻，不要再用基线表替代逐模型实测
-- [ ] **D5 第二条件的缺口现在是硬阻塞**。`delivery-arm` 恰好出现篇幅显著缩短，这正是最需要人评 `wantReadOn` 的情况，而第 ② 层 critic 未建导致无法判断「写短了」是不是同时「变差了」。在建起来之前，任何涉及过度规避的结论都只能停在「有风险」
+- [ ] **`guide` 需要按模型分级推荐**。有效 `guide-arm` 只有 deepseek 有证据、gemini 不建议默认注入、mimo 证据不足；Opus 与投递位置没有有效实验。产品形态仍需另行决定，不能用旧 delivery 数据补足缺口；基线只说明检测器是否有分辨力，不能替代逐模型实测
+- [ ] **D5 第二条件的缺口现在是硬阻塞**。gemini 的有效实验已经出现篇幅显著缩短，第 ② 层独立盲评尚未建立，无法判断「写短了」是否同时「变差了」。在 wantReadOn 盲评建立前，任何涉及过度规避的结论都只能停在「有风险」
 - [ ] **`claude -p` 批量实验的两个环境坑**（对后续任何 headless 实验都成立）：① OAuth 凭据是进程间共享单文件，并发/连续刷新会互相踢掉，必须带认证重试；② 宿主会掐掉跑太久的进程，必须用 `--max-calls` 之类的分批配额干净退出，否则每次被掐都白花一次调用
-- [ ] **`guide-arm` 的 `meta.json` 没存 profile 指纹**：只存了 `guideTier`，`guide-compare` 无法自动校验「比较与生成同参数」这个不变量——本轮实际踩过（漏 `--profile` 导致注入/留出两行全错且无任何报警）。把 profile 摘要（比如注入规则 id 列表的哈希）写进 meta，比较时不一致就拒绝跑
+- [x] **`guide-arm` provenance 守门**：meta 已保存 tier/profile/规则集合/数量/实际文本指纹；生成、dry-run 与比较在读/扫样本前严格核对，漏 `--profile` 或 v3 文本漂移都会立即失败
+- [x] **contribute 隐私与完整性硬化**：严格台账解析、source/output 集合精确校验、Windows 大小写重名消歧、决策精确映射、full 缺失降级和 `degradedReason` 已落地；嵌套自由文本白名单与恶意路径 fixture focused tests 通过
+- [x] **Web 扫描边界收口**：浏览器本地扫描与 MachineScan 明确为 regex+handler span-only；density 只留在规则目录与 CLI/Agent 完整静态检查，未写入 Web `hitsJson`/`docScore`
 - [ ] **`guide` 缺少文体过滤**：`standard` 66 条里 18 条与虚构叙事无关（27% 噪声）。选集逻辑按 `action.type === "suggest"` 选，不按写作期相关性选。当前绕法是改 `llmlint.config.ts` 关规则；要做成一等能力需要一个「文体 / 载体」维度，与 task profile 的关系待想清楚，不要急着加字段
 - [ ] **`guide` 的 58 条结构类规则没有示例**：只有 8 条语义规则带 `{text, hit}` 正反例，其余只有一句抽象改法。T2 犯的那条（不是A，是B）恰好属于无示例的 58 条。补示例是提高写作期可执行性的最低成本动作，但要按 I25 同时配对照例，且**不能凭空编**——应从实测命中里取真实片段
 - [ ] **写作期不该被 `status` 初始化软门拦**：`guide` 是纯本地投影、不涉及数据共享，T2/T4 都因此多跑一次 `status` 并向用户复述了一遍共享档位
 - [ ] 视 eval 结果决定是否把 `guide` 输出接进 neuro-book writer profile 的 `writingStylePreset` 插槽（现有 52 个手写预设与 266 条实测规则零交集；本轮只做 llmlint 侧）
-- [ ] **既有失败待处理**：`tests/revision-text-workspace.test.ts` 的「统一返回指定 Revision 的 regex、LLM 与 AIGC 持久化记录」硬编码 `not-but-structure` 的 `repairPolicy.verdict` 为 `strong`，但当前 `evals/report/report.json` 的 99 条规则里没有这条，实际得到 `verdict: null` / `reason: "contextual"`。已用 stash + 按原始规则重烘 registry 双重确认与第二轮改动无关。根因与本轮早先记录的假绿同类：`evals/report/report.json` 被 gitignore（`.gitignore:27`），测试依赖一个本地可再生、跨机器不可复现的产物。两条路——让该用例不依赖 eval report，或把报告纳入 git——都超出本轮计划范围，待拍板
+- [x] **历史 Revision fixture 不再依赖本机 eval report**：持久化记录用例改用明确不存在于当前 catalog 的历史规则 ID，并断言安全降级为 `contextual`；当前 strong/weak 策略继续由专门的 `lint_check` 用例覆盖
 - [ ] 后续：把「对白-only」做成语料正式视图，让判别 harness 在该层拟合（前置 Task 08 M3/M4 完成、`renderPromptVersion` 守门放行）
 - [ ] 规则缺口候选（第二轮流程测试记录，需语料验证后才可导入）：并列回忆蒙太奇；跨段词汇/喻体自重复
 - [ ] `cn.vocabulary.r18` 三条 target 重叠（`flesh-blade` / `male-stalk` / `male-organ-compound`）待消重
-- [ ] 分片 2 实施 → 已立项 [Task 24](../24-revision-rounds-and-contribute/README.md)（2026-07-27 设计定稿：形态演化为本地优先——多轮修订谱系 + `contribute` 落本地发件箱，web 端点与发送后置到服务轮），进展见该任务
+- [x] 分片 2 本地闭环 → [Task 24](../24-revision-rounds-and-contribute/README.md) 已实现 round/contribute 本地链路；服务端 ingest、发送、盲评种子导入与 ETL 仍后置
 - [ ] 分片 3 实施（开工前先定跨站信任链：Passport 签发的 Bearer 如何被 llmlint web 校验；nb-workshop spec §7 已留 `contribution:submit` 保留 scope，但两侧都没写 introspection 或密钥分发）
 - [ ] contributions 数据模型对 Task 12 统一模型的映射设计 → 迁入 Task 24 TODO（blob 先落地，映射为后置 ETL）
-- [ ] 后置：banned-words 逐词差集（独立任务）；复读/截断退化检测（后续批次，见 `rule-curation-open-questions.md`）
+- [ ] 后置：banned-words 逐词差集（独立任务）；复读/截断退化检测作为独立完整性 smoke（治理决策已定，本轮不实现）

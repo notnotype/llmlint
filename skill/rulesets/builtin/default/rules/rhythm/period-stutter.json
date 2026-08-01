@@ -11,6 +11,9 @@
       "canonicalKey": "period-stutter handler",
       "importedFrom": "oh-story-claudecode/story-deslop"
     },
+    "scope": {
+      "layer": "narrative"
+    },
     "handler": {
       "type": "builtin",
       "name": "period-stutter"

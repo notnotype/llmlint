@@ -25,7 +25,8 @@ const hasReport = rulesReport.source !== null;
 // ruleId 字典序居中，LLM 规则（不参与静态扫描，stat 恒 null）按 ruleId 字典序殿后。
 // 报告里 ruleId 对不上现行 registry 的条目（规则已删改）直接跳过——规则页以规则本体为准。
 const allRows: RuleCatalogRow[] = (() => {
-    const ruleById = new Map(baseRegistry.regexRules.map((rule) => [rule.id, rule]));
+    const staticRules = [...baseRegistry.regexRules, ...baseRegistry.densityRules, ...baseRegistry.handlerRules];
+    const ruleById = new Map(staticRules.map((rule) => [rule.id, rule]));
     const statById = new Map<string, RulesReportEntry>(rulesReport.rules.map((entry) => [entry.ruleId, entry]));
     const tested: RuleCatalogRow[] = [];
     for (const entry of rulesReport.rules) {
@@ -38,7 +39,7 @@ const allRows: RuleCatalogRow[] = (() => {
             });
         }
     }
-    const untested: RuleCatalogRow[] = baseRegistry.regexRules
+    const untested: RuleCatalogRow[] = staticRules
         .filter((rule) => !statById.has(rule.id))
         .sort((left, right) => left.id.localeCompare(right.id))
         .map((rule) => ({

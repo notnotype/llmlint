@@ -123,6 +123,7 @@ function issueMatchLabel(issue: Issue): string {
             <span class="font-medium">{{ group.rule.title }}</span>
             <span class="font-mono text-xs text-zinc-400">{{ group.rule.id }}</span>
             <span class="font-mono text-xs text-zinc-500">[{{ group.rule.namespace }}]</span>
+            <ScopeBadge :scope="group.rule.scope" />
             <!-- R3 类型徽标（有替换 / 仅检测） -->
             <span class="rounded px-1.5 py-0.5 text-[11px]" :class="categoryBadge.cls">{{ t(categoryBadge.labelKey) }}</span>
             <!-- R4 verdict 徽标（verdict prop 未传时整个不渲染 = 报告缺失降级） -->

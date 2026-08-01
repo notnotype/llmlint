@@ -1,6 +1,7 @@
 import {describe, expect, it} from "vitest";
 import {COMPACT_CONTEXT_CHARS, mergeCompactRules, projectCheckIssues} from "../skill/src/check-report";
-import type {DensityIssue, DensityRuleRecord, Issue, RegexRuleRecord} from "../skill/src/types";
+import {createCheckJsonReport, createMultiCheckJsonReport, createRulesJsonReport, formatCheckReport, formatRules} from "../skill/src/reporter";
+import type {DensityIssue, DensityRuleRecord, Issue, LoadedRules, RegexRuleRecord} from "../skill/src/types";
 
 /** 构造一条最小可用的 regex 规则记录；只填投影会读到的字段。 */
 function rule(id: string, overrides: Partial<RegexRuleRecord> = {}): RegexRuleRecord {
@@ -12,6 +13,7 @@ function rule(id: string, overrides: Partial<RegexRuleRecord> = {}): RegexRuleRe
         level: "medium",
         review: "agent",
         fixability: "manual",
+        scope: {layer: "all"},
         detector: {type: "regex", targets: ["甲词", "乙词"]},
         action: {type: "replace", replacements: [""]},
         ...overrides,
@@ -33,6 +35,25 @@ function issue(ruleRecord: RegexRuleRecord, before = "前文", after = "后文",
     };
 }
 
+/** 构造 reporter 所需的最小 resolved registry。 */
+function registry(rules: RegexRuleRecord[]): LoadedRules {
+    return {
+        rules,
+        regexRules: rules,
+        semanticRules: [],
+        densityRules: [],
+        handlerRules: [],
+        diagnostics: [],
+        summary: {
+            rulesets: ["builtin/default"],
+            totalRules: rules.length,
+            activeRules: rules.length,
+            disabledRules: 0,
+            namespaces: [{namespace: "test", totalRules: rules.length, activeRules: rules.length}],
+        },
+    };
+}
+
 describe("projectCheckIssues", () => {
     it("规则元数据按 id 去重提到顶层，命中只留 ruleId", () => {
         const shared = rule("test.shared");
@@ -47,7 +68,7 @@ describe("projectCheckIssues", () => {
         }
     });
 
-    it("只保留审稿决策字段，丢掉 detector / source / scope / ruleset", () => {
+    it("只保留审稿决策字段与 resolved scope，丢掉 detector / source / ruleset", () => {
         const projected = projectCheckIssues([issue(rule("test.fields", {note: "边界说明"}))]);
         const entry = projected.rules["test.fields"]!;
 
@@ -57,6 +78,7 @@ describe("projectCheckIssues", () => {
             level: "medium",
             review: "agent",
             fixability: "manual",
+            scope: {layer: "all"},
             action: {type: "replace", replacements: [""]},
             note: "边界说明",
         });
@@ -100,6 +122,7 @@ describe("projectCheckIssues", () => {
             level: "medium",
             review: "human",
             fixability: "manual",
+            scope: {layer: "narrative"},
             detector: {type: "density", patterns: [{target: "忽然"}], minHits: 3},
             action: {type: "suggest", message: "保留最有功能的少数"},
         };
@@ -121,5 +144,52 @@ describe("mergeCompactRules", () => {
         const merged = mergeCompactRules([first, second]);
         expect(Object.keys(merged).sort()).toEqual(["test.a", "test.b"]);
         expect(merged["test.a"]?.title).toBe("标题 test.a");
+    });
+});
+
+describe("reporter scope 输出合同", () => {
+    it("compact/full check JSON 与 rules JSON 都输出 resolved scope", () => {
+        const scoped = rule("test.scoped", {scope: {layer: "narrative", position: {kind: "opening", chars: 80}}});
+        const loaded = registry([scoped]);
+        const compact = createCheckJsonReport("sample.md", null, [issue(scoped)], loaded);
+        expect("rules" in compact && compact.rules[scoped.id]?.scope).toEqual(scoped.scope);
+
+        const full = createCheckJsonReport("sample.md", null, [issue(scoped)], loaded, {ruleDetail: true});
+        if ("rules" in full) throw new Error("--rule-detail 应返回完整报告，而不是紧凑投影");
+        expect(full.issues[0]?.rule.scope).toEqual(scoped.scope);
+
+        const rulesReport = createRulesJsonReport(null, loaded, [scoped], {detector: "all", namespace: null});
+        expect(rulesReport.rules[0]?.scope).toEqual(scoped.scope);
+    });
+
+    it("check/rules stylish 给非默认 scope 显示中文层与位置窗口", () => {
+        const narrative = rule("test.narrative", {scope: {layer: "narrative", position: {kind: "ending", chars: 120}}});
+        const quoted = rule("test.quoted", {scope: {layer: "quoted"}});
+        const allPosition = rule("test.all-position", {scope: {layer: "all", position: {kind: "opening", chars: 80}}});
+        const all = rule("test.all");
+        const loaded = registry([narrative, quoted, allPosition, all]);
+
+        const checkText = formatCheckReport("sample.md", [issue(narrative), issue(quoted), issue(allPosition), issue(all)], loaded);
+        expect(checkText).toContain("[叙述/文末120字]");
+        expect(checkText).toContain("[引号内]");
+        expect(checkText).toContain("[全文/文首80字]");
+        expect(checkText).not.toContain("test.all [test] [");
+
+        const rulesText = formatRules(loaded.rules, {detector: "all", namespace: null}, loaded.summary, [], false);
+        expect(rulesText).toContain("[叙述/文末120字]");
+        expect(rulesText).toContain("[引号内]");
+        expect(rulesText).toContain("[全文/文首80字]");
+        expect(rulesText).not.toContain("test.all  [medium/agent/regex] [");
+    });
+
+    it("check-multi summary 聚合各文件 visibleChars", () => {
+        const active = rule("test.multi");
+        const loaded = registry([active]);
+        const report = createMultiCheckJsonReport(null, [
+            {filePath: "a.md", summary: {total: 1, high: 0, medium: 1, low: 0, visibleChars: 120}, issues: [issue(active)]},
+            {filePath: "b.md", summary: {total: 0, high: 0, medium: 0, low: 0, visibleChars: 80}, issues: []},
+        ], loaded, {review: "all", hiddenByReview: 0, minLevel: "low", hiddenByLevel: 0});
+
+        expect(report.summary.visibleChars).toBe(200);
     });
 });

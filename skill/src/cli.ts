@@ -17,6 +17,8 @@ import {readDetectCache, detectCacheKey, writeDetectCache} from "./detect/cache"
 import {chunkBySentence} from "./detect/chunk";
 import {aggregate, defaultDetectorOptions, HfTransport, type DetectPayload, type DetectorTransport} from "./detect/transport";
 import {loadUserSettings, saveUserSettings, userCacheDir} from "./user-state";
+import {beginRound} from "./round";
+import {contribute, listOutbox, outboxDir} from "./contribute";
 import {LLMLINT_VERSION} from "./version";
 import type {ActiveRuleRecord, CheckFileEntry, CheckFilterInfo, DensityIssue, FixFileResult, Issue, LlmlintOutput, MaskedRange, RegexRuleRecord, Review, RuleDetectorKind, RuleLevel} from "./types";
 import type {SharingMode, SharingTier, UserSettings} from "./user-state";
@@ -268,7 +270,112 @@ export async function runCli(argv: string[]): Promise<void> {
             }
         });
 
+    const round = program
+        .command("round")
+        .description("多轮修订谱系：把一轮审稿的修前快照、计划、修后稿与检测产物收在同一个目录");
+
+    round
+        .command("begin")
+        .description("起一轮：建轮目录、快照修前正文、在台账追加条目，输出轮号与目录")
+        .argument("<files...>", "本轮要审的 UTF-8 文本文件，可传多个")
+        .option("--parent <round>", "本轮续修哪一轮的 output；另起一篇时不传")
+        .action(async (files: string[], commandOptions: {parent?: string}) => {
+            try {
+                await beginRoundCommand(files, commandOptions.parent);
+            } catch (error) {
+                console.error(`错误: ${error instanceof Error ? error.message : String(error)}`);
+                process.exitCode = 1;
+            }
+        });
+
+    program
+        .command("contribute")
+        .description("把已完成的审稿轮按共享档位裁剪，只写本地发件箱，不联网、不发送")
+        .option("--yes", "真写发件箱；缺省只列出将导出什么")
+        .option("--round <round>", "只导出指定轮")
+        .option("--auto", "由用户设置决定落 / 跳过 / 待确认（五步流程步骤 5 用这个）")
+        .option("--list", "列出发件箱里现有的条目")
+        .action(async (commandOptions: {yes?: boolean; round?: string; auto?: boolean; list?: boolean}) => {
+            try {
+                await contributeCommand(commandOptions);
+            } catch (error) {
+                console.error(`错误: ${error instanceof Error ? error.message : String(error)}`);
+                process.exitCode = 1;
+            }
+        });
+
     await program.parseAsync(argv);
+}
+
+/** round begin：解析 --parent 后交给 round 模块，打印轮号与目录供 Agent 后续命令拼路径。 */
+async function beginRoundCommand(files: string[], parent: string | undefined): Promise<void> {
+    let parentRound: number | null = null;
+    if (parent !== undefined) {
+        const parsed = Number.parseInt(parent, 10);
+        if (!Number.isInteger(parsed) || parsed < 1) {
+            throw new Error(`--parent 必须是正整数轮号，当前为 ${parent}。`);
+        }
+        parentRound = parsed;
+    }
+    const result = beginRound({cwd: process.cwd(), files, parentRound});
+    const relative = toPosix(result.dir.slice(process.cwd().length + 1));
+    console.log([
+        `round: ${result.round}`,
+        `dir: ${relative}`,
+        `source: ${result.snapshots.map((name) => `${relative}/source/${name}`).join("、")}`,
+        `parent: ${parentRound === null ? "null（另起一篇）" : String(parentRound)}`,
+    ].join("\n"));
+}
+
+/** contribute：--list 单独走一条；其余交给 contribute 模块，这里只负责把结果说人话。 */
+async function contributeCommand(options: {yes?: boolean; round?: string; auto?: boolean; list?: boolean}): Promise<void> {
+    if (options.list === true) {
+        const entries = listOutbox();
+        if (entries.length === 0) {
+            console.log(`发件箱为空：${outboxDir()}`);
+            return;
+        }
+        console.log(`发件箱 ${outboxDir()}（共 ${entries.length} 条，可直接删除文件或整个目录）：`);
+        for (const entry of entries) {
+            console.log(`  ${entry.file}  ${entry.kind}/${entry.tier}  ${entry.bytes} 字节  ${entry.createdAt}`);
+        }
+        return;
+    }
+    let round: number | null = null;
+    if (options.round !== undefined) {
+        const parsed = Number.parseInt(options.round, 10);
+        if (!Number.isInteger(parsed) || parsed < 1) {
+            throw new Error(`--round 必须是正整数轮号，当前为 ${options.round}。`);
+        }
+        round = parsed;
+    }
+    const result = await contribute({
+        cwd: process.cwd(),
+        round,
+        write: options.yes === true,
+        auto: options.auto === true,
+    });
+    if (result.action === "skipped") {
+        console.log(result.reason ?? "未导出。");
+        return;
+    }
+    for (const entry of result.skipped) {
+        console.log(`跳过第 ${entry.round} 轮：${entry.reason}`);
+    }
+    if (result.written.length === 0) {
+        console.log("没有待导出的轮。");
+        return;
+    }
+    for (const entry of result.written) {
+        const degraded = entry.degradedFrom === null ? "" : `（原设 ${entry.degradedFrom} 档，缺修后正文，已降级）`;
+        const target = entry.file === null ? "未落盘" : entry.file;
+        console.log(`第 ${entry.round} 轮 → ${entry.tier} 档 ${entry.bytes} 字节 ${degraded}${entry.file === null ? "" : ` → ${target}`}`);
+    }
+    if (result.action === "wrote") {
+        console.log(`已写入 ${outboxDir()}；用 llmlint contribute --list 查看，删除文件即撤回。`);
+    } else {
+        console.log(result.reason ?? "以上为预览，加 --yes 才会写入发件箱。");
+    }
 }
 
 async function showStatus(options: GlobalOptions): Promise<void> {

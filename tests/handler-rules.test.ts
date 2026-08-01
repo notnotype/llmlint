@@ -4,12 +4,12 @@ import {afterEach, describe, expect, it} from "vitest";
 import {prepareScanContext} from "../skill/src/scan-context";
 import {scanHandlerRules} from "../skill/src/scanner";
 import {loadRules} from "../skill/src/rules";
-import type {ActiveHandlerRuleRecord, NormalizedLlmlintConfig} from "../skill/src/types";
+import type {ActiveHandlerRuleRecord, NormalizedLlmlintConfig, ResolvedScanScope} from "../skill/src/types";
 
 const RULESETS_ROOT = resolve("skill/rulesets");
 
 /** 构造最小 handler 规则，供扫描管线测试直接消费。 */
-function handlerRule(id: string, name: string): ActiveHandlerRuleRecord {
+function handlerRule(id: string, name: string, scope: ResolvedScanScope = {layer: "all"}): ActiveHandlerRuleRecord {
     return {
         id,
         namespace: "test",
@@ -18,6 +18,7 @@ function handlerRule(id: string, name: string): ActiveHandlerRuleRecord {
         level: "medium",
         review: "agent",
         fixability: "manual",
+        scope,
         handler: {type: "builtin", name},
         action: {type: "suggest", message: id},
     };
@@ -48,17 +49,36 @@ describe("handler rules", () => {
     });
 
     it("对白内 not-is-comparison 豁免", () => {
-        const issues = scanHandlerRules(prepareScanContext("「不是我干的，是他。」"), [handlerRule("h.dialogue", "not-is-comparison")]);
+        const issues = scanHandlerRules(prepareScanContext("「不是我干的，是他。」"), [handlerRule("h.quoted", "not-is-comparison", {layer: "narrative"})]);
 
         expect(issues).toHaveLength(0);
     });
 
+    it("handler 与 regex/density 一样服从 narrative/quoted/all 和位置窗口", () => {
+        const content = "不是雨，而是雾。中间内容很多很多。『不是风，而是雪。』";
+        const ctx = prepareScanContext(content);
+        expect(scanHandlerRules(ctx, [handlerRule("n", "not-is-comparison", {layer: "narrative"})])).toHaveLength(1);
+        expect(scanHandlerRules(ctx, [handlerRule("q", "not-is-comparison", {layer: "quoted"})])).toHaveLength(1);
+        expect(scanHandlerRules(ctx, [handlerRule("a", "not-is-comparison", {layer: "all"})])).toHaveLength(2);
+        const ending = scanHandlerRules(ctx, [handlerRule("qe", "not-is-comparison", {layer: "quoted", position: {kind: "ending", chars: 7}})]);
+        expect(ending).toHaveLength(1);
+        expect(ending[0]?.match).toBe("不是风，而是雪");
+    });
+
     it("handler 动态 detail 进入 Issue.detail", () => {
         const content = "他站住。风停了。灯灭了。门开了。人走了。夜深了。";
-        const issues = scanHandlerRules(prepareScanContext(content), [handlerRule("h.stutter", "period-stutter")]);
+        const issues = scanHandlerRules(prepareScanContext(content), [handlerRule("h.stutter", "period-stutter", {layer: "narrative"})]);
 
         expect(issues).toHaveLength(1);
         expect(issues[0]!.detail).toContain("连续 6 个短句");
+    });
+
+    it("统计型 handler 的短锚点不穿过 quoted 区间", () => {
+        const content = `一二三四五「台词」${"字".repeat(220)}`;
+        const issues = scanHandlerRules(prepareScanContext(content), [handlerRule("h.long", "long-paragraph", {layer: "narrative"})]);
+        expect(issues).toHaveLength(1);
+        expect(issues[0]!.match).not.toContain("台词");
+        expect(issues[0]!.detail).toContain("超过 200 字");
     });
 
     it("ignoreTerms 与 handler 命中重叠时丢弃命中", () => {
@@ -71,7 +91,7 @@ describe("handler rules", () => {
 
     it("quote-emphasis 统计叙述层短词引号强调，并全文只报一条", () => {
         const content = "这场胜利像「礼物」，那次失败成了「钥匙」。他把沉默称为「答案」。";
-        const issues = scanHandlerRules(prepareScanContext(content), [handlerRule("h.quote", "quote-emphasis")]);
+        const issues = scanHandlerRules(prepareScanContext(content), [handlerRule("h.quote", "quote-emphasis", {layer: "quoted"})]);
 
         expect(issues).toHaveLength(1);
         expect(issues[0]).toMatchObject({
@@ -85,7 +105,7 @@ describe("handler rules", () => {
     });
 
     it("quote-emphasis 豁免极短对白、系统面板与低于阈值的零散强调", () => {
-        const rule = handlerRule("h.quote.safe", "quote-emphasis");
+        const rule = handlerRule("h.quote.safe", "quote-emphasis", {layer: "quoted"});
         const safeCases = [
             "他说「好」。她问「行吗？」他答「可以」。",
             "【系统】\n【公告】\n【提示】",

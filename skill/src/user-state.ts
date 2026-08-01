@@ -3,6 +3,12 @@ import {homedir} from "node:os";
 import {join} from "node:path";
 
 export type SharingTier = "off" | "stats" | "fragments" | "full";
+/**
+ * 数据动作是否需要逐次确认：`auto` = 每轮审稿收尾自动落发件箱，`ask` = 只列不写、等用户加 `--yes`。
+ *
+ * 缺省是 `auto`：同意的落点是初始化门（首跑时把四档念给用户听、用户确认后才写 settings），
+ * 不是每轮再问一次。所以 `initialized:false` 时 contribute --auto 不落盘，只提示先过初始化门。
+ */
 export type SharingMode = "auto" | "ask";
 
 export type UserSharingSettings = {
@@ -54,7 +60,7 @@ const DEFAULT_SETTINGS: UserSettings = {
     initialized: false,
     sharing: {
         tier: "fragments",
-        mode: "ask",
+        mode: "auto",
         anonymous: false,
     },
     detector: {
@@ -105,9 +111,10 @@ export function saveUserSettings(settings: UserSettings): void {
     writeFileSync(settingsPath(), `${JSON.stringify(normalized, null, 4)}\n`, "utf-8");
 }
 
-/** detect 缓存目录，按需创建。 */
+/** detect缓存目录；LLMLINT_CACHE_DIR与durable LLMLINT_HOME独立，按需创建。 */
 export function userCacheDir(): string {
-    const dir = join(userStateDir(), "cache");
+    const override = process.env.LLMLINT_CACHE_DIR?.trim();
+    const dir = override && override.length > 0 ? override : join(userStateDir(), "cache");
     mkdirSync(dir, {recursive: true});
     return dir;
 }
@@ -162,10 +169,28 @@ function normalizeDetector(value: unknown): UserDetectorSettings {
     rejectUnknownKeys(value, DETECTOR_KEYS, "detector");
     return {
         proxy: readNullableString(value.proxy, DEFAULT_SETTINGS.detector.proxy, "detector.proxy"),
-        space: readString(value.space, DEFAULT_SETTINGS.detector.space, "detector.space"),
+        space: readDetectorSpace(value.space),
         chunkChars: readPositiveInteger(value.chunkChars, DEFAULT_SETTINGS.detector.chunkChars, "detector.chunkChars"),
         minIntervalMs: readNonNegativeIntegerOrNull(value.minIntervalMs, DEFAULT_SETTINGS.detector.minIntervalMs, "detector.minIntervalMs"),
     };
+}
+
+/** detector.space 会进入 stats 贡献元数据，只接受不含凭据、路径或查询参数的 host[:port]。 */
+function readDetectorSpace(value: unknown): string {
+    const space = readString(value, DEFAULT_SETTINGS.detector.space, "detector.space");
+    const separator = space.lastIndexOf(":");
+    const hasPort = separator >= 0;
+    if (hasPort && space.indexOf(":") !== separator) {
+        throw new Error("detector.space 必须是 host 或 host:port，不支持 URL、凭据或路径。");
+    }
+    const host = hasPort ? space.slice(0, separator) : space;
+    const port = hasPort ? space.slice(separator + 1) : null;
+    const hostnamePattern = /^(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)(?:\.(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?))*$/iu;
+    const validPort = port === null || (/^\d{1,5}$/u.test(port) && Number(port) >= 1 && Number(port) <= 65535);
+    if (!hostnamePattern.test(host) || !validPort) {
+        throw new Error("detector.space 必须是 host 或 host:port，不支持 URL、凭据或路径。");
+    }
+    return space;
 }
 
 function rejectUnknownKeys(value: Record<string, unknown>, allowed: Set<string>, label: string): void {

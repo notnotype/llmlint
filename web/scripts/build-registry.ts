@@ -1,6 +1,6 @@
-// 预烘脚本：在 Node/Bun 侧跑一次 loadRules（读文件系统里 ~340 条规则 JSON），
+// 预烘脚本：在 Node/Bun 侧跑一次 loadRules（读取完整规则 catalog），
 // 把浏览器需要的静态数据序列化成 app/data/registry.json。
-// 浏览器不读文件系统、不跑 loadRules，只 import 这份产物 + 调纯函数 scanText。
+// 浏览器不读文件系统、不跑 loadRules，只 import 这份产物并调用纯函数扫描。
 import {createHash} from "node:crypto";
 import {existsSync, mkdirSync, readFileSync, writeFileSync} from "node:fs";
 import {dirname, resolve} from "node:path";
@@ -37,13 +37,13 @@ const loaded = materializeRules({
 
 // engineVersion 单源（Task 13 D-C）：包版本 + 默认配置下静态扫描规则集的内容 hash。
 // 规则文件改动但包版本未升时，hash 变化仍能把 MachineScan 按真实引擎行为分版（@@unique(revisionId, engineVersion) 允许 re-scan）。
-// 只 hash 静态扫描相关规则：verdict 烘焙不改变扫描行为，不入 hash。
-const staticRules = {
+// 当前 MachineScan 只执行带 span 的 regex+handler；density 尚未进入 Web 持久化结果，
+// 不能因 density 单独变化制造行为完全相同的新 MachineScan 版本。
+const spanRules = {
     regexRules: loaded.regexRules,
-    densityRules: loaded.densityRules,
     handlerRules: loaded.handlerRules,
 };
-const rulesHash = createHash("sha256").update(JSON.stringify(staticRules)).digest("hex").slice(0, 8);
+const rulesHash = createHash("sha256").update(JSON.stringify(spanRules)).digest("hex").slice(0, 8);
 const engineVersion = `${LLMLINT_VERSION}+r${rulesHash}`;
 
 // 判别裁决烘焙：读 evals 跑分产物 report.json（若存在），把 per-rule verdict/effectiveLift

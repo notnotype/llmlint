@@ -526,6 +526,11 @@ export type MessageKey =
     | "rules.rateHint"
     | "rules.sampleCounts"
     | "rules.searchPlaceholder"
+    | "rules.scopeAll"
+    | "rules.scopeEnding"
+    | "rules.scopeNarrative"
+    | "rules.scopeOpening"
+    | "rules.scopeQuoted"
     | "rules.showRule"
     | "rules.statFireFrac"
     | "rules.statHits"
@@ -913,6 +918,11 @@ const zhCN: Record<MessageKey, string> = {
     "rules.rateHint": "两侧千字命中率中位数",
     "rules.sampleCounts": "样本：人类 {human} 篇 · AI {ai} 篇 · min-support {minSupport}",
     "rules.searchPlaceholder": "搜规则 ID / 名称 / 说明…",
+    "rules.scopeAll": "全文",
+    "rules.scopeEnding": "文末 {chars} 字",
+    "rules.scopeNarrative": "叙述",
+    "rules.scopeOpening": "文首 {chars} 字",
+    "rules.scopeQuoted": "引号内",
     "rules.showRule": "恢复显示（清除该规则的隐藏覆盖）",
     "rules.statFireFrac": "命中文档占比：人 {human} · AI {ai}",
     "rules.statHits": "命中数：人 {human} · AI {ai}",
@@ -1621,6 +1631,11 @@ const enUS: Record<MessageKey, string> = {
     "rules.rateHint": "Median hits per 1000 chars on each side",
     "rules.sampleCounts": "Samples: human {human} · AI {ai} · min-support {minSupport}",
     "rules.searchPlaceholder": "Search rule ID / title / note…",
+    "rules.scopeAll": "All text",
+    "rules.scopeEnding": "Last {chars} chars",
+    "rules.scopeNarrative": "Narrative",
+    "rules.scopeOpening": "First {chars} chars",
+    "rules.scopeQuoted": "Quoted text",
     "rules.showRule": "Show again (clear the hide override for this rule)",
     "rules.statFireFrac": "Doc fire fraction: human {human} · AI {ai}",
     "rules.statHits": "Hits: human {human} · AI {ai}",

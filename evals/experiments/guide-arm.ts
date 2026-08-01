@@ -18,10 +18,10 @@ import {ProviderGate} from "../generator/rate-limit";
 import {renderDetailed} from "../generator/render";
 import {visibleLength} from "../lib/corpus";
 import {GUIDE_TIERS, type GuideTier} from "../../skill/src/guide";
-import {buildGuideText, listGroups, readGroupMeta, refsOf, resolveTier, writeGroupMeta, type SampleMeta} from "./arm-corpus";
+import {buildExperimentGuide, listGroups, readGroupMeta, refsOf, resolveTier, verifyExperimentGuide, writeGroupMeta, type SampleMeta} from "./arm-corpus";
 
 const DEFAULT_CORPUS = join(import.meta.dir, "..", "corpus");
-const DEFAULT_OUT = join(import.meta.dir, "guide-arm");
+const DEFAULT_OUT = join(import.meta.dir, "guide-arm-v3");
 /** 本实验固定用 render-v2：它是唯一带约束槽位的模板，空约束时与 v1 逐字节等价。 */
 const RENDER_VERSION = "render-v2";
 
@@ -49,7 +49,8 @@ async function run(opts: Options): Promise<void> {
     const maxGroups = Number(opts.maxGroups);
     const perGroup = Number(opts.perGroup);
 
-    const guideText = await buildGuideText(tier, opts.profile);
+    const guide = await buildExperimentGuide(tier, opts.profile);
+    const guideText = guide.text;
     console.log(`写作约束：档位 ${tier}，${visibleLength(guideText)} 可见字\n`);
 
     const evalConfig = loadEvalConfig(opts.evalConfig);
@@ -64,6 +65,9 @@ async function run(opts: Options): Promise<void> {
     console.log(`题组 ${groups.length} × 章节 ≤${perGroup} × 模型 ${modelKeys.length} × 两臂 = 最多 ${pending} 次调用`);
     console.log(`模型：${modelKeys.join(", ")}`);
     console.log(`输出：${outRoot}\n`);
+    if (existsSync(outRoot)) {
+        verifyExperimentGuide(outRoot, guide.provenance);
+    }
     if (opts.dryRun) {
         for (const {group, ref} of plan) {
             console.log(`  ${group.genre}/${group.plot} ${ref.file}（目标 ${ref.targetChars} 字，brief ${visibleLength(readFileSync(ref.briefPath, "utf-8"))} 字）`);
@@ -106,7 +110,7 @@ async function run(opts: Options): Promise<void> {
                 }
                 writeFileSync(path, text, "utf-8");
                 samples.push({file, role: "render", model: key, promptVersion: RENDER_VERSION, pairRef: ref.file, styleKey: arm, difficulty: arm === "guide" ? `llmlint-guide-${tier}` : "raw", charCount: visibleLength(text)});
-                writeGroupMeta(outDir, group.genre, group.plot, RENDER_VERSION, tier, samples);
+                writeGroupMeta(outDir, group.genre, group.plot, RENDER_VERSION, guide.provenance, samples);
                 done++;
                 console.log(`  ${group.genre}/${group.plot} ${ref.file} ← ${key} [${arm}]：${visibleLength(text)} 字（目标 ${ref.targetChars}）`);
             }

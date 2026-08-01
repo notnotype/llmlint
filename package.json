@@ -1,6 +1,6 @@
 {
     "name": "llmlint-dev",
-    "version": "2.0.1",
+    "version": "3.0.0",
     "private": true,
     "type": "module",
     "description": "Development workspace for llmlint. The installable Agent Skill package lives in ./skill.",

@@ -1,6 +1,6 @@
 import {isMasked} from "./markdown-mask";
 import {HANDLER_REGISTRY} from "./handler-rules";
-import {computePositionWindow, overlapsRanges, prepareScanContext} from "./scan-context";
+import {computePositionWindow, overlapsRanges, prepareHandlerScanContext, prepareScanContext, scopeAllowsFinding} from "./scan-context";
 import type {ActiveHandlerRuleRecord, Issue, MaskedRange, RegexRuleRecord, ScanContext} from "./types";
 
 export type ScanOptions = {
@@ -28,8 +28,8 @@ export function scanWithContext(ctx: ScanContext, rules: RegexRuleRecord[]): Iss
     const issues: Issue[] = [];
 
     for (const rule of rules) {
-        const view = ctx.layers[rule.scope?.layer ?? "all"];
-        const window = rule.scope?.position ? computePositionWindow(ctx, rule.scope.position) : null;
+        const view = ctx.layers[rule.scope.layer];
+        const window = rule.scope.position ? computePositionWindow(ctx, rule.scope) : null;
         for (const target of rule.detector.targets) {
             let regex: RegExp;
             try {
@@ -52,7 +52,7 @@ export function scanWithContext(ctx: ScanContext, rules: RegexRuleRecord[]): Iss
                 if (ctx.ignoreRanges.length > 0 && overlapsRanges(matchIndex, matchIndex + matchLength, ctx.ignoreRanges)) {
                     continue;
                 }
-                if (window && (matchIndex < window[0] || matchIndex >= window[1])) {
+                if (!scopeAllowsFinding(ctx, rule.scope, window, matchIndex, matchIndex + matchLength)) {
                     continue;
                 }
                 // 视图与原文等长，回原文切片保证 excerpt 是真实文本（视图里可能含 `。` 占位）。
@@ -85,8 +85,8 @@ export function ensureGlobalFlags(flags: string | undefined): string {
 
 /**
  * 执行 handler 规则：从编译期注册表按名取算法，findings 过 masked/ignore 过滤后映射
- * 为 Issue。loader 已拒绝未注册名，这里遇到（防御）直接跳过。handler 自行消费 ctx
- * 的分层视图与结构行标记，scope 字段对 handler 只是元数据。
+ * 为 Issue。每条规则先绑定统一 handler scope 上下文，执行器再对 finding 做 layer/window
+ * 防御性过滤。loader 已拒绝未注册名，这里遇到（防御）直接跳过。
  */
 export function scanHandlerRules(ctx: ScanContext, rules: ActiveHandlerRuleRecord[]): Issue[] {
     if (rules.length === 0) {
@@ -101,8 +101,12 @@ export function scanHandlerRules(ctx: ScanContext, rules: ActiveHandlerRuleRecor
         if (!handler) {
             continue;
         }
-        for (const finding of handler(ctx)) {
+        const handlerContext = prepareHandlerScanContext(ctx, rule.scope);
+        for (const finding of handler(handlerContext)) {
             const {index, length} = finding;
+            if (!handlerContext.allowsFinding(index, index + length)) {
+                continue;
+            }
             if (ctx.maskedRanges.length > 0 && isMasked(index, ctx.maskedRanges)) {
                 continue;
             }

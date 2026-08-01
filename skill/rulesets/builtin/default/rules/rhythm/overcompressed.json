@@ -11,6 +11,9 @@
       "canonicalKey": "overcompressed-prose handler",
       "importedFrom": "oh-story-claudecode/story-deslop"
     },
+    "scope": {
+      "layer": "narrative"
+    },
     "handler": {
       "type": "builtin",
       "name": "overcompressed-prose"

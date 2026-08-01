@@ -22,6 +22,7 @@ const {t} = useLlmlintI18n();
                 <div class="flex flex-wrap items-center gap-2 text-sm">
                     <span class="font-medium">{{ rule.title }}</span>
                     <span class="font-mono text-xs text-zinc-500">[{{ rule.namespace }}]</span>
+                    <ScopeBadge :scope="rule.scope" />
                 </div>
                 <p class="mt-1 whitespace-pre-wrap text-xs text-zinc-500">{{ rule.detector.prompt }}</p>
             </div>

@@ -76,7 +76,8 @@ export function scanBodyIssues(body: string): Issue[] {
 }
 
 /**
- * 对给定正文跑一次服务端扫描，产出命中 + docScore + engineVersion。
+ * 对给定正文跑一次服务端 span 扫描，产出 regex+handler 命中、docScore 与 engineVersion。
+ * density 是无 span 的统计结论，本轮不混进 hitsJson/docScore；完整静态检查由 CLI/Agent lint_check 提供。
  * 纯计算，不落库；坐标转换与 app/utils/review-ranges.ts 同口径（UTF-16），
  * docScore 与 evals/lib/scan.ts 的 countDedupSpans 同算法（码点区间合并）。
  */

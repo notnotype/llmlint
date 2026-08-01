@@ -6,13 +6,13 @@
     "level": "medium",
     "review": "agent",
     "fixability": "manual",
-    "note": "移植自 story-deslop 的 system-notice-formality-tic；按 dialogue/【】层逐段评估，硬规则词密集时提示，功能性系统面板可保留载体。",
+    "note": "移植自 story-deslop 的 system-notice-formality-tic；按 quoted/【】层逐段评估，硬规则词密集时提示，功能性系统面板可保留载体。",
     "source": {
       "canonicalKey": "NOTICE_FORMAL_PATTERNS",
       "importedFrom": "oh-story-claudecode/story-deslop"
     },
     "scope": {
-      "layer": "dialogue"
+      "layer": "quoted"
     },
     "detector": {
       "type": "density",

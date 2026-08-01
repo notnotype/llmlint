@@ -16,6 +16,7 @@ import type {
     NormalizedLlmlintConfig,
     NormalizedRuleOverride,
     RegistryDiagnostic,
+    ResolvedScanScope,
     Review,
     RuleLevel,
     RuleRegistryCatalogItem,
@@ -196,6 +197,10 @@ function normalizeRule(
     // fixability 最后还要受规则能力约束：只有 regex + replace 才能进入 auto/candidate。
     const namespacePolicy = DEFAULT_NAMESPACE_POLICY[namespace];
     const rulePolicy = DEFAULT_RULE_POLICY[rule.id];
+    const scope: ResolvedScanScope = {
+        layer: rule.scope?.layer ?? "all",
+        ...(rule.scope?.position ? {position: rule.scope.position} : {}),
+    };
 
     if ("handler" in rule) {
         // handler 名必须在编译期注册表内：未注册 = 跳过 + 诊断。这既是老版本 skill 装
@@ -228,6 +233,7 @@ function normalizeRule(
             ruleset: manifest.id,
             review: rule.review ?? rulePolicy?.review ?? namespacePolicy?.review ?? "agent",
             fixability: "manual",
+            scope,
         };
     }
 
@@ -237,9 +243,10 @@ function normalizeRule(
         ruleset: manifest.id,
         review: rule.review ?? rulePolicy?.review ?? namespacePolicy?.review ?? deriveReview(rule),
         fixability: resolveFixability(rule, rulePolicy?.fixability ?? namespacePolicy?.fixability),
+        scope,
     };
 
-    // 不变量（v3.1）：机械修复只允许全文全域。fix 拿命中区间改原文，narrative/dialogue
+    // 不变量：机械修复只允许全文全域。fix 拿命中区间改原文，narrative/quoted
     // 视图里的 `。` 占位命中会写坏原文；position 窗口同理不给机械修复留口。
     if (resolved.fixability !== "manual" && isScopedRule(resolved)) {
         diagnostics.push({
@@ -266,13 +273,10 @@ function normalizeRule(
     return resolved;
 }
 
-/** 是否声明了非全域扫描范围（narrative/dialogue 层或位置窗口）。 */
-function isScopedRule(rule: BaseLintRuleRecord): boolean {
+/** 是否声明了非全域扫描范围（narrative/quoted 层或位置窗口）。 */
+function isScopedRule(rule: ActiveRuleRecord): boolean {
     const scope = rule.scope;
-    if (!scope) {
-        return false;
-    }
-    return (scope.layer !== undefined && scope.layer !== "all") || scope.position !== undefined;
+    return scope.layer !== "all" || scope.position !== undefined;
 }
 
 /** detector/action 推导默认审查受众：默认都交给 Agent，再由命名空间策略表下调到 human/none。 */
@@ -577,10 +581,10 @@ function readScope(value: unknown, fieldName: string): ScanScope | undefined {
         throw new Error(`${fieldName} 必须是 scope 对象。`);
     }
     let layer: ScanScope["layer"];
-    if (value.layer === "narrative" || value.layer === "dialogue" || value.layer === "all") {
+    if (value.layer === "narrative" || value.layer === "quoted" || value.layer === "all") {
         layer = value.layer;
     } else if (value.layer !== undefined) {
-        throw new Error(`${fieldName}.layer 必须是 narrative、dialogue 或 all。`);
+        throw new Error(`${fieldName}.layer 必须是 narrative、quoted 或 all。`);
     }
     let position: ScanScope["position"];
     if (value.position !== undefined) {

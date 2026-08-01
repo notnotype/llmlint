@@ -4,7 +4,7 @@
 
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](./LICENSE)
 [![Runtime: Node.js or Bun](https://img.shields.io/badge/Runtime-Node.js%20or%20Bun-green.svg)](#运行要求)
-[![Version](https://img.shields.io/badge/version-2.0.1-green.svg)](./package.json)
+[![Version](https://img.shields.io/badge/version-3.0.0-green.svg)](./package.json)
 
 **中文 · [English](./README.en.md)**
 
@@ -18,7 +18,7 @@
 
 | 层 | 职责 |
 | --- | --- |
-| **CLI**（本仓库 `bin/llmlint.ts`） | 用 regex detector 做**稳定、可复现的候选定位**，告诉你*哪里*可能有问题。 |
+| **CLI**（本仓库 `bin/llmlint.ts`） | 用 regex、density 与 handler 做**稳定、可复现的静态检查**，给出位置候选或统计指纹。 |
 | **Agent Skill**（`SKILL.md`） | 由 LLM/Agent 结合**语境**复核候选、给文本评分、生成修复计划，并*在你审批之后*才改写。 |
 
 核心理念：**命中只是候选，不是判决。** CLI 永远不会自动改写正文。只有无需判断的机械清理（零宽字符、省略号/破折号尾部清理）才由 `fix` 处理；所有语义级修复都交给人/Agent。
@@ -69,7 +69,7 @@ bun bin/llmlint.ts check <文件>     # Node：npx tsx bin/llmlint.ts check <文
 bun bin/llmlint.ts guide
 bun bin/llmlint.ts guide --tier full            # 带上全部逐词替换与删除词表
 
-# 定位文件（或目录，递归 .md/.markdown/.txt）中的 regex 候选
+# 检查文件（或目录，递归 .md/.markdown/.txt）中的静态候选
 bun bin/llmlint.ts check manuscript/chapter-01.md
 bun bin/llmlint.ts check manuscript/
 
@@ -101,7 +101,7 @@ bun bin/llmlint.ts check chapter.md --format json
 - **`review`** —— `agent` / `human` / `none`。*审查受众*：一条命中默认给谁看。`check` 默认 `--review agent`，把破折号、比喻、泛词形副词等更偏作者偏好的命中放进 `human` 桶、机械命中放进 `none` 桶。用 `--review human` / `--review all` 查看其它桶。
 - **`fixability`** —— `auto` / `candidate` / `manual`。机械修复能力。`fix` 只应用 `auto` 规则。
 
-默认规则集中只有 3 条无需语境判断的机械规则是 `auto`，没有默认 `candidate`，其余规则均为 `manual`。用户仍可在配置中把明确选中的 regex `replace` 规则提升为 `candidate`，供逐条人工确认。规则数据里的 `action.replace` 只是替换模板，**不代表允许直接应用**；最终权限始终由 materialize 后的 `fixability` 决定。
+默认规则集中只有 2 条无需语境判断的机械规则是 `auto`，没有默认 `candidate`，其余规则均为 `manual`。用户仍可在配置中把明确选中的 regex `replace` 规则提升为 `candidate`，供逐条人工确认。规则数据里的 `action.replace` 只是替换模板，**不代表允许直接应用**；最终权限始终由 materialize 后的 `fixability` 决定。
 
 `review`（受众）和 `detector`（判据类别）是**两个不同概念**：
 
@@ -109,6 +109,10 @@ bun bin/llmlint.ts check chapter.md --format json
 - **`review`** 决定一条静态命中*默认给谁看*。它**只管审查期**——`human` 表示「置信度不足，别让 Agent 自动改」，不表示这条规则在写作期不该提。写作期的取舍是 `guide --tier`。
 
 一次完整审查要同时跑 `check`（给 Agent 的静态命中）和 `rules --detector semantic`（语义规则）。
+
+每条规则还带作者定义的扫描域 `scope.layer`：`narrative` 只看引号外叙述，`quoted` 只看同一行内成对的 `「」` / `『』` / `“”` / `‘’` / `【】`（含分隔符），`all` 同时看两层。省略 scope 等于 `all`；项目配置不能覆盖它。ASCII 直引号、未闭合或跨行分隔符不进入 `quoted`。
+
+Web 的本地扫描与服务端 MachineScan 当前只执行 regex+handler span；density 仍在规则目录展示，但不进入 Web `hitsJson` / `docScore`。完整 regex+density+handler 静态检查由 CLI `check` 与 Agent `lint_check` 提供。
 
 ## 配置
 
@@ -139,7 +143,7 @@ export default {
 
 ## 内置规则集：`builtin/default`
 
-官方推荐规则集 —— 约 340 条规则、覆盖 40+ 命名空间，由人工维护的 anti-AI-slop 规则与中文规则样本（`shuorenhua` 说人话 / `avoid-ai-writing` / `humanizer`）策展合并而来。
+官方推荐规则集 —— 360 条规则（默认启用 266 条）、覆盖 71 个命名空间，由人工维护的 anti-AI-slop 规则与中文规则样本（`shuorenhua` 说人话 / `avoid-ai-writing` / `humanizer`）策展合并而来。运行 `llmlint rules --format json` 可查看当前配置下的实时统计。
 
 - **agent 桶（默认展示）：** `filler`、`opening.cliche`、`inflation.significance`、`transition.summary`、`attribution.vague`、`cliche.uplift`、`sycophantic`、`jargon.business`……
 - **human 桶（高误杀 / 作者偏好）：** `punctuation.dash`、`metaphor`、`modifier`、`jargon.engineer`、`jargon.social`、`translationese`、`structure.fragment`……
@@ -159,7 +163,13 @@ export default {
 
 本仓库同时是一个自包含的 **Agent Skill**。`SKILL.md` 定义了“首次 install 依赖门 + 五步本地闭环”：`status` 初始化 → `check + detect` → 合成报告 → 审批后按删/压/换修复并复测一轮 → 台账与本地学习建议。
 
-推荐用 [`skills`](https://skills.sh) CLI 安装 —— `npx skills add notnotype/llmlint --skill llmlint --full-depth` —— 它会在仓库中递归发现 `skill/` 下的 `llmlint`，并把文件装进对应 Agent 的 skills 目录（如 `.claude/skills/llmlint/` 或 NeuroBook 的 `.nbook/agent/skills/llmlint/`）。也可手动复制仓库里的 `skill/` 目录，并在目标 skills 目录中命名为 `llmlint/`。首次启用时，Agent 必须先在 SkillCatalog 给出的 skill 根目录运行 `bun install --cwd "<skill-root>" --frozen-lockfile`；安装成功后才进入 `status` 初始化门，后续审稿复用该安装。Skill 版本真相源是 `package.json.version`，不写入 `SKILL.md` frontmatter。
+推荐用 [`skills`](https://skills.sh) CLI 安装 —— `npx skills add notnotype/llmlint --skill llmlint --full-depth` —— 它会在仓库中递归发现 `skill/` 下的 `llmlint`，并把文件装进对应 Agent 的 skills 目录（如 `.claude/skills/llmlint/` 或 NeuroBook 的 `.nbook/agent/skills/llmlint/`）。也可手动复制仓库里的 `skill/` 目录，并在目标 skills 目录中命名为 `llmlint/`。首次启用时，Agent 必须先在 SkillCatalog 给出的 skill 根目录运行 `bun install --cwd "<skill-root>" --frozen-lockfile`；安装成功后才进入 `status` 初始化门。后续只要依赖字段与 `bun.lock` 合同有效且 `node_modules` 存在就直接复用，版本、提示词、规则或源码更新不触发重装。Skill 版本真相源是 `package.json.version`，不写入 `SKILL.md` frontmatter。
+
+## 数据共享与隐私
+
+`contribute` 和 `detect` 是两条独立链路。`contribute` 只把按档裁剪的记录写进本机 `~/.llmlint/outbox/`，当前版本不登录、不联网、不上传；`fragments` / `full` 只保留轮目录内的安全快照名，不写原始绝对路径，`stats` 连文件名和自由文本都不保存。只有完整 output 快照集合才会产生 `outputHash` 或进入 `full` 正文；不完整时降级为 fragments 并记录 `degradedReason`。可用 `contribute --list` 查看，删除条目或整个 outbox 即撤回。
+
+`detect` 则会把缓存未命中的正文块 POST 到配置的外部检测服务，默认是 HF Space；请求不含文件名或项目路径。远端日志和保留策略不受 llmlint 控制，`sharing.off` 只关闭本地贡献记录，不会关闭 `detect`。不希望正文离机时不要运行 `detect`。
 
 ## 文档
 

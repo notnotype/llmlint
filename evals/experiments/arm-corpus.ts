@@ -7,7 +7,7 @@ import {existsSync, readFileSync, readdirSync, writeFileSync} from "node:fs";
 import {join, resolve} from "node:path";
 import {visibleLength} from "../lib/corpus";
 import {loadRules} from "../../skill/src/rules";
-import {buildGuide, GUIDE_TIERS, parseRuleVerdicts, type GuideTier, type RuleVerdicts} from "../../skill/src/guide";
+import {buildGuideArtifact, GUIDE_TIERS, parseRuleVerdicts, type GuideArtifact, type GuideProvenance, type GuideTier, type RuleVerdicts} from "../../skill/src/guide";
 
 /** 一个实验样本在 meta.json 里的记录。字段与主语料同形，这样 detect.ts / lib/corpus 能直接消费。 */
 export type SampleMeta = {
@@ -28,10 +28,16 @@ export type GroupMeta = {
     genre: string;
     plotId: string;
     promptVersion: {render: string};
-    /** 本批用的写作约束档位；control-only 的批次可以没有。 */
-    guideTier?: GuideTier;
+    /** 实验输入是否满足本实验的受控变量合同；比较器在读样本前硬切校验。 */
+    validity: ExperimentValidity;
+    /** 本批实际注入的 guide 来源；旧实验或 control-only 批次可以没有。 */
+    guide?: GuideProvenance;
     samples: SampleMeta[];
 };
+
+export type ExperimentValidity =
+    | {status: "valid"}
+    | {status: "invalid"; reason: string};
 
 /** 主语料里一个「有 brief 的 reference」，是实验两臂共享的输入。 */
 export type RefEntry = {
@@ -86,8 +92,8 @@ export function readGroupMeta(dir: string): GroupMeta | null {
 }
 
 /** 每写一个样本就落一次 meta：中途失败/中断时已生成的样本不会变成没有 meta 的孤儿文件。 */
-export function writeGroupMeta(dir: string, genre: string, plotId: string, renderVersion: string, guideTier: GuideTier | undefined, samples: SampleMeta[]): void {
-    const meta: GroupMeta = {genre, plotId, promptVersion: {render: renderVersion}, guideTier, samples};
+export function writeGroupMeta(dir: string, genre: string, plotId: string, renderVersion: string, guide: GuideProvenance | undefined, samples: SampleMeta[]): void {
+    const meta: GroupMeta = {genre, plotId, promptVersion: {render: renderVersion}, validity: {status: "valid"}, ...(guide ? {guide} : {}), samples};
     writeFileSync(join(dir, "meta.json"), `${JSON.stringify(meta, null, 2)}\n`, "utf-8");
 }
 
@@ -97,7 +103,7 @@ export function writeGroupMeta(dir: string, genre: string, plotId: string, rende
  * @param profilePath eval 报告路径。不传 = 判别力档位不带证据（I24：verdict 不进 skill 包，
  *   `core` 只剩语义规则、`wide` 等同 `standard`），刻意不假装有证据。
  */
-export async function buildGuideText(tier: GuideTier, profilePath?: string): Promise<string> {
+export async function buildExperimentGuide(tier: GuideTier, profilePath?: string): Promise<GuideArtifact> {
     const loaded = await loadRules({rulesets: ["builtin/default"], trustedRulesets: [], rulesetOverrides: {}, namespaces: {}, rules: {}, ignoreTerms: [], output: "json"});
     let verdicts: RuleVerdicts = new Map();
     if (profilePath !== undefined) {
@@ -107,7 +113,53 @@ export async function buildGuideText(tier: GuideTier, profilePath?: string): Pro
         }
         verdicts = parseRuleVerdicts(readFileSync(path, "utf-8"));
     }
-    return buildGuide(loaded, tier, verdicts);
+    return buildGuideArtifact(loaded, tier, verdicts, profilePath !== undefined);
+}
+
+/** 比较全部 provenance 字段；任何旧形态、缺字段或指纹漂移都在扫描/生成前失败。 */
+export function assertGuideProvenance(actual: unknown, expected: GuideProvenance, context: string): asserts actual is GuideProvenance {
+    if (!isObject(actual)) {
+        throw new Error(`${context} 缺少 guide provenance；期望 ${JSON.stringify(expected)}。`);
+    }
+    const fields: Array<keyof GuideProvenance> = ["tier", "profileFingerprint", "selectedRuleFingerprint", "selectedRuleCount", "textFingerprint"];
+    const differences = fields.flatMap((field) => actual[field] === expected[field]
+        ? []
+        : [`${field}: 期望 ${JSON.stringify(expected[field])}，实际 ${JSON.stringify(actual[field])}`]);
+    const fingerprints = [actual.profileFingerprint, actual.selectedRuleFingerprint, actual.textFingerprint]
+        .filter((value): value is string => typeof value === "string");
+    if (fingerprints.some((value) => !/^sha256:[0-9a-f]{64}$/.test(value))) {
+        differences.push("指纹必须是 sha256:<64 lowercase hex>");
+    }
+    if (differences.length > 0) {
+        throw new Error(`${context} guide provenance 不一致：\n  ${differences.join("\n  ")}`);
+    }
+}
+
+/** validity 是 guide provenance 之前的实验资格门；旧形态与 invalid 都不能进入扫描。 */
+export function assertExperimentValidity(actual: unknown, context: string): asserts actual is {status: "valid"} {
+    if (!isObject(actual) || actual.status !== "valid" || Object.keys(actual).length !== 1) {
+        if (isObject(actual) && actual.status === "invalid" && typeof actual.reason === "string" && actual.reason.trim().length > 0) {
+            throw new Error(`${context} 实验已标记 invalid：${actual.reason}`);
+        }
+        throw new Error(`${context} 缺少合法 validity；期望 {"status":"valid"}。`);
+    }
+}
+
+/** 严格核对实验根下每个非空题组的 meta；必须在 loadCorpus/scanAll 前调用。 */
+export function verifyExperimentGuide(root: string, expected: GuideProvenance): void {
+    for (const group of listGroups(root)) {
+        const groupDir = join(root, group.genre, group.plot);
+        const files = readdirSync(groupDir, {withFileTypes: true}).filter((entry) => entry.isFile());
+        const meta = readGroupMeta(groupDir);
+        if (!meta) {
+            if (files.length > 0) {
+                throw new Error(`${group.genre}/${group.plot}/meta.json 缺失；非空实验题组不能跳过 provenance 守门。`);
+            }
+            continue;
+        }
+        assertExperimentValidity(meta.validity, `${group.genre}/${group.plot}/meta.json`);
+        assertGuideProvenance(meta.guide, expected, `${group.genre}/${group.plot}/meta.json`);
+    }
 }
 
 export function resolveTier(tier: string): GuideTier {
@@ -122,4 +174,8 @@ function listDirs(root: string): string[] {
         throw new Error(`目录不存在：${root}`);
     }
     return readdirSync(root, {withFileTypes: true}).filter((entry) => entry.isDirectory()).map((entry) => entry.name).sort((left, right) => left.localeCompare(right));
+}
+
+function isObject(value: unknown): value is Record<string, unknown> {
+    return typeof value === "object" && value !== null && !Array.isArray(value);
 }

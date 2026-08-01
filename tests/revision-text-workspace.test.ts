@@ -152,7 +152,7 @@ describe("RevisionTextWorkspace", () => {
         const source = fakeSource();
         source.detections = async () => ({
             status: {scan: "completed", llmReview: "completed", detectors: "completed"},
-            scan: {engineVersion: "engine-v1", docScore: 2.5, scannedAt: "now", hits: [{ruleId: "not-but-structure", span: {start: 3, end: 5}, level: "high", review: "agent"}]},
+            scan: {engineVersion: "engine-v1", docScore: 2.5, scannedAt: "now", hits: [{ruleId: "test.historical-rule", span: {start: 3, end: 5}, level: "high", review: "agent"}]},
             llmReview: {model: "test/model", promptVersion: "v1", score: 20, confidence: 0.8, hits: [], report: {score: 20, confidence: 0.8, conclusion: "有一处风险", evidence: [], suggestions: []}, judgedAt: "now"},
             detectors: [{detectorName: "detector", detectorVersion: "v1", chunkChars: 100, docPAi: 0.5, maxPAi: 0.6, checkedAt: "now", chunks: []}],
         });
@@ -161,7 +161,7 @@ describe("RevisionTextWorkspace", () => {
         const result = await workspace.revisionDetections();
 
         expect(result.status).toEqual({scan: "completed", llmReview: "completed", detectors: "completed"});
-        expect(result.scan?.hits[0]).toMatchObject({ruleId: "not-but-structure", startLine: 2, endLine: 2, repairPolicy: {required: true, reason: "strong", verdict: "strong"}});
+        expect(result.scan?.hits[0]).toMatchObject({ruleId: "test.historical-rule", startLine: 2, endLine: 2, repairPolicy: {required: false, reason: "contextual", verdict: null}});
         expect(result.llmReview).toMatchObject({model: "test/model", score: 20});
         expect(result.detectors[0]).toMatchObject({detectorName: "detector", chunkChars: 100});
     });

@@ -14,25 +14,29 @@
 - **对照臂现生成，不复用主语料的历史 render**：那批是几周前产出的，直接拿来当对照会把模型漂移混进结论。
 - 逐 brief 逐模型**两臂紧挨着跑**，让限流抖动与服务端波动对两臂等量作用。
 - brief 复用主语料已有的，不重抽——重抽会引入第二个变量（I3 配对同源）。
+- 每个题组的 `meta.json` 保存同一份完整 guide provenance：tier、profile、最终选中规则集合/数量和实际注入文本。三个指纹都是 `sha256:<64 lowercase hex>`；生成续跑、dry-run 与 `guide-compare` 都会先重建 guide 并逐字段核对，再读取或扫描样本。
+- v2.0.1 的既有实验保留在 `guide-arm/` 与 `guide-arm-report/`，不拿 v3 guide 伪装回填。v3 的 guide 文本已变化，因此当前比较器会拒绝把这些旧样本当作 v3 结果；要得到 v3 结论必须写入新的 `guide-arm-v3/`。本轮只建立独立目录和 dry-run，不调用模型重跑。
 
 ```bash
-# 生成（可续跑：已存在的文件自动跳过，中断后重跑只补缺口）
+# v3 新批次生成（缺省输出 guide-arm-v3；可续跑，旧 guide-arm 不会混入）
 # 模型面板逐个跑：gemini / mimo 换 --models 值，其余参数必须一致
 bun evals/experiments/guide-arm.ts --models deepseek/deepseek-v4-flash --tier standard --profile evals/report/report.json
-bun evals/experiments/guide-arm.ts --dry-run            # 只看将生成多少、不调模型
+bun evals/experiments/guide-arm.ts --dry-run --models deepseek/deepseek-v4-flash --tier standard --profile evals/report/report.json
 
-# 外部检测器打分（主指标的来源）
-bun evals/detector/detect.ts --corpus evals/experiments/guide-arm --out evals/experiments/guide-arm-report
+# v3 外部检测器打分（主指标的来源）
+bun evals/detector/detect.ts --corpus evals/experiments/guide-arm-v3 --out evals/experiments/guide-arm-v3-report
 
 # 配对比较（--tier / --profile 必须与生成时一致，否则注入/留出集合对不上——
 # 本轮实测踩过：漏掉 --profile 后注入集合 71→66，留出/注入两行数字全错，
 # 而 docPAi / docScore / 字数三行不受影响，错得非常安静）
-bun evals/experiments/guide-compare.ts --tier standard --profile evals/report/report.json \
-    --detector evals/experiments/guide-arm-report/detector-scores.json
+bun evals/experiments/guide-compare.ts --arm evals/experiments/guide-arm-v3 \
+    --tier standard --profile evals/report/report.json \
+    --detector evals/experiments/guide-arm-v3-report/detector-scores.json
 
 # 多模型语料必须先用 --model 分层看；合并数字只作总览（见下面「合并跑会撒谎」）
-bun evals/experiments/guide-compare.ts --tier standard --profile evals/report/report.json \
-    --detector evals/experiments/guide-arm-report/detector-scores.json --model gemini
+bun evals/experiments/guide-compare.ts --arm evals/experiments/guide-arm-v3 \
+    --tier standard --profile evals/report/report.json \
+    --detector evals/experiments/guide-arm-v3-report/detector-scores.json --model gemini
 ```
 
 **指标分三层，不能混**：
@@ -79,7 +83,9 @@ bun evals/experiments/guide-compare.ts --tier standard --profile evals/report/re
 - **留出集合的耦合度**。`--tier standard` 注入 71 条、留出 195 条，而留出的大多是逐词替换类词表（`脊背→背`），与注入的结构类建议耦合较弱，降不降的信号偏钝。想要更硬的对照，可以把 66 条建议类规则随机对半分、注入一半留出一半——同类型同性质，留出半边该跟着降。那是机制实验，不是产品配置，另开一轮。
 - **样本量**。`report()` 输出符号检验 p 值就是为了防止在十几对样本上过度解读方向；n=26 时大约要 18/26 才到 p<0.05。
 
-## delivery-arm：约束放在哪里才起作用
+## delivery-arm：旧批次无效，修复版待重跑
+
+> **有效性更正（2026-07-31）**：旧 `delivery-arm/` 的 toolresult 命令漏传 `--profile`，因此 sysprompt 实际注入 71 条规则，toolresult 只得到 66 条；两个处理臂正文并不相同，投递位置不再是唯一变量。五组旧 meta 已标记 `invalid`，比较器会在扫描样本前拒绝它们。旧数表只能说明当时三个输出集合有差异，不能证明投递位置影响、模型强度是主因，或 Opus 5 的净收益方向；`control → sysprompt` 也只保留为描述性观察。
 
 **问题**：`guide-arm` 显示注入约束有效（主指标 p = 0.009），但把 skill 装进 `~/.claude/skills/` 用 `claude -p` 实测时，Opus 5 读了 `guide` 之后照样写出「不是A，是B」——那条就在 guide 第 42 行。两个实验有**两个变量同时不同**：
 
@@ -100,7 +106,7 @@ bun evals/experiments/guide-compare.ts --tier standard --profile evals/report/re
 
 设计要点：
 
-- `sysprompt` 与 `toolresult` 的**约束正文完全相同**（同一次 `buildGuideText` 的输出），唯一差别是它进上下文的位置。这就是要测的那一个变量。
+- 修复版把 profile 解析为绝对路径，并让 `sysprompt` 与 `toolresult` 使用同一 tier/profile。模型调用前真实运行一次同构 guide CLI，去掉 CLI 固有尾换行后与内存 guide 逐字节比较；不一致立即失败。
 - **三臂的写作指令一律走 `--append-system-prompt-file`**，位置一致；user message 只放 brief（`toolresult` 臂额外前置一句取约束的指令）。否则「写作指令在哪」会变成第二个变量。
 - `toolresult` 臂只给 `--allowedTools Bash`，它必须真的去跑 CLI 拿约束才算还原 skill 路径。跑没跑可以事后查 claude 的 session transcript。
 - claude CLI 的 cwd 用系统临时目录：在仓内跑会让它自动发现 `AGENTS.md` / `CLAUDE.md`，把项目上下文混进写作任务。
@@ -108,20 +114,20 @@ bun evals/experiments/guide-compare.ts --tier standard --profile evals/report/re
 ```bash
 # 生成（可续跑；--per-group 缺省 1，即每题组一章）
 bun evals/experiments/delivery-arm.ts --profile evals/report/report.json
-bun evals/experiments/delivery-arm.ts --dry-run
+bun evals/experiments/delivery-arm.ts --dry-run --profile evals/report/report.json
 
 # 打分
-bun evals/detector/detect.ts --corpus evals/experiments/delivery-arm --out evals/experiments/delivery-arm-report
+bun evals/detector/detect.ts --corpus evals/experiments/delivery-arm-v2 --out evals/experiments/delivery-arm-v2-report
 
 # 三次两两比较（--arms 基线,处理）
 for arms in control,sysprompt control,toolresult sysprompt,toolresult; do
-    bun evals/experiments/guide-compare.ts --arm evals/experiments/delivery-arm --arms "$arms" \
+    bun evals/experiments/guide-compare.ts --arm evals/experiments/delivery-arm-v2 --arms "$arms" \
         --tier standard --profile evals/report/report.json \
-        --detector evals/experiments/delivery-arm-report/detector-scores.json
+        --detector evals/experiments/delivery-arm-v2-report/detector-scores.json
 done
 ```
 
-**判读**：
+**修复版未来判读**（尚未调用模型重跑）：
 
 - `sysprompt` 明显优于 `toolresult` → 投递位置是主因，`guide` 在 Agent 宿主里需要换接入方式（不能只靠 Agent 跑一次 CLI 把输出读进上下文）。
 - 两臂都不优于 `control` → 「强模型本来就不需要」，`guide` 的价值集中在弱模型，产品上应按模型分级建议。
@@ -131,7 +137,7 @@ done
 
 15 对时符号检验的可达 p：12/15 → 0.035，13/15 → 0.007。所以这个规模够做显著性结论，但只在效应明确时——效应量小的话 15 对仍然会给出「不显著」，那时该扩样本而不是改判读口径。
 
-**结果（2026-07-27，claude-opus-5，15 对）**：
+**旧批次描述性结果（2026-07-27，claude-opus-5，15 对；实验 invalid，不得作因果归因）**：
 
 | 指标 | control | sysprompt | toolresult |
 | --- | --- | --- | --- |
@@ -151,7 +157,7 @@ done
 
 **多重比较**：这一轮有 3 个预注册对比 × 1 个主指标 = 3 个主要检验，Bonferroni α = 0.05/3 = 0.0167。两个 docPAi 的 p = 0.035 都**大于**该阈值，所以**主指标上没有任何对比在校正后显著**。规则侧 `sysprompt → toolresult` 的 p = 0.001 校正后仍然显著，但它是循环指标。
 
-**结论：投递位置有影响，但主指标在这个模型上失去了分辨力，所以「有没有用」这一问在 Opus 5 上仍未定。**
+**当前结论：旧批次没有资格回答投递位置或 Opus 5 收益；下面四点只记录当时观测，不是有效实验结论。**
 
 1. **`sysprompt` 确实让模型更遵守约束**：注入规则命中中位 1.105 → 0.301，与 `toolresult` 直接比是 1/15、p = 0.001（校正后仍显著）。约束进 system prompt 比进 tool result 有效得多，这一半的假设成立。
 2. **规则侧 `sysprompt` 朝人类基线移动**：docScore 5.349 → 3.462（12/15、p = 0.035），人类参照是 2.47。留出规则 4.696 → 3.071 同向（11/15、p = 0.118）。
@@ -179,7 +185,7 @@ done
 - **两个维度的排序不一致**。claude 系在 docPAi 上比人类还低，但规则侧仍是 6.4–7.25（人类 2.47），仍有 2.6 倍的模板负担。「躲过神经检测器」和「不写套路」是两回事，`guide` 与 `check` 分别对着这两件事。
 - **主指标只在 docPAi 基线明显高于人类的模型上有分辨力**。gemini / deepseek / gpt-5.5 / mimo 都在 0.92+，`guide-arm` 在 deepseek 上能看到 0.896 → 0.776 正因如此。claude 系（含本轮 Opus 5）在地板上，测它们必须换主指标——候选是规则侧朝人类基线的距离，但那是循环指标，需要另设独立裁判（第 ② 层人评是唯一现成出口）。
 
-**产品含义**：不应无条件推荐注入，而且**收益不能从检测器基线推断**——guide-arm 的三模型面板（见上）已经给出反例：gemini 基线 0.969 全面板最高，实测质量收益为零、篇幅 −26%。基线高只保证主指标可测（有下降空间），不保证约束有效。按模型分级现在是实测线：deepseek 推荐注入；gemini 不建议默认注入；mimo 证据不足；claude 系主指标不可用（本实验），规则侧显示遵守约束但同样付出篇幅（−24%），净收益未知。测 claude 系必须换主指标——规则侧是循环指标，第 ② 层人评是唯一现成的独立出口。
+**产品含义**：只保留有效 guide-arm 三模型证据：deepseek 有效、gemini 不建议默认注入、mimo 证据不足。旧 delivery-arm 不能支持任何 claude/Opus 分级，也不能用来判断 system prompt 与 tool result 的优劣；这些问题必须等 `delivery-arm-v2` 或独立人评。
 
 **局限**：n=15；D5 第二条件仍拿不到，而这一轮恰恰出现篇幅显著缩短——最需要人评的正是这种情况；跨实验的模型比较不是配对设计，基线表来自主语料而非本实验语料。
 

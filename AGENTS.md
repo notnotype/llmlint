@@ -23,13 +23,13 @@
 - 规则库有**两个消费时机**：写作期 `guide`（输出可注入系统提示词的写作约束，不需要输入文件）与审查期 `check` / `fix` / `detect` / `rules`。改提示词、文档或 CLI 描述时不要只写审查期——那是这个能力长期被埋住的原因。
 - CLI 稳定入口是 `bun skill/bin/llmlint.ts …`。运行时支持 **Bun 原生**或 **Node >=22.19 + tsx**（`npx tsx skill/bin/llmlint.ts …`）；**裸 `node` 跑不了**——源码用无扩展名 TS 相对导入，Node 内置 type stripping 不解析，必须走 tsx 或 Bun。
 - 依赖由根 `package.json` / `bun.lock` 和 `skill/package.json` / `skill/bun.lock` 声明；本地开发或外部手动安装时按所在目录运行 `bun install` 生成 `node_modules`。`node_modules/` 不入库、不发布、不随 NeuroBook snapshot 同步。
-- `evals/`（含 `corpus/`）是开发仓的一等资产，**整体进 git**。当前仓库私有，受版权/ToS 限制的采集语料（种子网文全本）暂随仓保存可接受；**转公开前必须先移除或 gitignore `evals/corpus/`，只留 fixture**。法律风险归用户。
+- `evals/` 是开发仓的一等资产并进入 git；`evals/corpus/` 因版权/ToS 边界被明确 gitignore，只保留在授权的本地环境，禁止重新提交。`evals/experiments/` 与 fixture 继续作为可复现开发资产入库。
 - 发布目标是 `github.com/notnotype/llmlint`。neuro-book 通过它自己的 sync 脚本从本仓 `skill/` 反向镜像 snapshot，那套同步逻辑由 neuro-book 侧维护，不在本仓职责内。
-- `web/` 是 **Nuxt 4 检测/采集站**（`ssr:false` 客户端渲染 + Nitro server/api）：规则检测仍在浏览器本地运行，构建期由 `scripts/build-registry.ts` 预烘 `app/data/registry.json`；服务端提供认证、Prisma 7 + libSQL(SQLite) 持久化、判定标签采集和 Agent 分析/改写。首次启动需在 `web/` 配置 `.env`，执行 `bun run db:init && bun run db:generate`；命令见 `web/README.md`。
+- `web/` 是 **Nuxt 4 检测/采集站**（`ssr:false` 客户端渲染 + Nitro server/api）：构建期由 `scripts/build-registry.ts` 预烘 `app/data/registry.json`；浏览器本地扫描与服务端 MachineScan 当前只执行 regex+handler span，density 只展示、不进入 Web `hitsJson` / `docScore`。完整静态检查由 CLI/Agent 提供。服务端另提供认证、Prisma 7 + libSQL(SQLite) 持久化、判定标签采集和 Agent 分析/改写。首次启动需在 `web/` 配置 `.env`，执行 `bun run db:init && bun run db:generate`；命令见 `web/README.md`。
 
 ## 文档索引
 
-- **`CONTEXT.md`：项目领域语言（术语）+ 硬不变量 I1–I25 的唯一真相源。术语改这里。**
+- **`CONTEXT.md`：项目领域语言（术语）+ 硬不变量 I1–I28 的唯一真相源。术语改这里。**
 - **`evals/METHODOLOGY.md`：评测方法论 / 流程规范，evals 代码按它实现（本项目最核心部分）。**
 - `PROJECT-STATUS.md`：仓库级现状、当前重点、模块状态、风险和近期任务。TODO 也记录在这里，注意 TODO 完成后记得删除。
 - `docs/README.md`：文档体系入口，说明 `docs/` 目录分工。

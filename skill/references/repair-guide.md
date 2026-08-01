@@ -108,4 +108,4 @@
 - 修改了哪些类型的问题。
 - 哪些候选保留，为什么。
 - 复测结果。
-- `.agent/llmlint-session.json` 是否已更新。
+- `.agent/llmlint/session.json` 里本轮条目是否已填完。
