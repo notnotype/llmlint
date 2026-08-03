@@ -97,7 +97,9 @@ export function assignIssuesToChunks(
     for (const issue of issues) {
         let index = chunks.length - 1;
         for (let i = 0; i < chunks.length - 1; i++) {
-            if (issue.line >= chunks[i].line && issue.line < chunks[i + 1].line) {
+            const current = chunks[i];
+            const next = chunks[i + 1];
+            if (current && next && issue.line >= current.line && issue.line < next.line) {
                 index = i;
                 break;
             }
