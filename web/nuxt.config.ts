@@ -80,7 +80,7 @@ export default defineNuxtConfig({
             name: "llmlint-session",
             password: "",
         },
-        neuroBookOAuthEnabled: process.env.NUXT_NEUROBOOK_OAUTH_ENABLED ?? false,
+        neuroBookOAuthEnabled: process.env.NUXT_NEUROBOOK_OAUTH_ENABLED === "true",
         neuroBookOAuthIssuer: process.env.NUXT_NEUROBOOK_OAUTH_ISSUER ?? "",
         neuroBookOAuthClientId: process.env.NUXT_NEUROBOOK_OAUTH_CLIENT_ID ?? "",
         neuroBookOAuthClientSecret: process.env.NUXT_NEUROBOOK_OAUTH_CLIENT_SECRET ?? "",
