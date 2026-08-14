@@ -80,12 +80,12 @@ export default defineNuxtConfig({
             name: "llmlint-session",
             password: "",
         },
-        neuroBookOAuthEnabled: false,
-        neuroBookOAuthIssuer: "",
-        neuroBookOAuthClientId: "",
-        neuroBookOAuthClientSecret: "",
-        neuroBookOAuthRedirectUri: "",
-        neuroBookAdminUserId: "",
+        neuroBookOAuthEnabled: process.env.NUXT_NEUROBOOK_OAUTH_ENABLED === "true",
+        neuroBookOAuthIssuer: process.env.NUXT_NEUROBOOK_OAUTH_ISSUER ?? "",
+        neuroBookOAuthClientId: process.env.NUXT_NEUROBOOK_OAUTH_CLIENT_ID ?? "",
+        neuroBookOAuthClientSecret: process.env.NUXT_NEUROBOOK_OAUTH_CLIENT_SECRET ?? "",
+        neuroBookOAuthRedirectUri: process.env.NUXT_NEUROBOOK_OAUTH_REDIRECT_URI ?? "",
+        neuroBookAdminUserId: process.env.NUXT_NEUROBOOK_ADMIN_USER_ID ?? "",
         // W6：eval 配置文件由部署环境注入绝对路径；默认值仅用于本地开发。
         // 生产 systemd 必须设置 NUXT_EVAL_CONFIG_PATH，避免把 Windows 构建机路径烘进 Node 产物。
         evalConfigPath: process.env.NUXT_EVAL_CONFIG_PATH ?? "",
