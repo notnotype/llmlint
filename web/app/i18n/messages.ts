@@ -22,25 +22,16 @@ export type MessageKey =
     | "about.review"
     | "about.title"
     | "about.usage"
-    | "auth.identity"
-    | "auth.identityEditor"
-    | "auth.identityPro"
-    | "auth.identityReader"
-    | "auth.identityWriter"
+    | "auth.username"
     | "auth.loginDescription"
     | "auth.loginFailed"
-    | "auth.loginLink"
     | "auth.loginLoading"
     | "auth.loginOk"
     | "auth.loginTitle"
-    | "auth.password"
-    | "auth.registerDescription"
-    | "auth.registerFailed"
-    | "auth.registerLink"
-    | "auth.registerLoading"
-    | "auth.registerOk"
-    | "auth.registerTitle"
-    | "auth.username"
+    | "auth.ssoConflict"
+    | "auth.ssoFailed"
+    | "auth.ssoLoading"
+    | "auth.ssoLogin"
     | "common.agent"
     | "common.all"
     | "common.auto"
@@ -75,7 +66,6 @@ export type MessageKey =
     | "header.login"
     | "header.logout"
     | "header.report"
-    | "header.register"
     | "header.rules"
     | "header.settings"
     | "header.subtitle"
@@ -102,10 +92,10 @@ export type MessageKey =
     | "home.noHistory"
     | "home.aiFlavor"
     | "home.readability"
+    | "llm.replaceFullTitle"
     | "llm.replaceFullBody"
     | "llm.replaceFullConfirm"
     | "llm.replaceFullFromClipboard"
-    | "llm.replaceFullTitle"
     | "layout.resizeReportPanelTitle"
     | "semanticRules.description"
     | "semanticRules.title"
@@ -750,30 +740,21 @@ const zhCN: Record<MessageKey, string> = {
     "about.review": "受众：给谁看，Agent / 人工 / 机械。",
     "about.title": "关于 llmlint 检测",
     "about.usage": "怎么用",
-    "auth.identity": "身份",
-    "auth.identityEditor": "编辑",
-    "auth.identityPro": "行业从业者",
-    "auth.identityReader": "读者",
-    "auth.identityWriter": "作者",
-    "auth.loginDescription": "进入贡献流程需要账号。",
+    "auth.loginDescription": "进入贡献流程需要 NeuroBook 官方账号。",
     "auth.loginFailed": "登录失败",
-    "auth.loginLink": "已有账号，去登录",
     "auth.loginLoading": "登录中",
     "auth.loginOk": "登录成功",
     "auth.loginTitle": "登录",
-    "auth.password": "密码",
-    "auth.registerDescription": "自述身份只用于后续校准，不影响权限。",
-    "auth.registerFailed": "注册失败",
-    "auth.registerLink": "还没有账号，去注册",
-    "auth.registerLoading": "注册中",
-    "auth.registerOk": "注册成功",
-    "auth.registerTitle": "注册",
+    "auth.ssoConflict": "官方账号名与本地账号冲突，请联系管理员处理。",
+    "auth.ssoFailed": "NeuroBook 登录失败，请重试。",
+    "auth.ssoLoading": "正在跳转官方登录",
+    "auth.ssoLogin": "使用 NeuroBook 登录",
     "auth.username": "用户名",
     "common.agent": "Agent",
     "common.all": "全部",
     "common.auto": "自动",
-    "common.cancel": "取消",
     "common.candidate": "候选",
+    "common.cancel": "取消",
     "common.clear": "清除",
     "common.close": "关闭",
     "common.confirm": "确定",
@@ -803,7 +784,6 @@ const zhCN: Record<MessageKey, string> = {
     "header.login": "登录",
     "header.logout": "退出登录",
     "header.report": "评测报告",
-    "header.register": "注册账号",
     "header.rules": "规则",
     "header.settings": "设置",
     "header.subtitle": "中文 AI 味检测",
@@ -1466,24 +1446,61 @@ const zhCN: Record<MessageKey, string> = {
 
 const enUS: Record<MessageKey, string> = {
     ...zhCN,
-    "auth.identity": "Identity",
-    "auth.identityEditor": "Editor",
-    "auth.identityPro": "Industry professional",
-    "auth.identityReader": "Reader",
-    "auth.identityWriter": "Writer",
+    "about.actions": "Paste text on the left and inspect hits on the right; click either side to locate the same span.",
+    "about.close": "Close",
+    "about.copy": "Copy the JSON result.",
+    "about.description": "Use deterministic regexes to locate AI-style candidates in Chinese text. Everything runs locally in the browser.",
+    "about.dimensions": "Three dimensions",
+    "about.github": "Open source at github.com/notnotype/llmlint; ruleset builtin/default.",
+    "about.highlight": "Inline highlights mark hits directly in the text.",
+    "about.json": "JSON",
+    "about.level": "Level: high / medium / low severity.",
+    "about.mask": "Markdown masking skips code blocks, frontmatter, and links.",
+    "about.mindset": "A hit is a candidate, not a verdict. Context still decides whether to change it.",
+    "about.review": "Audience: Agent / human / mechanical.",
+    "about.title": "About llmlint",
+    "about.usage": "How it works",
+    "dimension.fixability": "Fixability",
+    "dimension.level": "Level",
+    "dimension.review": "Audience",
+    "header.account": "Account",
+    "header.contribute": "Detect",
+    "header.github": "GitHub",
+    "header.login": "Log in",
+    "header.logout": "Log out",
+    "header.theme": "Toggle theme",
+    "layout.resizeReportPanelTitle": "Drag to resize the report panel",
+    "llm.copyPromptOnly": "Copy prompt (without text)",
+    "llm.copyPromptWithText": "Copy prompt + current text",
+    "llm.menuLabel": "External LLM",
+    "llm.menuTitle": "Copy the current report and suggestions for an external LLM",
+    "llm.replaceFullBody": "Replace the current text with Markdown from the clipboard. Hits and comment positions will be recalculated; undo is available in the notification.",
+    "llm.replaceFullConfirm": "Replace full text",
+    "llm.replaceFullFromClipboard": "Replace full text from clipboard",
+    "llm.replaceFullTitle": "Replace the full text from the clipboard?",
+    "notify.cleanDone": "Mechanical cleanup applied",
+    "notify.copyFailed": "Copy failed",
+    "notify.copyOk": "Copied",
+    "report.loadSample": "Load built-in sample report",
+    "report.loading": "Loading report…",
+    "report.replace": "Replace report",
+    "review.reopenCommentTitle": "Reopen current comment (Ctrl/Cmd+Alt+D)",
+    "review.saveComment": "Save comment",
+    "review.selectDiffFirstTitle": "Select an edit first",
+    "review.selectDiffTitle": "Select current edit",
+    "review.selectListFirstTitle": "Select a hit first",
+    "semanticRules.description": "These rules lack stable lexical features and require full-context judgment through the llmlint Agent Skill; this page only runs deterministic regex rules.",
+    "semanticRules.title": "Semantic rules requiring context ({count}; not scanned on this page)",
+    "text.placeholder": "Paste text here",
     "auth.loginDescription": "An account is required to enter the contribution flow.",
     "auth.loginFailed": "Log in failed",
-    "auth.loginLink": "Already have an account? Log in",
     "auth.loginLoading": "Logging in",
     "auth.loginOk": "Logged in",
     "auth.loginTitle": "Log in",
-    "auth.password": "Password",
-    "auth.registerDescription": "Your self-declared identity is used only for later calibration and does not affect permissions.",
-    "auth.registerFailed": "Registration failed",
-    "auth.registerLink": "No account yet? Create one",
-    "auth.registerLoading": "Creating account",
-    "auth.registerOk": "Account created",
-    "auth.registerTitle": "Create account",
+    "auth.ssoConflict": "The official account name is already used locally. Contact an administrator.",
+    "auth.ssoFailed": "NeuroBook sign-in failed. Try again.",
+    "auth.ssoLoading": "Redirecting to NeuroBook",
+    "auth.ssoLogin": "Continue with NeuroBook",
     "auth.username": "Username",
     "common.agent": "Agent",
     "common.all": "All",
@@ -1539,20 +1556,6 @@ const enUS: Record<MessageKey, string> = {
     "settings.fixabilityOverride": "Fixability",
     "settings.levelOverride": "Level",
     "settings.reviewOverride": "Review",
-    "llm.copyPromptOnly": "Copy prompt only",
-    "llm.copyPromptWithText": "Copy prompt + current text",
-    "llm.menuLabel": "External LLM",
-    "llm.menuTitle": "Copy the current report and optimization advice for an external LLM",
-    "llm.replaceFullBody": "The Markdown currently in your clipboard will replace the whole document. Hits and comment positions will be recalculated, and the notification undo action can restore the previous state.",
-    "llm.replaceFullConfirm": "Replace full text",
-    "llm.replaceFullFromClipboard": "Replace full text from clipboard",
-    "llm.replaceFullTitle": "Replace full text from clipboard?",
-    "layout.resizeReportPanelTitle": "Drag to resize report panel",
-    "semanticRules.description": "These rules have no stable lexical signature and can only be judged by reading full context, in the llmlint Agent Skill flow. This page only runs deterministic regex rules.",
-    "semanticRules.title": "{count} semantic rules (not checked on this regex-only page)",
-    "dimension.fixability": "Fix",
-    "dimension.level": "Level",
-    "dimension.review": "Audience",
     "issue.applyTitle": "{action} this hit",
     "issue.clean": "No hits under current filters",
     "issue.collapse": "Collapse",
@@ -1793,11 +1796,6 @@ const enUS: Record<MessageKey, string> = {
     "review.resizeCommentsTitle": "Drag to resize comments panel",
     "review.removeLink": "Remove link",
     "review.reopen": "Reopen",
-    "review.reopenCommentTitle": "Reopen current comment (Ctrl/Cmd+Alt+D)",
-    "review.saveComment": "Save",
-    "review.selectDiffTitle": "Click to select this edit",
-    "review.selectDiffFirstTitle": "Select an edit first",
-    "review.selectListFirstTitle": "Select a list item first",
     "review.selectTextFirst": "Select body text first",
     "review.selectionReadyTitle": "Current selection can be commented",
     "review.selectionHint": "Select body text to add a comment",
@@ -1815,11 +1813,6 @@ const enUS: Record<MessageKey, string> = {
     "repair.resetToOriginal": "Reset",
     "repair.resetToOriginalTitle": "Reset the repair draft to the original text captured when entering the workbench",
     "repair.unchanged": "Unchanged",
-    "header.account": "Account",
-    "header.contribute": "Detect",
-    "header.login": "Log in",
-    "header.logout": "Log out",
-    "header.register": "Create account",
     "home.description": "Scan Chinese drafts locally for templated phrasing, mechanical rhetoric, and suspicious rule hits. Hits are candidates; context still decides.",
     "home.fileReadFailed": "Could not read this file. Try another text file.",
     "home.local": "Runs in your browser",

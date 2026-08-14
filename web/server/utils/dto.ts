@@ -11,16 +11,6 @@ export const VisibilitySchema = z.enum(["private", "public"]);
 // 客户端可提交的修订边类型：upload 只由服务器给 rev0，客户端不可自报。
 export const ClientTransitionKindSchema = z.enum(["static_fix", "llm_fix", "user_fix"]);
 
-export const LoginRequestDtoSchema = z.object({
-    username: z.string().trim().min(3).max(32).regex(/^[A-Za-z0-9_-]+$/),
-    password: z.string().min(1).max(200),
-});
-
-export const RegisterRequestDtoSchema = z.object({
-    username: z.string().trim().min(3).max(32).regex(/^[A-Za-z0-9_-]+$/),
-    password: z.string().min(8).max(200),
-    identityRole: IdentityRoleSchema.default("reader"),
-});
 
 // 上传原文：服务器据此建 Text 信封 + rev0（+ 同步 MachineScan，先算后藏）。
 // 自报三项全可选：genre/textType 必须命中 taxonomy 白名单（宁缺勿错，错值污染分层切片）；sourceNote=作品名。
@@ -69,8 +59,6 @@ export const CreateAnnotationDtoSchema = z.object({
     note: z.string().min(1).max(2000),
 });
 
-export type LoginRequestDto = z.infer<typeof LoginRequestDtoSchema>;
-export type RegisterRequestDto = z.infer<typeof RegisterRequestDtoSchema>;
 export type CreateTextDto = z.infer<typeof CreateTextDtoSchema>;
 export type CreateRevisionDto = z.infer<typeof CreateRevisionDtoSchema>;
 export type CreateJudgmentDto = z.infer<typeof CreateJudgmentDtoSchema>;

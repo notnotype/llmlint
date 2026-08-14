@@ -1,6 +1,6 @@
 <script setup lang="ts">
 defineProps<{
-    mode: "login" | "register";
+    mode: "login";
 }>();
 </script>
 
@@ -10,7 +10,7 @@ defineProps<{
             <div class="absolute inset-y-0 left-10 w-px bg-[var(--accent-pop)]/55" aria-hidden="true" />
             <header class="relative ml-8 flex items-center justify-between border-b border-[var(--border-color)] pb-3">
                 <span class="font-mono text-[10px] font-black text-[var(--accent-text)]">MANUSCRIPT / SOURCE-01</span>
-                <span class="font-mono text-[9px] text-[var(--text-muted)]">{{ mode === "login" ? "SESSION / RETURN" : "SESSION / NEW" }}</span>
+                <span class="font-mono text-[9px] text-[var(--text-muted)]">SESSION / RETURN</span>
             </header>
 
             <div class="relative ml-8 mt-8 max-w-xl font-mono text-sm leading-8 text-[var(--text-secondary)]">

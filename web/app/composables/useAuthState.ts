@@ -11,6 +11,7 @@ export type AuthUser = {
 
 type AuthSession = {
     authEnabled: boolean;
+    ssoEnabled: boolean;
     user: AuthUser | null;
 };
 
@@ -21,21 +22,19 @@ export function useAuthState() {
     const user = useState<AuthUser | null>("llmlint-auth-user", () => null);
     const loaded = useState<boolean>("llmlint-auth-loaded", () => false);
     const authEnabled = useState<boolean>("llmlint-auth-enabled", () => true);
+    const ssoEnabled = useState<boolean>("llmlint-sso-enabled", () => false);
 
-    /**
-     * 刷新当前 session 用户。
-     */
+    /** 刷新当前 session 用户。 */
     async function refresh(): Promise<AuthUser | null> {
         const session = await $fetch<AuthSession>("/api/auth/me");
         authEnabled.value = session.authEnabled;
+        ssoEnabled.value = session.ssoEnabled;
         user.value = session.user;
         loaded.value = true;
         return user.value;
     }
 
-    /**
-     * 登出并清理本地登录态。
-     */
+    /** 登出并清理本地登录态。 */
     async function logout(): Promise<void> {
         if (!authEnabled.value) {
             return;
@@ -45,12 +44,10 @@ export function useAuthState() {
         loaded.value = true;
     }
 
-    /**
-     * 把 API 异常压成表单可显示文案。
-     */
+    /** 把 API 异常压成表单可显示文案。 */
     function errorMessage(error: unknown, fallback: string): string {
         return resolveApiErrorMessage(error, fallback);
     }
 
-    return {user, loaded, authEnabled, refresh, logout, errorMessage};
+    return {user, loaded, authEnabled, ssoEnabled, refresh, logout, errorMessage};
 }

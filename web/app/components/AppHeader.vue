@@ -15,7 +15,6 @@ const route = useRoute();
 const router = useRouter();
 const auth = useAuthState();
 const currentUser = auth.user;
-const authEnabled = auth.authEnabled;
 const authLoaded = auth.loaded;
 const notification = useNotification();
 const {resolvedTheme, setTheme} = useLlmlintTheme();
@@ -37,7 +36,6 @@ const userMenuItems = computed<DropdownItem[]>(() => {
     }
     return [
         {label: t("header.login"), value: "login", iconClass: "i-lucide-log-in", active: route.path === "/login"},
-        {label: t("header.register"), value: "register", iconClass: "i-lucide-user-plus", active: route.path === "/register"},
     ];
 });
 const userInitial = computed(() => {
@@ -60,10 +58,6 @@ async function handleUserMenuSelect(value: string): Promise<void> {
     }
     if (value === "login") {
         await router.push(`/login?redirect=${encodeURIComponent(route.fullPath)}`);
-        return;
-    }
-    if (value === "register") {
-        await router.push(`/register?redirect=${encodeURIComponent(route.fullPath)}`);
         return;
     }
     if (value === "logout") {
@@ -128,7 +122,7 @@ onMounted(async () => {
             <button type="button" class="inline-flex h-8 w-8 items-center justify-center rounded-md text-[var(--text-muted)] transition hover:bg-[var(--bg-hover)] hover:text-[var(--text-main)]" :title="t('header.settings')" @click="showSettings = true">
                 <span class="i-lucide-settings h-4 w-4" />
             </button>
-            <Dropdown v-if="authLoaded && authEnabled" :items="userMenuItems" root-class="relative flex items-center" menu-class="right-0 top-full mt-2 w-44" @select="handleUserMenuSelect">
+            <Dropdown v-if="authLoaded && auth.authEnabled" :items="userMenuItems" root-class="relative flex items-center" menu-class="right-0 top-full mt-2 w-44" @select="handleUserMenuSelect">
                 <button type="button" class="flex h-8 w-8 items-center justify-center rounded-md text-[var(--text-muted)] transition hover:bg-[var(--bg-hover)] hover:text-[var(--text-main)]" :title="userButtonTitle">
                     <span v-if="currentUser" class="flex h-6 w-6 items-center justify-center rounded-full border border-[var(--border-color)] bg-[var(--bg-input)] text-[10px] font-semibold text-[var(--accent-text)]">{{ userInitial }}</span>
                     <span v-else class="flex h-6 w-6 items-center justify-center rounded-full border border-[var(--border-color)] bg-[var(--bg-input)]">

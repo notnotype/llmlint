@@ -1,7 +1,6 @@
 import {PrismaLibSql} from "@prisma/adapter-libsql";
 import "@libsql/isomorphic-ws";
 import {Prisma, PrismaClient} from "../generated/prisma/client";
-
 export type {PrismaClient};
 export {Prisma};
 export type {

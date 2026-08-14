@@ -94,8 +94,13 @@ describe("RevisionTextWorkspace", () => {
     });
 
     it("评测报告缺失时降级为上下文判断，AI 敏感词仍保持必修", async () => {
-        const verdicts = registryData.ruleVerdicts;
-        Reflect.deleteProperty(registryData, "ruleVerdicts");
+        // report.json 不入库，fresh CI 构建出的 registry 可能省略 ruleVerdicts；这里保留该可选字段的测试 seam。
+        type RegistryWithOptionalVerdicts = typeof registryData & {
+            ruleVerdicts?: Record<string, {verdict: string; effectiveLift: number | null}>;
+        };
+        const registry = registryData as RegistryWithOptionalVerdicts;
+        const verdicts = registry.ruleVerdicts;
+        Reflect.deleteProperty(registry, "ruleVerdicts");
         try {
             const body = "不是因为天气，而是因为心情。\n他的脊柱发紧。";
             const workspace = new RevisionTextWorkspace({current: {revisionId: "r2", ordinal: 2, body}, source: fakeSource()});
@@ -107,7 +112,7 @@ describe("RevisionTextWorkspace", () => {
             expect(checked.issues.find((issue) => issue.rule.id === "cn.vocabulary.body.spine-column")?.repairPolicy)
                 .toEqual({required: true, reason: "sensitive_vocabulary", verdict: null, effectiveLift: null});
         } finally {
-            Reflect.set(registryData, "ruleVerdicts", verdicts);
+            Reflect.set(registry, "ruleVerdicts", verdicts);
         }
     });
 

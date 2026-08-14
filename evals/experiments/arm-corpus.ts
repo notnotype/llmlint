@@ -22,6 +22,22 @@ export type SampleMeta = {
     /** 自由文本，记这一臂到底做了什么（如 `llmlint-guide-standard` / `sysprompt`）。 */
     difficulty: string;
     charCount: number;
+    /** 文风约束版本；control 为 none。 */
+    stylePromptVersion?: string;
+    /** 实际注入文风约束文本的 SHA-256；control 记录空文本指纹。 */
+    stylePromptSha256?: string;
+    /** 所有文风臂共享的 llmlint guide 版本。 */
+    guidePromptVersion?: string;
+    /** 所有文风臂共享的 llmlint guide 正文指纹。 */
+    guidePromptSha256?: string;
+    /** guide 与当前臂文风拼接后的完整 constraints 指纹。 */
+    constraintsSha256?: string;
+    /** render system + user + maxTokens 的确定性请求指纹。 */
+    promptSha256?: string;
+    /** 落盘正文内容指纹，便于检测器 sidecar 与导入审计。 */
+    bodySha256?: string;
+    /** 共用剧情纲内容指纹。 */
+    briefSha256?: string;
 };
 
 export type GroupMeta = {

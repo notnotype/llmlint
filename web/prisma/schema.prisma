@@ -62,6 +62,7 @@ enum TransitionKind {
 
 model User {
   id             Int              @id @default(autoincrement())
+  neuroBookUserId Int?            @unique
   username       String           @unique
   displayName    String           @default("")
   passwordHash   String

@@ -1,0 +1,37 @@
+[Unit]
+Description=llmlint web Node service
+After=network-online.target
+Wants=network-online.target
+RequiresMountsFor=/srv/llmlint
+
+[Service]
+Type=simple
+User=llmlint
+Group=llmlint
+WorkingDirectory=/srv/llmlint/current/web
+Environment=NODE_ENV=production
+EnvironmentFile=/srv/llmlint/secrets/web.env
+ExecStart=/usr/bin/node /srv/llmlint/current/web/.output/server/index.mjs
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=15
+MemoryMax=768M
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+LockPersonality=true
+RestrictNamespaces=true
+CapabilityBoundingSet=
+ReadWritePaths=/srv/llmlint/data /srv/llmlint/logs /srv/llmlint/runtime
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+StandardOutput=append:/srv/llmlint/logs/web.jsonl
+StandardError=append:/srv/llmlint/logs/web.jsonl
+
+[Install]
+WantedBy=multi-user.target

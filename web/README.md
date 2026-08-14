@@ -1,21 +1,14 @@
 # llmlint web
 
-llmlint 的 web 站：**浏览器本地规则高亮** + **判定数据（category ③）采集站**。
+llmlint 的 Web 站包含浏览器本地规则高亮、检测工作台和判定数据采集。生产部署是独立 Node/Nitro 服务，不再发布 GitHub Pages 静态采集站。
 
-- 支持配置式鉴权（见下「鉴权」节）：开发环境默认关闭登录，生产默认开启；`/` 重定向到 `/contribute`——唯一「检测」入口；`/rules`（规则数据页，Task 15）、`/report`、`/dataset` 照旧；playground 编辑器迁至 `/playground`（调试用，不进导航）。浏览器本地高亮复用 `../skill/src` 引擎；持久化机器结果仍由服务器计算。
-- `/contribute` 免登录承载**版本化检测工作台**（[Task 15](../docs/tasks/15-detection-workbench/README.md)；采集语义与数据模型仍以 [METHODOLOGY §2.3](../evals/METHODOLOGY.md) 五步权威流程与 [Task 13](../docs/tasks/13-web-five-step-flow/README.md) 为准，落位见 Task 15「采集点落位表」）——`draft → workspace → done` 三态：
-  - **draft**：上传 + 自报（题材/体裁/作品名，全可选）+ 「我的检测历史」列表（点开恢复到工作台继续）。
-  - **workspace**：左=head 编辑器（规则命中高亮、机械修复、diff 审阅）或旧版只读正文；右=三维检测报告、命中列表、持久化 Agent。报告顶部并列规则引擎/外部检测/LLM Agent 三张“AI 痕迹风险”卡，越高越可疑、颜色越偏红；外部与 LLM 可真实取消、失败重试。综合风险按 30%/45%/25% 作为次级参考，缺失通道重新归一。同一线性 Revision lineage 复用一个 Agent Session，选区以引用附件进入 composer，每个 invocation 最多 64 轮，编辑次数没有业务上限。
-  - **done**：总结卡。
-- 机器信号**一律服务器计算写入**（上传/建修订即扫、先算后藏）；浏览器本地扫描只作行内高亮展示层。两条 Web 路径当前都只执行 regex+handler 的 span 扫描，不执行 density；完整 regex+density+handler 静态检查由 CLI 和 Agent `lint_check` 提供。
-- Agent Harness 通过 `AgentHarnessPort` 接入，唯一实现是公开包 `@notnotype/neuro-agent-harness@0.1.0`。llmlint 提供 Prisma SessionStore、Pi ModelRuntime、Profile、MachineLlmReviewProjector 和 SSE Adapter；Core 不认识 Prisma、Pi 或业务表。
-- 采集到的是**判定标签**，喂评测第②层与规则精度，**永不进 lift**（见根 [CONTEXT.md](../CONTEXT.md) 不变量 D1–D5）。
-- `/rules`：规则目录页——registry 的 360 条规则超集（266 条默认 active，含 regex/density/handler/semantic）join 构建期烘焙的评测统计（verdict 徽标/effectiveLift/两侧命中率，effectiveLift 预排），支持 verdict 筛选、搜索、展开详情和分页；评测 report 缺失时降级注明。目录展示某条 density 规则不代表 Web 扫描会执行它。
+- 支持配置式鉴权（见下「鉴权」节）：生产使用 NeuroBook 官方 OAuth SSO；`/` 重定向到 `/contribute`，`/rules`、`/report`、`/dataset` 照旧；playground 编辑器迁至 `/playground`（调试用，不进导航）。
+- `/contribute` 承载版本化检测工作台；机器信号由服务器计算并在盲评后揭示，浏览器本地扫描只作行内高亮展示层。
+- 采集到的是判定标签，喂评测第②层与规则精度，永不进 lift。
 
 ## 栈
 
-Nuxt 4（`ssr:false`）+ Nitro server/api · `nuxt-auth-utils`（密封 cookie session）+ 自撸 scrypt · Prisma 7 + libSQL（`file:` SQLite）· zod 4。
-
+Nuxt 4（`ssr:false`）+ Nitro server/api · `nuxt-auth-utils`（密封 cookie session）+ 自有 scrypt hash · Prisma 7 + libSQL（`file:` SQLite）· zod 4。
 ## 本地开发
 
 ```bash
@@ -41,25 +34,23 @@ bun run dev                   # 预烘 registry/report 后起 nuxt dev
 
 DTO 校验见 `server/utils/dto.ts`：客户端不可提交 `id`/时间戳/`charCount`/`originKind`/`*Source`/`uploaderId`/`userId`/`blind`——全服务端设；`genre/textType` 白名单单源 `evals/lib/taxonomy.ts`（alias `evals`）。
 
-## 鉴权：配置式登录模式
+## 鉴权：NeuroBook OAuth SSO
 
-`NUXT_AUTH_ENABLED` 控制登录：开发环境默认 `false`，生产构建默认 `true`，`.env` 可显式覆盖。
+`NUXT_AUTH_ENABLED` 控制 llmlint 自有 sealed session：开发环境默认 `false`，生产环境必须开启。生产不提供本地密码登录、注册或 admin seed；唯一浏览器登录入口是 NeuroBook 官方 OAuth 2.0 Authorization Code + S256 PKCE。
 
-- **登录关闭（开发默认）**：所有请求在 `requireCurrentUser` 身份边界统一映射到 `__llmlint_local_development__` 本地用户，不依赖 Cookie。异步 job 的创建与动态轮询、历史恢复、reveal/machine 等路径始终得到同一 userId；登录/注册入口隐藏，账号端点返回 409。该用户保持普通 user 角色，不绕过 `/api/export` 的 admin 权限。
-- **登录开启（生产默认）**：使用 `nuxt-auth-utils` 密封 cookie session；`/contribute` 无用户时跳转登录，所有写库/owner API 均由 handler 的 `requireCurrentUser` 统一守卫。
-- **consent 默认勾选**：内网私有部署拍板，上传表单授权开关默认开（仍可手动关闭，DTO 校验不变）。
-- **admin env seed**：启动时 `server/plugins/admin-seed.ts` 读 `NUXT_ADMIN_USERNAME` / `NUXT_ADMIN_PASSWORD`（放 gitignored 的 `.env`，绝不进 git）——两者齐备且用户不存在 → 创建 admin；用户已存在 → 仅确保 role=admin、**不覆盖密码**；env 缺省 → 静默跳过。`GET /api/export` 保持 admin-only（本地开发用户与普通注册用户均为 403）。
+- **登录关闭（仅本地开发）**：请求在 `requireCurrentUser` 身份边界统一映射到 `__llmlint_local_development__`，不依赖 Cookie；SSO start 返回 503，不降级到密码登录。
+- **登录开启（生产）**：llmlint 使用 host-only `llmlint-session` sealed cookie；callback 只兑换一次短时 opaque access token、只调用一次官方 `/userinfo`，随后丢弃 token 并建立本地 session。llmlint 不读取官方 Cookie，不保存 ID token/refresh token，不共享 SQLite。
+- **用户映射**：官方用户 ID 写入 nullable `User.neuroBookUserId`，本地自增 `User.id` 与历史评分/文本外键保持不变；username 冲突返回 `account_mapping_conflict`，不自动合并。
+- **管理员**：只有 `NUXT_NEUROBOOK_ADMIN_USER_ID` 精确匹配官方用户 ID 的首次 SSO 账号获得 admin；既有本地账号和其外键不迁移。
 
-  ```bash
-  # .env 示例（密码用占位符）
-  NUXT_AUTH_ENABLED="false"
-  NUXT_ADMIN_USERNAME="admin"
-  NUXT_ADMIN_PASSWORD="<替换成强密码>"
-  ```
+### t133 部署边界
+
+官方 OAuth provider migration 在 nbook 生产容器完成前，llmlint 不应启用生产 SSO。正式切换顺序固定为：官方站升级并确认 `/.well-known/oauth-authorization-server` 返回 OAuth JSON → 以 stdin 初始化 `llmlint-web` client → 将同一 secret 写入 `/srv/llmlint/secrets/web.env` → 启动并检查 llmlint systemd/Nginx/TLS → 使用真实浏览器回调验证 SSO。
+
 
 ## API
 
-- 账号：`POST /api/auth/{register,login,logout}`、`GET /api/auth/me`。登录关闭时 `me` 返回本地开发用户，login/register 返回 409。
+- 账号：`GET /api/auth/me`、`POST /api/auth/logout`、`GET /api/auth/neurobook/start` 和 callback `/auth/neurobook`。生产登录只走 NeuroBook SSO；不会提供本地密码 login/register 接口。
 - 需用户身份（登录关闭时由统一身份边界提供本地开发用户；登录开启时要求有效 session）：
   - `GET /api/texts` — 检测历史列表（当前用户，含匿名；createdAt 降序、不分页）：`[{textId, preview(sourceNote 优先，否则 rev0 正文压空白前 30 字), createdAt, revisionCount, latestOrdinal, latestDocScore}]`——`latestDocScore` 仅 head 已揭示且有扫描才为数值，否则 null（D2）。
   - `GET /api/texts/:id/workspace` — 工作台一次全量恢复载荷（owner 校验，非本人/不存在一律 404 防枚举）：`{text 信封, revisions[]（ordinal 升序，每版带 scan/detects）, myJudgments[], annotations[]}`；**D2 硬规则**：`revealedAt===null ⇒ scan 恒 null 且 detects 恒 []`。前端 `hydrateWorkspace(payload)`（`app/utils/contribute-workspace.ts` 纯函数）重建全部工作台状态。
@@ -84,4 +75,26 @@ DTO 校验见 `server/utils/dto.ts`：客户端不可提交 `id`/时间戳/`char
 
 ## 部署
 
-`bun run build` + Node 宿主（脱离纯静态 GitHub Pages；宿主与 DB 备份策略待定）。生产默认启用登录，必须设强 `NUXT_SESSION_PASSWORD` 与持久化 `DATABASE_URL`；只在明确的受信开发/内网环境设置 `NUXT_AUTH_ENABLED=false`。需要 admin（`/api/export`）时另设 `NUXT_ADMIN_USERNAME` / `NUXT_ADMIN_PASSWORD`（见「鉴权」节）。
+生产部署使用 Nuxt `node-server` 产物和 Node 宿主，不读取构建机或仓库中的 `web/.env`。构建与启动：
+
+```bash
+cd web
+bun run build
+NODE_ENV=production \
+DATABASE_URL="file:/绝对路径/llmlint/data/data.db" \
+NITRO_HOST=127.0.0.1 \
+NITRO_PORT=3020 \
+NUXT_AUTH_ENABLED=true \
+NUXT_SESSION_PASSWORD="<至少 32 字符的随机密钥>" \
+NUXT_NEUROBOOK_OAUTH_ENABLED=true \
+NUXT_NEUROBOOK_OAUTH_ISSUER="https://nbook.notnotype.com" \
+NUXT_NEUROBOOK_OAUTH_CLIENT_ID="llmlint-web" \
+NUXT_NEUROBOOK_OAUTH_CLIENT_SECRET="<部署机 secret>" \
+NUXT_NEUROBOOK_OAUTH_REDIRECT_URI="https://llmlint.notnotype.com/auth/neurobook" \
+NUXT_NEUROBOOK_ADMIN_USER_ID="1" \
+node .output/server/index.mjs
+```
+
+`bun run start` 等价于 `node .output/server/index.mjs`；生产不能依赖 `web/.env` 自动加载，环境变量必须由 systemd 或其他宿主注入。OAuth client secret 和 session password 不进入仓库、命令参数、日志或截图。
+
+启动后用 `GET /api/health` 验收，成功 JSON 精确为 `{"status":"ok","service":"llmlint-web","database":"ok"}`；数据库不可用时返回 HTTP 503 且不泄露连接串或文件路径。

@@ -21,6 +21,43 @@ const evalsDetector = fileURLToPath(new URL("../evals/detector", import.meta.url
 const nodeFetchNativeProxy = fileURLToPath(new URL("./node_modules/node-fetch-native/dist/proxy.cjs", import.meta.url));
 
 export default defineNuxtConfig({
+    nitro: {
+        preset: "node-server",
+        externals: {
+            external: [
+                "typescript",
+                "@earendil-works/pi-ai",
+                "@notnotype/neuro-agent-harness",
+                "@google/genai",
+                "@anthropic-ai/sdk",
+                "@mistralai/mistralai",
+                "openai",
+                "@gradio/client",
+            ],
+        },
+        rollupConfig: {
+            // 服务端 AST 校验从生产 node_modules 加载 TypeScript，避免把编译器内联进 Nitro 单文件。
+            external: ["typescript"],
+            plugins: [
+                {
+                    // Prisma 生成 client 顶层的 __dirname polyfill 在 bundle 后拿到 Nitro
+                    // 虚拟入口 URL（file:///_entry.js），Windows 的 fileURLToPath 会直接抛错。
+                    // driver adapter（libsql）不依赖该路径定位引擎，兜底到工作目录即可。
+                    name: "patch-prisma-generated-dirname",
+                    transform(code: string, id: string) {
+                        if (!id.replaceAll("\\", "/").includes("/server/generated/prisma/client")) {
+                            return null;
+                        }
+                        const pattern = /globalThis\[["']__dirname["']\]\s*=\s*path\.dirname\(fileURLToPath\([^)]*\)\)/;
+                        if (!pattern.test(code)) {
+                            return null;
+                        }
+                        return code.replace(pattern, (line) => `try { ${line} } catch { globalThis["__dirname"] = process.cwd() }`);
+                    },
+                },
+            ],
+        },
+    },
     ssr: false,
     devtools: {enabled: process.env.NUXT_DEVTOOLS === "1"},
     compatibilityDate: "2026-07-01",
@@ -36,17 +73,22 @@ export default defineNuxtConfig({
         "node-fetch-native-proxy": nodeFetchNativeProxy,
     },
     runtimeConfig: {
-        // 登录开关：开发环境默认关闭，生产构建默认开启。运行时可用 NUXT_AUTH_ENABLED=true/false 覆盖。
-        // 关闭时所有请求统一映射到本地开发用户，不依赖 Cookie，因此异步任务轮询不会因 session 丢失返回 401。
+        // 登录开关：开发环境默认关闭；生产由部署环境显式开启并配合 NeuroBook SSO。
+        // 关闭时所有请求统一映射到本地开发用户，不依赖 Cookie，因此本地异步任务轮询不会丢身份。
         authEnabled: process.env.NODE_ENV === "production",
-        // W6：eval 配置文件绝对路径（构建期按仓根解析；运行期可用 NUXT_EVAL_CONFIG_PATH 覆盖）。
-        // 服务端 LLM 分类通道读它的 classifier/modelsConfig 链；文件或对应节缺失时通道自动禁用。
-        evalConfigPath: fileURLToPath(new URL("../evals/eval.config.json", import.meta.url)),
-        // W9-B：admin 引导种子（server/plugins/admin-seed.ts）。Nuxt 惯例路径：这里声明空串默认，
-        // 运行期由环境变量 NUXT_ADMIN_USERNAME / NUXT_ADMIN_PASSWORD 覆盖（放 gitignored 的 .env，
-        // 密码绝不进任何入 git 文件）；两者缺任一 → 启动时跳过种子，零副作用。
-        adminUsername: "",
-        adminPassword: "",
+        session: {
+            name: "llmlint-session",
+            password: "",
+        },
+        neuroBookOAuthEnabled: false,
+        neuroBookOAuthIssuer: "",
+        neuroBookOAuthClientId: "",
+        neuroBookOAuthClientSecret: "",
+        neuroBookOAuthRedirectUri: "",
+        neuroBookAdminUserId: "",
+        // W6：eval 配置文件由部署环境注入绝对路径；默认值仅用于本地开发。
+        // 生产 systemd 必须设置 NUXT_EVAL_CONFIG_PATH，避免把 Windows 构建机路径烘进 Node 产物。
+        evalConfigPath: process.env.NUXT_EVAL_CONFIG_PATH ?? "",
     },
     vite: {
         server: {
@@ -54,16 +96,16 @@ export default defineNuxtConfig({
         },
     },
     app: {
-        // GitHub Pages 项目页需 baseURL="/llmlint/"（CI 传 NUXT_APP_BASE_URL）；根路径/自有域名默认 "/"。
-        baseURL: process.env.NUXT_APP_BASE_URL ?? "/",
+        // 正式 origin 使用根路径；Node 服务不再为 GitHub Pages 设置项目子路径。
+        baseURL: "/",
         head: {
             title: "llmlint — 中文 AI 味检测",
             htmlAttrs: {lang: "zh-CN"},
             meta: [
                 {name: "viewport", content: "width=device-width, initial-scale=1"},
-                {name: "description", content: "llmlint：中文 AI 味检测器与判定标签采集站。检测在浏览器本地运行，五步贡献流程免登录（内网信任模式）。"},
+                {name: "description", content: "llmlint：中文 AI 味检测器与判定标签采集站。检测在浏览器本地运行，生产登录使用 NeuroBook 官方账号。"},
                 {property: "og:title", content: "llmlint — 中文 AI 味检测"},
-                {property: "og:description", content: "浏览器本地检测中文文本里的 AI 写作痕迹，并支持免登录贡献盲评判定标签。"},
+                {property: "og:description", content: "浏览器本地检测中文文本里的 AI 写作痕迹，并支持登录后参与盲评。"},
                 {property: "og:type", content: "website"},
             ],
             link: [

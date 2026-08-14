@@ -1,7 +1,7 @@
 #!/usr/bin/env bun
 // 语料导入：evals corpus → web 库（Task 13 W5；照 Task 12「evals 语料 ↔ 本模型的映射」表）。
-// 用法：cd web && [DATABASE_URL=file:./data.db] bun scripts/import-corpus.ts \
-//         [--corpus <dir>] [--genre <题材目录>] [--plot <题组目录>] [--limit <最多处理题组数>] [--dry]
+//         [--corpus <dir>] [--genre <题材目录>] [--plot <题组目录>] [--limit <最多处理题组数>] [--detector-scores <sidecar>] [--dry]
+
 //
 // 映射（Task 12）：
 // - role:reference → Text{originKind=curated, sourceNote=书名/章节, genre=题组目录名(genreSource=curator)} + rev0(upload)
@@ -23,6 +23,7 @@ import {createHash, randomBytes} from "node:crypto";
 import {prisma} from "../server/database/prisma";
 import type {ClassificationSource} from "../server/database/prisma";
 import {recordMachineScan} from "../server/utils/scan";
+import {detectorCacheKey, type DetectorScoresFile} from "../../evals/detector/scores";
 import {visibleCharCount} from "../server/utils/dto";
 import {hashUserPassword} from "../server/utils/password";
 
@@ -49,7 +50,8 @@ type RawGroupMeta = {
     samples?: RawSampleMeta[];
 };
 
-type ImportStats = {curated: number; generated: number; repair: number; skipped: number; orphans: number};
+type ImportStats = {curated: number; generated: number; repair: number; skipped: number; orphans: number; detectorAttached: number; detectorMissing: number};
+
 
 const {values: args} = parseArgs({
     options: {
@@ -58,6 +60,7 @@ const {values: args} = parseArgs({
         plot: {type: "string"},
         limit: {type: "string"},
         dry: {type: "boolean", default: false},
+        "detector-scores": {type: "string"},
     },
 });
 
@@ -65,6 +68,29 @@ const {values: args} = parseArgs({
 const corpusRoot = resolve(args.corpus ?? join(import.meta.dir, "../../evals/corpus"));
 const dry = args.dry ?? false;
 const groupLimit = args.limit === undefined ? Number.POSITIVE_INFINITY : Number.parseInt(args.limit, 10);
+
+const detectorScoresPath = typeof args["detector-scores"] === "string" ? resolve(args["detector-scores"]) : null;
+
+/** 读取与 evals/detector/detect.ts 同源的 sidecar；格式不完整时立即失败，避免静默漏挂机器结果。 */
+function loadDetectorScores(path: string | null): DetectorScoresFile | null {
+    if (!path) {
+        return null;
+    }
+    if (!existsSync(path)) {
+        throw new Error(`detector sidecar 不存在：${path}`);
+    }
+    const parsed: unknown = JSON.parse(readFileSync(path, "utf-8"));
+    if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
+        throw new Error(`detector sidecar 不是 JSON 对象：${path}`);
+    }
+    const file = parsed as Partial<DetectorScoresFile>;
+    if (typeof file.detector !== "string" || typeof file.version !== "string" || !Number.isInteger(file.chunkChars) || file.chunkChars <= 0 || typeof file.entries !== "object" || file.entries === null || Array.isArray(file.entries)) {
+        throw new Error(`detector sidecar 头部或 entries 无效：${path}`);
+    }
+    return parsed as DetectorScoresFile;
+}
+
+const detectorScores = loadDetectorScores(detectorScoresPath);
 
 /** 列出目录下的子目录名（排序保证确定性）。 */
 function listDirs(root: string): string[] {
@@ -87,6 +113,62 @@ async function findImported(corpusKey: string): Promise<{id: string; textId: str
         where: {provenanceJson: {contains: `"corpusKey":"${corpusKey}"`}},
         select: {id: true, textId: true},
     });
+}
+
+type DetectorAttachResult = "attached" | "not-configured" | "missing";
+
+/** 将 evals sidecar 的内容哈希结果按 Web MachineDetect 合同幂等写入。 */
+async function attachDetector(revisionId: string, body: string, corpusKey: string, required: boolean): Promise<DetectorAttachResult> {
+    if (!detectorScores) {
+        return "not-configured";
+    }
+    const entry = detectorScores.entries[detectorCacheKey(detectorScores.detector, detectorScores.version, detectorScores.chunkChars, body)];
+    if (!entry) {
+        if (required) {
+            throw new Error(`detector sidecar 缺少样本：${corpusKey}`);
+        }
+        return "missing";
+    }
+    if (!Number.isFinite(entry.doc.meanPAi) || !Number.isFinite(entry.doc.maxPAi) || entry.doc.meanPAi < 0 || entry.doc.meanPAi > 1 || entry.doc.maxPAi < 0 || entry.doc.maxPAi > 1 || !Array.isArray(entry.chunks)) {
+        throw new Error(`detector sidecar 样本形状无效：${corpusKey}`);
+    }
+    const chunks = entry.chunks.map((chunk) => {
+        if (!Number.isInteger(chunk.start) || !Number.isInteger(chunk.end) || chunk.start < 0 || chunk.end < chunk.start || !Number.isFinite(chunk.pAi) || chunk.pAi < 0 || chunk.pAi > 1) {
+            throw new Error(`detector sidecar chunk 形状无效：${corpusKey}`);
+        }
+        return {span: {start: chunk.start, end: chunk.end}, pAi: chunk.pAi};
+    });
+    await prisma.machineDetect.upsert({
+        where: {
+            revisionId_detectorName_detectorVersion_chunkChars: {
+                revisionId,
+                detectorName: detectorScores.detector,
+                detectorVersion: detectorScores.version,
+                chunkChars: detectorScores.chunkChars,
+            },
+        },
+        create: {
+            revisionId,
+            detectorName: detectorScores.detector,
+            detectorVersion: detectorScores.version,
+            chunkChars: detectorScores.chunkChars,
+            docPAi: entry.doc.meanPAi,
+            maxPAi: entry.doc.maxPAi,
+            chunksJson: JSON.stringify(chunks),
+        },
+        update: {
+            docPAi: entry.doc.meanPAi,
+            maxPAi: entry.doc.maxPAi,
+            chunksJson: JSON.stringify(chunks),
+            checkedAt: new Date(),
+        },
+    });
+    return "attached";
+}
+
+function recordDetectorAttach(stats: ImportStats, result: DetectorAttachResult): void {
+    if (result === "attached") stats.detectorAttached += 1;
+    if (result === "missing") stats.detectorMissing += 1;
 }
 
 /**
@@ -146,7 +228,7 @@ async function main(): Promise<void> {
         console.log("[dry] 将确保系统账号 corpus-import（role=admin）存在");
     }
 
-    const stats: ImportStats = {curated: 0, generated: 0, repair: 0, skipped: 0, orphans: 0};
+    const stats: ImportStats = {curated: 0, generated: 0, repair: 0, skipped: 0, orphans: 0, detectorAttached: 0, detectorMissing: 0};
     // dry 模式下"本轮计划新建"的 corpusKey 集合：让 repair 能解析到同轮计划中的 render。
     const plannedKeys = new Set<string>();
 
@@ -174,8 +256,14 @@ async function main(): Promise<void> {
             }
             const corpusKey = `${group.genre}/${group.plotId}/${sample.file}`;
             ensureSafeKey(corpusKey);
-            if (await findImported(corpusKey)) {
+            const imported = await findImported(corpusKey);
+            if (imported) {
                 stats.skipped += 1;
+                if (!dry && detectorScores && sample.role !== "reference") {
+                    const revision = await prisma.revision.findUnique({where: {id: imported.id}, select: {body: true}});
+                    if (!revision) throw new Error(`已导入 revision 不存在：${corpusKey}`);
+                    recordDetectorAttach(stats, await attachDetector(imported.id, revision.body, corpusKey, true));
+                }
                 continue;
             }
             const absPath = join(group.dir, sample.file);
@@ -242,6 +330,9 @@ async function main(): Promise<void> {
                 throw new Error(`创建 rev0 失败：${corpusKey}`);
             }
             await recordMachineScan(rev0.id, body);
+            if (!isReference && detectorScores) {
+                recordDetectorAttach(stats, await attachDetector(rev0.id, body, corpusKey, true));
+            }
             stats[isReference ? "curated" : "generated"] += 1;
         }
 
@@ -257,8 +348,14 @@ async function main(): Promise<void> {
             }
             const corpusKey = `${group.genre}/${group.plotId}/${sample.file}`;
             ensureSafeKey(corpusKey);
-            if (await findImported(corpusKey)) {
+            const imported = await findImported(corpusKey);
+            if (imported) {
                 stats.skipped += 1;
+                if (!dry && detectorScores) {
+                    const revision = await prisma.revision.findUnique({where: {id: imported.id}, select: {body: true}});
+                    if (!revision) throw new Error(`已导入 revision 不存在：${corpusKey}`);
+                    recordDetectorAttach(stats, await attachDetector(imported.id, revision.body, corpusKey, true));
+                }
                 continue;
             }
             const renderKey = `${group.genre}/${group.plotId}/${sample.repairOf}`;
@@ -299,13 +396,16 @@ async function main(): Promise<void> {
                 },
             });
             await recordMachineScan(revision.id, body);
-            stats.repair += 1;
+            if (detectorScores) {
+                recordDetectorAttach(stats, await attachDetector(revision.id, body, corpusKey, true));
+            }
         }
     }
 
     console.log(
         `${dry ? "[dry] " : ""}导入完成：curated ${stats.curated}｜generated ${stats.generated}｜repair ${stats.repair}` +
-            `｜已存在跳过 ${stats.skipped}｜孤儿 ${stats.orphans}`,
+            `｜已存在跳过 ${stats.skipped}｜孤儿 ${stats.orphans}` +
+            (detectorScores ? `｜MachineDetect 回填 ${stats.detectorAttached}｜sidecar 缺失 ${stats.detectorMissing}` : ""),
     );
 }
 
