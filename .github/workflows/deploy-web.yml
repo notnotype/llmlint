@@ -52,5 +52,6 @@ jobs:
         with:
           name: llmlint-web-node-server
           path: web/.output
+          include-hidden-files: true
           if-no-files-found: error
           retention-days: 7
