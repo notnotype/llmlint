@@ -31,6 +31,9 @@ jobs:
       - name: Install web dependencies
         working-directory: web
         run: bun install --frozen-lockfile
+      - name: Build web registry
+        working-directory: web
+        run: bun run build:registry
       - name: Root typecheck
         run: bun run typecheck
       - name: Web server typecheck
