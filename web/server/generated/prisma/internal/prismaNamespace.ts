@@ -1341,6 +1341,7 @@ export type TransactionIsolationLevel = (typeof TransactionIsolationLevel)[keyof
 
 export const UserScalarFieldEnum = {
   id: 'id',
+  neuroBookUserId: 'neuroBookUserId',
   username: 'username',
   displayName: 'displayName',
   passwordHash: 'passwordHash',

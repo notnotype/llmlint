@@ -3,28 +3,30 @@
 > 采集**判定标签**（人类主观"AI 味 / 好不好"）的 web 站。这是 reference/render 之外的**第三类数据源**，喂评测第 ② 层（产品成绩单）与规则精度，**永不混进 lift**（见 [CONTEXT.md](../../../CONTEXT.md) 不变量 D1）。
 > 术语见 [CONTEXT.md §2.5](../../../CONTEXT.md#25-检测数据--标注category-③)；评测方法论见 [evals/METHODOLOGY.md](../../../evals/METHODOLOGY.md)；数据源关系见 [Task 03 Eval Harness](../03-llmlint-eval-harness/README.md)。
 
+# llmlint 检测数据 Web 采集（Detection-Data Web）
+
+> 本文保留早期采集站 schema 与流程设计；2026-08-14 t133 已将实现切换为独立 Node/Nitro 服务 + NeuroBook 官方 OAuth SSO，文中的 password login/register/admin seed、注册后才可用和旧 MachineRecord 仅作为历史记录，不代表当前生产合同。当前实现与生产部署以 [Task 13](../13-web-five-step-flow/README.md) t133 记录、`web/README.md` 和代码为准。
+
 ## User Request / Topic
 
-评测分 A（判别器/检测器，来源标签，客观）与 B（降 AI 味，判定标签，主观）两个目标。先做 A，但 A 只能靠"人类主观判定"闭环收敛到产品。为此建一个 web 站，让用户上传小说正文、给出**结构化打分 + 自然语言"哪里写得不好"**，作为判定标签数据源。后续用户还能公布正文、他人参与打分（众包）。
+评测分 A（判别器/检测器，来源标签，客观）与 B（降 AI 味，判定标签，主观）两个目标。先做 A，但 A 只能靠“人类主观判定”闭环收敛到产品。为此建一个 web 站，让用户上传小说正文、给出**结构化打分 + 自然语言“哪里写得不好”**，作为判定标签数据源。后续用户还能公布正文、他人参与打分（众包）。
 
 ## Goal
 
-建成**判定标签采集管线**：注册用户上传正文 → 盲评打分 → 揭示检测报告 → 可选逐 span NL 标注 → 落库。产出喂评测第 ② 层与规则精度校准。
+建成**判定标签采集管线**：用户通过官方账号 SSO 进入 → 上传正文 → 盲评打分 → 揭示检测报告 → 可选逐 span NL 标注 → 落库。产出喂评测第 ② 层与规则精度校准。
 
 - **Outcome**：一套 schema + web 流程，稳定产出 `DocJudgment`（doc 级两轴）与 `SpanAnnotation`（span 级 NL），可后处理成规则精度/召回信号。
 - **边界**：这套数据是 category ③（判定），**不进 reference/render 的 lift**（不变量 D1）。
 - **合规**：用户上传第三方正文需 consent + 保留策略；法律风险归用户。
+- **当前认证边界**：生产不提供本地密码登录、注册或 admin seed；llmlint 建立自己的 host-only sealed session，不共享官方 Cookie、ID token、refresh token 或 SQLite。
 
 ## Decisions（已定）
 
 - **两目标分离**：A=来源标签（客观、免费、可规模化，喂 lift）；B=判定标签（主观、贵、小，喂产品）。本 web 产 B。
 - **三类数据别混池**：① reference（人类，策展）② render（AI，生成管线）③ 检测数据（web，判定标签，来源未知/自述）。③ 只喂 B。
 - **四条分离**（schema 硬约束）：③⟂①②（不进 lift）、文本⟂判定（一文多评、众包就绪）、人⟂机（盲评先落、机器后揭，防锚定）、原始⟂结构化（NL 原样存、LLM 结构化派生）。
-- **doc 级只两轴**：`aiFlavor 0–5`（0=肯定人类/5=百分百 AI）+ `wantReadOn 0–5`（0=马上关/5=想追更）。信心/流畅/逻辑/创意等**不进**（相关维度=白增负担；细节信号在 span 层）。
-- **分类全 LLM 出**（genre/pov/textType，`enum | string`），无用户确认；来源**用户自述、低信任**。
-- **span 只记 NL**（+ target 原文/优化）；"哪条规则命中/怎么改"由 LLM 后处理判，采集时不结构化、不给用户看规则名。
-- **需注册才能用**（简单用户密码；参考 NeuroBook 认证）→ 含后端。
-- **框架**：zod 定义 schema + `z.infer` 出类型。
+- **doc 级只两轴**：`aiFlavor 0–5` + `wantReadOn 0–5`；信心/流畅/逻辑/创意等不进采集合同。
+- **认证历史**：后文旧 password auth 章节描述最初原型；当前生产只使用 NeuroBook OAuth Authorization Code + PKCE `S256`，官方 ID 通过 `User.neuroBookUserId` 映射本地用户，历史外键不迁移。
 
 ## 数据 schema（zod）
 
@@ -296,3 +298,12 @@ web/
 - [ ] （⚪）consent 删除/保留策略（存了第三方版权正文，"删我的数据"）。
 - [x] （⚪）右栏报告渲染（轻量摘要 + IssueList/FilterControls）、span 拖选评论、写 API 基础验证。
 - [x] 落地后同步 `PROJECT-STATUS.md` 与本 README。
+
+### 2026-08-14 Task 133 认证切换与 DMIT 前置
+
+- Web 认证从本地密码/注册切换为 NeuroBook 官方 OAuth Authorization Code + S256 PKCE。生产只接受 host-only `llmlint-session` sealed session；官方短时 access token 只在 callback 内存中使用，userinfo 成功后立即丢弃。
+- 本地 `User.id` 及既有文本、评分、批注外键保持不变；官方用户 ID 写入 nullable `User.neuroBookUserId`。同一官方 ID 重复登录复用原本地行；username 已存在但未映射时返回 `account_mapping_conflict`，不自动合并。
+- 删除本地密码登录、注册、admin seed 入口；生产配置缺失、错误或仍存在旧 `NUXT_ADMIN_USERNAME` / `NUXT_ADMIN_PASSWORD` 时 fail closed。登录关闭只保留本地开发身份，SSO start 返回 503，不降级密码认证。
+- 部署前置已完成：DMIT Ubuntu 24.04.3 / Node `v22.14.0` / Bun `1.3.14`，Linux frozen build 与真实 Node artifact smoke 通过；旧 Arch/ngrok 入口已停止。公网 DNS、TLS、官方 provider migration、llmlint secret 和正式 unit 尚未完成，因此尚未回收真实 SSO 人评。
+- 计划出入：原计划直接安装正式服务，但实际先发现官方公网仍返回 Nuxt HTML 且线上数据库缺少 `OAuthClient`，因此先把 OAuth client 初始化工具编译进官方生产镜像并补部署 runbook，再进行双仓 PR 与生产切换。
+- 代码门禁和 smoke 证据详见 `PROJECT-STATUS.md` 的 2026-08-14 t133 记录；本 walkthrough 保留流程语义，公网切换结果待后续更新。

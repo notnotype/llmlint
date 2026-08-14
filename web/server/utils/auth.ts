@@ -17,7 +17,16 @@ export type AuthUserDto = {
 
 export type AuthSessionDto = {
     authEnabled: boolean;
+    ssoEnabled: boolean;
     user: AuthUserDto | null;
+};
+
+export type PendingNeuroBookOAuthSession = {
+    provider: "neuro-book";
+    state: string;
+    codeVerifier: string;
+    redirectTarget: string;
+    createdAt: number;
 };
 
 const DEVELOPMENT_USERNAME = "__llmlint_local_development__";
@@ -32,14 +41,16 @@ export function isAuthEnabled(event: H3Event): boolean {
     return resolveAuthEnabled(config.authEnabled);
 }
 
-/**
- * 登录、注册等账号端点只在鉴权开启时可用。
- */
-export function requireAuthEnabled(event: H3Event): void {
-    if (!isAuthEnabled(event)) {
-        throw createError({statusCode: 409, message: "当前环境已关闭登录"});
+/** 判断生产/部署是否允许发起 NeuroBook OAuth。默认关闭，避免错误配置降级到密码登录。 */
+export function isNeuroBookOAuthEnabled(event: H3Event): boolean {
+    const config = useRuntimeConfig(event);
+    const value = config.neuroBookOAuthEnabled;
+    if (typeof value === "boolean") {
+        return value;
     }
+    return resolveAuthEnabled(typeof value === "string" ? value : "false");
 }
+
 
 /**
  * 登录关闭时解析稳定的本地开发身份。所有请求共享同一用户，避免 Cookie、主机名切换或 dev server
@@ -94,6 +105,39 @@ export async function setAuthSession(event: H3Event, user: AuthUserDto): Promise
  */
 export async function clearAuthSession(event: H3Event): Promise<void> {
     await clearUserSession(event, authSessionConfig(event));
+}
+
+/** 将 OAuth pending 放入 sealed session；整体替换，防止复用旧身份或旧 provider 状态。 */
+export async function setPendingNeuroBookOAuthSession(event: H3Event, pending: PendingNeuroBookOAuthSession): Promise<void> {
+    await replaceUserSession(event, {pendingNeuroBookOAuth: pending}, authSessionConfig(event));
+}
+
+/** 读取后立即清除一次性 pending，防止 callback 重放。 */
+export async function consumePendingNeuroBookOAuthSession(event: H3Event): Promise<PendingNeuroBookOAuthSession | null> {
+    const session = await getUserSession(event);
+    const candidate = typeof session === "object" && session !== null && "pendingNeuroBookOAuth" in session
+        ? session.pendingNeuroBookOAuth
+        : null;
+    await clearUserSession(event, authSessionConfig(event));
+    if (!isPendingNeuroBookOAuthSession(candidate)) {
+        return null;
+    }
+    return candidate;
+}
+
+function isPendingNeuroBookOAuthSession(value: unknown): value is PendingNeuroBookOAuthSession {
+    if (!value || typeof value !== "object" || Array.isArray(value)) {
+        return false;
+    }
+    if (!("provider" in value) || !("state" in value) || !("codeVerifier" in value)
+        || !("redirectTarget" in value) || !("createdAt" in value)) {
+        return false;
+    }
+    return value.provider === "neuro-book"
+        && typeof value.state === "string" && value.state.length > 0
+        && typeof value.codeVerifier === "string" && value.codeVerifier.length > 0
+        && typeof value.redirectTarget === "string" && value.redirectTarget.length > 0
+        && typeof value.createdAt === "number" && Number.isSafeInteger(value.createdAt);
 }
 
 /**

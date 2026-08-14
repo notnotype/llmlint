@@ -581,14 +581,6 @@ export type DocJudgmentUncheckedUpdateManyWithoutRevisionNestedInput = {
   deleteMany?: Prisma.DocJudgmentScalarWhereInput | Prisma.DocJudgmentScalarWhereInput[]
 }
 
-export type NullableIntFieldUpdateOperationsInput = {
-  set?: number | null
-  increment?: number
-  decrement?: number
-  multiply?: number
-  divide?: number
-}
-
 export type DocJudgmentCreateWithoutUserInput = {
   id?: string
   aiFlavor?: number | null

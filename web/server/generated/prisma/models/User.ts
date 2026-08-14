@@ -28,16 +28,19 @@ export type AggregateUser = {
 
 export type UserAvgAggregateOutputType = {
   id: number | null
+  neuroBookUserId: number | null
   sessionVersion: number | null
 }
 
 export type UserSumAggregateOutputType = {
   id: number | null
+  neuroBookUserId: number | null
   sessionVersion: number | null
 }
 
 export type UserMinAggregateOutputType = {
   id: number | null
+  neuroBookUserId: number | null
   username: string | null
   displayName: string | null
   passwordHash: string | null
@@ -52,6 +55,7 @@ export type UserMinAggregateOutputType = {
 
 export type UserMaxAggregateOutputType = {
   id: number | null
+  neuroBookUserId: number | null
   username: string | null
   displayName: string | null
   passwordHash: string | null
@@ -66,6 +70,7 @@ export type UserMaxAggregateOutputType = {
 
 export type UserCountAggregateOutputType = {
   id: number
+  neuroBookUserId: number
   username: number
   displayName: number
   passwordHash: number
@@ -82,16 +87,19 @@ export type UserCountAggregateOutputType = {
 
 export type UserAvgAggregateInputType = {
   id?: true
+  neuroBookUserId?: true
   sessionVersion?: true
 }
 
 export type UserSumAggregateInputType = {
   id?: true
+  neuroBookUserId?: true
   sessionVersion?: true
 }
 
 export type UserMinAggregateInputType = {
   id?: true
+  neuroBookUserId?: true
   username?: true
   displayName?: true
   passwordHash?: true
@@ -106,6 +114,7 @@ export type UserMinAggregateInputType = {
 
 export type UserMaxAggregateInputType = {
   id?: true
+  neuroBookUserId?: true
   username?: true
   displayName?: true
   passwordHash?: true
@@ -120,6 +129,7 @@ export type UserMaxAggregateInputType = {
 
 export type UserCountAggregateInputType = {
   id?: true
+  neuroBookUserId?: true
   username?: true
   displayName?: true
   passwordHash?: true
@@ -221,6 +231,7 @@ export type UserGroupByArgs<ExtArgs extends runtime.Types.Extensions.InternalArg
 
 export type UserGroupByOutputType = {
   id: number
+  neuroBookUserId: number | null
   username: string
   displayName: string
   passwordHash: string
@@ -258,6 +269,7 @@ export type UserWhereInput = {
   OR?: Prisma.UserWhereInput[]
   NOT?: Prisma.UserWhereInput | Prisma.UserWhereInput[]
   id?: Prisma.IntFilter<"User"> | number
+  neuroBookUserId?: Prisma.IntNullableFilter<"User"> | number | null
   username?: Prisma.StringFilter<"User"> | string
   displayName?: Prisma.StringFilter<"User"> | string
   passwordHash?: Prisma.StringFilter<"User"> | string
@@ -276,6 +288,7 @@ export type UserWhereInput = {
 
 export type UserOrderByWithRelationInput = {
   id?: Prisma.SortOrder
+  neuroBookUserId?: Prisma.SortOrderInput | Prisma.SortOrder
   username?: Prisma.SortOrder
   displayName?: Prisma.SortOrder
   passwordHash?: Prisma.SortOrder
@@ -294,6 +307,7 @@ export type UserOrderByWithRelationInput = {
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
   id?: number
+  neuroBookUserId?: number
   username?: string
   AND?: Prisma.UserWhereInput | Prisma.UserWhereInput[]
   OR?: Prisma.UserWhereInput[]
@@ -311,10 +325,11 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   judgments?: Prisma.DocJudgmentListRelationFilter
   annotations?: Prisma.SpanAnnotationListRelationFilter
   agentSessions?: Prisma.AgentSessionListRelationFilter
-}, "id" | "username">
+}, "id" | "neuroBookUserId" | "username">
 
 export type UserOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
+  neuroBookUserId?: Prisma.SortOrderInput | Prisma.SortOrder
   username?: Prisma.SortOrder
   displayName?: Prisma.SortOrder
   passwordHash?: Prisma.SortOrder
@@ -337,6 +352,7 @@ export type UserScalarWhereWithAggregatesInput = {
   OR?: Prisma.UserScalarWhereWithAggregatesInput[]
   NOT?: Prisma.UserScalarWhereWithAggregatesInput | Prisma.UserScalarWhereWithAggregatesInput[]
   id?: Prisma.IntWithAggregatesFilter<"User"> | number
+  neuroBookUserId?: Prisma.IntNullableWithAggregatesFilter<"User"> | number | null
   username?: Prisma.StringWithAggregatesFilter<"User"> | string
   displayName?: Prisma.StringWithAggregatesFilter<"User"> | string
   passwordHash?: Prisma.StringWithAggregatesFilter<"User"> | string
@@ -350,6 +366,7 @@ export type UserScalarWhereWithAggregatesInput = {
 }
 
 export type UserCreateInput = {
+  neuroBookUserId?: number | null
   username: string
   displayName?: string
   passwordHash: string
@@ -368,6 +385,7 @@ export type UserCreateInput = {
 
 export type UserUncheckedCreateInput = {
   id?: number
+  neuroBookUserId?: number | null
   username: string
   displayName?: string
   passwordHash: string
@@ -385,6 +403,7 @@ export type UserUncheckedCreateInput = {
 }
 
 export type UserUpdateInput = {
+  neuroBookUserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   username?: Prisma.StringFieldUpdateOperationsInput | string
   displayName?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
@@ -403,6 +422,7 @@ export type UserUpdateInput = {
 
 export type UserUncheckedUpdateInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
+  neuroBookUserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   username?: Prisma.StringFieldUpdateOperationsInput | string
   displayName?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
@@ -421,6 +441,7 @@ export type UserUncheckedUpdateInput = {
 
 export type UserCreateManyInput = {
   id?: number
+  neuroBookUserId?: number | null
   username: string
   displayName?: string
   passwordHash: string
@@ -434,6 +455,7 @@ export type UserCreateManyInput = {
 }
 
 export type UserUpdateManyMutationInput = {
+  neuroBookUserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   username?: Prisma.StringFieldUpdateOperationsInput | string
   displayName?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
@@ -448,6 +470,7 @@ export type UserUpdateManyMutationInput = {
 
 export type UserUncheckedUpdateManyInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
+  neuroBookUserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   username?: Prisma.StringFieldUpdateOperationsInput | string
   displayName?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
@@ -462,6 +485,7 @@ export type UserUncheckedUpdateManyInput = {
 
 export type UserCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
+  neuroBookUserId?: Prisma.SortOrder
   username?: Prisma.SortOrder
   displayName?: Prisma.SortOrder
   passwordHash?: Prisma.SortOrder
@@ -476,11 +500,13 @@ export type UserCountOrderByAggregateInput = {
 
 export type UserAvgOrderByAggregateInput = {
   id?: Prisma.SortOrder
+  neuroBookUserId?: Prisma.SortOrder
   sessionVersion?: Prisma.SortOrder
 }
 
 export type UserMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
+  neuroBookUserId?: Prisma.SortOrder
   username?: Prisma.SortOrder
   displayName?: Prisma.SortOrder
   passwordHash?: Prisma.SortOrder
@@ -495,6 +521,7 @@ export type UserMaxOrderByAggregateInput = {
 
 export type UserMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
+  neuroBookUserId?: Prisma.SortOrder
   username?: Prisma.SortOrder
   displayName?: Prisma.SortOrder
   passwordHash?: Prisma.SortOrder
@@ -509,12 +536,21 @@ export type UserMinOrderByAggregateInput = {
 
 export type UserSumOrderByAggregateInput = {
   id?: Prisma.SortOrder
+  neuroBookUserId?: Prisma.SortOrder
   sessionVersion?: Prisma.SortOrder
 }
 
 export type UserScalarRelationFilter = {
   is?: Prisma.UserWhereInput
   isNot?: Prisma.UserWhereInput
+}
+
+export type NullableIntFieldUpdateOperationsInput = {
+  set?: number | null
+  increment?: number
+  decrement?: number
+  multiply?: number
+  divide?: number
 }
 
 export type StringFieldUpdateOperationsInput = {
@@ -606,6 +642,7 @@ export type UserUpdateOneRequiredWithoutAgentSessionsNestedInput = {
 }
 
 export type UserCreateWithoutTextsInput = {
+  neuroBookUserId?: number | null
   username: string
   displayName?: string
   passwordHash: string
@@ -623,6 +660,7 @@ export type UserCreateWithoutTextsInput = {
 
 export type UserUncheckedCreateWithoutTextsInput = {
   id?: number
+  neuroBookUserId?: number | null
   username: string
   displayName?: string
   passwordHash: string
@@ -655,6 +693,7 @@ export type UserUpdateToOneWithWhereWithoutTextsInput = {
 }
 
 export type UserUpdateWithoutTextsInput = {
+  neuroBookUserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   username?: Prisma.StringFieldUpdateOperationsInput | string
   displayName?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
@@ -672,6 +711,7 @@ export type UserUpdateWithoutTextsInput = {
 
 export type UserUncheckedUpdateWithoutTextsInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
+  neuroBookUserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   username?: Prisma.StringFieldUpdateOperationsInput | string
   displayName?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
@@ -688,6 +728,7 @@ export type UserUncheckedUpdateWithoutTextsInput = {
 }
 
 export type UserCreateWithoutJudgmentsInput = {
+  neuroBookUserId?: number | null
   username: string
   displayName?: string
   passwordHash: string
@@ -705,6 +746,7 @@ export type UserCreateWithoutJudgmentsInput = {
 
 export type UserUncheckedCreateWithoutJudgmentsInput = {
   id?: number
+  neuroBookUserId?: number | null
   username: string
   displayName?: string
   passwordHash: string
@@ -737,6 +779,7 @@ export type UserUpdateToOneWithWhereWithoutJudgmentsInput = {
 }
 
 export type UserUpdateWithoutJudgmentsInput = {
+  neuroBookUserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   username?: Prisma.StringFieldUpdateOperationsInput | string
   displayName?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
@@ -754,6 +797,7 @@ export type UserUpdateWithoutJudgmentsInput = {
 
 export type UserUncheckedUpdateWithoutJudgmentsInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
+  neuroBookUserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   username?: Prisma.StringFieldUpdateOperationsInput | string
   displayName?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
@@ -770,6 +814,7 @@ export type UserUncheckedUpdateWithoutJudgmentsInput = {
 }
 
 export type UserCreateWithoutAnnotationsInput = {
+  neuroBookUserId?: number | null
   username: string
   displayName?: string
   passwordHash: string
@@ -787,6 +832,7 @@ export type UserCreateWithoutAnnotationsInput = {
 
 export type UserUncheckedCreateWithoutAnnotationsInput = {
   id?: number
+  neuroBookUserId?: number | null
   username: string
   displayName?: string
   passwordHash: string
@@ -819,6 +865,7 @@ export type UserUpdateToOneWithWhereWithoutAnnotationsInput = {
 }
 
 export type UserUpdateWithoutAnnotationsInput = {
+  neuroBookUserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   username?: Prisma.StringFieldUpdateOperationsInput | string
   displayName?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
@@ -836,6 +883,7 @@ export type UserUpdateWithoutAnnotationsInput = {
 
 export type UserUncheckedUpdateWithoutAnnotationsInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
+  neuroBookUserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   username?: Prisma.StringFieldUpdateOperationsInput | string
   displayName?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
@@ -852,6 +900,7 @@ export type UserUncheckedUpdateWithoutAnnotationsInput = {
 }
 
 export type UserCreateWithoutAgentSessionsInput = {
+  neuroBookUserId?: number | null
   username: string
   displayName?: string
   passwordHash: string
@@ -869,6 +918,7 @@ export type UserCreateWithoutAgentSessionsInput = {
 
 export type UserUncheckedCreateWithoutAgentSessionsInput = {
   id?: number
+  neuroBookUserId?: number | null
   username: string
   displayName?: string
   passwordHash: string
@@ -901,6 +951,7 @@ export type UserUpdateToOneWithWhereWithoutAgentSessionsInput = {
 }
 
 export type UserUpdateWithoutAgentSessionsInput = {
+  neuroBookUserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   username?: Prisma.StringFieldUpdateOperationsInput | string
   displayName?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
@@ -918,6 +969,7 @@ export type UserUpdateWithoutAgentSessionsInput = {
 
 export type UserUncheckedUpdateWithoutAgentSessionsInput = {
   id?: Prisma.IntFieldUpdateOperationsInput | number
+  neuroBookUserId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   username?: Prisma.StringFieldUpdateOperationsInput | string
   displayName?: Prisma.StringFieldUpdateOperationsInput | string
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
@@ -993,6 +1045,7 @@ export type UserCountOutputTypeCountAgentSessionsArgs<ExtArgs extends runtime.Ty
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
+  neuroBookUserId?: boolean
   username?: boolean
   displayName?: boolean
   passwordHash?: boolean
@@ -1012,6 +1065,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
 
 export type UserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
+  neuroBookUserId?: boolean
   username?: boolean
   displayName?: boolean
   passwordHash?: boolean
@@ -1026,6 +1080,7 @@ export type UserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
 
 export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
+  neuroBookUserId?: boolean
   username?: boolean
   displayName?: boolean
   passwordHash?: boolean
@@ -1040,6 +1095,7 @@ export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
 
 export type UserSelectScalar = {
   id?: boolean
+  neuroBookUserId?: boolean
   username?: boolean
   displayName?: boolean
   passwordHash?: boolean
@@ -1052,7 +1108,7 @@ export type UserSelectScalar = {
   updatedAt?: boolean
 }
 
-export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "username" | "displayName" | "passwordHash" | "role" | "identityRole" | "status" | "sessionVersion" | "lastLoginAt" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
+export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "neuroBookUserId" | "username" | "displayName" | "passwordHash" | "role" | "identityRole" | "status" | "sessionVersion" | "lastLoginAt" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   texts?: boolean | Prisma.User$textsArgs<ExtArgs>
   judgments?: boolean | Prisma.User$judgmentsArgs<ExtArgs>
@@ -1073,6 +1129,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: number
+    neuroBookUserId: number | null
     username: string
     displayName: string
     passwordHash: string
@@ -1511,6 +1568,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
  */
 export interface UserFieldRefs {
   readonly id: Prisma.FieldRef<"User", 'Int'>
+  readonly neuroBookUserId: Prisma.FieldRef<"User", 'Int'>
   readonly username: Prisma.FieldRef<"User", 'String'>
   readonly displayName: Prisma.FieldRef<"User", 'String'>
   readonly passwordHash: Prisma.FieldRef<"User", 'String'>

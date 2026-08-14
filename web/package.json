@@ -10,6 +10,7 @@
         "db:migrate": "prisma migrate dev",
         "dev": "bun scripts/build-registry.ts && bun scripts/build-report.ts && nuxt dev",
         "build": "bun scripts/build-registry.ts && bun scripts/build-report.ts && nuxt build",
+        "start": "node .output/server/index.mjs",
         "generate": "bun scripts/build-registry.ts && bun scripts/build-report.ts && nuxt generate",
         "preview": "nuxt preview",
         "typecheck": "bun scripts/build-registry.ts && vue-tsc --noEmit",
@@ -32,6 +33,7 @@
         "dompurify": "^3.4.12",
         "marked": "^18.0.6",
         "nuxt-auth-utils": "^0.5.29",
+        "openid-client": "6.8.5",
         "zod": "^4.4.3"
     },
     "devDependencies": {
