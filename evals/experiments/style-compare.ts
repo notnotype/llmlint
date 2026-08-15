@@ -8,6 +8,7 @@ import {loadCorpus, visibleLength} from "../lib/corpus";
 import {scanAll} from "../lib/scan";
 import {detectorCacheKey, type DetectorScoresFile} from "../detector/scores";
 import type {Sample, SampleScan} from "../lib/types";
+import {median, signTestP} from "./paired-stats";
 
 type Arm = "control" | "current-default" | "beileng-clean" | "distilled";
 type Pair = {genre: string; plotId: string; pairRef: string; model: string; baseline: SampleScan; treatment: SampleScan};
@@ -16,24 +17,6 @@ type Report = {experiment: string; generatedAt: string; arms: [Arm, Arm]; pairCo
 
 type Options = {corpus: string; arms: string; detector?: string; out: string};
 
-function median(values: number[]): number | null {
-    if (values.length === 0) return null;
-    const sorted = [...values].sort((a, b) => a - b);
-    const mid = Math.floor(sorted.length / 2);
-    return sorted.length % 2 === 0 ? ((sorted[mid - 1] ?? 0) + (sorted[mid] ?? 0)) / 2 : sorted[mid] ?? 0;
-}
-function binomial(n: number, k: number): number {
-    let value = 1;
-    for (let i = 0; i < k; i += 1) value = (value * (n - i)) / (i + 1);
-    return value;
-}
-function signTestP(wins: number, n: number): number | null {
-    if (n === 0) return null;
-    const extreme = Math.max(wins, n - wins);
-    let tail = 0;
-    for (let k = extreme; k <= n; k += 1) tail += binomial(n, k);
-    return Math.min(1, (2 * tail) / 2 ** n);
-}
 function sha256(text: string): string {
     return `sha256:${createHash("sha256").update(text, "utf8").digest("hex")}`;
 }

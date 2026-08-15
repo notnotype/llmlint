@@ -307,3 +307,12 @@ web/
 - 部署前置已完成：DMIT Ubuntu 24.04.3 / Node `v22.14.0` / Bun `1.3.14`，Linux frozen build 与真实 Node artifact smoke 通过；旧 Arch/ngrok 入口已停止。公网 DNS 已解析到 `64.186.225.48`，但 TLS vhost、443 stream、official provider migration、llmlint secret 和正式 unit 尚未完成，因此尚未回收真实 SSO 人评。
 - 计划出入：原计划直接安装正式服务，但实际先发现官方公网仍返回 Nuxt HTML 且线上数据库缺少 `OAuthClient`，因此先把 OAuth client 初始化工具编译进官方生产镜像并补部署 runbook，再进行双仓 PR 与生产切换。PR #1 / PR #3 均已创建且检查通过；不自行合并。
 - 代码门禁和 smoke 证据详见 `PROJECT-STATUS.md` 的 2026-08-14 t133 记录；本 walkthrough 保留流程语义，公网切换结果待后续更新。
+### 2026-08-15 Task 133 人评回收与四臂集成分析
+
+- 生产私池完成冻结前验收：`/srv/llmlint/data/data.db` 中固定 `light-novel/villain-loli`、`deepseek/deepseek-v4-flash` 的四臂私池为 20 个 revision、5 个 pair、20 个 pair-arm bucket；官方 owner 为 `User.neuroBookUserId=1`、本地 `User.id=4` 的 active admin，双轴盲评完整度为 **20/20**，缺失为 0。
+- 使用 SQLite `VACUUM INTO` 生成一致性快照 `/srv/llmlint/backups/t133-style-review-20260815T075229Z.db`，远端与本地 `.agent/backups/t133-style-review-20260815T075229Z.db` 的 SHA-256 均为 `sha256:2b6e7297756ec42d94519655cb6917b52c3133961507de1184407a6fa66d2aa1`；后续报告只读该快照。
+- 新增 `evals/experiments/paired-stats.ts` 统一中位数与精确符号检验；`web/scripts/style-review-report.ts` 输出 `style-arm-v2`，分离 `owner-primary` 与 `all-reviewers`，只按 pair-level 统计，不把多 reviewer 行当独立样本；修正了 reviewer 臂摘要必须跨全部 pair 聚合的回归。
+- 冻结报告 `.agent/tmp/t133-style-arm-v2-human-report-final.json`：owner `20/20`、5 个 pair、机器字段只在明细对照区；`owner-primary` 两轴主对比的每项均为 5 个 pair-level observations。当前人评不是预设胜负：control 的中位数为 `aiFlavor=1`、`wantReadOn=3`；current-default 为 `3/2`；beileng-clean 为 `2/1`；distilled 为 `2/2`。n=5 的双侧符号检验最低可达 `p=0.0625`，本报告只作方向性描述，未将任何臂写成统计显著胜者。
+- 计划出入：原先报告脚本只有明细/覆盖摘要且实验版本写成 `style-arm-v1`；本轮补齐 `style-arm-v2` 双轴配对报告、snapshot/input fingerprint、owner 门禁和探索性全评审口径。人评结果不会自动替换生产默认文风。
+- 跨题材文风集成使用五个题组的 26 篇 `role=reference`，staging 与分析产物均在 `.agent/tmp/`；26/26 分析为 `style-distill-v1`，canonical input fingerprint 为 `sha256:830cc7df815d9171697420c89efbb1ae6ef9fb23f4d20157a77639e345ea33f3`，`style.md` 通过既有来源泄漏门禁。该蒸馏结果只作候选研究资产，未自动回填四臂或生产配置。
+- 验证：`bunx vitest run tests/style-review-analysis.test.ts tests/style-review.test.ts` = 2 files / 8 tests passed；`bunx tsc --noEmit --pretty false` 通过；冻结库报告命令实际产生 20/20 报告。`style-compare.ts` 的真实机器 smoke 读取 5 对并成功输出，但外部检测器未提供 sidecar 时 `docPAi` 为 null，不能据此做机器主指标结论。

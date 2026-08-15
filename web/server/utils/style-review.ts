@@ -45,6 +45,7 @@ export type StyleReviewAdminReport = {
 };
 
 export type StyleReviewRecord = StyleReviewAdminItem & {
+    model: string;
     textId: string;
     corpusKey: string;
     sourceRef: string;
@@ -182,6 +183,7 @@ function toRecord(text: ImportedText): StyleReviewRecord | null {
     const detect = latestDetect(revision.machineDetects);
     return {
         textId: text.id,
+        model: text.modelKey ?? "",
         corpusKey,
         sourceRef,
         blindId: `blind-${hashPrefix(corpusKey, 24)}`,
