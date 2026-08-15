@@ -299,11 +299,12 @@ web/
 - [x] （⚪）右栏报告渲染（轻量摘要 + IssueList/FilterControls）、span 拖选评论、写 API 基础验证。
 - [x] 落地后同步 `PROJECT-STATUS.md` 与本 README。
 
-### 2026-08-14 Task 133 认证切换与 DMIT 前置
+### 2026-08-15 Task 133 认证切换与生产闭环
 
 - Web 认证从本地密码/注册切换为 NeuroBook 官方 OAuth Authorization Code + S256 PKCE。生产只接受 host-only `llmlint-session` sealed session；官方短时 access token 只在 callback 内存中使用，userinfo 成功后立即丢弃。
 - 本地 `User.id` 及既有文本、评分、批注外键保持不变；官方用户 ID 写入 nullable `User.neuroBookUserId`。同一官方 ID 重复登录复用原本地行；username 已存在但未映射时返回 `account_mapping_conflict`，不自动合并。
-- 删除本地密码登录、注册、admin seed 入口；生产配置缺失、错误或仍存在旧 `NUXT_ADMIN_USERNAME` / `NUXT_ADMIN_PASSWORD` 时 fail closed。登录关闭只保留本地开发身份，SSO start 返回 503，不降级密码认证。
-- 部署前置已完成：DMIT Ubuntu 24.04.3 / Node `v22.14.0` / Bun `1.3.14`，Linux frozen build 与真实 Node artifact smoke 通过；旧 Arch/ngrok 入口已停止。公网 DNS 已解析到 `64.186.225.48`，但 TLS vhost、443 stream、official provider migration、llmlint secret 和正式 unit 尚未完成，因此尚未回收真实 SSO 人评。
-- 计划出入：原计划直接安装正式服务，但实际先发现官方公网仍返回 Nuxt HTML 且线上数据库缺少 `OAuthClient`，因此先把 OAuth client 初始化工具编译进官方生产镜像并补部署 runbook，再进行双仓 PR 与生产切换。PR #1 / PR #3 均已创建且检查通过；不自行合并。
-- 代码门禁和 smoke 证据详见 `PROJECT-STATUS.md` 的 2026-08-14 t133 记录；本 walkthrough 保留流程语义，公网切换结果待后续更新。
+- llmlint PR #3 删除本地密码登录、注册和 admin seed，PR #5 修正 Nuxt 生产 runtimeConfig 映射；生产缺配置、配置错误或仍存在旧 `NUXT_ADMIN_USERNAME` / `NUXT_ADMIN_PASSWORD` 时 fail closed。当前 release 为 `/srv/llmlint/releases/t133-sso-runtime`，systemd、Nginx/TLS/443 SNI 和 proxy_protocol 31445 直连门禁均已验收。
+- 生产首次真实授权暴露两段 provider 兼容问题：consent page 的跨站 `fetch(..., redirect:"manual")` 只能得到 `opaqueredirect`，官方 PR #2 改为顶层表单 POST；随后 `openid-client` 的标准 Basic 表单编码被固定版本 OAuth library 当作原始 secret 校验，官方 PR #3 在 transport 层按 RFC 6749 逆解码。现有 secret 未轮换或输出。
+- 最终生产提交 `4ab01f4` / 镜像 `sha256:b9a06dfc...` 下，隔离真实浏览器用户已完成批准、token/userinfo、llmlint session、`User.neuroBookUserId` 映射和 `/api/style-review` 20 项读取。provider 生成 1 个 consumed code 和 1 个 access token；验收后临时官方用户、注册码、code/token 与 llmlint 映射全部清理。
+- 生产健康与数据计数：`/api/health` 200 且 database ok；盲评池为 20 Text / 20 Revision / 20 MachineScan / 20 MachineDetect，`User=2`、`DocJudgment=0`。剩余工作是 owner admin 完成实际 SSO 登录并提交 20 份双轴盲评，再运行跨题材集成分析。
+- 计划出入：原计划一次切换后直接回收人评，实际依次遇到 Nuxt 环境变量命名、浏览器 opaque redirect 和 Basic 表单编码三类跨层合同问题；每段均以生产红路径复现、聚焦回归测试和真实浏览器 smoke 收口，没有用密码登录或 URL-safe secret 特例绕过。
